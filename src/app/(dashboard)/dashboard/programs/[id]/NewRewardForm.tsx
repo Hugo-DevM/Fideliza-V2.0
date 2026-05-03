@@ -6,15 +6,22 @@ import { createRewardAction } from './actions';
 
 type ProgramType = 'points' | 'stamp' | 'visit' | 'cashback';
 
-export default function NewRewardForm({ programId, programType }: { programId: string; programType: ProgramType }) {
-  // cost_points only makes sense for points programs.
-  // For stamp/visit the threshold is the program config. For cashback the balance is automatic.
-  const showCostPoints = programType === 'points';
+interface Props {
+  programId: string;
+  programType: ProgramType;
+  programConfig: Record<string, unknown>;
+}
+
+export default function NewRewardForm({ programId, programType, programConfig }: Props) {
   const [open, setOpen]   = useState(false);
   const [error, setError] = useState('');
   const [isPending, startTransition] = useTransition();
   const formRef = useRef<HTMLFormElement>(null);
   const router  = useRouter();
+
+  // Derive the redemption threshold from program config for stamp/visit
+  const stampThreshold = typeof programConfig.stamps_needed === 'number' ? programConfig.stamps_needed : null;
+  const visitThreshold = typeof programConfig.visits_needed === 'number' ? programConfig.visits_needed : null;
 
   function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -59,15 +66,37 @@ export default function NewRewardForm({ programId, programType }: { programId: s
             <label className="block text-xs font-medium text-gray-600 mb-1">Description</label>
             <input name="description" type="text" placeholder="Any size, any drink" className={inputCls} />
           </div>
-          {showCostPoints ? (
+
+          {/* cost_points: only shown for points/cashback — for stamp/visit it's auto-set from program config */}
+          {programType === 'points' && (
             <div>
               <label className="block text-xs font-medium text-gray-600 mb-1">Cost (points) *</label>
               <input name="cost_points" type="number" min="1" required placeholder="250" className={inputCls} />
             </div>
-          ) : (
-            // Hidden — threshold is defined by the program config, not the reward
-            <input type="hidden" name="cost_points" value="1" />
           )}
+          {programType === 'cashback' && (
+            <div>
+              <label className="block text-xs font-medium text-gray-600 mb-1">Minimum balance to redeem *</label>
+              <input name="cost_points" type="number" min="1" required placeholder="500" className={inputCls} />
+            </div>
+          )}
+          {programType === 'stamp' && stampThreshold !== null && (
+            <>
+              <input type="hidden" name="cost_points" value={stampThreshold} />
+              <div className="col-span-2 rounded-lg bg-purple-50 border border-purple-100 px-3 py-2 text-xs text-purple-700">
+                Se entrega automáticamente al completar <strong>{stampThreshold} sellos</strong> (definido en el programa)
+              </div>
+            </>
+          )}
+          {programType === 'visit' && visitThreshold !== null && (
+            <>
+              <input type="hidden" name="cost_points" value={visitThreshold} />
+              <div className="col-span-2 rounded-lg bg-green-50 border border-green-100 px-3 py-2 text-xs text-green-700">
+                Se entrega automáticamente al alcanzar <strong>{visitThreshold} visitas</strong> (definido en el programa)
+              </div>
+            </>
+          )}
+
           <div>
             <label className="block text-xs font-medium text-gray-600 mb-1">Expiry (days)</label>
             <input name="expiry_days" type="number" min="1" placeholder="30" className={inputCls} />

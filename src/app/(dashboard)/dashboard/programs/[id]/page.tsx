@@ -124,7 +124,11 @@ export default async function ProgramDetailPage({
               ))}
               {program.status !== 'archived' && (
                 <div className="pt-1">
-                  <NewRewardForm programId={program.id} programType={program.type as 'points' | 'stamp' | 'visit' | 'cashback'} />
+                  <NewRewardForm
+                  programId={program.id}
+                  programType={program.type as 'points' | 'stamp' | 'visit' | 'cashback'}
+                  programConfig={program.config as unknown as Record<string, unknown>}
+                />
                 </div>
               )}
             </div>

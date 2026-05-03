@@ -45,6 +45,7 @@ export async function getTenantBySubdomainPublic(subdomain: string): Promise<{ i
 // ── Response types ────────────────────────────────────────────────────
 
 export interface PortalTenant {
+  id: string;
   name: string;
   subdomain: string;
   primary_color: string;
@@ -75,6 +76,7 @@ export interface PortalReward {
 }
 
 export interface PortalEnrollment {
+  enrollment_id: string;
   program_id: string;
   program_name: string;
   program_type: 'points' | 'stamp' | 'visit' | 'cashback';
@@ -151,7 +153,7 @@ export async function getPortalData(
     db
       .from('customer_program_enrollments')
       .select(`
-        current_points, lifetime_points, stamp_count, visit_count,
+        id, current_points, lifetime_points, stamp_count, visit_count,
         enrolled_at, last_activity_at,
         reward_programs!inner(id, name, type, config, status)
       `)
@@ -197,8 +199,9 @@ export async function getPortalData(
     : raw.tenant_settings;
 
   const tenant: PortalTenant = {
-    name: raw.name,
-    subdomain: raw.subdomain,
+    id:              tenantId,
+    name:            raw.name,
+    subdomain:       raw.subdomain,
     primary_color:   settings?.primary_color   ?? '#6366F1',
     secondary_color: settings?.secondary_color ?? '#A5B4FC',
     welcome_message: settings?.welcome_message ?? null,
@@ -207,6 +210,7 @@ export async function getPortalData(
 
   // ── 4. Parse enrollments + fetch affordable rewards ───────────────
   type RawEnrollment = {
+    id: string;
     current_points: number;
     lifetime_points: number;
     stamp_count: number;
@@ -260,10 +264,11 @@ export async function getPortalData(
   }
 
   const enrollments: PortalEnrollment[] = rawEnrollments.map((e) => {
-    const program = e.reward_programs!;
+    const program  = e.reward_programs!;
     const allProgramRewards = rewardsMap.get(program.id) ?? [];
 
     return {
+      enrollment_id:     e.id,
       program_id:        program.id,
       program_name:      program.name,
       program_type:      program.type,

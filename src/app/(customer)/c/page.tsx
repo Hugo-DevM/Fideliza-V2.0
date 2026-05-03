@@ -11,6 +11,7 @@ import Link from 'next/link';
 import { headers } from 'next/headers';
 import { notFound } from 'next/navigation';
 import CodeEntryForm from './CodeEntryForm';
+import RedeemButton from './RedeemButton';
 import { getPortalData, getTenantBySubdomainPublic } from '@/modules/portal';
 import { NotFoundError, TenantNotFoundError } from '@/lib/middleware/errors';
 import type {
@@ -191,6 +192,7 @@ function PortalShell({ data, code, tab }: { data: PortalData; code: string; tab:
           <RewardsTab
             enrollments={enrollments}
             tenant={tenant}
+            customerId={customer.id}
           />
         )}
 
@@ -280,13 +282,13 @@ function PointsTab({
 function RewardsTab({
   enrollments,
   tenant,
+  customerId,
 }: {
   enrollments: PortalEnrollment[];
   tenant: PortalData['tenant'];
+  customerId: string;
 }) {
-  const allRewards = enrollments.flatMap((e) =>
-    e.rewards.map((r) => ({ ...r, programName: e.program_name, currentPoints: e.current_points }))
-  );
+  const allRewards = enrollments.flatMap((e) => e.rewards);
 
   if (allRewards.length === 0) {
     return (
@@ -311,6 +313,9 @@ function RewardsTab({
                   key={r.id}
                   reward={r}
                   primaryColor={tenant.primary_color}
+                  tenantId={tenant.id}
+                  customerId={customerId}
+                  enrollmentId={e.enrollment_id}
                 />
               ))}
             </div>
@@ -324,9 +329,15 @@ function RewardsTab({
 function RewardRow({
   reward: r,
   primaryColor,
+  tenantId,
+  customerId,
+  enrollmentId,
 }: {
   reward: PortalReward;
   primaryColor: string;
+  tenantId: string;
+  customerId: string;
+  enrollmentId: string;
 }) {
   const amountNeeded = Math.max(0, r.progress_total - r.progress_current);
   const progressPct  = r.progress_total > 0
@@ -381,9 +392,13 @@ function RewardRow({
         )}
 
         {r.is_affordable && (
-          <p className="mt-1 text-xs font-medium" style={{ color: primaryColor }}>
-            Ready to redeem — ask staff!
-          </p>
+          <RedeemButton
+            tenantId={tenantId}
+            customerId={customerId}
+            rewardId={r.id}
+            enrollmentId={enrollmentId}
+            primaryColor={primaryColor}
+          />
         )}
 
         {r.expiry_days && (
