@@ -4,7 +4,12 @@ import { useState, useTransition, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { createRewardAction } from './actions';
 
-export default function NewRewardForm({ programId }: { programId: string }) {
+type ProgramType = 'points' | 'stamp' | 'visit' | 'cashback';
+
+export default function NewRewardForm({ programId, programType }: { programId: string; programType: ProgramType }) {
+  // cost_points only makes sense for points programs.
+  // For stamp/visit the threshold is the program config. For cashback the balance is automatic.
+  const showCostPoints = programType === 'points';
   const [open, setOpen]   = useState(false);
   const [error, setError] = useState('');
   const [isPending, startTransition] = useTransition();
@@ -54,10 +59,15 @@ export default function NewRewardForm({ programId }: { programId: string }) {
             <label className="block text-xs font-medium text-gray-600 mb-1">Description</label>
             <input name="description" type="text" placeholder="Any size, any drink" className={inputCls} />
           </div>
-          <div>
-            <label className="block text-xs font-medium text-gray-600 mb-1">Cost (points) *</label>
-            <input name="cost_points" type="number" min="1" required placeholder="250" className={inputCls} />
-          </div>
+          {showCostPoints ? (
+            <div>
+              <label className="block text-xs font-medium text-gray-600 mb-1">Cost (points) *</label>
+              <input name="cost_points" type="number" min="1" required placeholder="250" className={inputCls} />
+            </div>
+          ) : (
+            // Hidden — threshold is defined by the program config, not the reward
+            <input type="hidden" name="cost_points" value="1" />
+          )}
           <div>
             <label className="block text-xs font-medium text-gray-600 mb-1">Expiry (days)</label>
             <input name="expiry_days" type="number" min="1" placeholder="30" className={inputCls} />

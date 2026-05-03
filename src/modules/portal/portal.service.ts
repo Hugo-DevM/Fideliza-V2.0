@@ -68,6 +68,10 @@ export interface PortalReward {
   expiry_days: number | null;
   is_affordable: boolean;
   is_out_of_stock: boolean;
+  // Progress towards this reward (varies by program type)
+  progress_current: number;  // stamps collected / visits done / points earned
+  progress_total: number;    // stamps needed / visits needed / cost in points
+  progress_label: string;    // "stamps" | "visits" | program_label (e.g. "Beans")
 }
 
 export interface PortalEnrollment {
@@ -270,15 +274,48 @@ export async function getPortalData(
       visit_count:       e.visit_count,
       enrolled_at:       e.enrolled_at,
       last_activity_at:  e.last_activity_at,
-      rewards: allProgramRewards.map((r) => ({
-        id:             r.id,
-        name:           r.name,
-        description:    r.description,
-        cost_points:    r.cost_points,
-        expiry_days:    r.expiry_days,
-        is_affordable:  e.current_points >= r.cost_points && (r.stock === null || r.stock > 0),
-        is_out_of_stock: r.stock !== null && r.stock <= 0,
-      })),
+      rewards: allProgramRewards.map((r) => {
+        const inStock = r.stock === null || r.stock > 0;
+
+        // Determine affordability and progress based on program type
+        let is_affordable: boolean;
+        let progress_current: number;
+        let progress_total: number;
+        let progress_label: string;
+
+        if (program.type === 'stamp') {
+          const needed = typeof program.config.stamps_needed === 'number' ? program.config.stamps_needed : 0;
+          is_affordable   = e.stamp_count >= needed && inStock;
+          progress_current = e.stamp_count;
+          progress_total   = needed;
+          progress_label   = 'stamps';
+        } else if (program.type === 'visit') {
+          const needed = typeof program.config.visits_needed === 'number' ? program.config.visits_needed : 0;
+          is_affordable   = e.visit_count >= needed && inStock;
+          progress_current = e.visit_count;
+          progress_total   = needed;
+          progress_label   = 'visits';
+        } else {
+          // points & cashback: use current_points vs cost_points
+          is_affordable   = e.current_points >= r.cost_points && inStock;
+          progress_current = e.current_points;
+          progress_total   = r.cost_points;
+          progress_label   = tenant.program_label;
+        }
+
+        return {
+          id:              r.id,
+          name:            r.name,
+          description:     r.description,
+          cost_points:     r.cost_points,
+          expiry_days:     r.expiry_days,
+          is_affordable,
+          is_out_of_stock: !inStock,
+          progress_current,
+          progress_total,
+          progress_label,
+        };
+      }),
     };
   });
 

@@ -310,9 +310,7 @@ function RewardsTab({
                 <RewardRow
                   key={r.id}
                   reward={r}
-                  currentPoints={e.current_points}
                   primaryColor={tenant.primary_color}
-                  programLabel={tenant.program_label}
                 />
               ))}
             </div>
@@ -325,17 +323,15 @@ function RewardsTab({
 
 function RewardRow({
   reward: r,
-  currentPoints,
   primaryColor,
-  programLabel,
 }: {
   reward: PortalReward;
-  currentPoints: number;
   primaryColor: string;
-  programLabel: string;
 }) {
-  const pointsNeeded = Math.max(0, r.cost_points - currentPoints);
-  const progressPct = Math.min(100, (currentPoints / r.cost_points) * 100);
+  const amountNeeded = Math.max(0, r.progress_total - r.progress_current);
+  const progressPct  = r.progress_total > 0
+    ? Math.min(100, (r.progress_current / r.progress_total) * 100)
+    : 0;
 
   return (
     <div className={`flex items-start gap-3 px-4 py-4 ${!r.is_affordable ? 'opacity-75' : ''}`}>
@@ -358,7 +354,7 @@ function RewardRow({
             className="shrink-0 font-mono text-xs font-semibold"
             style={{ color: r.is_affordable ? primaryColor : '#6B7280' }}
           >
-            {r.cost_points.toLocaleString()} {programLabel}
+            {r.progress_total.toLocaleString()} {r.progress_label}
           </p>
         </div>
 
@@ -379,7 +375,7 @@ function RewardRow({
               />
             </div>
             <p className="mt-1 text-xs text-gray-400">
-              {pointsNeeded.toLocaleString()} more {programLabel} needed
+              {amountNeeded.toLocaleString()} more {r.progress_label} needed
             </p>
           </>
         )}
@@ -498,7 +494,7 @@ function EnrollmentCard({
               <li key={r.id} className="flex items-center justify-between text-sm">
                 <span className="text-gray-700">{r.name}</span>
                 <span className="font-mono text-xs text-gray-400">
-                  {r.cost_points.toLocaleString()} {programLabel}
+                  {r.progress_total.toLocaleString()} {r.progress_label}
                 </span>
               </li>
             ))}

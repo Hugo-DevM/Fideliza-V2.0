@@ -107,7 +107,9 @@ export default async function ProgramDetailPage({
                   <div className="min-w-0">
                     <p className="text-sm font-medium text-gray-800 truncate">{r.name}</p>
                     <div className="flex gap-3 text-xs text-gray-400 mt-0.5">
-                      <span>{r.cost_points} {settings.program_label}</span>
+                      {program.type === 'points' && (
+                        <span>{r.cost_points} {settings.program_label}</span>
+                      )}
                       {r.stock !== null && <span>Stock: {r.stock}</span>}
                       {r.expiry_days && <span>Expires in {r.expiry_days}d</span>}
                       <span>{r.redeemed_count} redeemed</span>
@@ -122,7 +124,7 @@ export default async function ProgramDetailPage({
               ))}
               {program.status !== 'archived' && (
                 <div className="pt-1">
-                  <NewRewardForm programId={program.id} />
+                  <NewRewardForm programId={program.id} programType={program.type as 'points' | 'stamp' | 'visit' | 'cashback'} />
                 </div>
               )}
             </div>
