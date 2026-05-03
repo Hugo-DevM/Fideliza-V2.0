@@ -20,6 +20,7 @@
 
 import { createServiceRoleClient } from '@/lib/supabase/server';
 import { logger } from '@/lib/utils/logger';
+import type { Json } from '@/lib/supabase/database.types';
 
 export interface AuditEventInput {
   tenantId: string;
@@ -49,7 +50,7 @@ export async function auditLog(input: AuditEventInput): Promise<void> {
       event_type:    input.eventType,
       resource_type: input.resourceType ?? null,
       resource_id:   input.resourceId  ?? null,
-      metadata:      input.metadata    ?? {},
+      metadata:      (input.metadata ?? {}) as unknown as Json,
       ip_address:    input.ipAddress   ?? null,
       request_id:    input.requestId   ?? null,
     });
