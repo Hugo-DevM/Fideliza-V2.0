@@ -146,18 +146,17 @@ export const UpdateRewardProgramSchema = z.object({
   (data) => !data.starts_at || !data.ends_at || data.starts_at < data.ends_at,
   { message: 'ends_at must be after starts_at', path: ['ends_at'] }
 )
-.refine(
-  (data) => {
-    if (!data.config || !data.type) return true;
-    return validateProgramConfig(data.type, data.config) === null;
-  },
-  (data) => ({
-    message: data.type && data.config
-      ? (validateProgramConfig(data.type, data.config) ?? 'Invalid config')
-      : 'Invalid config',
-    path: ['config'],
-  })
-);
+.superRefine((data, ctx) => {
+  if (!data.config || !data.type) return;
+  const err = validateProgramConfig(data.type, data.config);
+  if (err !== null) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: err ?? 'Invalid config',
+      path: ['config'],
+    });
+  }
+});
 
 export const UpdateRewardSchema = z.object({
   name:        z.string().min(2).max(150).trim().optional(),
