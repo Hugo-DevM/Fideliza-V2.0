@@ -1,0 +1,124 @@
+/**
+ * Tenant repository — all DB interactions for the tenants module.
+ * Never call this from client components. Server-only.
+ */
+
+import { createServerClient } from '@/lib/supabase/server';
+import type { Tenant, TenantSettings, UUID } from '@/lib/types';
+import { NotFoundError, TenantNotFoundError } from '@/lib/middleware/errors';
+
+export async function getTenantBySubdomain(subdomain: string): Promise<Tenant> {
+  const db = await createServerClient();
+
+  const { data, error } = await db
+    .from('tenants')
+    .select('*')
+    .eq('subdomain', subdomain.toLowerCase())
+    .eq('is_active', true)
+    .single();
+
+  if (error || !data) {
+    throw new TenantNotFoundError(subdomain);
+  }
+
+  return data as Tenant;
+}
+
+export async function getTenantById(id: UUID): Promise<Tenant> {
+  const db = await createServerClient();
+
+  const { data, error } = await db
+    .from('tenants')
+    .select('*')
+    .eq('id', id)
+    .eq('is_active', true)
+    .single();
+
+  if (error || !data) {
+    throw new NotFoundError('Tenant');
+  }
+
+  return data as Tenant;
+}
+
+export async function getTenantSettings(tenantId: UUID): Promise<TenantSettings> {
+  const db = await createServerClient();
+
+  const { data, error } = await db
+    .from('tenant_settings')
+    .select('*')
+    .eq('tenant_id', tenantId)
+    .single();
+
+  if (error || !data) {
+    throw new NotFoundError('TenantSettings');
+  }
+
+  return data as TenantSettings;
+}
+
+export async function createTenant(
+  input: Omit<Tenant, 'id' | 'created_at' | 'updated_at'>
+): Promise<Tenant> {
+  const db = await createServerClient();
+
+  const { data, error } = await db
+    .from('tenants')
+    .insert(input)
+    .select('*')
+    .single();
+
+  if (error || !data) {
+    throw new Error(`Failed to create tenant: ${error?.message}`);
+  }
+
+  return data as Tenant;
+}
+
+export async function updateTenantSettings(
+  tenantId: UUID,
+  input: {
+    primary_color?: string;
+    secondary_color?: string;
+    welcome_message?: string | null;
+    program_label?: string;
+  }
+): Promise<TenantSettings> {
+  const db = await createServerClient();
+
+  const { data, error } = await db
+    .from('tenant_settings')
+    .update({
+      ...input,
+      updated_at: new Date().toISOString(),
+    })
+    .eq('tenant_id', tenantId)
+    .select('*')
+    .single();
+
+  if (error || !data) {
+    throw new Error(`Failed to update tenant settings: ${error?.message}`);
+  }
+
+  return data as TenantSettings;
+}
+
+export async function updateTenant(
+  id: UUID,
+  input: Partial<Omit<Tenant, 'id' | 'created_at' | 'updated_at'>>
+): Promise<Tenant> {
+  const db = await createServerClient();
+
+  const { data, error } = await db
+    .from('tenants')
+    .update({ ...input, updated_at: new Date().toISOString() })
+    .eq('id', id)
+    .select('*')
+    .single();
+
+  if (error || !data) {
+    throw new Error(`Failed to update tenant: ${error?.message}`);
+  }
+
+  return data as Tenant;
+}

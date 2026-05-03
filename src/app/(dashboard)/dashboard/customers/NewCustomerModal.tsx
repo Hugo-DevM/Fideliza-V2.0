@@ -1,0 +1,99 @@
+'use client';
+
+import { useState, useTransition, useRef } from 'react';
+import { useRouter } from 'next/navigation';
+import { createCustomerAction } from './actions';
+
+export default function NewCustomerModal() {
+  const [open, setOpen]       = useState(false);
+  const [error, setError]     = useState('');
+  const [isPending, startTransition] = useTransition();
+  const formRef = useRef<HTMLFormElement>(null);
+  const router  = useRouter();
+
+  function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    setError('');
+    const data = new FormData(e.currentTarget);
+
+    startTransition(async () => {
+      const result = await createCustomerAction(data);
+      if ('error' in result && result.error) {
+        setError(result.error);
+      } else {
+        formRef.current?.reset();
+        setOpen(false);
+        router.refresh();
+      }
+    });
+  }
+
+  return (
+    <>
+      <button
+        onClick={() => setOpen(true)}
+        className="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-indigo-700"
+      >
+        + New Customer
+      </button>
+
+      {open && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
+          <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-xl">
+            <div className="mb-5 flex items-center justify-between">
+              <h2 className="text-base font-bold text-gray-900">Add customer</h2>
+              <button onClick={() => setOpen(false)} className="text-gray-400 hover:text-gray-600 text-xl leading-none">×</button>
+            </div>
+
+            <form ref={formRef} onSubmit={handleSubmit} className="space-y-4">
+              {error && (
+                <p className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-600">{error}</p>
+              )}
+
+              <Field label="Full name *" name="name" type="text" placeholder="Alice Méndez" required />
+              <Field label="Phone" name="phone" type="tel" placeholder="+15551234567" />
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Notes</label>
+                <textarea
+                  name="notes"
+                  rows={2}
+                  placeholder="Internal notes (not visible to customer)"
+                  className={inputCls}
+                />
+              </div>
+
+              <div className="flex justify-end gap-3 pt-1">
+                <button type="button" onClick={() => setOpen(false)}
+                  className="rounded-lg border px-4 py-2 text-sm font-medium text-gray-600 hover:bg-gray-50"
+                >
+                  Cancel
+                </button>
+                <button type="submit" disabled={isPending}
+                  className="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-700 disabled:opacity-50"
+                >
+                  {isPending ? 'Creating…' : 'Create customer'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+    </>
+  );
+}
+
+const inputCls =
+  'w-full rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-900 placeholder-gray-400 outline-none transition focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100';
+
+function Field({
+  label, name, type, placeholder, required,
+}: {
+  label: string; name: string; type: string; placeholder?: string; required?: boolean;
+}) {
+  return (
+    <div>
+      <label className="block text-sm font-medium text-gray-700 mb-1">{label}</label>
+      <input name={name} type={type} placeholder={placeholder} required={required} className={inputCls} />
+    </div>
+  );
+}

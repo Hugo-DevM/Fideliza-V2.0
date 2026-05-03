@@ -1,0 +1,42 @@
+'use server';
+
+import { revalidatePath } from 'next/cache';
+import { getAuthenticatedTenant } from '@/lib/auth/get-tenant';
+import { createProgram } from '@/modules/rewards';
+import type { ProgramType } from '@/lib/types';
+
+export async function createProgramAction(formData: FormData) {
+  const { tenantId } = await getAuthenticatedTenant();
+
+  const name        = (formData.get('name')        as string).trim();
+  const description = (formData.get('description') as string | null)?.trim() || null;
+  const type        = formData.get('type') as ProgramType;
+
+  if (!name || !type) return { error: 'Name and type are required' };
+
+  // Build config from type-specific fields
+  let config: Record<string, unknown> = {};
+  if (type === 'points') {
+    config = {
+      points_per_dollar: parseFloat(formData.get('points_per_dollar') as string) || 10,
+      min_redeem:        parseInt(formData.get('min_redeem') as string, 10) || 100,
+    };
+  } else if (type === 'stamp') {
+    config = { stamps_needed: parseInt(formData.get('stamps_needed') as string, 10) || 10 };
+  } else if (type === 'visit') {
+    config = { visits_needed: parseInt(formData.get('visits_needed') as string, 10) || 5 };
+  } else if (type === 'cashback') {
+    config = {
+      cashback_percent:   parseFloat(formData.get('cashback_percent') as string) || 5,
+      min_purchase_cents: Math.round((parseFloat(formData.get('min_purchase') as string) || 10) * 100),
+    };
+  }
+
+  try {
+    const program = await createProgram(tenantId, { name, description, type, config });
+    revalidatePath('/dashboard/programs');
+    return { success: true, programId: program.id };
+  } catch (err) {
+    return { error: err instanceof Error ? err.message : 'Failed to create program' };
+  }
+}

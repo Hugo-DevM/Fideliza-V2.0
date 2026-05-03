@@ -1,0 +1,582 @@
+'use client';
+
+import { useState, useTransition, useEffect, useCallback } from 'react';
+import { useRouter } from 'next/navigation';
+import { createBrowserClient } from '@supabase/ssr';
+import { setupTenantAction, checkSubdomainAction } from './actions';
+
+// ── Plan definitions ──────────────────────────────────────────────────────────
+
+const PLANS = [
+  {
+    id:          'free' as const,
+    name:        'Free',
+    price:       '$0',
+    period:      'forever',
+    description: 'Try it out with no commitment.',
+    features:    ['Up to 50 customers', '1 loyalty program', 'All program types', 'Customer portal'],
+    highlight:   false,
+  },
+  {
+    id:          'starter' as const,
+    name:        'Starter',
+    price:       '$29',
+    period:      'per month',
+    description: 'For growing independent businesses.',
+    features:    ['Up to 500 customers', '3 loyalty programs', 'All program types', 'Priority support'],
+    highlight:   true,
+  },
+  {
+    id:          'pro' as const,
+    name:        'Pro',
+    price:       '$79',
+    period:      'per month',
+    description: 'No limits. Full power.',
+    features:    ['Unlimited customers', 'Unlimited programs', 'Custom branding', 'Analytics dashboard'],
+    highlight:   false,
+  },
+] as const;
+
+type Plan = 'free' | 'starter' | 'pro';
+type Step = 1 | 2 | 3;
+
+// ── Input style ───────────────────────────────────────────────────────────────
+
+const inputCls = (hasError?: boolean) =>
+  `w-full rounded-lg border px-4 py-2.5 text-sm text-gray-900 placeholder-gray-400 outline-none transition
+   focus:ring-2 focus:ring-indigo-100
+   ${hasError
+     ? 'border-red-300 focus:border-red-400'
+     : 'border-gray-200 focus:border-indigo-400'}`;
+
+// ── Main component ────────────────────────────────────────────────────────────
+
+export default function RegisterForm() {
+  const router = useRouter();
+  const [isPending, startTransition] = useTransition();
+
+  // Step state
+  const [step, setStep] = useState<Step>(1);
+
+  // Step 1 — Account
+  const [fullName,        setFullName]        = useState('');
+  const [email,           setEmail]           = useState('');
+  const [password,        setPassword]        = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [acceptedTerms,   setAcceptedTerms]   = useState(false);
+  const [showPassword,    setShowPassword]    = useState(false);
+
+  // Step 2 — Business
+  const [businessName,      setBusinessName]      = useState('');
+  const [subdomain,         setSubdomain]         = useState('');
+  const [subdomainStatus,   setSubdomainStatus]   = useState<'idle' | 'checking' | 'available' | 'taken' | 'invalid'>('idle');
+  const [subdomainError,    setSubdomainError]    = useState('');
+  const [subdomainTouched,  setSubdomainTouched]  = useState(false);
+
+  // Step 3 — Plan
+  const [plan, setPlan] = useState<Plan>('free');
+
+  // Global error / success
+  const [globalError, setGlobalError] = useState('');
+
+  // Supabase browser client
+  const supabase = createBrowserClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  );
+
+  // ── Auto-generate subdomain from business name ──────────────────────────
+  useEffect(() => {
+    if (!subdomainTouched && businessName) {
+      const generated = businessName
+        .toLowerCase()
+        .replace(/[^a-z0-9\s-]/g, '')
+        .trim()
+        .replace(/\s+/g, '-')
+        .replace(/-+/g, '-')
+        .slice(0, 40);
+      setSubdomain(generated);
+    }
+  }, [businessName, subdomainTouched]);
+
+  // ── Subdomain availability check (debounced) ────────────────────────────
+  const checkSubdomain = useCallback(async (value: string) => {
+    if (!value || value.length < 3) {
+      setSubdomainStatus('idle');
+      return;
+    }
+    setSubdomainStatus('checking');
+    setSubdomainError('');
+    const result = await checkSubdomainAction(value);
+    if (result.error) {
+      setSubdomainStatus('invalid');
+      setSubdomainError(result.error);
+    } else if (result.available) {
+      setSubdomainStatus('available');
+    } else {
+      setSubdomainStatus('taken');
+      setSubdomainError('This subdomain is already taken. Try another.');
+    }
+  }, []);
+
+  useEffect(() => {
+    if (!subdomain) { setSubdomainStatus('idle'); return; }
+    const timer = setTimeout(() => checkSubdomain(subdomain), 500);
+    return () => clearTimeout(timer);
+  }, [subdomain, checkSubdomain]);
+
+  // ── Step 1 validation ───────────────────────────────────────────────────
+  function validateStep1(): string | null {
+    if (!fullName.trim() || fullName.trim().length < 2) return 'Full name must be at least 2 characters.';
+    if (!email) return 'Email is required.';
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return 'Enter a valid email address.';
+    if (password.length < 8) return 'Password must be at least 8 characters.';
+    if (password !== confirmPassword) return 'Passwords do not match.';
+    if (!acceptedTerms) return 'You must accept the Terms of Service and Privacy Policy.';
+    return null;
+  }
+
+  // ── Step 2 validation ───────────────────────────────────────────────────
+  function validateStep2(): string | null {
+    if (!businessName.trim() || businessName.trim().length < 2) return 'Business name must be at least 2 characters.';
+    if (!subdomain || subdomain.length < 3) return 'Subdomain must be at least 3 characters.';
+    if (subdomainStatus === 'taken' || subdomainStatus === 'invalid') return subdomainError || 'Choose a different subdomain.';
+    if (subdomainStatus === 'checking') return 'Wait for subdomain check to complete.';
+    return null;
+  }
+
+  // ── Navigate steps ──────────────────────────────────────────────────────
+  function goToStep2() {
+    const err = validateStep1();
+    if (err) { setGlobalError(err); return; }
+    setGlobalError('');
+    setStep(2);
+  }
+
+  function goToStep3() {
+    const err = validateStep2();
+    if (err) { setGlobalError(err); return; }
+    setGlobalError('');
+    setStep(3);
+  }
+
+  // ── Final submit ────────────────────────────────────────────────────────
+  async function handleSubmit() {
+    setGlobalError('');
+
+    startTransition(async () => {
+      // 1. Create Supabase auth user
+      const { data: authData, error: signUpError } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          data: { full_name: fullName.trim() },
+          emailRedirectTo: `${window.location.origin}/auth/callback`,
+        },
+      });
+
+      if (signUpError) {
+        setGlobalError(signUpError.message);
+        return;
+      }
+
+      const userId = authData.user?.id;
+      if (!userId) {
+        setGlobalError('Signup failed — no user returned. Try again.');
+        return;
+      }
+
+      // 2. Create tenant + bind tenant_id to user metadata (server action)
+      const result = await setupTenantAction({
+        userId,
+        email,
+        businessName: businessName.trim(),
+        subdomain,
+        plan,
+      });
+
+      if (result.error) {
+        setGlobalError(result.error);
+        return;
+      }
+
+      // 3. If session exists (email confirmation disabled) → dashboard
+      //    Otherwise → confirm email screen
+      if (authData.session) {
+        router.push('/dashboard');
+      } else {
+        router.push('/auth/register/confirm?email=' + encodeURIComponent(email));
+      }
+    });
+  }
+
+  // ── Step indicator ──────────────────────────────────────────────────────
+  const steps = [
+    { n: 1, label: 'Account' },
+    { n: 2, label: 'Business' },
+    { n: 3, label: 'Plan' },
+  ];
+
+  return (
+    <div className="w-full space-y-6">
+      {/* Step indicator */}
+      <div className="flex items-center justify-center gap-0">
+        {steps.map(({ n, label }, i) => (
+          <div key={n} className="flex items-center">
+            <div className="flex flex-col items-center">
+              <div
+                className={`flex h-8 w-8 items-center justify-center rounded-full text-sm font-semibold transition-all ${
+                  step === n
+                    ? 'bg-indigo-600 text-white'
+                    : step > n
+                      ? 'bg-indigo-100 text-indigo-600'
+                      : 'bg-gray-100 text-gray-400'
+                }`}
+              >
+                {step > n ? (
+                  <svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                  </svg>
+                ) : n}
+              </div>
+              <span className={`mt-1 text-xs font-medium ${step === n ? 'text-indigo-600' : 'text-gray-400'}`}>
+                {label}
+              </span>
+            </div>
+            {i < steps.length - 1 && (
+              <div className={`mx-3 mb-4 h-px w-12 transition-colors ${step > n ? 'bg-indigo-300' : 'bg-gray-200'}`} />
+            )}
+          </div>
+        ))}
+      </div>
+
+      {/* Card */}
+      <div className="rounded-2xl border bg-white p-8 shadow-sm">
+        {globalError && (
+          <div className="mb-5 rounded-lg bg-red-50 px-4 py-3 text-sm text-red-600">
+            {globalError}
+          </div>
+        )}
+
+        {/* ── STEP 1: Account ────────────────────────────────────────── */}
+        {step === 1 && (
+          <div className="space-y-5">
+            <div>
+              <h2 className="text-xl font-bold text-gray-900">Create your account</h2>
+              <p className="mt-1 text-sm text-gray-500">Your personal login credentials.</p>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Full name</label>
+              <input
+                type="text"
+                autoFocus
+                value={fullName}
+                onChange={(e) => setFullName(e.target.value)}
+                placeholder="Jane Smith"
+                className={inputCls()}
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Email address</label>
+              <input
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="you@yourshop.com"
+                className={inputCls()}
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Password</label>
+              <div className="relative">
+                <input
+                  type={showPassword ? 'text' : 'password'}
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="At least 8 characters"
+                  className={inputCls(password.length > 0 && password.length < 8)}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword((v) => !v)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                  tabIndex={-1}
+                >
+                  {showPassword ? (
+                    <svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21" />
+                    </svg>
+                  ) : (
+                    <svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                    </svg>
+                  )}
+                </button>
+              </div>
+              {/* Strength bar */}
+              {password.length > 0 && (
+                <div className="mt-1.5 flex gap-1">
+                  {[1, 2, 3, 4].map((i) => (
+                    <div
+                      key={i}
+                      className={`h-1 flex-1 rounded-full transition-all ${
+                        password.length >= i * 3
+                          ? password.length >= 12 ? 'bg-green-500' : password.length >= 8 ? 'bg-yellow-400' : 'bg-red-400'
+                          : 'bg-gray-100'
+                      }`}
+                    />
+                  ))}
+                </div>
+              )}
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Confirm password</label>
+              <input
+                type={showPassword ? 'text' : 'password'}
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                placeholder="Repeat your password"
+                className={inputCls(confirmPassword.length > 0 && confirmPassword !== password)}
+              />
+              {confirmPassword.length > 0 && confirmPassword !== password && (
+                <p className="mt-1 text-xs text-red-500">Passwords do not match</p>
+              )}
+            </div>
+
+            <label className="flex items-start gap-3 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={acceptedTerms}
+                onChange={(e) => setAcceptedTerms(e.target.checked)}
+                className="mt-0.5 h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500 cursor-pointer"
+              />
+              <span className="text-sm text-gray-600 leading-relaxed">
+                I agree to the{' '}
+                <a href="/en/terms" target="_blank" className="text-indigo-600 hover:underline font-medium">
+                  Terms of Service
+                </a>{' '}
+                and{' '}
+                <a href="/en/privacy" target="_blank" className="text-indigo-600 hover:underline font-medium">
+                  Privacy Policy
+                </a>
+              </span>
+            </label>
+
+            <button
+              type="button"
+              onClick={goToStep2}
+              className="w-full rounded-lg bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-indigo-700 active:scale-[0.99]"
+            >
+              Continue →
+            </button>
+          </div>
+        )}
+
+        {/* ── STEP 2: Business ───────────────────────────────────────── */}
+        {step === 2 && (
+          <div className="space-y-5">
+            <div>
+              <h2 className="text-xl font-bold text-gray-900">About your business</h2>
+              <p className="mt-1 text-sm text-gray-500">This is how your customers will see you.</p>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Business name</label>
+              <input
+                type="text"
+                autoFocus
+                value={businessName}
+                onChange={(e) => setBusinessName(e.target.value)}
+                placeholder="e.g. Brew & Co Coffee"
+                className={inputCls()}
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Your subdomain</label>
+              <div className="flex items-center gap-0">
+                <input
+                  type="text"
+                  value={subdomain}
+                  onChange={(e) => {
+                    setSubdomainTouched(true);
+                    setSubdomain(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ''));
+                  }}
+                  placeholder="your-shop"
+                  maxLength={63}
+                  className={`flex-1 rounded-l-lg border-y border-l px-4 py-2.5 text-sm text-gray-900 placeholder-gray-400 outline-none transition focus:ring-2 focus:ring-indigo-100 ${
+                    subdomainStatus === 'taken' || subdomainStatus === 'invalid'
+                      ? 'border-red-300 focus:border-red-400'
+                      : subdomainStatus === 'available'
+                        ? 'border-green-300 focus:border-green-400'
+                        : 'border-gray-200 focus:border-indigo-400'
+                  }`}
+                />
+                <span className="rounded-r-lg border border-l-0 border-gray-200 bg-gray-50 px-3 py-2.5 text-sm text-gray-500 whitespace-nowrap">
+                  .fideliza.app
+                </span>
+              </div>
+
+              {/* Status feedback */}
+              <div className="mt-1.5 flex items-center gap-1.5 min-h-[20px]">
+                {subdomainStatus === 'checking' && (
+                  <>
+                    <svg className="h-3.5 w-3.5 animate-spin text-indigo-400" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                    </svg>
+                    <span className="text-xs text-gray-400">Checking availability…</span>
+                  </>
+                )}
+                {subdomainStatus === 'available' && (
+                  <>
+                    <svg className="h-3.5 w-3.5 text-green-500" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                    </svg>
+                    <span className="text-xs text-green-600 font-medium">{subdomain}.fideliza.app is available!</span>
+                  </>
+                )}
+                {(subdomainStatus === 'taken' || subdomainStatus === 'invalid') && (
+                  <>
+                    <svg className="h-3.5 w-3.5 text-red-400" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                    <span className="text-xs text-red-500">{subdomainError}</span>
+                  </>
+                )}
+              </div>
+
+              {/* Preview pill */}
+              {subdomain && subdomainStatus === 'available' && (
+                <div className="mt-3 rounded-xl bg-indigo-50 px-4 py-3">
+                  <p className="text-xs text-indigo-500 font-medium uppercase tracking-widest mb-0.5">Your portal URL</p>
+                  <p className="text-sm font-mono text-indigo-700 font-semibold">
+                    https://{subdomain}.fideliza.app/c
+                  </p>
+                  <p className="mt-0.5 text-xs text-indigo-400">Share this with your customers</p>
+                </div>
+              )}
+            </div>
+
+            <div className="flex gap-3 pt-1">
+              <button
+                type="button"
+                onClick={() => { setStep(1); setGlobalError(''); }}
+                className="flex-1 rounded-lg border border-gray-200 px-4 py-2.5 text-sm font-medium text-gray-600 transition hover:bg-gray-50"
+              >
+                ← Back
+              </button>
+              <button
+                type="button"
+                onClick={goToStep3}
+                className="flex-1 rounded-lg bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-indigo-700"
+              >
+                Continue →
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* ── STEP 3: Plan ──────────────────────────────────────────── */}
+        {step === 3 && (
+          <div className="space-y-5">
+            <div>
+              <h2 className="text-xl font-bold text-gray-900">Choose your plan</h2>
+              <p className="mt-1 text-sm text-gray-500">Start free. Upgrade any time.</p>
+            </div>
+
+            <div className="space-y-3">
+              {PLANS.map((p) => (
+                <button
+                  key={p.id}
+                  type="button"
+                  onClick={() => setPlan(p.id)}
+                  className={`w-full rounded-xl border-2 p-4 text-left transition-all ${
+                    plan === p.id
+                      ? 'border-indigo-500 bg-indigo-50'
+                      : 'border-gray-200 bg-white hover:border-gray-300'
+                  }`}
+                >
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm font-bold text-gray-900">{p.name}</span>
+                        {p.highlight && (
+                          <span className="rounded-full bg-indigo-100 px-2 py-0.5 text-xs font-semibold text-indigo-600">
+                            Popular
+                          </span>
+                        )}
+                      </div>
+                      <p className="mt-0.5 text-xs text-gray-500">{p.description}</p>
+                      <ul className="mt-2 space-y-0.5">
+                        {p.features.map((f) => (
+                          <li key={f} className="flex items-center gap-1.5 text-xs text-gray-600">
+                            <svg className="h-3 w-3 shrink-0 text-indigo-500" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                            </svg>
+                            {f}
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                    <div className="text-right shrink-0">
+                      <p className="text-lg font-bold text-gray-900">{p.price}</p>
+                      <p className="text-xs text-gray-400">{p.period}</p>
+                    </div>
+                    <div className={`mt-0.5 h-4 w-4 shrink-0 rounded-full border-2 transition-all ${
+                      plan === p.id ? 'border-indigo-500 bg-indigo-500' : 'border-gray-300'
+                    }`}>
+                      {plan === p.id && (
+                        <div className="m-0.5 h-2 w-2 rounded-full bg-white" />
+                      )}
+                    </div>
+                  </div>
+                </button>
+              ))}
+            </div>
+
+            {/* Summary */}
+            <div className="rounded-xl bg-gray-50 px-4 py-3 text-sm">
+              <p className="font-medium text-gray-700">Account summary</p>
+              <div className="mt-1.5 space-y-0.5 text-xs text-gray-500">
+                <p>✉️ {email}</p>
+                <p>🏢 {businessName} · <span className="font-mono">{subdomain}.fideliza.app</span></p>
+                <p>📦 {PLANS.find((p) => p.id === plan)?.name} plan</p>
+              </div>
+            </div>
+
+            <div className="flex gap-3">
+              <button
+                type="button"
+                onClick={() => { setStep(2); setGlobalError(''); }}
+                className="flex-1 rounded-lg border border-gray-200 px-4 py-2.5 text-sm font-medium text-gray-600 transition hover:bg-gray-50"
+              >
+                ← Back
+              </button>
+              <button
+                type="button"
+                onClick={handleSubmit}
+                disabled={isPending}
+                className="flex-1 rounded-lg bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-indigo-700 disabled:opacity-50"
+              >
+                {isPending ? 'Creating account…' : 'Create account'}
+              </button>
+            </div>
+          </div>
+        )}
+      </div>
+
+      <p className="text-center text-xs text-gray-400">
+        Already have an account?{' '}
+        <a href="/auth/login" className="text-indigo-500 hover:underline font-medium">
+          Sign in
+        </a>
+      </p>
+    </div>
+  );
+}
