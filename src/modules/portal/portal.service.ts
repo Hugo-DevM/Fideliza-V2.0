@@ -17,8 +17,30 @@
  */
 
 import { createServiceRoleClient } from '@/lib/supabase/server';
-import { NotFoundError } from '@/lib/middleware/errors';
+import { NotFoundError, TenantNotFoundError } from '@/lib/middleware/errors';
 import type { UUID } from '@/lib/types';
+
+/**
+ * Looks up a tenant by subdomain using the service-role client so it works
+ * in unauthenticated contexts (e.g. the customer portal) where RLS blocks
+ * the anon client from reading the tenants table.
+ */
+export async function getTenantBySubdomainPublic(subdomain: string): Promise<{ id: UUID; name: string; is_active: boolean }> {
+  const db = createServiceRoleClient();
+
+  const { data, error } = await db
+    .from('tenants')
+    .select('id, name, is_active')
+    .eq('subdomain', subdomain.toLowerCase())
+    .eq('is_active', true)
+    .single();
+
+  if (error || !data) {
+    throw new TenantNotFoundError(subdomain);
+  }
+
+  return data as { id: UUID; name: string; is_active: boolean };
+}
 
 // ── Response types ────────────────────────────────────────────────────
 

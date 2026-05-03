@@ -1,4 +1,4 @@
-export { getPortalData } from './portal.service';
+export { getPortalData, getTenantBySubdomainPublic } from './portal.service';
 export type {
   PortalData,
   PortalTenant,

@@ -11,8 +11,7 @@ import Link from 'next/link';
 import { headers } from 'next/headers';
 import { notFound } from 'next/navigation';
 import CodeEntryForm from './CodeEntryForm';
-import { getPortalData } from '@/modules/portal';
-import { getTenantBySubdomain } from '@/modules/tenants/tenant.repository';
+import { getPortalData, getTenantBySubdomainPublic } from '@/modules/portal';
 import { NotFoundError, TenantNotFoundError } from '@/lib/middleware/errors';
 import type {
   PortalData,
@@ -62,7 +61,7 @@ export default async function CustomerPortalPage({ searchParams }: PageProps) {
     let tenantName: string | undefined;
     let primaryColor: string | undefined;
     try {
-      const tenant = await getTenantBySubdomain(subdomain);
+      const tenant = await getTenantBySubdomainPublic(subdomain);
       tenantName = tenant.name;
     } catch {
       // Tenant not found — handled gracefully
@@ -74,7 +73,7 @@ export default async function CustomerPortalPage({ searchParams }: PageProps) {
   let data: PortalData;
 
   try {
-    const tenant = await getTenantBySubdomain(subdomain);
+    const tenant = await getTenantBySubdomainPublic(subdomain);
     data = await getPortalData(tenant.id, code);
   } catch (err) {
     if (err instanceof TenantNotFoundError) notFound();
