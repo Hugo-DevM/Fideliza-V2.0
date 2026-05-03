@@ -189,7 +189,6 @@ export interface Database {
           tenant_id: string;
           name: string;
           phone: string | null;
-          email: string | null;
           access_code: string;
           is_active: boolean;
           notes: string | null;
@@ -201,7 +200,6 @@ export interface Database {
           tenant_id: string;
           name: string;
           phone?: string | null;
-          email?: string | null;
           access_code: string;
           is_active?: boolean;
           notes?: string | null;
@@ -209,7 +207,6 @@ export interface Database {
         Update: {
           name?: string;
           phone?: string | null;
-          email?: string | null;
           is_active?: boolean;
           notes?: string | null;
           updated_at?: string;
@@ -319,6 +316,38 @@ export interface Database {
           cancelled_at?: string | null;
           expires_at?: string | null;
         };
+        Relationships: GenericRelationship[];
+      };
+
+      // ── audit_events ─────────────────────────────────────────────
+      audit_events: {
+        Row: {
+          id: string;
+          tenant_id: string;
+          actor_id: string | null;
+          actor_email: string | null;
+          event_type: string;
+          resource_type: string | null;
+          resource_id: string | null;
+          metadata: Json;
+          ip_address: string | null;
+          request_id: string | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          tenant_id: string;
+          actor_id?: string | null;
+          actor_email?: string | null;
+          event_type: string;
+          resource_type?: string | null;
+          resource_id?: string | null;
+          metadata?: Json;
+          ip_address?: string | null;
+          request_id?: string | null;
+          created_at?: string;
+        };
+        Update: Record<string, never>; // immutable
         Relationships: GenericRelationship[];
       };
 

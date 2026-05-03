@@ -102,7 +102,6 @@ export interface Customer {
   tenant_id: UUID;
   name: string;
   phone: string | null;
-  email: string | null;
   access_code: string;
   is_active: boolean;
   notes: string | null;
