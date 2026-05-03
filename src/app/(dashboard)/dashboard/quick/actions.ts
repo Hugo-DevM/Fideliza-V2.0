@@ -32,8 +32,10 @@ export async function lookupCustomerAction(query: string): Promise<
   const db = createServiceRoleClient();
   const q = query.trim().toUpperCase();
 
+  type CustomerRow = { id: string; name: string; access_code: string; phone: string | null };
+
   // Try access code first, then phone
-  let customerData: { id: string; name: string; access_code: string; phone: string | null } | null = null;
+  let customerData: CustomerRow | null = null;
 
   const { data: byCode } = await db
     .from('customers')
@@ -44,7 +46,7 @@ export async function lookupCustomerAction(query: string): Promise<
     .single();
 
   if (byCode) {
-    customerData = byCode as typeof customerData;
+    customerData = byCode as unknown as CustomerRow;
   } else {
     const { data: byPhone } = await db
       .from('customers')
@@ -54,7 +56,7 @@ export async function lookupCustomerAction(query: string): Promise<
       .eq('is_active', true)
       .single();
 
-    if (byPhone) customerData = byPhone as typeof customerData;
+    if (byPhone) customerData = byPhone as unknown as CustomerRow;
   }
 
   if (!customerData) {
