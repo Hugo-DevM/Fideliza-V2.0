@@ -46,7 +46,7 @@ export default async function CustomersPage({
         <input
           name="q"
           defaultValue={q}
-          placeholder="Search by name, email, phone, or code…"
+          placeholder="Search by name, phone, or code…"
           className="w-full max-w-sm rounded-lg border border-gray-200 px-3 py-2 text-sm outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100"
         />
         <button type="submit" className="rounded-lg border px-3 py-2 text-sm text-gray-600 hover:bg-gray-50">
@@ -82,7 +82,7 @@ export default async function CustomersPage({
                   <td className="px-4 py-3 font-medium text-gray-900">{c.name}</td>
                   <td className="px-4 py-3 font-mono text-gray-600">{c.access_code}</td>
                   <td className="px-4 py-3 text-gray-500">
-                    {c.email ?? c.phone ?? <span className="text-gray-300">—</span>}
+                    {c.phone ?? <span className="text-gray-300">—</span>}
                   </td>
                   <td className="px-4 py-3">
                     <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${
