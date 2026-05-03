@@ -103,13 +103,16 @@ export const CreateRewardProgramSchema = z.object({
   (data) => !data.starts_at || !data.ends_at || data.starts_at < data.ends_at,
   { message: 'ends_at must be after starts_at', path: ['ends_at'] }
 )
-.refine(
-  (data) => validateProgramConfig(data.type, data.config) === null,
-  (data) => ({
-    message: validateProgramConfig(data.type, data.config) ?? 'Invalid config',
-    path: ['config'],
-  })
-);
+.superRefine((data, ctx) => {
+  const err = validateProgramConfig(data.type, data.config);
+  if (err !== null) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: err ?? 'Invalid config',
+      path: ['config'],
+    });
+  }
+});
 
 export const CreateRewardSchema = z.object({
   program_id:   UUID,
