@@ -23,7 +23,6 @@ export default async function CustomersPage({
   const filtered = q
     ? customers.filter((c) =>
         c.name.toLowerCase().includes(q.toLowerCase()) ||
-        c.email?.toLowerCase().includes(q.toLowerCase()) ||
         c.phone?.includes(q) ||
         c.access_code.toLowerCase().includes(q.toLowerCase())
       )
