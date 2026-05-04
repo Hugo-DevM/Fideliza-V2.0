@@ -10,11 +10,11 @@ interface SidebarProps {
 }
 
 const NAV_ITEMS = [
-  { href: '/dashboard',           label: 'Overview',        icon: HomeIcon },
-  { href: '/dashboard/quick',     label: 'Quick Register',  icon: BoltIcon },
-  { href: '/dashboard/customers', label: 'Customers',       icon: UsersIcon },
-  { href: '/dashboard/programs',  label: 'Programs',        icon: GiftIcon },
-  { href: '/dashboard/settings',  label: 'Settings',        icon: SettingsIcon },
+  { href: '/dashboard',           label: 'Resumen',          icon: HomeIcon },
+  { href: '/dashboard/quick',     label: 'Registro rápido',  icon: BoltIcon },
+  { href: '/dashboard/customers', label: 'Clientes',         icon: UsersIcon },
+  { href: '/dashboard/programs',  label: 'Programas',        icon: GiftIcon },
+  { href: '/dashboard/settings',  label: 'Configuración',    icon: SettingsIcon },
 ];
 
 export default function Sidebar({ tenantName }: SidebarProps) {
@@ -73,7 +73,7 @@ export default function Sidebar({ tenantName }: SidebarProps) {
           className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-gray-500 transition hover:bg-gray-50 hover:text-gray-700"
         >
           <LogoutIcon className="h-4 w-4 shrink-0" />
-          Sign out
+          Cerrar sesión
         </button>
       </div>
     </aside>

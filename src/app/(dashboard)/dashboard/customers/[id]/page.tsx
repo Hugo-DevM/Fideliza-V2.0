@@ -32,14 +32,14 @@ export default async function CustomerDetailPage({
       .limit(10);
 
     const typeLabel: Record<string, string> = {
-      earn: 'Earn', redeem: 'Redeem', adjustment: 'Adjust', expire: 'Expire', refund: 'Refund',
+      earn: 'Ganar', redeem: 'Canjear', adjustment: 'Ajuste', expire: 'Expirar', refund: 'Reembolso',
     };
 
     return (
       <div className="space-y-5">
         {/* Breadcrumb */}
         <nav className="text-sm text-gray-400">
-          <Link href="/dashboard/customers" className="hover:text-gray-600">Customers</Link>
+          <Link href="/dashboard/customers" className="hover:text-gray-600">Clientes</Link>
           {' / '}
           <span className="text-gray-700 font-medium">{customer.name}</span>
         </nav>
@@ -53,13 +53,13 @@ export default async function CustomerDetailPage({
                 <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${
                   customer.is_active ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-500'
                 }`}>
-                  {customer.is_active ? 'Active' : 'Inactive'}
+                  {customer.is_active ? 'Activo' : 'Inactivo'}
                 </span>
               </div>
               <p className="mt-0.5 font-mono text-sm text-indigo-600">{customer.access_code}</p>
               <div className="mt-2 flex flex-wrap gap-3 text-sm text-gray-500">
                 {customer.phone && <span>📞 {customer.phone}</span>}
-                <span>Member since {new Date(customer.created_at).toLocaleDateString()}</span>
+                <span>Miembro desde {new Date(customer.created_at).toLocaleDateString('es')}</span>
               </div>
               {customer.notes && (
                 <p className="mt-2 rounded-lg bg-yellow-50 px-3 py-1.5 text-xs text-yellow-700 border border-yellow-100">
@@ -77,9 +77,9 @@ export default async function CustomerDetailPage({
         <div className="grid gap-5 lg:grid-cols-2">
           {/* Enrollments */}
           <div className="rounded-xl border bg-white p-5 shadow-sm">
-            <h2 className="mb-3 text-sm font-semibold text-gray-700">Program balances</h2>
+            <h2 className="mb-3 text-sm font-semibold text-gray-700">Saldos de programas</h2>
             {!enrollments.length ? (
-              <p className="text-sm text-gray-400">Not enrolled in any programs yet.</p>
+              <p className="text-sm text-gray-400">Sin inscripción en ningún programa aún.</p>
             ) : (
               <div className="space-y-3">
                 {enrollments.map((e) => (
@@ -92,9 +92,9 @@ export default async function CustomerDetailPage({
                     </div>
                     <div className="mt-2 flex gap-4 text-xs text-gray-500">
                       <span><strong className="text-gray-800">{e.current_points}</strong> {settings.program_label}</span>
-                      {e.program_type === 'stamp' && <span><strong>{e.stamp_count}</strong> stamps</span>}
-                      {e.program_type === 'visit' && <span><strong>{e.visit_count}</strong> visits</span>}
-                      <span className="text-gray-300">{e.lifetime_points} lifetime</span>
+                      {e.program_type === 'stamp' && <span><strong>{e.stamp_count}</strong> sellos</span>}
+                      {e.program_type === 'visit' && <span><strong>{e.visit_count}</strong> visitas</span>}
+                      <span className="text-gray-300">{e.lifetime_points} total histórico</span>
                     </div>
                   </div>
                 ))}
@@ -112,7 +112,7 @@ export default async function CustomerDetailPage({
             <table className="w-full text-sm">
               <thead className="border-b bg-gray-50">
                 <tr>
-                  {['Code', 'Reward', 'Status', 'Expires', 'Issued'].map((h) => (
+                  {['Código', 'Recompensa', 'Estado', 'Vence', 'Emitido'].map((h) => (
                     <th key={h} className="px-4 py-2 text-left text-xs font-semibold uppercase tracking-wide text-gray-400">{h}</th>
                   ))}
                 </tr>
@@ -150,15 +150,15 @@ export default async function CustomerDetailPage({
         {/* Transaction history */}
         <div className="rounded-xl border bg-white shadow-sm">
           <div className="border-b px-5 py-3">
-            <h2 className="text-sm font-semibold text-gray-700">Transaction history</h2>
+            <h2 className="text-sm font-semibold text-gray-700">Historial de transacciones</h2>
           </div>
           {!transactions.length ? (
-            <p className="px-5 py-8 text-center text-sm text-gray-400">No transactions yet.</p>
+            <p className="px-5 py-8 text-center text-sm text-gray-400">Sin transacciones aún.</p>
           ) : (
             <table className="w-full text-sm">
               <thead className="border-b bg-gray-50">
                 <tr>
-                  {['Type', 'Delta', 'Balance after', 'Note', 'Date'].map((h) => (
+                  {['Tipo', 'Delta', 'Saldo tras', 'Nota', 'Fecha'].map((h) => (
                     <th key={h} className="px-4 py-2 text-left text-xs font-semibold uppercase tracking-wide text-gray-400">{h}</th>
                   ))}
                 </tr>

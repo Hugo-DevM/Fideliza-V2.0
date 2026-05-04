@@ -12,11 +12,11 @@ interface Props {
 
 // Allowed transitions
 const TRANSITIONS: Record<ProgramStatus, { label: string; next: ProgramStatus; style: string }[]> = {
-  draft:    [{ label: 'Activate',  next: 'active',   style: 'bg-green-600 text-white hover:bg-green-700' }],
-  active:   [{ label: 'Pause',     next: 'paused',   style: 'bg-yellow-500 text-white hover:bg-yellow-600' },
-             { label: 'Archive',   next: 'archived', style: 'border border-red-300 text-red-600 hover:bg-red-50' }],
-  paused:   [{ label: 'Resume',    next: 'active',   style: 'bg-green-600 text-white hover:bg-green-700' },
-             { label: 'Archive',   next: 'archived', style: 'border border-red-300 text-red-600 hover:bg-red-50' }],
+  draft:    [{ label: 'Activar',   next: 'active',   style: 'bg-green-600 text-white hover:bg-green-700' }],
+  active:   [{ label: 'Pausar',    next: 'paused',   style: 'bg-yellow-500 text-white hover:bg-yellow-600' },
+             { label: 'Archivar',  next: 'archived', style: 'border border-red-300 text-red-600 hover:bg-red-50' }],
+  paused:   [{ label: 'Reanudar', next: 'active',   style: 'bg-green-600 text-white hover:bg-green-700' },
+             { label: 'Archivar', next: 'archived', style: 'border border-red-300 text-red-600 hover:bg-red-50' }],
   archived: [],
 };
 
@@ -25,7 +25,7 @@ export default function ProgramStatusButtons({ programId, currentStatus }: Props
   const router = useRouter();
   const transitions = TRANSITIONS[currentStatus] ?? [];
 
-  if (!transitions.length) return <span className="text-sm text-gray-400">Archived — read-only</span>;
+  if (!transitions.length) return <span className="text-sm text-gray-400">Archivado — solo lectura</span>;
 
   return (
     <div className="flex gap-2">

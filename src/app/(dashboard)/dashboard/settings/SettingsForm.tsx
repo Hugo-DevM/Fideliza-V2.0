@@ -26,7 +26,7 @@ export default function SettingsForm({ settings }: { settings: TenantSettings })
       if ('error' in result && result.error) {
         setError(result.error);
       } else {
-        setSuccess('Settings saved');
+        setSuccess('Configuración guardada');
         router.refresh();
       }
     });
@@ -39,17 +39,17 @@ export default function SettingsForm({ settings }: { settings: TenantSettings })
 
       {/* Branding */}
       <section className="rounded-xl border bg-white p-5 shadow-sm space-y-4">
-        <h2 className="text-sm font-semibold text-gray-700">Branding</h2>
+        <h2 className="text-sm font-semibold text-gray-700">Apariencia</h2>
 
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <ColorField
-            label="Primary color"
+            label="Color primario"
             name="primary_color"
             value={primaryColor}
             onChange={setPrimaryColor}
           />
           <ColorField
-            label="Secondary color"
+            label="Color secundario"
             name="secondary_color"
             value={secondaryColor}
             onChange={setSecondaryColor}
@@ -61,9 +61,9 @@ export default function SettingsForm({ settings }: { settings: TenantSettings })
           className="rounded-xl p-4 text-white text-sm font-medium"
           style={{ background: `linear-gradient(135deg, ${primaryColor} 0%, ${secondaryColor} 100%)` }}
         >
-          <p className="text-xs opacity-70 uppercase tracking-widest">Preview</p>
-          <p className="mt-0.5 font-bold text-lg">Your Business Name</p>
-          <p className="text-xs opacity-80 mt-1">{welcomeMessage || 'Welcome message appears here'}</p>
+          <p className="text-xs opacity-70 uppercase tracking-widest">Vista previa</p>
+          <p className="mt-0.5 font-bold text-lg">Nombre de tu negocio</p>
+          <p className="text-xs opacity-80 mt-1">{welcomeMessage || 'El mensaje de bienvenida aparece aquí'}</p>
         </div>
       </section>
 
@@ -88,14 +88,14 @@ export default function SettingsForm({ settings }: { settings: TenantSettings })
 
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">
-            Welcome message
+            Mensaje de bienvenida
           </label>
           <textarea
             name="welcome_message"
             rows={2}
             value={welcomeMessage}
             onChange={(e) => setWelcomeMessage(e.target.value)}
-            placeholder="Welcome! Earn points on every visit."
+            placeholder="¡Bienvenido! Acumula puntos en cada visita."
             className={inputCls}
           />
           <p className="mt-1 text-xs text-gray-400">Texto que aparece en la tarjeta del portal cuando el cliente abre su página.</p>
@@ -103,14 +103,14 @@ export default function SettingsForm({ settings }: { settings: TenantSettings })
 
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">
-            Points unit label
+            Etiqueta de moneda
           </label>
           <input
             name="program_label"
             type="text"
             value={programLabel}
             onChange={(e) => setProgramLabel(e.target.value)}
-            placeholder="Points"
+            placeholder="Puntos"
             maxLength={30}
             className={inputCls + ' max-w-xs'}
           />
@@ -153,7 +153,7 @@ export default function SettingsForm({ settings }: { settings: TenantSettings })
           disabled={isPending}
           className="rounded-lg bg-indigo-600 px-5 py-2 text-sm font-semibold text-white hover:bg-indigo-700 disabled:opacity-50"
         >
-          {isPending ? 'Saving…' : 'Save changes'}
+          {isPending ? 'Guardando…' : 'Guardar cambios'}
         </button>
       </div>
     </form>

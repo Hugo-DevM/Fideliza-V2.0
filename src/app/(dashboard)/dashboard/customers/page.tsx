@@ -3,7 +3,7 @@ import { getAuthenticatedTenant } from '@/lib/auth/get-tenant';
 import { listCustomers } from '@/modules/customers';
 import NewCustomerModal from './NewCustomerModal';
 
-export const metadata = { title: 'Customers — Fideliza+' };
+export const metadata = { title: 'Clientes — Fideliza+' };
 
 const LIMIT = 50;
 
@@ -35,8 +35,8 @@ export default async function CustomersPage({
       {/* Header */}
       <div className="flex items-center justify-between gap-4">
         <div>
-          <h1 className="text-xl font-bold text-gray-900">Customers</h1>
-          <p className="text-sm text-gray-500">{total} total</p>
+          <h1 className="text-xl font-bold text-gray-900">Clientes</h1>
+          <p className="text-sm text-gray-500">{total} en total</p>
         </div>
         <NewCustomerModal />
       </div>
@@ -46,15 +46,15 @@ export default async function CustomersPage({
         <input
           name="q"
           defaultValue={q}
-          placeholder="Search by name, phone, or code…"
+          placeholder="Buscar por nombre, teléfono o código…"
           className="w-full max-w-sm rounded-lg border border-gray-200 px-3 py-2 text-sm outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100"
         />
         <button type="submit" className="rounded-lg border px-3 py-2 text-sm text-gray-600 hover:bg-gray-50">
-          Search
+          Buscar
         </button>
         {q && (
           <Link href="/dashboard/customers" className="rounded-lg border px-3 py-2 text-sm text-gray-400 hover:bg-gray-50">
-            Clear
+            Limpiar
           </Link>
         )}
       </form>
@@ -64,14 +64,14 @@ export default async function CustomersPage({
         {!filtered.length ? (
           <div className="px-6 py-12 text-center">
             <p className="text-gray-400 text-sm">
-              {q ? `No customers match "${q}"` : 'No customers yet. Add your first one!'}
+              {q ? `Sin clientes que coincidan con "${q}"` : 'Sin clientes aún. ¡Agrega el primero!'}
             </p>
           </div>
         ) : (
           <table className="w-full text-sm">
             <thead className="border-b bg-gray-50">
               <tr>
-                {['Name', 'Access code', 'Email / Phone', 'Status', 'Joined', ''].map((h) => (
+                {['Nombre', 'Código de acceso', 'Email / Teléfono', 'Estado', 'Registro', ''].map((h) => (
                   <th key={h} className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">{h}</th>
                 ))}
               </tr>
@@ -88,7 +88,7 @@ export default async function CustomersPage({
                     <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${
                       c.is_active ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-500'
                     }`}>
-                      {c.is_active ? 'Active' : 'Inactive'}
+                      {c.is_active ? 'Activo' : 'Inactivo'}
                     </span>
                   </td>
                   <td className="px-4 py-3 text-gray-400">
@@ -98,7 +98,7 @@ export default async function CustomersPage({
                     <Link href={`/dashboard/customers/${c.id}`}
                       className="text-indigo-600 hover:underline text-xs font-medium"
                     >
-                      View →
+                      Ver →
                     </Link>
                   </td>
                 </tr>
@@ -111,17 +111,17 @@ export default async function CustomersPage({
       {/* Pagination */}
       {totalPages > 1 && (
         <div className="flex items-center justify-between text-sm text-gray-500">
-          <span>Page {page} of {totalPages}</span>
+          <span>Página {page} de {totalPages}</span>
           <div className="flex gap-2">
             {page > 1 && (
               <Link href={`?page=${page - 1}${q ? `&q=${q}` : ''}`}
                 className="rounded border px-3 py-1 hover:bg-gray-50"
-              >← Prev</Link>
+              >← Ant</Link>
             )}
             {page < totalPages && (
               <Link href={`?page=${page + 1}${q ? `&q=${q}` : ''}`}
                 className="rounded border px-3 py-1 hover:bg-gray-50"
-              >Next →</Link>
+              >Sig →</Link>
             )}
           </div>
         </div>

@@ -34,14 +34,14 @@ export default function NewCustomerModal() {
         onClick={() => setOpen(true)}
         className="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-indigo-700"
       >
-        + New Customer
+        + Nuevo cliente
       </button>
 
       {open && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
           <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-xl">
             <div className="mb-5 flex items-center justify-between">
-              <h2 className="text-base font-bold text-gray-900">Add customer</h2>
+              <h2 className="text-base font-bold text-gray-900">Agregar cliente</h2>
               <button onClick={() => setOpen(false)} className="text-gray-400 hover:text-gray-600 text-xl leading-none">×</button>
             </div>
 
@@ -50,14 +50,14 @@ export default function NewCustomerModal() {
                 <p className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-600">{error}</p>
               )}
 
-              <Field label="Full name *" name="name" type="text" placeholder="Alice Méndez" required />
+              <Field label="Nombre completo *" name="name" type="text" placeholder="Alice Méndez" required />
               <Field label="Phone" name="phone" type="tel" placeholder="+15551234567" />
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Notes</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Notas</label>
                 <textarea
                   name="notes"
                   rows={2}
-                  placeholder="Internal notes (not visible to customer)"
+                  placeholder="Notas internas (no visibles al cliente)"
                   className={inputCls}
                 />
               </div>
@@ -66,12 +66,12 @@ export default function NewCustomerModal() {
                 <button type="button" onClick={() => setOpen(false)}
                   className="rounded-lg border px-4 py-2 text-sm font-medium text-gray-600 hover:bg-gray-50"
                 >
-                  Cancel
+                  Cancelar
                 </button>
                 <button type="submit" disabled={isPending}
                   className="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-700 disabled:opacity-50"
                 >
-                  {isPending ? 'Creating…' : 'Create customer'}
+                  {isPending ? 'Creando…' : 'Crear cliente'}
                 </button>
               </div>
             </form>

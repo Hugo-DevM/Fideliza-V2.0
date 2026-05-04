@@ -1,4 +1,4 @@
-export const metadata = { title: 'Check your email — Fideliza+' };
+export const metadata = { title: 'Revisa tu correo — Fideliza+' };
 
 interface Props {
   searchParams: Promise<{ email?: string }>;
@@ -17,27 +17,27 @@ export default async function ConfirmPage({ searchParams }: Props) {
         </div>
 
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Check your email</h1>
+          <h1 className="text-2xl font-bold text-gray-900">Revisa tu correo</h1>
           <p className="mt-2 text-sm text-gray-500">
-            We sent a confirmation link to{' '}
+            Te enviamos un enlace de confirmación a{' '}
             {email ? (
               <span className="font-semibold text-gray-700">{email}</span>
             ) : (
-              'your email address'
+              'tu dirección de correo'
             )}
             .
           </p>
           <p className="mt-1 text-sm text-gray-500">
-            Click the link to activate your account and access your dashboard.
+            Haz clic en el enlace para activar tu cuenta y acceder a tu panel.
           </p>
         </div>
 
         <div className="rounded-2xl border bg-white p-5 shadow-sm text-left space-y-2">
-          <p className="text-xs font-semibold uppercase tracking-widest text-gray-400">What to do next</p>
+          <p className="text-xs font-semibold uppercase tracking-widest text-gray-400">Qué hacer a continuación</p>
           {[
-            'Open the email from Fideliza+',
-            'Click the "Confirm your email" button',
-            'You\'ll be taken straight to your dashboard',
+            'Abre el correo de Fideliza+',
+            'Haz clic en el botón "Confirmar tu correo"',
+            'Serás redirigido directamente a tu panel',
           ].map((step, i) => (
             <div key={i} className="flex items-start gap-3">
               <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-indigo-100 text-xs font-bold text-indigo-600">
@@ -49,9 +49,9 @@ export default async function ConfirmPage({ searchParams }: Props) {
         </div>
 
         <p className="text-xs text-gray-400">
-          Didn&apos;t get the email? Check your spam folder or{' '}
+          ¿No recibiste el correo? Revisa tu carpeta de spam o{' '}
           <a href="/auth/register" className="text-indigo-500 hover:underline">
-            try again with a different address
+            inténtalo con otra dirección
           </a>
           .
         </p>
@@ -63,7 +63,7 @@ export default async function ConfirmPage({ searchParams }: Props) {
           <svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18" />
           </svg>
-          Back to login
+          Volver al inicio de sesión
         </a>
       </div>
     </div>

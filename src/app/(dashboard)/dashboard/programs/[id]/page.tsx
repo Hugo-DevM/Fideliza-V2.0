@@ -25,10 +25,10 @@ const TYPE_BADGES: Record<string, string> = {
 };
 
 function configLabel(type: string, config: Record<string, unknown>): string {
-  if (type === 'points')   return `${config.points_per_dollar ?? 0} pts per $1 · min redeem: ${config.min_redeem ?? 0} pts`;
-  if (type === 'stamp')    return `${config.stamps_needed ?? 0} stamps per card`;
-  if (type === 'visit')    return `Reward after ${config.visits_needed ?? 0} visits`;
-  if (type === 'cashback') return `${config.cashback_percent ?? 0}% cashback · min $${((Number(config.min_purchase_cents) || 0) / 100).toFixed(2)}`;
+  if (type === 'points')   return `${config.points_per_dollar ?? 0} pts por $1 · mínimo canje: ${config.min_redeem ?? 0} pts`;
+  if (type === 'stamp')    return `${config.stamps_needed ?? 0} sellos por tarjeta`;
+  if (type === 'visit')    return `Recompensa tras ${config.visits_needed ?? 0} visitas`;
+  if (type === 'cashback') return `${config.cashback_percent ?? 0}% cashback · mínimo $${((Number(config.min_purchase_cents) || 0) / 100).toFixed(2)}`;
   return '';
 }
 
@@ -58,13 +58,13 @@ export default async function ProgramDetailPage({
         .limit(15),
     ]);
 
-    const typeLabel: Record<string, string> = { earn: 'Earn', redeem: 'Redeem', adjustment: 'Adjust', expire: 'Expire', refund: 'Refund' };
+    const typeLabel: Record<string, string> = { earn: 'Ganar', redeem: 'Canjear', adjustment: 'Ajuste', expire: 'Expirar', refund: 'Reembolso' };
 
     return (
       <div className="space-y-5">
         {/* Breadcrumb */}
         <nav className="text-sm text-gray-400">
-          <Link href="/dashboard/programs" className="hover:text-gray-600">Programs</Link>
+          <Link href="/dashboard/programs" className="hover:text-gray-600">Programas</Link>
           {' / '}
           <span className="text-gray-700 font-medium">{program.name}</span>
         </nav>
@@ -86,7 +86,7 @@ export default async function ProgramDetailPage({
                 <p className="mt-1 text-sm text-gray-500">{program.description}</p>
               )}
               <p className="mt-2 text-xs text-gray-400">{configLabel(program.type, program.config as unknown as Record<string, unknown>)}</p>
-              <p className="mt-1 text-xs text-gray-400">{enrollmentCount ?? 0} customers enrolled</p>
+              <p className="mt-1 text-xs text-gray-400">{enrollmentCount ?? 0} clientes inscritos</p>
             </div>
             <ProgramStatusButtons programId={program.id} currentStatus={program.status as ProgramStatus} />
           </div>
@@ -96,11 +96,11 @@ export default async function ProgramDetailPage({
           {/* Rewards */}
           <div className="rounded-xl border bg-white shadow-sm">
             <div className="border-b px-5 py-3">
-              <h2 className="text-sm font-semibold text-gray-700">Rewards</h2>
+              <h2 className="text-sm font-semibold text-gray-700">Recompensas</h2>
             </div>
             <div className="p-4 space-y-2">
               {!rewards.length && !program.status.includes('archived') && (
-                <p className="text-sm text-gray-400 mb-3">No rewards yet — add the first one.</p>
+                <p className="text-sm text-gray-400 mb-3">Sin recompensas aún — agrega la primera.</p>
               )}
               {rewards.map((r) => (
                 <div key={r.id} className={`flex items-center justify-between rounded-lg border p-3 ${!r.is_active ? 'opacity-50' : ''}`}>
@@ -111,8 +111,8 @@ export default async function ProgramDetailPage({
                         <span>{r.cost_points} {settings.program_label}</span>
                       )}
                       {r.stock !== null && <span>Stock: {r.stock}</span>}
-                      {r.expiry_days && <span>Expires in {r.expiry_days}d</span>}
-                      <span>{r.redeemed_count} redeemed</span>
+                      {r.expiry_days && <span>Vence en {r.expiry_days}d</span>}
+                      <span>{r.redeemed_count} canjeados</span>
                     </div>
                   </div>
                   <ToggleRewardButton
@@ -141,8 +141,8 @@ export default async function ProgramDetailPage({
             {/* Program date window */}
             {(program.starts_at || program.ends_at) && (
               <div className="rounded-xl border bg-white p-4 shadow-sm text-sm text-gray-500">
-                {program.starts_at && <p>Starts: {new Date(program.starts_at).toLocaleDateString()}</p>}
-                {program.ends_at   && <p>Ends: {new Date(program.ends_at).toLocaleDateString()}</p>}
+                {program.starts_at && <p>Inicio: {new Date(program.starts_at).toLocaleDateString('es')}</p>}
+                {program.ends_at   && <p>Fin: {new Date(program.ends_at).toLocaleDateString('es')}</p>}
               </div>
             )}
           </div>
@@ -151,15 +151,15 @@ export default async function ProgramDetailPage({
         {/* Recent transactions */}
         <div className="rounded-xl border bg-white shadow-sm">
           <div className="border-b px-5 py-3">
-            <h2 className="text-sm font-semibold text-gray-700">Recent transactions</h2>
+            <h2 className="text-sm font-semibold text-gray-700">Transacciones recientes</h2>
           </div>
           {!recentTx?.length ? (
-            <p className="px-5 py-8 text-center text-sm text-gray-400">No transactions yet.</p>
+            <p className="px-5 py-8 text-center text-sm text-gray-400">Sin transacciones aún.</p>
           ) : (
             <table className="w-full text-sm">
               <thead className="border-b bg-gray-50">
                 <tr>
-                  {['Customer', 'Type', 'Delta', 'Balance after', 'Note', 'Date'].map((h) => (
+                  {['Cliente', 'Tipo', 'Delta', 'Saldo tras', 'Nota', 'Fecha'].map((h) => (
                     <th key={h} className="px-4 py-2 text-left text-xs font-semibold uppercase tracking-wide text-gray-400">{h}</th>
                   ))}
                 </tr>

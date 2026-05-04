@@ -48,9 +48,9 @@ export default async function CustomerPortalPage({ searchParams }: PageProps) {
       <div className="flex min-h-screen items-center justify-center p-4">
         <div className="w-full max-w-sm rounded-2xl border bg-white p-8 shadow-sm text-center">
           <p className="text-2xl mb-3">🔍</p>
-          <h1 className="text-lg font-bold text-gray-900">No business found</h1>
+          <h1 className="text-lg font-bold text-gray-900">Negocio no encontrado</h1>
           <p className="mt-2 text-sm text-gray-500">
-            This page must be accessed via a business&apos;s loyalty link.
+            Esta página debe accederse mediante el enlace de lealtad del negocio.
           </p>
         </div>
       </div>
@@ -81,7 +81,7 @@ export default async function CustomerPortalPage({ searchParams }: PageProps) {
     if (err instanceof NotFoundError) {
       return (
         <EntryScreen
-          error="That code wasn't found. Double-check it and try again."
+          error="Código no encontrado. Verifícalo e inténtalo de nuevo."
           primaryColor={undefined}
           tenantName={undefined}
         />
@@ -110,9 +110,9 @@ function EntryScreen({
         <div className="text-center">
           <p className="text-4xl mb-3">🎁</p>
           <h1 className="text-xl font-bold text-gray-900">
-            {tenantName ? `${tenantName} Rewards` : 'Your Loyalty Rewards'}
+            {tenantName ? `${tenantName} Recompensas` : 'Tus Recompensas'}
           </h1>
-          <p className="mt-1 text-sm text-gray-500">Enter your access code to view your card.</p>
+          <p className="mt-1 text-sm text-gray-500">Ingresa tu código de acceso para ver tu tarjeta.</p>
         </div>
         <div className="rounded-2xl border bg-white p-6 shadow-sm">
           <CodeEntryForm error={error} primaryColor={primaryColor} />
@@ -155,9 +155,9 @@ function PortalShell({ data, code, tab }: { data: PortalData; code: string; tab:
       <div className="sticky top-0 z-20 border-b bg-white shadow-sm">
         <div className="mx-auto flex max-w-lg">
           {([
-            { key: 'points',  label: 'Points',  icon: '⭐' },
-            { key: 'rewards', label: 'Rewards', icon: '🎁' },
-            { key: 'history', label: 'History', icon: '📋' },
+            { key: 'points',  label: 'Puntos',      icon: '⭐' },
+            { key: 'rewards', label: 'Recompensas', icon: '🎁' },
+            { key: 'history', label: 'Historial',   icon: '📋' },
           ] as { key: Tab; label: string; icon: string }[]).map(({ key, label, icon }) => (
             <Link
               key={key}
@@ -207,7 +207,7 @@ function PortalShell({ data, code, tab }: { data: PortalData; code: string; tab:
 
       {/* ── Footer ───────────────────────────────────────────────── */}
       <p className="pb-6 text-center text-xs text-gray-300">
-        Member since {new Date(customer.member_since).toLocaleDateString('en', { year: 'numeric', month: 'long' })}
+        Miembro desde {new Date(customer.member_since).toLocaleDateString('es', { year: 'numeric', month: 'long' })}
       </p>
     </div>
   );
@@ -236,7 +236,7 @@ function PointsTab({
       {/* Pending vouchers */}
       {pendingVouchers.length > 0 && (
         <section className="space-y-3">
-          <SectionHeading>Ready to Use 🎉</SectionHeading>
+          <SectionHeading>Listo para usar 🎉</SectionHeading>
           {pendingVouchers.map((v) => (
             <VoucherCard key={v.id} voucher={v} primaryColor={tenant.primary_color} />
           ))}
@@ -249,14 +249,14 @@ function PointsTab({
           className="rounded-2xl p-4 text-sm font-medium"
           style={{ backgroundColor: `${tenant.primary_color}15`, color: tenant.primary_color }}
         >
-          🎁 You can redeem {affordableCount} reward{affordableCount !== 1 ? 's' : ''}! Check the Rewards tab.
+          🎁 ¡Puedes canjear {affordableCount} recompensa{affordableCount !== 1 ? 's' : ''}! Revisa la pestaña Recompensas.
         </div>
       )}
 
       {/* Enrollment cards */}
       {enrollments.length > 0 ? (
         <section className="space-y-3">
-          <SectionHeading>Your Programs</SectionHeading>
+          <SectionHeading>Tus Programas</SectionHeading>
           {enrollments.map((e) => (
             <EnrollmentCard
               key={e.program_id}
@@ -269,8 +269,8 @@ function PointsTab({
       ) : (
         <EmptyState
           icon="🌱"
-          title="No programs yet"
-          message={`Ask ${tenant.name} to enroll you in a loyalty program.`}
+          title="Sin programas aún"
+          message={`Pide a ${tenant.name} que te inscriba en un programa de lealtad.`}
         />
       )}
     </>
@@ -294,8 +294,8 @@ function RewardsTab({
     return (
       <EmptyState
         icon="🎁"
-        title="No rewards yet"
-        message="Your business hasn't added any rewards to this program yet."
+        title="Sin recompensas aún"
+        message="El negocio no ha agregado recompensas a este programa aún."
       />
     );
   }
@@ -374,7 +374,7 @@ function RewardRow({
         )}
 
         {r.is_out_of_stock && (
-          <p className="mt-1 text-xs font-medium text-red-400">Out of stock</p>
+          <p className="mt-1 text-xs font-medium text-red-400">Sin stock</p>
         )}
 
         {!r.is_affordable && !r.is_out_of_stock && (
@@ -386,7 +386,7 @@ function RewardRow({
               />
             </div>
             <p className="mt-1 text-xs text-gray-400">
-              {amountNeeded.toLocaleString()} more {r.progress_label} needed
+              Faltan {amountNeeded.toLocaleString()} {r.progress_label} para completar
             </p>
           </>
         )}
@@ -402,7 +402,7 @@ function RewardRow({
         )}
 
         {r.expiry_days && (
-          <p className="mt-0.5 text-xs text-gray-400">Voucher expires in {r.expiry_days} days</p>
+          <p className="mt-0.5 text-xs text-gray-400">El voucher vence en {r.expiry_days} días</p>
         )}
       </div>
     </div>
@@ -422,15 +422,15 @@ function HistoryTab({
     return (
       <EmptyState
         icon="📋"
-        title="No transactions yet"
-        message="Your activity will appear here after your first visit."
+        title="Sin transacciones aún"
+        message="Tu actividad aparecerá aquí después de tu primera visita."
       />
     );
   }
 
   return (
     <section className="space-y-2">
-      <SectionHeading>Recent Activity</SectionHeading>
+      <SectionHeading>Actividad reciente</SectionHeading>
       <div className="overflow-hidden rounded-2xl border bg-white shadow-sm divide-y divide-gray-50">
         {transactions.map((tx) => (
           <TransactionRow key={tx.id} tx={tx} programLabel={tenant.program_label} primaryColor={tenant.primary_color} />
@@ -476,7 +476,7 @@ function EnrollmentCard({
       <div className="flex items-start justify-between gap-2">
         <div>
           <h3 className="font-semibold text-gray-900">{e.program_name}</h3>
-          <p className="text-xs text-gray-400 capitalize">{e.program_type} program</p>
+          <p className="text-xs text-gray-400 capitalize">{e.program_type} programa</p>
         </div>
         <ProgramBadge type={e.program_type} primaryColor={primaryColor} />
       </div>
@@ -502,7 +502,7 @@ function EnrollmentCard({
       {affordableRewards.length > 0 && (
         <div className="mt-4 rounded-xl p-3" style={{ backgroundColor: `${primaryColor}12` }}>
           <p className="text-xs font-semibold mb-2" style={{ color: primaryColor }}>
-            You can redeem:
+            Puedes canjear:
           </p>
           <ul className="space-y-1">
             {affordableRewards.map((r) => (
@@ -552,9 +552,9 @@ function StampGrid({
         ))}
       </div>
       <p className="mt-2 text-sm text-gray-500">
-        {filled} / {total} stamps collected
+        {filled} / {total} sellos coleccionados
         {filled >= total && (
-          <span className="ml-1 font-semibold text-green-600">— Card complete! 🎉</span>
+          <span className="ml-1 font-semibold text-green-600">— ¡Tarjeta completa! 🎉</span>
         )}
       </p>
     </div>
@@ -579,7 +579,7 @@ function VisitCounter({
     <div>
       <div className="flex items-baseline gap-2">
         <span className="text-4xl font-bold" style={{ color: primaryColor }}>{count}</span>
-        <span className="text-sm text-gray-400">total visits</span>
+        <span className="text-sm text-gray-400">visitas en total</span>
       </div>
       {visitsNeeded && progressPct !== null && (
         <>
@@ -591,8 +591,8 @@ function VisitCounter({
           </div>
           <p className="mt-1 text-xs text-gray-400">
             {count >= visitsNeeded
-              ? 'Reward unlocked!'
-              : `${visitsNeeded - count} more visit${visitsNeeded - count !== 1 ? 's' : ''} until your reward`}
+              ? '¡Recompensa desbloqueada!'
+              : `${visitsNeeded - count} visita${visitsNeeded - count !== 1 ? 's' : ''} más para tu recompensa`}
           </p>
         </>
       )}
@@ -637,14 +637,14 @@ function PointsDisplay({
           </div>
           <p className="mt-1 text-xs text-gray-400">
             {current >= minRedeem
-              ? 'You have enough to redeem!'
-              : `${(minRedeem - current).toLocaleString()} more ${label} until you can redeem`}
+              ? '¡Tienes suficiente para canjear!'
+              : `Faltan ${(minRedeem - current).toLocaleString()} ${label} para poder canjear`}
           </p>
         </div>
       )}
 
       <p className="mt-1.5 text-xs text-gray-300">
-        {lifetime.toLocaleString()} {label} earned all-time
+        {lifetime.toLocaleString()} {label} ganados en total
       </p>
     </div>
   );
@@ -697,12 +697,12 @@ function VoucherCard({
       <div className="flex items-start justify-between gap-3">
         <div>
           <p className="text-xs font-semibold uppercase tracking-widest" style={{ color: primaryColor }}>
-            Voucher · Ready to use
+            Voucher · Listo para usar
           </p>
           <p className="mt-0.5 font-bold text-gray-900">{v.reward_name}</p>
           {daysLeft !== null && (
             <p className={`mt-0.5 text-xs ${daysLeft <= 3 ? 'text-red-500 font-medium' : 'text-gray-400'}`}>
-              {daysLeft > 0 ? `Expires in ${daysLeft} day${daysLeft !== 1 ? 's' : ''}` : 'Expires today'}
+              {daysLeft > 0 ? `Vence en ${daysLeft} día${daysLeft !== 1 ? 's' : ''}` : 'Vence hoy'}
             </p>
           )}
         </div>
@@ -711,7 +711,7 @@ function VoucherCard({
         <p className="font-mono text-lg font-bold tracking-widest text-gray-900">
           {v.redemption_code}
         </p>
-        <p className="mt-0.5 text-xs text-gray-400">Show this to staff</p>
+        <p className="mt-0.5 text-xs text-gray-400">Muéstralo al personal</p>
       </div>
     </div>
   );
@@ -729,12 +729,12 @@ const TX_ICONS: Record<string, string> = {
 };
 
 const TX_LABELS: Record<string, string> = {
-  earn:       'Earned',
-  redeem:     'Redeemed',
-  adjustment: 'Adjusted',
-  adjust:     'Adjusted',
-  expire:     'Expired',
-  refund:     'Refunded',
+  earn:       'Ganado',
+  redeem:     'Canjeado',
+  adjustment: 'Ajustado',
+  adjust:     'Ajustado',
+  expire:     'Expirado',
+  refund:     'Reembolsado',
 };
 
 function TransactionRow({
@@ -748,8 +748,8 @@ function TransactionRow({
 }) {
   const isEarn = tx.points_delta > 0;
   const date = new Date(tx.created_at);
-  const formattedDate = date.toLocaleDateString('en', { month: 'short', day: 'numeric' });
-  const formattedTime = date.toLocaleTimeString('en', { hour: 'numeric', minute: '2-digit' });
+  const formattedDate = date.toLocaleDateString('es', { month: 'short', day: 'numeric' });
+  const formattedTime = date.toLocaleTimeString('es', { hour: 'numeric', minute: '2-digit' });
 
   return (
     <div className="flex items-center gap-3 px-4 py-3">

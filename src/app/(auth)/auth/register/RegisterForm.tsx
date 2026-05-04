@@ -10,29 +10,29 @@ import { setupTenantAction, checkSubdomainAction } from './actions';
 const PLANS = [
   {
     id:          'free' as const,
-    name:        'Free',
+    name:        'Gratis',
     price:       '$0',
-    period:      'forever',
-    description: 'Try it out with no commitment.',
-    features:    ['Up to 50 customers', '1 loyalty program', 'All program types', 'Customer portal'],
+    period:      'por siempre',
+    description: 'Pruébalo sin compromisos.',
+    features:    ['Hasta 50 clientes', '1 programa de lealtad', 'Todos los tipos de programa', 'Portal de clientes'],
     highlight:   false,
   },
   {
     id:          'starter' as const,
     name:        'Starter',
     price:       '$29',
-    period:      'per month',
-    description: 'For growing independent businesses.',
-    features:    ['Up to 500 customers', '3 loyalty programs', 'All program types', 'Priority support'],
+    period:      'por mes',
+    description: 'Para negocios independientes en crecimiento.',
+    features:    ['Hasta 500 clientes', '3 programas de lealtad', 'Todos los tipos de programa', 'Soporte prioritario'],
     highlight:   true,
   },
   {
     id:          'pro' as const,
     name:        'Pro',
     price:       '$79',
-    period:      'per month',
-    description: 'No limits. Full power.',
-    features:    ['Unlimited customers', 'Unlimited programs', 'Custom branding', 'Analytics dashboard'],
+    period:      'por mes',
+    description: 'Sin límites. Máxima potencia.',
+    features:    ['Clientes ilimitados', 'Programas ilimitados', 'Branding personalizado', 'Panel de analíticas'],
     highlight:   false,
   },
 ] as const;
@@ -115,7 +115,7 @@ export default function RegisterForm() {
       setSubdomainStatus('available');
     } else {
       setSubdomainStatus('taken');
-      setSubdomainError('This subdomain is already taken. Try another.');
+      setSubdomainError('Este subdominio ya está en uso. Prueba con otro.');
     }
   }, []);
 
@@ -127,21 +127,21 @@ export default function RegisterForm() {
 
   // ── Step 1 validation ───────────────────────────────────────────────────
   function validateStep1(): string | null {
-    if (!fullName.trim() || fullName.trim().length < 2) return 'Full name must be at least 2 characters.';
-    if (!email) return 'Email is required.';
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return 'Enter a valid email address.';
-    if (password.length < 8) return 'Password must be at least 8 characters.';
-    if (password !== confirmPassword) return 'Passwords do not match.';
-    if (!acceptedTerms) return 'You must accept the Terms of Service and Privacy Policy.';
+    if (!fullName.trim() || fullName.trim().length < 2) return 'El nombre debe tener al menos 2 caracteres.';
+    if (!email) return 'El email es obligatorio.';
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return 'Ingresa un email válido.';
+    if (password.length < 8) return 'La contraseña debe tener al menos 8 caracteres.';
+    if (password !== confirmPassword) return 'Las contraseñas no coinciden.';
+    if (!acceptedTerms) return 'Debes aceptar los Términos de Servicio y la Política de Privacidad.';
     return null;
   }
 
   // ── Step 2 validation ───────────────────────────────────────────────────
   function validateStep2(): string | null {
-    if (!businessName.trim() || businessName.trim().length < 2) return 'Business name must be at least 2 characters.';
-    if (!subdomain || subdomain.length < 3) return 'Subdomain must be at least 3 characters.';
-    if (subdomainStatus === 'taken' || subdomainStatus === 'invalid') return subdomainError || 'Choose a different subdomain.';
-    if (subdomainStatus === 'checking') return 'Wait for subdomain check to complete.';
+    if (!businessName.trim() || businessName.trim().length < 2) return 'El nombre del negocio debe tener al menos 2 caracteres.';
+    if (!subdomain || subdomain.length < 3) return 'El subdominio debe tener al menos 3 caracteres.';
+    if (subdomainStatus === 'taken' || subdomainStatus === 'invalid') return subdomainError || 'Elige un subdominio diferente.';
+    if (subdomainStatus === 'checking') return 'Espera a que termine la verificación del subdominio.';
     return null;
   }
 
@@ -182,7 +182,7 @@ export default function RegisterForm() {
 
       const userId = authData.user?.id;
       if (!userId) {
-        setGlobalError('Signup failed — no user returned. Try again.');
+        setGlobalError('Error al registrarse — no se recibió usuario. Inténtalo de nuevo.');
         return;
       }
 
@@ -212,8 +212,8 @@ export default function RegisterForm() {
 
   // ── Step indicator ──────────────────────────────────────────────────────
   const steps = [
-    { n: 1, label: 'Account' },
-    { n: 2, label: 'Business' },
+    { n: 1, label: 'Cuenta' },
+    { n: 2, label: 'Negocio' },
     { n: 3, label: 'Plan' },
   ];
 
@@ -262,24 +262,24 @@ export default function RegisterForm() {
         {step === 1 && (
           <div className="space-y-5">
             <div>
-              <h2 className="text-xl font-bold text-gray-900">Create your account</h2>
-              <p className="mt-1 text-sm text-gray-500">Your personal login credentials.</p>
+              <h2 className="text-xl font-bold text-gray-900">Crea tu cuenta</h2>
+              <p className="mt-1 text-sm text-gray-500">Tus credenciales de acceso personales.</p>
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Full name</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Nombre completo</label>
               <input
                 type="text"
                 autoFocus
                 value={fullName}
                 onChange={(e) => setFullName(e.target.value)}
-                placeholder="Jane Smith"
+                placeholder="Ana García"
                 className={inputCls()}
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Email address</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Correo electrónico</label>
               <input
                 type="email"
                 value={email}
@@ -290,13 +290,13 @@ export default function RegisterForm() {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Password</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Contraseña</label>
               <div className="relative">
                 <input
                   type={showPassword ? 'text' : 'password'}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  placeholder="At least 8 characters"
+                  placeholder="Mínimo 8 caracteres"
                   className={inputCls(password.length > 0 && password.length < 8)}
                 />
                 <button
@@ -335,16 +335,16 @@ export default function RegisterForm() {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Confirm password</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Confirmar contraseña</label>
               <input
                 type={showPassword ? 'text' : 'password'}
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
-                placeholder="Repeat your password"
+                placeholder="Repite tu contraseña"
                 className={inputCls(confirmPassword.length > 0 && confirmPassword !== password)}
               />
               {confirmPassword.length > 0 && confirmPassword !== password && (
-                <p className="mt-1 text-xs text-red-500">Passwords do not match</p>
+                <p className="mt-1 text-xs text-red-500">Las contraseñas no coinciden</p>
               )}
             </div>
 
@@ -356,13 +356,13 @@ export default function RegisterForm() {
                 className="mt-0.5 h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500 cursor-pointer"
               />
               <span className="text-sm text-gray-600 leading-relaxed">
-                I agree to the{' '}
-                <a href="/en/terms" target="_blank" className="text-indigo-600 hover:underline font-medium">
-                  Terms of Service
+                Acepto los{' '}
+                <a href="/es/terms" target="_blank" className="text-indigo-600 hover:underline font-medium">
+                  Términos de Servicio
                 </a>{' '}
-                and{' '}
-                <a href="/en/privacy" target="_blank" className="text-indigo-600 hover:underline font-medium">
-                  Privacy Policy
+                y la{' '}
+                <a href="/es/privacy" target="_blank" className="text-indigo-600 hover:underline font-medium">
+                  Política de Privacidad
                 </a>
               </span>
             </label>
@@ -372,7 +372,7 @@ export default function RegisterForm() {
               onClick={goToStep2}
               className="w-full rounded-lg bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-indigo-700 active:scale-[0.99]"
             >
-              Continue →
+              Continuar →
             </button>
           </div>
         )}
@@ -381,24 +381,24 @@ export default function RegisterForm() {
         {step === 2 && (
           <div className="space-y-5">
             <div>
-              <h2 className="text-xl font-bold text-gray-900">About your business</h2>
-              <p className="mt-1 text-sm text-gray-500">This is how your customers will see you.</p>
+              <h2 className="text-xl font-bold text-gray-900">Tu negocio</h2>
+              <p className="mt-1 text-sm text-gray-500">Así te verán tus clientes.</p>
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Business name</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Nombre del negocio</label>
               <input
                 type="text"
                 autoFocus
                 value={businessName}
                 onChange={(e) => setBusinessName(e.target.value)}
-                placeholder="e.g. Brew & Co Coffee"
+                placeholder="ej. Café Central"
                 className={inputCls()}
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Your subdomain</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Tu subdominio</label>
               <div className="flex items-center gap-0">
                 <input
                   type="text"
@@ -430,7 +430,7 @@ export default function RegisterForm() {
                       <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                       <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
                     </svg>
-                    <span className="text-xs text-gray-400">Checking availability…</span>
+                    <span className="text-xs text-gray-400">Verificando disponibilidad…</span>
                   </>
                 )}
                 {subdomainStatus === 'available' && (
@@ -438,7 +438,7 @@ export default function RegisterForm() {
                     <svg className="h-3.5 w-3.5 text-green-500" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
                     </svg>
-                    <span className="text-xs text-green-600 font-medium">{subdomain}.fideliza.app is available!</span>
+                    <span className="text-xs text-green-600 font-medium">¡{subdomain}.fideliza.app está disponible!</span>
                   </>
                 )}
                 {(subdomainStatus === 'taken' || subdomainStatus === 'invalid') && (
@@ -454,11 +454,11 @@ export default function RegisterForm() {
               {/* Preview pill */}
               {subdomain && subdomainStatus === 'available' && (
                 <div className="mt-3 rounded-xl bg-indigo-50 px-4 py-3">
-                  <p className="text-xs text-indigo-500 font-medium uppercase tracking-widest mb-0.5">Your portal URL</p>
+                  <p className="text-xs text-indigo-500 font-medium uppercase tracking-widest mb-0.5">URL de tu portal</p>
                   <p className="text-sm font-mono text-indigo-700 font-semibold">
                     https://{subdomain}.fideliza.app/c
                   </p>
-                  <p className="mt-0.5 text-xs text-indigo-400">Share this with your customers</p>
+                  <p className="mt-0.5 text-xs text-indigo-400">Compártelo con tus clientes</p>
                 </div>
               )}
             </div>
@@ -469,14 +469,14 @@ export default function RegisterForm() {
                 onClick={() => { setStep(1); setGlobalError(''); }}
                 className="flex-1 rounded-lg border border-gray-200 px-4 py-2.5 text-sm font-medium text-gray-600 transition hover:bg-gray-50"
               >
-                ← Back
+                ← Atrás
               </button>
               <button
                 type="button"
                 onClick={goToStep3}
                 className="flex-1 rounded-lg bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-indigo-700"
               >
-                Continue →
+                Continuar →
               </button>
             </div>
           </div>
@@ -486,8 +486,8 @@ export default function RegisterForm() {
         {step === 3 && (
           <div className="space-y-5">
             <div>
-              <h2 className="text-xl font-bold text-gray-900">Choose your plan</h2>
-              <p className="mt-1 text-sm text-gray-500">Start free. Upgrade any time.</p>
+              <h2 className="text-xl font-bold text-gray-900">Elige tu plan</h2>
+              <p className="mt-1 text-sm text-gray-500">Comienza gratis. Mejora en cualquier momento.</p>
             </div>
 
             <div className="space-y-3">
@@ -510,6 +510,7 @@ export default function RegisterForm() {
                           <span className="rounded-full bg-indigo-100 px-2 py-0.5 text-xs font-semibold text-indigo-600">
                             Popular
                           </span>
+
                         )}
                       </div>
                       <p className="mt-0.5 text-xs text-gray-500">{p.description}</p>
@@ -542,7 +543,7 @@ export default function RegisterForm() {
 
             {/* Summary */}
             <div className="rounded-xl bg-gray-50 px-4 py-3 text-sm">
-              <p className="font-medium text-gray-700">Account summary</p>
+              <p className="font-medium text-gray-700">Resumen de cuenta</p>
               <div className="mt-1.5 space-y-0.5 text-xs text-gray-500">
                 <p>✉️ {email}</p>
                 <p>🏢 {businessName} · <span className="font-mono">{subdomain}.fideliza.app</span></p>
@@ -556,7 +557,7 @@ export default function RegisterForm() {
                 onClick={() => { setStep(2); setGlobalError(''); }}
                 className="flex-1 rounded-lg border border-gray-200 px-4 py-2.5 text-sm font-medium text-gray-600 transition hover:bg-gray-50"
               >
-                ← Back
+                ← Atrás
               </button>
               <button
                 type="button"
@@ -564,7 +565,7 @@ export default function RegisterForm() {
                 disabled={isPending}
                 className="flex-1 rounded-lg bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-indigo-700 disabled:opacity-50"
               >
-                {isPending ? 'Creating account…' : 'Create account'}
+                {isPending ? 'Creando cuenta…' : 'Crear cuenta'}
               </button>
             </div>
           </div>
@@ -572,9 +573,9 @@ export default function RegisterForm() {
       </div>
 
       <p className="text-center text-xs text-gray-400">
-        Already have an account?{' '}
+        ¿Ya tienes una cuenta?{' '}
         <a href="/auth/login" className="text-indigo-500 hover:underline font-medium">
-          Sign in
+          Inicia sesión
         </a>
       </p>
     </div>

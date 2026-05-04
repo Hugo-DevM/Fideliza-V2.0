@@ -66,15 +66,15 @@ export default function LoginForm() {
             <path strokeLinecap="round" strokeLinejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 01-2.25 2.25h-15a2.25 2.25 0 01-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25m19.5 0v.243a2.25 2.25 0 01-1.07 1.916l-7.5 4.615a2.25 2.25 0 01-2.36 0L3.32 8.91a2.25 2.25 0 01-1.07-1.916V6.75" />
           </svg>
         </div>
-        <h2 className="text-lg font-semibold text-gray-900">Check your email</h2>
+        <h2 className="text-lg font-semibold text-gray-900">Revisa tu correo</h2>
         <p className="text-sm text-gray-500">
-          We sent a magic link to <span className="font-medium text-gray-700">{email}</span>.
+          Te enviamos un enlace mágico a <span className="font-medium text-gray-700">{email}</span>.
         </p>
         <button
           onClick={() => setStatus('idle')}
           className="text-sm text-indigo-600 hover:underline"
         >
-          Use a different email
+          Usar otro correo
         </button>
       </div>
     );
@@ -93,7 +93,7 @@ export default function LoginForm() {
               : 'text-gray-500 hover:text-gray-700'
           }`}
         >
-          Password
+          Contraseña
         </button>
         <button
           type="button"
@@ -104,7 +104,7 @@ export default function LoginForm() {
               : 'text-gray-500 hover:text-gray-700'
           }`}
         >
-          Magic link
+          Enlace mágico
         </button>
       </div>
 
@@ -115,7 +115,7 @@ export default function LoginForm() {
 
         <div>
           <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
-            Business email
+            Email de negocio
           </label>
           <input
             id="email"
@@ -133,10 +133,10 @@ export default function LoginForm() {
           <div>
             <div className="flex items-center justify-between mb-1">
               <label htmlFor="password" className="block text-sm font-medium text-gray-700">
-                Password
+                Contraseña
               </label>
               <a href="/auth/reset-password" className="text-xs text-indigo-500 hover:underline">
-                Forgot password?
+                ¿Olvidaste tu contraseña?
               </a>
             </div>
             <div className="relative">
@@ -146,7 +146,7 @@ export default function LoginForm() {
                 required
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                placeholder="Your password"
+                placeholder="Tu contraseña"
                 className="w-full rounded-lg border border-gray-200 px-4 py-2.5 text-sm text-gray-900 placeholder-gray-400 outline-none transition focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100"
               />
               <button
@@ -176,8 +176,8 @@ export default function LoginForm() {
           className="w-full rounded-lg bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {status === 'loading'
-            ? mode === 'password' ? 'Signing in…' : 'Sending link…'
-            : mode === 'password' ? 'Sign in' : 'Send magic link'}
+            ? mode === 'password' ? 'Iniciando sesión…' : 'Enviando enlace…'
+            : mode === 'password' ? 'Iniciar sesión' : 'Enviar enlace mágico'}
         </button>
       </form>
     </div>

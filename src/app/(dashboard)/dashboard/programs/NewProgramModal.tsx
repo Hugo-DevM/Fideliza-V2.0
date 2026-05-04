@@ -5,10 +5,10 @@ import { useRouter } from 'next/navigation';
 import { createProgramAction } from './actions';
 
 const PROGRAM_TYPES = [
-  { value: 'points',   label: 'Points',   hint: 'Earn X points per $ spent' },
-  { value: 'stamp',    label: 'Stamp card', hint: 'Collect N stamps, earn a reward' },
-  { value: 'visit',    label: 'Visit',    hint: 'Reward after N visits' },
-  { value: 'cashback', label: 'Cashback', hint: 'Earn % back as store credit' },
+  { value: 'points',   label: 'Puntos',          hint: 'Gana X puntos por $ gastado' },
+  { value: 'stamp',    label: 'Tarjeta de sellos', hint: 'Acumula N sellos, gana una recompensa' },
+  { value: 'visit',    label: 'Visitas',          hint: 'Recompensa tras N visitas' },
+  { value: 'cashback', label: 'Cashback',         hint: 'Gana % de vuelta como crédito' },
 ];
 
 export default function NewProgramModal() {
@@ -43,26 +43,26 @@ export default function NewProgramModal() {
         onClick={() => setOpen(true)}
         className="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-700"
       >
-        + New Program
+        + Nuevo programa
       </button>
 
       {open && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
           <div className="w-full max-w-lg rounded-2xl bg-white p-6 shadow-xl">
             <div className="mb-5 flex items-center justify-between">
-              <h2 className="text-base font-bold text-gray-900">Create program</h2>
+              <h2 className="text-base font-bold text-gray-900">Crear programa</h2>
               <button onClick={() => setOpen(false)} className="text-xl leading-none text-gray-400 hover:text-gray-600">×</button>
             </div>
 
             <form ref={formRef} onSubmit={handleSubmit} className="space-y-4">
               {error && <p className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-600">{error}</p>}
 
-              <Field label="Program name *" name="name" type="text" placeholder="Coffee Rewards" required />
-              <Field label="Description" name="description" type="text" placeholder="Earn points on every purchase" />
+              <Field label="Nombre del programa *" name="name" type="text" placeholder="Recompensas Café" required />
+              <Field label="Descripción" name="description" type="text" placeholder="Acumula puntos en cada compra" />
 
               {/* Type selector */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Program type *</label>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Tipo de programa *</label>
                 <div className="grid grid-cols-2 gap-2">
                   {PROGRAM_TYPES.map((t) => (
                     <label
@@ -89,31 +89,31 @@ export default function NewProgramModal() {
               {/* Type-specific config */}
               {type === 'points' && (
                 <div className="grid grid-cols-2 gap-3">
-                  <NumField label="Points per $" name="points_per_dollar" defaultValue="10" />
-                  <NumField label="Min to redeem" name="min_redeem" defaultValue="100" />
+                  <NumField label="Puntos por $" name="points_per_dollar" defaultValue="10" />
+                  <NumField label="Mínimo para canjear" name="min_redeem" defaultValue="100" />
                 </div>
               )}
               {type === 'stamp' && (
-                <NumField label="Stamps needed for reward" name="stamps_needed" defaultValue="10" />
+                <NumField label="Sellos para la recompensa" name="stamps_needed" defaultValue="10" />
               )}
               {type === 'visit' && (
-                <NumField label="Visits needed for reward" name="visits_needed" defaultValue="5" />
+                <NumField label="Visitas para la recompensa" name="visits_needed" defaultValue="5" />
               )}
               {type === 'cashback' && (
                 <div className="grid grid-cols-2 gap-3">
                   <NumField label="Cashback %" name="cashback_percent" defaultValue="5" step="0.1" />
-                  <NumField label="Min purchase ($)" name="min_purchase" defaultValue="10" step="0.01" />
+                  <NumField label="Compra mínima ($)" name="min_purchase" defaultValue="10" step="0.01" />
                 </div>
               )}
 
               <div className="flex justify-end gap-3 pt-1">
                 <button type="button" onClick={() => setOpen(false)}
                   className="rounded-lg border px-4 py-2 text-sm font-medium text-gray-600 hover:bg-gray-50"
-                >Cancel</button>
+                >Cancelar</button>
                 <button type="submit" disabled={isPending}
                   className="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-700 disabled:opacity-50"
                 >
-                  {isPending ? 'Creating…' : 'Create program'}
+                  {isPending ? 'Creando…' : 'Crear programa'}
                 </button>
               </div>
             </form>

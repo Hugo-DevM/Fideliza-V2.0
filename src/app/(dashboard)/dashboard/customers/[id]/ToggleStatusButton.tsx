@@ -31,7 +31,7 @@ export default function ToggleStatusButton({
           : 'border-green-200 text-green-600 hover:bg-green-50'
       }`}
     >
-      {isPending ? '…' : isActive ? 'Deactivate' : 'Reactivate'}
+      {isPending ? '…' : isActive ? 'Desactivar' : 'Reactivar'}
     </button>
   );
 }

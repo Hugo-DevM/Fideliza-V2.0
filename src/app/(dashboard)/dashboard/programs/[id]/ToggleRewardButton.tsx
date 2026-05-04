@@ -25,7 +25,7 @@ export default function ToggleRewardButton({
           : 'border-green-200 text-green-600 hover:bg-green-50'
       }`}
     >
-      {isPending ? '…' : isActive ? 'Disable' : 'Enable'}
+      {isPending ? '…' : isActive ? 'Desactivar' : 'Activar'}
     </button>
   );
 }

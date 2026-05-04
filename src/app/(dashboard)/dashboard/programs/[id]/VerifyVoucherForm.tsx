@@ -20,7 +20,7 @@ export default function VerifyVoucherForm() {
       if ('error' in result && result.error) {
         setError(result.error);
       } else {
-        setSuccess(`Voucher ${code.toUpperCase()} marked as used ✓`);
+        setSuccess(`Voucher ${code.toUpperCase()} marcado como usado ✓`);
         setCode('');
       }
     });
@@ -28,9 +28,9 @@ export default function VerifyVoucherForm() {
 
   return (
     <div className="rounded-xl border bg-white p-5 shadow-sm">
-      <h2 className="mb-1 text-sm font-semibold text-gray-700">Verify voucher</h2>
+      <h2 className="mb-1 text-sm font-semibold text-gray-700">Verificar voucher</h2>
       <p className="mb-3 text-xs text-gray-400">
-        Enter the code a customer shows at the counter to mark it used.
+        Ingresa el código que muestra el cliente en caja para marcarlo como usado.
       </p>
 
       <form onSubmit={handleSubmit} className="flex gap-2">
@@ -47,7 +47,7 @@ export default function VerifyVoucherForm() {
           disabled={isPending || !code.trim()}
           className="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-700 disabled:opacity-50"
         >
-          {isPending ? '…' : 'Verify'}
+          {isPending ? '…' : 'Verificar'}
         </button>
       </form>
 

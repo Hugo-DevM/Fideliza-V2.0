@@ -46,37 +46,37 @@ export default function NewRewardForm({ programId, programType, programConfig }:
         onClick={() => setOpen(true)}
         className="rounded-lg border border-dashed border-gray-300 px-4 py-2 text-sm text-gray-500 hover:border-indigo-400 hover:text-indigo-600 transition"
       >
-        + Add reward
+        + Agregar recompensa
       </button>
     );
   }
 
   return (
     <div className="rounded-xl border border-indigo-100 bg-indigo-50 p-4">
-      <h3 className="mb-3 text-sm font-semibold text-gray-700">New reward</h3>
+      <h3 className="mb-3 text-sm font-semibold text-gray-700">Nueva recompensa</h3>
       <form ref={formRef} onSubmit={handleSubmit} className="space-y-3">
         {error && <p className="text-sm text-red-600">{error}</p>}
 
         <div className="grid grid-cols-2 gap-3">
           <div className="col-span-2">
-            <label className="block text-xs font-medium text-gray-600 mb-1">Reward name *</label>
-            <input name="name" type="text" required placeholder="Free Coffee" className={inputCls} />
+            <label className="block text-xs font-medium text-gray-600 mb-1">Nombre de la recompensa *</label>
+            <input name="name" type="text" required placeholder="Café gratis" className={inputCls} />
           </div>
           <div className="col-span-2">
-            <label className="block text-xs font-medium text-gray-600 mb-1">Description</label>
-            <input name="description" type="text" placeholder="Any size, any drink" className={inputCls} />
+            <label className="block text-xs font-medium text-gray-600 mb-1">Descripción</label>
+            <input name="description" type="text" placeholder="Cualquier tamaño, cualquier bebida" className={inputCls} />
           </div>
 
           {/* cost_points: only shown for points/cashback — for stamp/visit it's auto-set from program config */}
           {programType === 'points' && (
             <div>
-              <label className="block text-xs font-medium text-gray-600 mb-1">Cost (points) *</label>
+              <label className="block text-xs font-medium text-gray-600 mb-1">Costo (puntos) *</label>
               <input name="cost_points" type="number" min="1" required placeholder="250" className={inputCls} />
             </div>
           )}
           {programType === 'cashback' && (
             <div>
-              <label className="block text-xs font-medium text-gray-600 mb-1">Minimum balance to redeem *</label>
+              <label className="block text-xs font-medium text-gray-600 mb-1">Saldo mínimo para canjear *</label>
               <input name="cost_points" type="number" min="1" required placeholder="500" className={inputCls} />
             </div>
           )}
@@ -98,12 +98,12 @@ export default function NewRewardForm({ programId, programType, programConfig }:
           )}
 
           <div>
-            <label className="block text-xs font-medium text-gray-600 mb-1">Expiry (days)</label>
+            <label className="block text-xs font-medium text-gray-600 mb-1">Vencimiento (días)</label>
             <input name="expiry_days" type="number" min="1" placeholder="30" className={inputCls} />
           </div>
           <div>
-            <label className="block text-xs font-medium text-gray-600 mb-1">Stock limit</label>
-            <input name="stock" type="number" min="0" placeholder="∞ unlimited" className={inputCls} />
+            <label className="block text-xs font-medium text-gray-600 mb-1">Límite de stock</label>
+            <input name="stock" type="number" min="0" placeholder="∞ ilimitado" className={inputCls} />
           </div>
         </div>
 
@@ -111,12 +111,12 @@ export default function NewRewardForm({ programId, programType, programConfig }:
           <button type="submit" disabled={isPending}
             className="rounded-lg bg-indigo-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-indigo-700 disabled:opacity-50"
           >
-            {isPending ? 'Saving…' : 'Save reward'}
+            {isPending ? 'Guardando…' : 'Guardar recompensa'}
           </button>
           <button type="button" onClick={() => { setOpen(false); setError(''); }}
             className="rounded-lg border px-3 py-1.5 text-xs font-medium text-gray-500 hover:bg-gray-50"
           >
-            Cancel
+            Cancelar
           </button>
         </div>
       </form>

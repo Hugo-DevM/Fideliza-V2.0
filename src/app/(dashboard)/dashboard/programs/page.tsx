@@ -3,7 +3,7 @@ import { getAuthenticatedTenant } from '@/lib/auth/get-tenant';
 import { createServiceRoleClient } from '@/lib/supabase/server';
 import NewProgramModal from './NewProgramModal';
 
-export const metadata = { title: 'Programs — Fideliza+' };
+export const metadata = { title: 'Programas — Fideliza+' };
 
 const TYPE_BADGES: Record<string, string> = {
   points:   'bg-blue-50 text-blue-700',
@@ -45,8 +45,8 @@ export default async function ProgramsPage() {
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-xl font-bold text-gray-900">Programs</h1>
-          <p className="text-sm text-gray-500">{programs?.length ?? 0} programs</p>
+          <h1 className="text-xl font-bold text-gray-900">Programas</h1>
+          <p className="text-sm text-gray-500">{programs?.length ?? 0} programas</p>
         </div>
         <NewProgramModal />
       </div>
@@ -54,9 +54,9 @@ export default async function ProgramsPage() {
       {!programs?.length ? (
         <div className="rounded-xl border bg-white p-12 text-center shadow-sm">
           <p className="text-3xl mb-2">🎁</p>
-          <p className="font-semibold text-gray-700">No programs yet</p>
+          <p className="font-semibold text-gray-700">Sin programas aún</p>
           <p className="mt-1 text-sm text-gray-400">
-            Create your first loyalty program to start rewarding customers.
+            Crea tu primer programa de lealtad para empezar a recompensar clientes.
           </p>
         </div>
       ) : (
@@ -89,8 +89,8 @@ export default async function ProgramsPage() {
                 </div>
 
                 <div className="mt-3 flex gap-4 text-xs text-gray-400">
-                  <span>{enrollmentCount} enrolled</span>
-                  <span>{rewardCount} reward{rewardCount !== 1 ? 's' : ''}</span>
+                  <span>{enrollmentCount} inscritos</span>
+                  <span>{rewardCount} recompensa{rewardCount !== 1 ? 's' : ''}</span>
                 </div>
               </Link>
             );

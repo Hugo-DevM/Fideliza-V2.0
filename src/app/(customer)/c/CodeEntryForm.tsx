@@ -67,7 +67,7 @@ export default function CodeEntryForm({ error, primaryColor = '#6366F1' }: CodeE
 
       <div>
         <label htmlFor="access-code" className="block text-sm font-medium text-gray-700 mb-1.5">
-          Access Code
+          Código de acceso
         </label>
         <input
           ref={inputRef}
@@ -86,7 +86,7 @@ export default function CodeEntryForm({ error, primaryColor = '#6366F1' }: CodeE
           aria-describedby={error ? 'code-error' : undefined}
         />
         <p className="mt-1.5 text-xs text-gray-400 text-center">
-          Find your code on the card we gave you, or ask the business.
+          Encuentra tu código en la tarjeta que te dieron, o pídelo al negocio.
         </p>
       </div>
 
@@ -96,7 +96,7 @@ export default function CodeEntryForm({ error, primaryColor = '#6366F1' }: CodeE
         style={{ backgroundColor: primaryColor }}
         className="w-full rounded-xl px-4 py-3 text-sm font-semibold text-white shadow-sm transition hover:opacity-90 active:scale-95 disabled:cursor-not-allowed disabled:opacity-50"
       >
-        {loading ? 'Looking up…' : 'View My Rewards'}
+        {loading ? 'Buscando…' : 'Ver mis recompensas'}
       </button>
     </form>
   );
