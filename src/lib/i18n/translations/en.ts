@@ -199,7 +199,7 @@ export const en = {
   pricing: {
     label: "Simple pricing",
     heading: "No surprises. No hidden fees.",
-    body: "Start free and upgrade only when you need to. Early access users get 3 months of Starter free.",
+    body: "Start free and upgrade only when you need to. Early access users get 1 month of Starter free.",
     plans: [
       {
         name: "Free",

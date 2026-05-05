@@ -282,7 +282,7 @@ export const es: Dictionary = {
   cta: {
     badge: "Acceso anticipado abierto",
     heading: "Lanza tu programa de fidelización esta semana",
-    body: "Únete a la lista de espera y sé uno de los primeros negocios en usar Fideliza+. Los miembros de acceso anticipado bloquean el precio fundador — 3 meses de Starter, gratis.",
+    body: "Únete a la lista de espera y sé uno de los primeros negocios en usar Fideliza+. Los miembros de acceso anticipado bloquean el precio fundador — 1 mes de Starter, gratis.",
     bullets: [
       "Sin tarjeta de crédito",
       "Configuración en menos de 5 minutos",
