@@ -212,18 +212,23 @@ export const en = {
         features: [
           "Up to 50 customers",
           "1 loyalty program",
-          "Points or stamp mechanic",
+          "Points and stamps",
           "Your own subdomain",
           "Customer access codes",
-          "Basic transaction history",
+          "Last 50 transactions",
         ],
-        missing: ["Multiple programs", "Priority support"],
+        missing: [
+          "Visit rewards",
+          "Reward catalog",
+          "CSV export",
+          "Priority support",
+        ],
         cta: "Start for free",
         href: "#waitlist",
       },
       {
         name: "Starter",
-        price: "$19",
+        price: "$29",
         period: "/month",
         description:
           "For growing businesses ready to turn regulars into loyal customers.",
@@ -239,13 +244,13 @@ export const en = {
           "Reward catalog",
           "Email support",
         ],
-        missing: [],
+        missing: ["CSV export", "Priority support"],
         cta: "Get early access",
         href: "#waitlist",
       },
       {
         name: "Pro",
-        price: "$49",
+        price: "$59",
         period: "/month",
         description:
           "For established businesses with a serious loyalty strategy.",

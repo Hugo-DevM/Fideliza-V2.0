@@ -5,40 +5,7 @@ import { useRouter } from 'next/navigation';
 import { createBrowserClient } from '@supabase/ssr';
 import { setupTenantAction, checkSubdomainAction } from './actions';
 
-// ── Plan definitions ──────────────────────────────────────────────────────────
-
-const PLANS = [
-  {
-    id:          'free' as const,
-    name:        'Gratis',
-    price:       '$0',
-    period:      'por siempre',
-    description: 'Pruébalo sin compromisos.',
-    features:    ['Hasta 50 clientes', '1 programa de lealtad', 'Todos los tipos de programa', 'Portal de clientes'],
-    highlight:   false,
-  },
-  {
-    id:          'starter' as const,
-    name:        'Starter',
-    price:       '$29',
-    period:      'por mes',
-    description: 'Para negocios independientes en crecimiento.',
-    features:    ['Hasta 500 clientes', '3 programas de lealtad', 'Todos los tipos de programa', 'Soporte prioritario'],
-    highlight:   true,
-  },
-  {
-    id:          'pro' as const,
-    name:        'Pro',
-    price:       '$79',
-    period:      'por mes',
-    description: 'Sin límites. Máxima potencia.',
-    features:    ['Clientes ilimitados', 'Programas ilimitados', 'Branding personalizado', 'Panel de analíticas'],
-    highlight:   false,
-  },
-] as const;
-
-type Plan = 'free' | 'starter' | 'pro';
-type Step = 1 | 2 | 3;
+type Step = 1 | 2;
 
 // ── Input style ───────────────────────────────────────────────────────────────
 
@@ -73,10 +40,7 @@ export default function RegisterForm() {
   const [subdomainError,    setSubdomainError]    = useState('');
   const [subdomainTouched,  setSubdomainTouched]  = useState(false);
 
-  // Step 3 — Plan
-  const [plan, setPlan] = useState<Plan>('free');
-
-  // Global error / success
+  // Global error
   const [globalError, setGlobalError] = useState('');
 
   // Supabase browser client
@@ -153,15 +117,10 @@ export default function RegisterForm() {
     setStep(2);
   }
 
-  function goToStep3() {
-    const err = validateStep2();
-    if (err) { setGlobalError(err); return; }
-    setGlobalError('');
-    setStep(3);
-  }
-
   // ── Final submit ────────────────────────────────────────────────────────
   async function handleSubmit() {
+    const err = validateStep2();
+    if (err) { setGlobalError(err); return; }
     setGlobalError('');
 
     startTransition(async () => {
@@ -186,13 +145,12 @@ export default function RegisterForm() {
         return;
       }
 
-      // 2. Create tenant + bind tenant_id to user metadata (server action)
+      // 2. Create tenant (always free) + bind tenant_id to user metadata
       const result = await setupTenantAction({
         userId,
         email,
         businessName: businessName.trim(),
         subdomain,
-        plan,
       });
 
       if (result.error) {
@@ -200,8 +158,7 @@ export default function RegisterForm() {
         return;
       }
 
-      // 3. If session exists (email confirmation disabled) → dashboard
-      //    Otherwise → confirm email screen
+      // 3. Redirect
       if (authData.session) {
         router.push('/dashboard');
       } else {
@@ -214,7 +171,6 @@ export default function RegisterForm() {
   const steps = [
     { n: 1, label: 'Cuenta' },
     { n: 2, label: 'Negocio' },
-    { n: 3, label: 'Plan' },
   ];
 
   return (
@@ -467,94 +423,6 @@ export default function RegisterForm() {
               <button
                 type="button"
                 onClick={() => { setStep(1); setGlobalError(''); }}
-                className="flex-1 rounded-lg border border-gray-200 px-4 py-2.5 text-sm font-medium text-gray-600 transition hover:bg-gray-50"
-              >
-                ← Atrás
-              </button>
-              <button
-                type="button"
-                onClick={goToStep3}
-                className="flex-1 rounded-lg bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-indigo-700"
-              >
-                Continuar →
-              </button>
-            </div>
-          </div>
-        )}
-
-        {/* ── STEP 3: Plan ──────────────────────────────────────────── */}
-        {step === 3 && (
-          <div className="space-y-5">
-            <div>
-              <h2 className="text-xl font-bold text-gray-900">Elige tu plan</h2>
-              <p className="mt-1 text-sm text-gray-500">Comienza gratis. Mejora en cualquier momento.</p>
-            </div>
-
-            <div className="space-y-3">
-              {PLANS.map((p) => (
-                <button
-                  key={p.id}
-                  type="button"
-                  onClick={() => setPlan(p.id)}
-                  className={`w-full rounded-xl border-2 p-4 text-left transition-all ${
-                    plan === p.id
-                      ? 'border-indigo-500 bg-indigo-50'
-                      : 'border-gray-200 bg-white hover:border-gray-300'
-                  }`}
-                >
-                  <div className="flex items-start justify-between gap-3">
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2">
-                        <span className="text-sm font-bold text-gray-900">{p.name}</span>
-                        {p.highlight && (
-                          <span className="rounded-full bg-indigo-100 px-2 py-0.5 text-xs font-semibold text-indigo-600">
-                            Popular
-                          </span>
-
-                        )}
-                      </div>
-                      <p className="mt-0.5 text-xs text-gray-500">{p.description}</p>
-                      <ul className="mt-2 space-y-0.5">
-                        {p.features.map((f) => (
-                          <li key={f} className="flex items-center gap-1.5 text-xs text-gray-600">
-                            <svg className="h-3 w-3 shrink-0 text-indigo-500" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-                            </svg>
-                            {f}
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                    <div className="text-right shrink-0">
-                      <p className="text-lg font-bold text-gray-900">{p.price}</p>
-                      <p className="text-xs text-gray-400">{p.period}</p>
-                    </div>
-                    <div className={`mt-0.5 h-4 w-4 shrink-0 rounded-full border-2 transition-all ${
-                      plan === p.id ? 'border-indigo-500 bg-indigo-500' : 'border-gray-300'
-                    }`}>
-                      {plan === p.id && (
-                        <div className="m-0.5 h-2 w-2 rounded-full bg-white" />
-                      )}
-                    </div>
-                  </div>
-                </button>
-              ))}
-            </div>
-
-            {/* Summary */}
-            <div className="rounded-xl bg-gray-50 px-4 py-3 text-sm">
-              <p className="font-medium text-gray-700">Resumen de cuenta</p>
-              <div className="mt-1.5 space-y-0.5 text-xs text-gray-500">
-                <p>✉️ {email}</p>
-                <p>🏢 {businessName} · <span className="font-mono">{subdomain}.fideliza.app</span></p>
-                <p>📦 {PLANS.find((p) => p.id === plan)?.name} plan</p>
-              </div>
-            </div>
-
-            <div className="flex gap-3">
-              <button
-                type="button"
-                onClick={() => { setStep(2); setGlobalError(''); }}
                 className="flex-1 rounded-lg border border-gray-200 px-4 py-2.5 text-sm font-medium text-gray-600 transition hover:bg-gray-50"
               >
                 ← Atrás

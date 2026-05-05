@@ -38,7 +38,7 @@ export default async function ProgramDetailPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const { tenantId, settings } = await getAuthenticatedTenant();
+  const { tenantId, settings, planLimits } = await getAuthenticatedTenant();
 
   try {
     const [program, rewards] = await Promise.all([
@@ -123,13 +123,22 @@ export default async function ProgramDetailPage({
                 </div>
               ))}
               {program.status !== 'archived' && (
-                <div className="pt-1">
-                  <NewRewardForm
-                  programId={program.id}
-                  programType={program.type as 'points' | 'stamp' | 'visit' | 'cashback'}
-                  programConfig={program.config as unknown as Record<string, unknown>}
-                />
-                </div>
+                planLimits.rewardCatalog ? (
+                  <div className="pt-1">
+                    <NewRewardForm
+                      programId={program.id}
+                      programType={program.type as 'points' | 'stamp' | 'visit' | 'cashback'}
+                      programConfig={program.config as unknown as Record<string, unknown>}
+                    />
+                  </div>
+                ) : (
+                  <div className="mt-3 rounded-lg border border-dashed border-amber-300 bg-amber-50 p-3 text-center">
+                    <p className="text-xs font-medium text-amber-800">El catálogo de recompensas requiere el plan Starter o Pro</p>
+                    <a href="/dashboard/settings" className="mt-1 inline-block text-xs text-amber-700 underline hover:text-amber-900">
+                      Actualizar plan →
+                    </a>
+                  </div>
+                )
               )}
             </div>
           </div>

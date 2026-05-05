@@ -37,6 +37,10 @@ export interface Database {
           logo_url: string | null;
           plan: 'free' | 'starter' | 'pro' | 'enterprise';
           is_active: boolean;
+          stripe_customer_id:     string | null;
+          stripe_subscription_id: string | null;
+          subscription_status:    string | null;
+          subscription_end_date:  string | null;
           created_at: string;
           updated_at: string;
         };
@@ -48,6 +52,10 @@ export interface Database {
           logo_url?: string | null;
           plan?: 'free' | 'starter' | 'pro' | 'enterprise';
           is_active?: boolean;
+          stripe_customer_id?:     string | null;
+          stripe_subscription_id?: string | null;
+          subscription_status?:    string | null;
+          subscription_end_date?:  string | null;
         };
         Update: {
           name?: string;
@@ -56,6 +64,10 @@ export interface Database {
           logo_url?: string | null;
           plan?: 'free' | 'starter' | 'pro' | 'enterprise';
           is_active?: boolean;
+          stripe_customer_id?:     string | null;
+          stripe_subscription_id?: string | null;
+          subscription_status?:    string | null;
+          subscription_end_date?:  string | null;
           updated_at?: string;
         };
         Relationships: GenericRelationship[];
@@ -348,6 +360,28 @@ export interface Database {
           created_at?: string;
         };
         Update: Record<string, never>; // immutable
+        Relationships: GenericRelationship[];
+      };
+
+      // ── usage_tracking ───────────────────────────────────────────
+      usage_tracking: {
+        Row: {
+          tenant_id:      string;
+          customer_count: number;
+          program_count:  number;
+          updated_at:     string;
+        };
+        Insert: {
+          tenant_id:       string;
+          customer_count?: number;
+          program_count?:  number;
+          updated_at?:     string;
+        };
+        Update: {
+          customer_count?: number;
+          program_count?:  number;
+          updated_at?:     string;
+        };
         Relationships: GenericRelationship[];
       };
 

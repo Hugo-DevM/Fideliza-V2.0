@@ -9,6 +9,7 @@
 
 import { createServiceRoleClient } from '@/lib/supabase/server';
 import { BadRequestError, NotFoundError } from '@/lib/middleware/errors';
+import { getTransactionHistoryLimit } from '@/lib/middleware/plan-limits';
 import { logger } from '@/lib/utils/logger';
 import type {
   Transaction,
@@ -177,8 +178,15 @@ export async function getCustomerTransactionHistory(
   limit = 50
 ): Promise<{ transactions: Transaction[]; total: number }> {
   const db = createServiceRoleClient();
-  const from = (page - 1) * limit;
-  const to = from + limit - 1;
+
+  // Apply plan-based history cap for FREE plan tenants
+  const planHistoryLimit = await getTransactionHistoryLimit(tenantId);
+  const effectiveLimit = planHistoryLimit !== null ? Math.min(limit, planHistoryLimit) : limit;
+  // For FREE plan, only the most recent N records are accessible regardless of pagination
+  const effectivePage = planHistoryLimit !== null ? 1 : page;
+
+  const from = (effectivePage - 1) * effectiveLimit;
+  const to = from + effectiveLimit - 1;
 
   let builder = db
     .from('transactions')

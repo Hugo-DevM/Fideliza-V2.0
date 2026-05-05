@@ -6,7 +6,7 @@ import { listActivePrograms } from '@/modules/rewards';
 export const metadata = { title: 'Resumen — Fideliza+' };
 
 export default async function DashboardPage() {
-  const { tenantId, tenant, settings } = await getAuthenticatedTenant();
+  const { tenantId, tenant, settings, planLimits, effectivePlan } = await getAuthenticatedTenant();
   const db = createServiceRoleClient();
 
   const [
@@ -35,8 +35,47 @@ export default async function DashboardPage() {
     { label: 'Vouchers pendientes',    value: pendingVoucherCount ?? 0, href: '/dashboard/customers', accent: 'text-orange-600' },
   ];
 
+  // Detect degraded subscription state
+  const isPastDue = tenant.subscription_status === 'past_due' || tenant.subscription_status === 'unpaid';
+  const isDowngraded = tenant.plan !== 'free' && effectivePlan === 'free';
+
   return (
     <div className="space-y-6">
+      {/* Past-due warning banner */}
+      {isPastDue && (
+        <div className="rounded-xl border border-red-200 bg-red-50 p-4 flex items-start justify-between gap-4">
+          <div>
+            <p className="text-sm font-semibold text-red-800">Pago pendiente — acceso limitado</p>
+            <p className="text-xs text-red-700 mt-0.5">
+              Hay un problema con tu método de pago. Actualiza tu tarjeta para restaurar el acceso completo.
+            </p>
+          </div>
+          <a
+            href="/dashboard/settings"
+            className="shrink-0 rounded-lg bg-red-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-red-700 transition"
+          >
+            Resolver →
+          </a>
+        </div>
+      )}
+
+      {isDowngraded && !isPastDue && (
+        <div className="rounded-xl border border-amber-200 bg-amber-50 p-4 flex items-start justify-between gap-4">
+          <div>
+            <p className="text-sm font-semibold text-amber-800">Suscripción inactiva</p>
+            <p className="text-xs text-amber-700 mt-0.5">
+              Tu suscripción no está activa. Estás en modo Gratis hasta que se reactive.
+            </p>
+          </div>
+          <a
+            href="/dashboard/settings"
+            className="shrink-0 rounded-lg bg-amber-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-amber-700 transition"
+          >
+            Ver facturación →
+          </a>
+        </div>
+      )}
+
       <div>
         <h1 className="text-xl font-bold text-gray-900">Resumen</h1>
         <p className="mt-0.5 text-sm text-gray-500">
@@ -129,6 +168,35 @@ export default async function DashboardPage() {
           Compártelo con tus clientes · etiqueta de moneda: <strong>{settings.program_label}</strong>
         </p>
       </div>
+
+      {/* CSV Export (Pro plan only) */}
+      {planLimits.exportCSV ? (
+        <div className="rounded-xl border bg-white p-4 shadow-sm flex items-center justify-between gap-4">
+          <div>
+            <p className="text-sm font-semibold text-gray-800">Exportar transacciones</p>
+            <p className="text-xs text-gray-500 mt-0.5">Descarga el historial completo de transacciones en formato CSV.</p>
+          </div>
+          <a
+            href="/api/transactions/export"
+            className="shrink-0 rounded-lg bg-indigo-600 px-4 py-2 text-xs font-semibold text-white hover:bg-indigo-700 transition"
+          >
+            Descargar CSV
+          </a>
+        </div>
+      ) : (
+        <div className="rounded-xl border border-dashed border-gray-200 bg-gray-50 p-4 flex items-center justify-between gap-4">
+          <div>
+            <p className="text-sm font-semibold text-gray-500">Exportar transacciones</p>
+            <p className="text-xs text-gray-400 mt-0.5">Disponible en el plan Pro.</p>
+          </div>
+          <a
+            href="/dashboard/settings"
+            className="shrink-0 rounded-lg border border-gray-300 px-3 py-1.5 text-xs font-medium text-gray-600 hover:bg-gray-100 transition"
+          >
+            Actualizar a Pro →
+          </a>
+        </div>
+      )}
     </div>
   );
 }

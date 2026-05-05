@@ -20,7 +20,7 @@ const STATUS_BADGES: Record<string, string> = {
 };
 
 export default async function ProgramsPage() {
-  const { tenantId } = await getAuthenticatedTenant();
+  const { tenantId, planLimits } = await getAuthenticatedTenant();
   const db = createServiceRoleClient();
 
   const { data: programs } = await db
@@ -41,14 +41,37 @@ export default async function ProgramsPage() {
     customer_program_enrollments: { count: number }[];
   };
 
+  const programCount = programs?.length ?? 0;
+  const atProgramLimit = planLimits.maxPrograms !== null && programCount >= planLimits.maxPrograms;
+
   return (
     <div className="space-y-4">
+      {/* Upgrade banner when at program limit */}
+      {atProgramLimit && (
+        <div className="rounded-xl border border-amber-200 bg-amber-50 p-4 flex items-start justify-between gap-4">
+          <div>
+            <p className="text-sm font-semibold text-amber-800">
+              Límite de programas alcanzado ({programCount}/{planLimits.maxPrograms})
+            </p>
+            <p className="mt-0.5 text-xs text-amber-700">
+              Has llegado al máximo de programas de tu plan actual. Actualiza para crear más.
+            </p>
+          </div>
+          <a
+            href="/dashboard/settings"
+            className="shrink-0 rounded-lg bg-amber-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-amber-700 transition"
+          >
+            Actualizar plan →
+          </a>
+        </div>
+      )}
+
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-xl font-bold text-gray-900">Programas</h1>
-          <p className="text-sm text-gray-500">{programs?.length ?? 0} programas</p>
+          <p className="text-sm text-gray-500">{programCount} programas{planLimits.maxPrograms !== null ? ` · máx. ${planLimits.maxPrograms}` : ''}</p>
         </div>
-        <NewProgramModal />
+        {!atProgramLimit && <NewProgramModal allowedTypes={planLimits.allowedProgramTypes} />}
       </div>
 
       {!programs?.length ? (

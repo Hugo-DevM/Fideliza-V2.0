@@ -1,0 +1,120 @@
+/**
+ * POST /api/stripe/checkout
+ * Creates a Stripe Checkout Session for upgrading to Starter or Pro.
+ * Requires an authenticated dashboard session (reads Supabase user).
+ */
+
+import { NextResponse } from 'next/server';
+import { createServerClient, createServiceRoleClient } from '@/lib/supabase/server';
+import { stripe, STRIPE_PRICE_IDS } from '@/lib/stripe';
+
+export const dynamic = 'force-dynamic';
+
+export async function POST(request: Request) {
+  try {
+    // ── 1. Verify authentication ──────────────────────────────────────
+    const supabase = await createServerClient();
+    const { data: { user } } = await supabase.auth.getUser();
+
+    if (!user) {
+      return NextResponse.json({ data: null, error: 'No autenticado' }, { status: 401 });
+    }
+
+    const tenantId = user.user_metadata?.tenant_id as string | undefined;
+    if (!tenantId) {
+      return NextResponse.json({ data: null, error: 'Tenant no encontrado' }, { status: 401 });
+    }
+
+    // ── 2. Fetch tenant ───────────────────────────────────────────────
+    const db = createServiceRoleClient();
+    const { data: tenant, error: tenantErr } = await db
+      .from('tenants')
+      .select('id, name, email, subdomain, plan, stripe_customer_id, stripe_subscription_id, subscription_status')
+      .eq('id', tenantId)
+      .single();
+
+    if (tenantErr || !tenant) {
+      return NextResponse.json({ data: null, error: 'Tenant no encontrado' }, { status: 404 });
+    }
+
+    // ── 3. Parse & validate plan ──────────────────────────────────────
+    const body = await request.json().catch(() => ({}));
+    const plan = (body as { plan?: string }).plan;
+
+    if (!plan || !['starter', 'pro'].includes(plan)) {
+      return NextResponse.json({ data: null, error: 'Plan inválido. Debe ser "starter" o "pro".' }, { status: 400 });
+    }
+
+    const priceId = STRIPE_PRICE_IDS[plan];
+    if (!priceId) {
+      return NextResponse.json(
+        { data: null, error: `STRIPE_PRICE_${plan.toUpperCase()} no está configurado en las variables de entorno.` },
+        { status: 500 }
+      );
+    }
+
+    // ── 4. Block duplicate active subscriptions ───────────────────────
+    const row = tenant as {
+      stripe_subscription_id: string | null;
+      subscription_status: string | null;
+      plan: string;
+    };
+
+    if (
+      row.stripe_subscription_id &&
+      (row.subscription_status === 'active' || row.subscription_status === 'trialing')
+    ) {
+      return NextResponse.json(
+        { data: null, error: 'Ya tienes una suscripción activa. Usa el portal de facturación para cambiar de plan.' },
+        { status: 400 }
+      );
+    }
+
+    // ── 5. Create or retrieve Stripe Customer ─────────────────────────
+    let customerId = (tenant as { stripe_customer_id: string | null }).stripe_customer_id;
+
+    if (!customerId) {
+      const customer = await stripe.customers.create({
+        email:    (tenant as { email: string }).email,
+        name:     (tenant as { name: string }).name,
+        metadata: {
+          tenant_id: tenantId,
+          subdomain: (tenant as { subdomain: string }).subdomain,
+        },
+      });
+      customerId = customer.id;
+
+      // Persist immediately so retries don't create duplicate customers
+      await db.from('tenants').update({
+        stripe_customer_id: customerId,
+        updated_at:         new Date().toISOString(),
+      }).eq('id', tenantId);
+    }
+
+    // ── 6. Create Checkout Session ────────────────────────────────────
+    const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000';
+
+    const session = await stripe.checkout.sessions.create({
+      customer:             customerId,
+      client_reference_id:  tenantId,        // used in webhook to find the tenant
+      mode:                 'subscription',
+      payment_method_types: ['card'],
+      line_items: [{ price: priceId, quantity: 1 }],
+      success_url: `${appUrl}/dashboard/settings?checkout=success`,
+      cancel_url:  `${appUrl}/dashboard/settings?checkout=canceled`,
+      subscription_data: {
+        metadata: { tenant_id: tenantId },   // fallback for webhook resolution
+      },
+      metadata: { tenant_id: tenantId, plan },
+    });
+
+    return NextResponse.json({ data: { url: session.url }, error: null });
+
+  } catch (err) {
+    console.error('[Stripe Checkout]', err);
+    return NextResponse.json(
+      { data: null, error: 'Error al crear sesión de pago. Inténtalo de nuevo.' },
+      { status: 500 }
+    );
+  }
+}

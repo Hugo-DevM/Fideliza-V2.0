@@ -215,18 +215,23 @@ export const es: Dictionary = {
         features: [
           "Hasta 50 clientes",
           "1 programa de fidelización",
-          "Mecánica de puntos o sellos",
+          "Puntos y sellos",
           "Tu propio subdominio",
           "Códigos de acceso para clientes",
-          "Historial básico de transacciones",
+          "Últimas 50 transacciones",
         ],
-        missing: ["Múltiples programas", "Soporte prioritario"],
+        missing: [
+          "Premios por visitas",
+          "Catálogo de premios",
+          "Exportación CSV",
+          "Soporte prioritario",
+        ],
         cta: "Comienza gratis",
         href: "#waitlist",
       },
       {
         name: "Starter",
-        price: "$19",
+        price: "$29",
         period: "/mes",
         description:
           "Para negocios en crecimiento listos para convertir habituales en clientes leales.",
@@ -242,13 +247,13 @@ export const es: Dictionary = {
           "Catálogo de premios",
           "Soporte por email",
         ],
-        missing: [],
+        missing: ["Exportación CSV", "Soporte prioritario"],
         cta: "Acceso anticipado",
         href: "#waitlist",
       },
       {
         name: "Pro",
-        price: "$49",
+        price: "$59",
         period: "/mes",
         description:
           "Para negocios consolidados con una estrategia de fidelización seria.",

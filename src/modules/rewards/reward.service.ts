@@ -10,6 +10,7 @@ import {
   getRewardById,
 } from './reward.repository';
 import { BadRequestError } from '@/lib/middleware/errors';
+import { enforceProgramLimit, enforceProgramTypeAllowed, enforceRewardCatalog } from '@/lib/middleware/plan-limits';
 import type { Reward, RewardProgram, UUID } from '@/lib/types';
 import type {
   CreateRewardProgramInput,
@@ -67,6 +68,10 @@ export async function createProgram(
   input: CreateRewardProgramInput
 ): Promise<RewardProgram> {
   const db = createServiceRoleClient();
+
+  // Enforce plan limits before creating
+  await enforceProgramLimit(tenantId);
+  await enforceProgramTypeAllowed(tenantId, input.type);
 
   const { data, error } = await db
     .from('reward_programs')
@@ -129,6 +134,9 @@ export async function createReward(
   input: CreateRewardInput
 ): Promise<Reward> {
   const db = createServiceRoleClient();
+
+  // Enforce reward catalog plan feature
+  await enforceRewardCatalog(tenantId);
 
   // Verify the program belongs to this tenant
   await getProgramById(tenantId, input.program_id);

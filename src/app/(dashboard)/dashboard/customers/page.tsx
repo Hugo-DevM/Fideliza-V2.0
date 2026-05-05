@@ -12,11 +12,12 @@ export default async function CustomersPage({
 }: {
   searchParams: Promise<{ page?: string; q?: string }>;
 }) {
-  const { tenantId } = await getAuthenticatedTenant();
+  const { tenantId, planLimits } = await getAuthenticatedTenant();
   const { page: pageStr, q } = await searchParams;
   const page = Math.max(1, parseInt(pageStr ?? '1', 10));
 
   const { customers, total } = await listCustomers(tenantId, page, LIMIT);
+  const atCustomerLimit = planLimits.maxCustomers !== null && total >= planLimits.maxCustomers;
 
   // Client-side search note: search is applied to the already-fetched list.
   // For large datasets this should move to the DB query.
@@ -32,13 +33,33 @@ export default async function CustomersPage({
 
   return (
     <div className="space-y-4">
+      {/* Upgrade banner when at customer limit */}
+      {atCustomerLimit && (
+        <div className="rounded-xl border border-amber-200 bg-amber-50 p-4 flex items-start justify-between gap-4">
+          <div>
+            <p className="text-sm font-semibold text-amber-800">
+              Límite de clientes alcanzado ({total}/{planLimits.maxCustomers})
+            </p>
+            <p className="mt-0.5 text-xs text-amber-700">
+              Has llegado al máximo de clientes de tu plan actual. Actualiza para agregar más.
+            </p>
+          </div>
+          <a
+            href="/dashboard/settings"
+            className="shrink-0 rounded-lg bg-amber-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-amber-700 transition"
+          >
+            Actualizar plan →
+          </a>
+        </div>
+      )}
+
       {/* Header */}
       <div className="flex items-center justify-between gap-4">
         <div>
           <h1 className="text-xl font-bold text-gray-900">Clientes</h1>
-          <p className="text-sm text-gray-500">{total} en total</p>
+          <p className="text-sm text-gray-500">{total} en total{planLimits.maxCustomers !== null ? ` · máx. ${planLimits.maxCustomers}` : ''}</p>
         </div>
-        <NewCustomerModal />
+        {!atCustomerLimit && <NewCustomerModal />}
       </div>
 
       {/* Search */}

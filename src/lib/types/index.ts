@@ -13,6 +13,15 @@ export type TransactionType = 'earn' | 'redeem' | 'expire' | 'adjustment' | 'ref
 export type RedemptionStatus = 'pending' | 'used' | 'expired' | 'cancelled';
 
 // ── Tenant ────────────────────────────────────
+export type SubscriptionStatus =
+  | 'active'
+  | 'trialing'
+  | 'past_due'
+  | 'canceled'
+  | 'incomplete'
+  | 'incomplete_expired'
+  | 'unpaid';
+
 export interface Tenant {
   id: UUID;
   name: string;
@@ -21,6 +30,11 @@ export interface Tenant {
   logo_url: string | null;
   plan: TenantPlan;
   is_active: boolean;
+  // Stripe billing fields (null for free tenants with no subscription)
+  stripe_customer_id:     string | null;
+  stripe_subscription_id: string | null;
+  subscription_status:    SubscriptionStatus | null;
+  subscription_end_date:  string | null;
   created_at: string;
   updated_at: string;
 }

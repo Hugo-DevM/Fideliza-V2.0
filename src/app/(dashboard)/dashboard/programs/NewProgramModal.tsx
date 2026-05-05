@@ -4,16 +4,17 @@ import { useState, useTransition, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { createProgramAction } from './actions';
 
-const PROGRAM_TYPES = [
-  { value: 'points',   label: 'Puntos',          hint: 'Gana X puntos por $ gastado' },
+const ALL_PROGRAM_TYPES = [
+  { value: 'points',   label: 'Puntos',           hint: 'Gana X puntos por $ gastado' },
   { value: 'stamp',    label: 'Tarjeta de sellos', hint: 'Acumula N sellos, gana una recompensa' },
-  { value: 'visit',    label: 'Visitas',          hint: 'Recompensa tras N visitas' },
-  { value: 'cashback', label: 'Cashback',         hint: 'Gana % de vuelta como crédito' },
+  { value: 'visit',    label: 'Visitas',           hint: 'Recompensa tras N visitas' },
+  { value: 'cashback', label: 'Cashback',          hint: 'Gana % de vuelta como crédito' },
 ];
 
-export default function NewProgramModal() {
+export default function NewProgramModal({ allowedTypes }: { allowedTypes: string[] }) {
+  const PROGRAM_TYPES = ALL_PROGRAM_TYPES.filter((t) => allowedTypes.includes(t.value));
   const [open, setOpen]   = useState(false);
-  const [type, setType]   = useState('points');
+  const [type, setType]   = useState(() => PROGRAM_TYPES[0]?.value ?? 'points');
   const [error, setError] = useState('');
   const [isPending, startTransition] = useTransition();
   const formRef = useRef<HTMLFormElement>(null);
@@ -30,7 +31,7 @@ export default function NewProgramModal() {
         setError(result.error);
       } else {
         formRef.current?.reset();
-        setType('points');
+        setType(PROGRAM_TYPES[0]?.value ?? 'points');
         setOpen(false);
         router.refresh();
       }
@@ -64,25 +65,39 @@ export default function NewProgramModal() {
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">Tipo de programa *</label>
                 <div className="grid grid-cols-2 gap-2">
-                  {PROGRAM_TYPES.map((t) => (
-                    <label
-                      key={t.value}
-                      className={`flex cursor-pointer flex-col rounded-lg border p-3 transition ${
-                        type === t.value ? 'border-indigo-400 bg-indigo-50' : 'border-gray-200 hover:border-gray-300'
-                      }`}
-                    >
-                      <input
-                        type="radio"
-                        name="type"
-                        value={t.value}
-                        checked={type === t.value}
-                        onChange={() => setType(t.value)}
-                        className="sr-only"
-                      />
-                      <span className="text-sm font-medium text-gray-800">{t.label}</span>
-                      <span className="text-xs text-gray-400 mt-0.5">{t.hint}</span>
-                    </label>
-                  ))}
+                  {ALL_PROGRAM_TYPES.map((t) => {
+                    const allowed = allowedTypes.includes(t.value);
+                    return allowed ? (
+                      <label
+                        key={t.value}
+                        className={`flex cursor-pointer flex-col rounded-lg border p-3 transition ${
+                          type === t.value ? 'border-indigo-400 bg-indigo-50' : 'border-gray-200 hover:border-gray-300'
+                        }`}
+                      >
+                        <input
+                          type="radio"
+                          name="type"
+                          value={t.value}
+                          checked={type === t.value}
+                          onChange={() => setType(t.value)}
+                          className="sr-only"
+                        />
+                        <span className="text-sm font-medium text-gray-800">{t.label}</span>
+                        <span className="text-xs text-gray-400 mt-0.5">{t.hint}</span>
+                      </label>
+                    ) : (
+                      <div
+                        key={t.value}
+                        className="relative flex flex-col rounded-lg border border-gray-100 bg-gray-50 p-3 opacity-60 cursor-not-allowed"
+                      >
+                        <span className="absolute top-2 right-2 rounded-full bg-amber-100 px-1.5 py-0.5 text-[10px] font-semibold text-amber-700">
+                          Pro
+                        </span>
+                        <span className="text-sm font-medium text-gray-500">{t.label}</span>
+                        <span className="text-xs text-gray-400 mt-0.5">{t.hint}</span>
+                      </div>
+                    );
+                  })}
                 </div>
               </div>
 

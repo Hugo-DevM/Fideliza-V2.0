@@ -1,10 +1,16 @@
 import { getAuthenticatedTenant } from '@/lib/auth/get-tenant';
 import SettingsForm from './SettingsForm';
+import BillingSection from './BillingSection';
 
 export const metadata = { title: 'Configuración — Fideliza+' };
 
-export default async function SettingsPage() {
-  const { tenant, settings } = await getAuthenticatedTenant();
+export default async function SettingsPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ checkout?: string }>;
+}) {
+  const { tenant, settings, effectivePlan } = await getAuthenticatedTenant();
+  const { checkout } = await searchParams;
 
   return (
     <div className="space-y-5 max-w-2xl">
@@ -13,7 +19,7 @@ export default async function SettingsPage() {
         <p className="mt-0.5 text-sm text-gray-500">{tenant.name}</p>
       </div>
 
-      {/* Read-only info */}
+      {/* Read-only account info */}
       <div className="rounded-xl border bg-white p-5 shadow-sm space-y-3">
         <h2 className="text-sm font-semibold text-gray-700">Cuenta</h2>
         <div className="grid grid-cols-2 gap-4 text-sm">
@@ -26,12 +32,6 @@ export default async function SettingsPage() {
             <p className="font-mono text-gray-700">{tenant.subdomain}.fideliza.app</p>
           </div>
           <div>
-            <p className="text-xs text-gray-400 mb-0.5">Plan</p>
-            <span className="rounded-full bg-indigo-50 px-2 py-0.5 text-xs font-semibold text-indigo-600 capitalize">
-              {tenant.plan}
-            </span>
-          </div>
-          <div>
             <p className="text-xs text-gray-400 mb-0.5">Portal de clientes</p>
             <p className="font-mono text-xs text-indigo-600">
               https://{tenant.subdomain}.fideliza.app/c
@@ -40,6 +40,18 @@ export default async function SettingsPage() {
         </div>
       </div>
 
+      {/* Billing & subscription */}
+      <BillingSection
+        currentPlan={tenant.plan}
+        effectivePlan={effectivePlan}
+        subscriptionStatus={tenant.subscription_status}
+        subscriptionEndDate={tenant.subscription_end_date}
+        hasStripeCustomer={!!tenant.stripe_customer_id}
+        checkoutSuccess={checkout === 'success'}
+        checkoutCanceled={checkout === 'canceled'}
+      />
+
+      {/* Appearance settings */}
       <SettingsForm settings={settings} />
     </div>
   );

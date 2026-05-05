@@ -9,6 +9,7 @@ import {
   listCustomers,
 } from './customer.repository';
 import { BadRequestError, NotFoundError } from '@/lib/middleware/errors';
+import { enforceCustomerLimit } from '@/lib/middleware/plan-limits';
 import { generateAccessCode } from '@/lib/utils/crypto';
 import type { Customer, CustomerProgramEnrollment, UUID } from '@/lib/types';
 import type { CreateCustomerInput } from '@/lib/validation/customer.schema';
@@ -22,6 +23,9 @@ export async function createCustomer(
   input: CreateCustomerInput
 ): Promise<Customer> {
   const db = createServiceRoleClient();
+
+  // Enforce plan customer limit before creating
+  await enforceCustomerLimit(tenantId);
 
   // Check for duplicate phone within this tenant
   if (input.phone) {

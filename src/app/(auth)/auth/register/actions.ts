@@ -13,15 +13,14 @@ export async function setupTenantAction(input: {
   email:  string;
   businessName: string;
   subdomain:    string;
-  plan:         'free' | 'starter' | 'pro';
-}): Promise<{ error?: string }> {
+}): Promise<{ tenantId?: string; error?: string }> {
   try {
-    // Create tenant + default settings
+    // Always create with free plan — paid plans require Stripe checkout after account creation
     const { tenant } = await onboardTenant({
       name:      input.businessName,
       subdomain: input.subdomain.toLowerCase().trim(),
       email:     input.email.toLowerCase().trim(),
-      plan:      input.plan,
+      plan:      'free',
     });
 
     // Bind tenant_id into the user's JWT metadata via admin API
@@ -34,7 +33,7 @@ export async function setupTenantAction(input: {
       return { error: `Account created but metadata binding failed: ${metaError.message}` };
     }
 
-    return {};
+    return { tenantId: tenant.id };
   } catch (err) {
     if (err instanceof BadRequestError) return { error: err.message };
     return { error: err instanceof Error ? err.message : 'Registration failed. Please try again.' };

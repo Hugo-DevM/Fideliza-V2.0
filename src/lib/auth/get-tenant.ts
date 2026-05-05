@@ -9,12 +9,18 @@
 import { redirect } from 'next/navigation';
 import { createServerClient } from '@/lib/supabase/server';
 import { getTenantById, getTenantSettings } from '@/modules/tenants/tenant.repository';
+import { getPlanLimits, getEffectivePlanFromTenant } from '@/lib/config/plans';
 import type { Tenant, TenantSettings } from '@/lib/types';
+import type { PlanLimits } from '@/lib/config/plans';
 
 export interface AuthenticatedContext {
   tenantId: string;
   tenant: Tenant;
   settings: TenantSettings;
+  /** The plan limits after accounting for subscription status. */
+  planLimits: PlanLimits;
+  /** The effective plan string (may differ from tenant.plan if subscription is past_due/canceled). */
+  effectivePlan: string;
 }
 
 export async function getAuthenticatedTenant(): Promise<AuthenticatedContext> {
@@ -31,5 +37,8 @@ export async function getAuthenticatedTenant(): Promise<AuthenticatedContext> {
     getTenantSettings(tenantId),
   ]);
 
-  return { tenantId, tenant, settings };
+  const effectivePlan = getEffectivePlanFromTenant(tenant);
+  const planLimits    = getPlanLimits(effectivePlan);
+
+  return { tenantId, tenant, settings, planLimits, effectivePlan };
 }
