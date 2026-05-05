@@ -19,6 +19,7 @@ export const es: Dictionary = {
     cta: "Acceso anticipado",
     openMenu: "Abrir menú",
     closeMenu: "Cerrar menú",
+    manual: "Manual",
   },
 
   hero: {

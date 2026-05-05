@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { usePathname } from "next/navigation";
 import { Container } from "@/components/ui/Container";
 import { LinkButton } from "@/components/ui/Button";
 import type { Dictionary } from "@/lib/i18n";
@@ -12,6 +13,9 @@ interface NavbarProps {
 export function Navbar({ t }: NavbarProps) {
   const [scrolled, setScrolled] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
+  const pathname = usePathname();
+  const lang = pathname.startsWith("/es") ? "es" : "en";
+  const manualHref = `/${lang}/manual`;
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 10);
@@ -80,6 +84,12 @@ export function Navbar({ t }: NavbarProps) {
           >
             {t.pricing}
           </a>
+          {/* <a
+            href={manualHref}
+            className="text-sm text-gray-400 hover:text-white transition-colors"
+          >
+            {t.manual}
+          </a> */}
         </nav>
 
         {/* Desktop CTA */}
@@ -155,6 +165,13 @@ export function Navbar({ t }: NavbarProps) {
               className="text-sm text-gray-300 hover:text-white py-1"
             >
               {t.pricing}
+            </a>
+            <a
+              href={manualHref}
+              onClick={() => setMenuOpen(false)}
+              className="text-sm text-gray-300 hover:text-white py-1"
+            >
+              {t.manual}
             </a>
             <LinkButton
               href="/auth/register"

@@ -16,6 +16,7 @@ export const en = {
     cta: "Get early access",
     openMenu: "Open menu",
     closeMenu: "Close menu",
+    manual: "Docs",
   },
 
   hero: {
