@@ -105,7 +105,7 @@ export default async function CustomerDetailPage({
 
         {/* Vouchers */}
         {vouchers && vouchers.length > 0 && (
-          <div className="rounded-xl border bg-white shadow-sm">
+          <div className="rounded-xl border bg-white shadow-sm overflow-x-auto">
             <div className="border-b px-5 py-3">
               <h2 className="text-sm font-semibold text-gray-700">Vouchers</h2>
             </div>
@@ -148,7 +148,7 @@ export default async function CustomerDetailPage({
         )}
 
         {/* Transaction history */}
-        <div className="rounded-xl border bg-white shadow-sm">
+        <div className="rounded-xl border bg-white shadow-sm overflow-x-auto">
           <div className="border-b px-5 py-3">
             <h2 className="text-sm font-semibold text-gray-700">Historial de transacciones</h2>
           </div>

@@ -158,7 +158,7 @@ export default async function ProgramDetailPage({
         </div>
 
         {/* Recent transactions */}
-        <div className="rounded-xl border bg-white shadow-sm">
+        <div className="rounded-xl border bg-white shadow-sm overflow-x-auto">
           <div className="border-b px-5 py-3">
             <h2 className="text-sm font-semibold text-gray-700">Transacciones recientes</h2>
           </div>

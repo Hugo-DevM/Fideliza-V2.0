@@ -81,7 +81,7 @@ export default async function CustomersPage({
       </form>
 
       {/* Table */}
-      <div className="rounded-xl border bg-white shadow-sm overflow-hidden">
+      <div className="rounded-xl border bg-white shadow-sm overflow-x-auto">
         {!filtered.length ? (
           <div className="px-6 py-12 text-center">
             <p className="text-gray-400 text-sm">

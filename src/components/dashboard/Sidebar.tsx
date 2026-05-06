@@ -7,6 +7,8 @@ import { useRouter } from 'next/navigation';
 
 interface SidebarProps {
   tenantName: string;
+  isOpen?: boolean;
+  onClose?: () => void;
 }
 
 const NAV_ITEMS = [
@@ -17,7 +19,7 @@ const NAV_ITEMS = [
   { href: '/dashboard/settings',  label: 'Configuración',    icon: SettingsIcon },
 ];
 
-export default function Sidebar({ tenantName }: SidebarProps) {
+export default function Sidebar({ tenantName, isOpen = false, onClose }: SidebarProps) {
   const pathname = usePathname();
   const router   = useRouter();
 
@@ -33,10 +35,29 @@ export default function Sidebar({ tenantName }: SidebarProps) {
   }
 
   return (
-    <aside className="flex h-screen w-56 shrink-0 flex-col border-r border-gray-100 bg-white">
-      {/* Logo */}
-      <div className="flex h-14 items-center border-b border-gray-100 px-4">
+    <aside
+      className={[
+        // Base: fixed on mobile (drawer), static on md+
+        'fixed inset-y-0 left-0 z-30 flex flex-col border-r border-gray-100 bg-white',
+        'transition-transform duration-200 ease-in-out',
+        // Desktop: always visible, in document flow
+        'md:static md:z-auto md:h-screen md:w-56 md:shrink-0 md:translate-x-0',
+        // Mobile width
+        'w-64',
+        // Mobile open/close
+        isOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0',
+      ].join(' ')}
+    >
+      {/* Logo + mobile close button */}
+      <div className="flex h-14 items-center justify-between border-b border-gray-100 px-4">
         <span className="text-base font-bold text-indigo-600">Fideliza+</span>
+        <button
+          onClick={onClose}
+          className="rounded-md p-1.5 text-gray-400 hover:bg-gray-100 md:hidden"
+          aria-label="Cerrar menú"
+        >
+          <CloseIcon className="h-4 w-4" />
+        </button>
       </div>
 
       {/* Nav */}
@@ -52,6 +73,7 @@ export default function Sidebar({ tenantName }: SidebarProps) {
             <Link
               key={href}
               href={href}
+              onClick={onClose}
               className={`flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
                 isActive
                   ? 'bg-indigo-50 text-indigo-600'
@@ -127,6 +149,14 @@ function LogoutIcon({ className }: { className?: string }) {
   return (
     <svg className={className} fill="none" stroke="currentColor" strokeWidth={1.8} viewBox="0 0 24 24">
       <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0 0 13.5 3h-6a2.25 2.25 0 0 0-2.25 2.25v13.5A2.25 2.25 0 0 0 7.5 21h6a2.25 2.25 0 0 0 2.25-2.25V15m3 0 3-3m0 0-3-3m3 3H9" />
+    </svg>
+  );
+}
+
+function CloseIcon({ className }: { className?: string }) {
+  return (
+    <svg className={className} fill="none" stroke="currentColor" strokeWidth={1.8} viewBox="0 0 24 24">
+      <path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" />
     </svg>
   );
 }
