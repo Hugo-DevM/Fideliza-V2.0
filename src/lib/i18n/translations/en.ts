@@ -342,5 +342,16 @@ export const en = {
     businessPlaceholder: "Business name",
     disclaimer: "No credit card. No spam. Unsubscribe anytime.",
     successTitle: "You're on the list!",
+    successMessage: "We'll notify you when Fideliza+ launches.",
+    alreadyOnList: "You're already on the list! We'll be in touch soon.",
+    errors: {
+      emailInvalid: "Please enter a valid email address.",
+      emailTooLong: "Email address is too long.",
+      nameInvalid: "Name can only contain letters and spaces.",
+      nameTooLong: "Name is too long (max 60 characters).",
+      businessTooLong: "Business name is too long (max 100 characters).",
+      generic: "Something went wrong. Please try again.",
+      serverUnreachable: "Could not reach the server. Please try again.",
+    },
   },
 };

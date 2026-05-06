@@ -30,13 +30,13 @@ export async function setupTenantAction(input: {
     });
 
     if (metaError) {
-      return { error: `Account created but metadata binding failed: ${metaError.message}` };
+      return { error: `Cuenta creada pero hubo un problema al guardar tus datos: ${metaError.message}` };
     }
 
     return { tenantId: tenant.id };
   } catch (err) {
     if (err instanceof BadRequestError) return { error: err.message };
-    return { error: err instanceof Error ? err.message : 'Registration failed. Please try again.' };
+    return { error: err instanceof Error ? err.message : 'Error al registrarse. Inténtalo de nuevo.' };
   }
 }
 
@@ -49,10 +49,10 @@ export async function checkSubdomainAction(
   const clean = subdomain.toLowerCase().trim();
 
   const RESERVED = new Set(['www', 'app', 'api', 'admin', 'mail', 'static', 'fideliza', 'dashboard']);
-  if (RESERVED.has(clean)) return { available: false, error: 'This subdomain is reserved.' };
+  if (RESERVED.has(clean)) return { available: false, error: 'Este subdominio está reservado. Elige otro.' };
 
   if (!/^[a-z0-9][a-z0-9\-]{1,61}[a-z0-9]$/.test(clean)) {
-    return { available: false, error: 'Only lowercase letters, numbers, and hyphens allowed (min 3 chars).' };
+    return { available: false, error: 'Solo letras minúsculas, números y guiones (mínimo 3 caracteres).' };
   }
 
   const db = createServiceRoleClient();

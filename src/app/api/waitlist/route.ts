@@ -20,19 +20,20 @@ import type { ApiResponse } from '@/lib/types';
 const WaitlistSchema = z.object({
   email: z
     .string()
-    .email('Please enter a valid email address')
+    .email()
     .toLowerCase()
     .trim()
-    .max(255),
+    .max(320),
   name: z
     .string()
     .trim()
-    .max(100)
+    .max(60)
+    .regex(/^[a-zA-ZÀ-ÖØ-öø-ÿÑñ\s]*$/)
     .optional(),
   business_name: z
     .string()
     .trim()
-    .max(150)
+    .max(100)
     .optional(),
   source: z
     .string()

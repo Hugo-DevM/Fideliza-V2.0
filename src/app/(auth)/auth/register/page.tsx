@@ -1,6 +1,6 @@
 import RegisterForm from './RegisterForm';
 
-export const metadata = { title: 'Create your account — Fideliza+' };
+export const metadata = { title: 'Crea tu cuenta — Fideliza+' };
 
 export default function RegisterPage() {
   return (
@@ -19,7 +19,7 @@ export default function RegisterPage() {
               Fideliza<span className="text-indigo-600">+</span>
             </span>
           </a>
-          <p className="mt-2 text-sm text-gray-500">Set up your loyalty program in minutes</p>
+          <p className="mt-2 text-sm text-gray-500">Configura tu programa de fidelidad en minutos</p>
         </div>
 
         <RegisterForm />

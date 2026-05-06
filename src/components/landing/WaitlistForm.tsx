@@ -9,19 +9,39 @@ interface WaitlistFormProps {
   t: Dictionary['waitlistForm'];
 }
 
+const VALID_NAME_RE = /^[a-zA-ZÀ-ÖØ-öø-ÿÑñ\s]*$/;
+
 export function WaitlistForm({ variant = 'hero', t }: WaitlistFormProps) {
-  const [email, setEmail] = useState('');
-  const [name, setName] = useState('');
+  const [email,    setEmail]    = useState('');
+  const [name,     setName]     = useState('');
   const [business, setBusiness] = useState('');
-  const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
-  const [message, setMessage] = useState('');
+  const [status,   setStatus]   = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
+  const [message,  setMessage]  = useState('');
   const [showExtra, setShowExtra] = useState(false);
+
+  // ── Client-side validation ────────────────────────────────────────────────
+  function validate(): string | null {
+    if (!email) return t.errors.emailInvalid;
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return t.errors.emailInvalid;
+    if (email.length > 320) return t.errors.emailTooLong;
+    if (name && !VALID_NAME_RE.test(name)) return t.errors.nameInvalid;
+    if (name && name.trim().length > 60) return t.errors.nameTooLong;
+    if (business && business.trim().length > 100) return t.errors.businessTooLong;
+    return null;
+  }
 
   async function handleSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
-    if (!email) return;
+
+    const validationError = validate();
+    if (validationError) {
+      setStatus('error');
+      setMessage(validationError);
+      return;
+    }
 
     setStatus('loading');
+    setMessage('');
 
     try {
       const res = await fetch('/api/waitlist', {
@@ -39,14 +59,16 @@ export function WaitlistForm({ variant = 'hero', t }: WaitlistFormProps) {
 
       if (res.ok && json.data) {
         setStatus('success');
-        setMessage(json.data.message);
+        // Detect "already on list" from server and use translated message
+        const isAlready = json.data.message.toLowerCase().includes('already');
+        setMessage(isAlready ? t.alreadyOnList : t.successMessage);
       } else {
         setStatus('error');
-        setMessage(json.error ?? 'Something went wrong. Please try again.');
+        setMessage(t.errors.generic);
       }
     } catch {
       setStatus('error');
-      setMessage('Could not reach the server. Please try again.');
+      setMessage(t.errors.serverUnreachable);
     }
   }
 
@@ -78,6 +100,7 @@ export function WaitlistForm({ variant = 'hero', t }: WaitlistFormProps) {
           onChange={(e) => setEmail(e.target.value)}
           placeholder={t.emailPlaceholder}
           required
+          maxLength={320}
           autoComplete="email"
           className={[
             'flex-1 min-w-0 rounded-lg px-4 py-2.5 text-sm border transition-colors',
@@ -114,9 +137,15 @@ export function WaitlistForm({ variant = 'hero', t }: WaitlistFormProps) {
           <input
             type="text"
             value={name}
-            onChange={(e) => setName(e.target.value)}
+            onChange={(e) => {
+              const val = e.target.value
+                .replace(/[^a-zA-ZÀ-ÖØ-öø-ÿÑñ\s]/g, '')
+                .replace(/(?:^|\s)\S/g, (c) => c.toUpperCase());
+              if (val.length <= 60) setName(val);
+            }}
             placeholder={t.namePlaceholder}
             autoComplete="name"
+            maxLength={60}
             className={[
               'rounded-lg px-3 py-2.5 text-sm border transition-colors',
               'focus:outline-none focus:ring-2 focus:ring-indigo-500',
@@ -128,8 +157,11 @@ export function WaitlistForm({ variant = 'hero', t }: WaitlistFormProps) {
           <input
             type="text"
             value={business}
-            onChange={(e) => setBusiness(e.target.value)}
+            onChange={(e) => {
+              if (e.target.value.length <= 100) setBusiness(e.target.value);
+            }}
             placeholder={t.businessPlaceholder}
+            maxLength={100}
             className={[
               'rounded-lg px-3 py-2.5 text-sm border transition-colors',
               'focus:outline-none focus:ring-2 focus:ring-indigo-500',

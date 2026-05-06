@@ -345,5 +345,16 @@ export const es: Dictionary = {
     businessPlaceholder: "Nombre del negocio",
     disclaimer: "Sin tarjeta de crédito. Sin spam. Cancela cuando quieras.",
     successTitle: "¡Estás en la lista!",
+    successMessage: "Te avisaremos cuando Fideliza+ lance oficialmente.",
+    alreadyOnList: "¡Ya estás en la lista! Pronto estaremos en contacto.",
+    errors: {
+      emailInvalid: "Ingresa un correo electrónico válido.",
+      emailTooLong: "El correo electrónico es demasiado largo.",
+      nameInvalid: "El nombre solo puede contener letras y espacios.",
+      nameTooLong: "El nombre es demasiado largo (máx. 60 caracteres).",
+      businessTooLong: "El nombre del negocio es demasiado largo (máx. 100 caracteres).",
+      generic: "Algo salió mal. Inténtalo de nuevo.",
+      serverUnreachable: "No se pudo contactar el servidor. Inténtalo de nuevo.",
+    },
   },
 };
