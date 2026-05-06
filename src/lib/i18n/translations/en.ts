@@ -310,6 +310,30 @@ export const en = {
       "Built for independent businesses that deserve better tools.",
   },
 
+  multiDevice: {
+    label: "Access from anywhere",
+    heading: "Works on any screen, any device",
+    body: "Manage your loyalty program from your computer, check stats on your tablet between shifts, or register a customer right from your phone — all you need is a Wi-Fi connection.",
+    devices: [
+      {
+        name: "Computer",
+        description: "Full dashboard experience. Manage customers, create programs, view reports, and export data from your desktop or laptop.",
+        hint: "Recommended for daily management",
+      },
+      {
+        name: "Tablet",
+        description: "Perfect for the counter. Register customers, assign points, and verify vouchers without leaving the register.",
+        hint: "Great at the point of sale",
+      },
+      {
+        name: "Phone",
+        description: "Quick access on the go. Check customer balances, register a transaction, or verify a redemption from anywhere in the venue.",
+        hint: "Ideal for quick transactions",
+      },
+    ],
+    wifi: "Requires an active internet connection (Wi-Fi or mobile data)",
+  },
+
   waitlistForm: {
     emailPlaceholder: "your@email.com",
     submitButton: "Join waitlist",

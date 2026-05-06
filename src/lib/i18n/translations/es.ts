@@ -313,6 +313,30 @@ export const es: Dictionary = {
       "Hecho para negocios independientes que merecen mejores herramientas.",
   },
 
+  multiDevice: {
+    label: "Accede desde cualquier lugar",
+    heading: "Funciona en cualquier pantalla, cualquier dispositivo",
+    body: "Administra tu programa desde la computadora, revisa estadísticas en la tablet entre turnos, o registra un cliente directo desde el celular — solo necesitas conexión a internet.",
+    devices: [
+      {
+        name: "Computadora",
+        description: "Experiencia completa del panel. Gestiona clientes, crea programas, visualiza reportes y exporta datos desde tu escritorio o laptop.",
+        hint: "Recomendado para la gestión diaria",
+      },
+      {
+        name: "Tablet",
+        description: "Perfecta para el mostrador. Registra clientes, asigna puntos y verifica vouchers sin alejarte de la caja.",
+        hint: "Ideal en el punto de venta",
+      },
+      {
+        name: "Celular",
+        description: "Acceso rápido desde donde estés. Consulta saldos, registra una transacción o verifica un canje desde cualquier parte del local.",
+        hint: "Perfecto para transacciones rápidas",
+      },
+    ],
+    wifi: "Requiere conexión a internet activa (Wi-Fi o datos móviles)",
+  },
+
   waitlistForm: {
     emailPlaceholder: "tu@email.com",
     submitButton: "Unirse a la lista",

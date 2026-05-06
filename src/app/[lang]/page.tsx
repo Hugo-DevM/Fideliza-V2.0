@@ -5,6 +5,7 @@ import { Hero } from '@/components/landing/Hero';
 import { HowItWorks } from '@/components/landing/HowItWorks';
 import { Features } from '@/components/landing/Features';
 import { Benefits } from '@/components/landing/Benefits';
+import { MultiDevice } from '@/components/landing/MultiDevice';
 import { Pricing } from '@/components/landing/Pricing';
 import { CTA } from '@/components/landing/CTA';
 import { Footer } from '@/components/landing/Footer';
@@ -47,6 +48,7 @@ export default async function LandingPage({ params }: Props) {
         <HowItWorks t={dict.howItWorks} />
         <Features t={dict.features} />
         <Benefits t={dict.benefits} />
+        <MultiDevice t={dict.multiDevice} />
         <Pricing t={dict.pricing} />
         <CTA t={dict.cta} waitlistT={dict.waitlistForm} />
       </main>
