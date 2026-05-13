@@ -50,7 +50,7 @@ export default function Sidebar({ tenantName, isOpen = false, onClose }: Sidebar
     >
       {/* Logo + mobile close button */}
       <div className="flex h-14 items-center justify-between border-b border-gray-100 px-4">
-        <span className="text-base font-bold text-indigo-600">Fideliza+</span>
+        <img src="/logofpurple.svg" alt="Fideliza+" className="h-10" />
         <button
           onClick={onClose}
           className="rounded-md p-1.5 text-gray-400 hover:bg-gray-100 md:hidden"

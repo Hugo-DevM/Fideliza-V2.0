@@ -8,7 +8,7 @@ export default function ForgotPasswordPage() {
       <div className="w-full max-w-md space-y-6">
 
         <div className="text-center">
-          <span className="text-2xl font-bold text-indigo-600">Fideliza+</span>
+          <img src="/logofpurple.svg" alt="Fideliza+" className="h-16 mx-auto" />
           <p className="mt-1 text-sm text-gray-500">Panel de negocios</p>
         </div>
 

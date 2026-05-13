@@ -10,19 +10,23 @@ export default async function LoginPage({
   const { error } = await searchParams;
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-indigo-50 to-white p-4">
-      <div className="w-full max-w-md space-y-6">
+    <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-gray-950 via-indigo-950 to-gray-900 p-4">
+      <div className="w-full max-w-sm space-y-6">
+
         {/* Logo */}
-        <div className="text-center">
-          <span className="text-2xl font-bold text-indigo-600">Fideliza+</span>
-          <p className="mt-1 text-sm text-gray-500">Panel de negocios</p>
+        <div className="text-center space-y-1.5">
+          <img src="/logofideliza.svg" alt="Fideliza+" className="h-16 mx-auto" />
+          <p className="text-sm text-indigo-300/70 tracking-wide">Panel de negocios</p>
         </div>
 
-        <div className="rounded-2xl border bg-white p-8 shadow-sm">
-          <h1 className="mb-6 text-xl font-bold text-gray-900">Inicia sesión en tu cuenta</h1>
+        {/* Card */}
+        <div className="rounded-2xl bg-white px-8 pt-8 pb-7 shadow-2xl shadow-black/50 ring-1 ring-white/5">
+          <h1 className="mb-5 text-[1.15rem] font-semibold text-gray-900 tracking-tight">
+            Inicia sesión en tu cuenta
+          </h1>
 
           {error === 'auth_failed' && (
-            <div className="mb-4 rounded-lg bg-red-50 px-4 py-3 text-sm text-red-600">
+            <div className="mb-5 rounded-lg bg-red-50 border border-red-100 px-4 py-3 text-sm text-red-600 leading-snug">
               El enlace de acceso expiró o ya fue usado. Solicita uno nuevo.
             </div>
           )}
@@ -30,12 +34,17 @@ export default async function LoginPage({
           <LoginForm />
         </div>
 
-        <p className="text-center text-xs text-gray-400">
+        {/* Footer */}
+        <p className="text-center text-xs text-gray-600">
           ¿No tienes cuenta?{' '}
-          <a href="/auth/register" className="text-indigo-500 hover:underline font-medium">
+          <a
+            href="/auth/register"
+            className="text-indigo-400 hover:text-indigo-300 font-medium transition-colors duration-150"
+          >
             Crea una gratis
           </a>
         </p>
+
       </div>
     </div>
   );

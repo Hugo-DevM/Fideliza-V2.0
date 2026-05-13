@@ -34,31 +34,8 @@ export function Navbar({ t }: NavbarProps) {
     >
       <Container className="flex items-center justify-between h-16">
         {/* Logo */}
-        <a href="/" className="flex items-center gap-2.5 group">
-          <div className="w-7 h-7 rounded-lg bg-indigo-500 flex items-center justify-center">
-            <svg
-              viewBox="0 0 24 24"
-              fill="none"
-              className="w-4 h-4 text-white"
-              aria-hidden="true"
-            >
-              <path
-                d="M12 2L3 7v5c0 5.25 3.75 10.15 9 11.25C17.25 22.15 21 17.25 21 12V7L12 2z"
-                fill="currentColor"
-                opacity="0.9"
-              />
-              <path
-                d="M9 12l2 2 4-4"
-                stroke="white"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-            </svg>
-          </div>
-          <span className="font-semibold text-white text-lg tracking-tight">
-            Fideliza<span className="text-indigo-400">+</span>
-          </span>
+        <a href="/">
+          <img src="/logofideliza.svg" alt="Fideliza+" className="h-12" />
         </a>
 
         {/* Desktop nav */}

@@ -13,6 +13,7 @@
 !.yarn/versions
 .claude
 /docs
+.agents
 # testing
 /coverage
 
@@ -42,3 +43,9 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# skills
+skills-lock.json
+
+#readmes
+PRODUCT.md

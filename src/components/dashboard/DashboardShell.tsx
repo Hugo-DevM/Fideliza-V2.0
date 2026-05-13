@@ -38,7 +38,7 @@ export default function DashboardShell({ tenantName, children }: DashboardShellP
           >
             <MenuIcon className="h-5 w-5" />
           </button>
-          <span className="text-base font-bold text-indigo-600">Fideliza+</span>
+          <img src="/logofpurple.svg" alt="Fideliza+" className="h-10" />
         </header>
 
         <main className="flex-1 overflow-y-auto p-4 md:p-6">

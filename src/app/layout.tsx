@@ -14,11 +14,18 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL('https://fideliza.app'),
   title: {
-    default: 'Fideliza+',
+    default: 'Fideliza+ — Loyalty Programs for Independent Businesses',
     template: '%s | Fideliza+',
   },
-  description: 'Loyalty programs for independent businesses.',
+  description:
+    'Run a loyalty program your customers actually use — no app downloads, no complex setup. Points, stamps, and visits. Your own branded subdomain. Up and running in under 5 minutes.',
+  icons: {
+    icon: '/logofpurple.svg',
+    shortcut: '/logofpurple.svg',
+    apple: '/logofpurple.svg',
+  },
 };
 
 export default async function RootLayout({
