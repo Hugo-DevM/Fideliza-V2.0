@@ -2,9 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
-import { createBrowserClient } from '@supabase/ssr';
-import { setupTenantAction, checkSubdomainAction } from './actions';
-import { translateAuthError } from '@/lib/utils/supabase-errors';
+import { signUpAndSendConfirmationAction, setupTenantAction, checkSubdomainAction } from './actions';
 
 type Step = 1 | 2;
 
@@ -40,9 +38,8 @@ export default function RegisterForm() {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   // Auth user created at step 1→2 transition
-  const [authUserId,  setAuthUserId]  = useState('');
-  const [authEmail,   setAuthEmail]   = useState('');
-  const [authSession, setAuthSession] = useState<unknown>(null);
+  const [authUserId, setAuthUserId] = useState('');
+  const [authEmail,  setAuthEmail]  = useState('');
 
   // Step 2 — Business
   const [businessName,      setBusinessName]      = useState('');
@@ -53,12 +50,6 @@ export default function RegisterForm() {
 
   // Global error
   const [globalError, setGlobalError] = useState('');
-
-  // Supabase browser client
-  const supabase = createBrowserClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-  );
 
   // ── Auto-generate subdomain from business name ──────────────────────────
   useEffect(() => {
@@ -139,31 +130,21 @@ export default function RegisterForm() {
 
     setIsGoingToStep2(true);
 
-    const { data: authData, error: signUpError } = await supabase.auth.signUp({
+    const result = await signUpAndSendConfirmationAction({
       email,
       password,
-      options: {
-        data: { full_name: fullName.trim() },
-        emailRedirectTo: `${window.location.origin}/auth/callback?next=/auth/confirmed`,
-      },
+      fullName: fullName.trim(),
     });
 
     setIsGoingToStep2(false);
 
-    if (signUpError) {
-      setGlobalError(translateAuthError(signUpError.message));
+    if (result.error || !result.userId) {
+      setGlobalError(result.error ?? 'Error al registrarse. Inténtalo de nuevo.');
       return;
     }
 
-    const userId = authData.user?.id;
-    if (!userId) {
-      setGlobalError('Error al registrarse. Inténtalo de nuevo.');
-      return;
-    }
-
-    setAuthUserId(userId);
+    setAuthUserId(result.userId);
     setAuthEmail(email);
-    setAuthSession(authData.session ?? null);
     setStep(2);
   }
 
@@ -187,11 +168,7 @@ export default function RegisterForm() {
         return;
       }
 
-      if (authSession) {
-        router.push('/dashboard');
-      } else {
-        router.push('/auth/register/confirm?email=' + encodeURIComponent(email));
-      }
+      router.push('/auth/register/confirm?email=' + encodeURIComponent(email));
     } finally {
       setIsSubmitting(false);
     }
