@@ -4,12 +4,35 @@ import { useState, useTransition, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { createCustomerAction } from './actions';
 
+// Permite letras (incluye acentos, ñ, ü) y espacios; bloquea cualquier símbolo
+const NAME_ALLOWED = /^[a-zA-ZáéíóúÁÉÍÓÚàèìòùÀÈÌÒÙäëïöüÄËÏÖÜñÑçÇ ]*$/;
+// Permite dígitos, +, -, (, ), espacios
+const PHONE_ALLOWED = /^[0-9+\-() ]*$/;
+
+function capitalizeWords(value: string) {
+  return value.replace(/(?:^|\s)\S/g, (c) => c.toUpperCase());
+}
+
 export default function NewCustomerModal() {
   const [open, setOpen]       = useState(false);
   const [error, setError]     = useState('');
   const [isPending, startTransition] = useTransition();
+  const [name, setName]   = useState('');
+  const [phone, setPhone] = useState('');
   const formRef = useRef<HTMLFormElement>(null);
   const router  = useRouter();
+
+  function handleNameChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const raw = e.target.value;
+    if (!NAME_ALLOWED.test(raw)) return; // bloquea símbolos
+    setName(capitalizeWords(raw));
+  }
+
+  function handlePhoneChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const raw = e.target.value;
+    if (!PHONE_ALLOWED.test(raw)) return; // bloquea letras y símbolos
+    setPhone(raw);
+  }
 
   function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -22,6 +45,8 @@ export default function NewCustomerModal() {
         setError(result.error);
       } else {
         formRef.current?.reset();
+        setName('');
+        setPhone('');
         setOpen(false);
         router.refresh();
       }
@@ -50,8 +75,31 @@ export default function NewCustomerModal() {
                 <p className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-600">{error}</p>
               )}
 
-              <Field label="Nombre completo *" name="name" type="text" placeholder="Alice Méndez" required />
-              <Field label="Phone" name="phone" type="tel" placeholder="+15551234567" />
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Nombre completo *</label>
+                <input
+                  name="name"
+                  type="text"
+                  placeholder="Alice Méndez"
+                  required
+                  value={name}
+                  onChange={handleNameChange}
+                  className={inputCls}
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Teléfono</label>
+                <input
+                  name="phone"
+                  type="tel"
+                  placeholder="+15551234567"
+                  value={phone}
+                  onChange={handlePhoneChange}
+                  className={inputCls}
+                />
+              </div>
+
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Notas</label>
                 <textarea
@@ -84,16 +132,3 @@ export default function NewCustomerModal() {
 
 const inputCls =
   'w-full rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-900 placeholder-gray-400 outline-none transition focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100';
-
-function Field({
-  label, name, type, placeholder, required,
-}: {
-  label: string; name: string; type: string; placeholder?: string; required?: boolean;
-}) {
-  return (
-    <div>
-      <label className="block text-sm font-medium text-gray-700 mb-1">{label}</label>
-      <input name={name} type={type} placeholder={placeholder} required={required} className={inputCls} />
-    </div>
-  );
-}

@@ -1,6 +1,7 @@
 import { getAuthenticatedTenant } from '@/lib/auth/get-tenant';
 import SettingsForm from './SettingsForm';
 import BillingSection from './BillingSection';
+import DeleteAccountSection from './DeleteAccountSection';
 
 export const metadata = { title: 'Configuración — Fideliza+' };
 
@@ -53,6 +54,9 @@ export default async function SettingsPage({
 
       {/* Appearance settings */}
       <SettingsForm settings={settings} />
+
+      {/* Danger zone */}
+      <DeleteAccountSection subdomain={tenant.subdomain} />
     </div>
   );
 }

@@ -1,8 +1,11 @@
 /**
- * Supabase Auth callback — exchanges the one-time code for a session.
- * Supabase redirects here after a magic link click.
+ * Supabase Auth callback — exchanges the PKCE code for a session.
  *
- * URL pattern: /auth/callback?code=<code>[&next=/dashboard]
+ * All Supabase email flows (confirm signup, reset password) redirect here
+ * with a `code` parameter. The `next` parameter controls where to send
+ * the user after a successful exchange.
+ *
+ * URL pattern: /auth/callback?code=<code>&next=<path>
  */
 
 import { NextResponse } from 'next/server';
@@ -33,9 +36,7 @@ export async function GET(request: Request) {
     );
 
     const { error } = await supabase.auth.exchangeCodeForSession(code);
-    if (!error) {
-      return NextResponse.redirect(`${origin}${next}`);
-    }
+    if (!error) return NextResponse.redirect(`${origin}${next}`);
   }
 
   return NextResponse.redirect(`${origin}/auth/login?error=auth_failed`);

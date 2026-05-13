@@ -10,7 +10,12 @@ export function translateAuthError(message: string): string {
   if (msg.includes('email not confirmed'))
     return 'Confirma tu correo antes de iniciar sesión.';
 
-  if (msg.includes('user already registered') || msg.includes('already been registered'))
+  if (
+    msg.includes('user already registered') ||
+    msg.includes('already been registered') ||
+    msg.includes('an account with this email already exists') ||
+    msg.includes('already exists')
+  )
     return 'Este correo ya está registrado. Inicia sesión o usa otro correo.';
 
   if (msg.includes('password should be at least'))

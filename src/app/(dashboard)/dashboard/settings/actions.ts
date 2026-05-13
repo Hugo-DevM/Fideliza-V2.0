@@ -1,8 +1,10 @@
 'use server';
 
 import { revalidatePath } from 'next/cache';
+import { redirect } from 'next/navigation';
 import { getAuthenticatedTenant } from '@/lib/auth/get-tenant';
-import { updateTenantSettings } from '@/modules/tenants/tenant.repository';
+import { updateTenantSettings, softDeleteTenant } from '@/modules/tenants/tenant.repository';
+import { createServerClient, createServiceRoleClient } from '@/lib/supabase/server';
 
 export async function updateSettingsAction(formData: FormData) {
   const { tenantId } = await getAuthenticatedTenant();
@@ -34,4 +36,33 @@ export async function updateSettingsAction(formData: FormData) {
   } catch (err) {
     return { error: err instanceof Error ? err.message : 'Failed to save settings' };
   }
+}
+
+export async function deleteAccountAction(formData: FormData) {
+  const { tenantId, tenant } = await getAuthenticatedTenant();
+
+  const confirmation = (formData.get('confirmation') as string | null)?.trim();
+  if (confirmation !== tenant.subdomain) {
+    return { error: 'El subdominio ingresado no coincide. La cuenta no fue eliminada.' };
+  }
+
+  const reason = (formData.get('reason') as string | null)?.trim() || undefined;
+
+  // Get the current auth user ID before signing out
+  const supabase = await createServerClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return { error: 'Sesión no válida.' };
+
+  try {
+    // 1. Soft-delete the tenant record — data stays for developer visibility
+    await softDeleteTenant(tenantId, reason);
+
+    // 2. Delete the Supabase Auth user so the email is free to register again
+    const adminClient = createServiceRoleClient();
+    await adminClient.auth.admin.deleteUser(user.id);
+  } catch (err) {
+    return { error: err instanceof Error ? err.message : 'No se pudo eliminar la cuenta.' };
+  }
+
+  redirect('/auth/login');
 }

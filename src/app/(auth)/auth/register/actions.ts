@@ -56,6 +56,11 @@ export async function checkSubdomainAction(
   }
 
   const db = createServiceRoleClient();
-  const { data } = await db.from('tenants').select('id').eq('subdomain', clean).maybeSingle();
+  const { data } = await db
+    .from('tenants')
+    .select('id')
+    .eq('subdomain', clean)
+    .eq('is_active', true)
+    .maybeSingle();
   return { available: !data };
 }

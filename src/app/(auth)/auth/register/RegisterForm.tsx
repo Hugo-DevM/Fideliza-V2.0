@@ -143,7 +143,7 @@ export default function RegisterForm() {
       password,
       options: {
         data: { full_name: fullName.trim() },
-        emailRedirectTo: `${window.location.origin}/auth/callback`,
+        emailRedirectTo: `${window.location.origin}/auth/callback?next=/auth/confirmed`,
       },
     });
 
@@ -420,7 +420,11 @@ export default function RegisterForm() {
                 type="text"
                 autoFocus
                 value={businessName}
-                onChange={(e) => setBusinessName(e.target.value)}
+                onChange={(e) => {
+                    const raw = e.target.value;
+                    if (raw !== '' && !/^[a-zA-ZáéíóúÁÉÍÓÚàèìòùÀÈÌÒÙäëïöüÄËÏÖÜñÑçÇ0-9 .,'&\-]*$/.test(raw)) return;
+                    setBusinessName(raw);
+                  }}
                 placeholder="ej. Café Central"
                 className={inputCls()}
               />

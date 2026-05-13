@@ -35,6 +35,9 @@ export interface Tenant {
   stripe_subscription_id: string | null;
   subscription_status:    SubscriptionStatus | null;
   subscription_end_date:  string | null;
+  // Soft delete — set by deleteAccountAction, never cleared
+  deleted_at:        string | null;
+  deletion_reason:   string | null;
   created_at: string;
   updated_at: string;
 }

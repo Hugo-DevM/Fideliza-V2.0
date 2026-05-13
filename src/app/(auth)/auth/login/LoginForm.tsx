@@ -52,7 +52,10 @@ export default function LoginForm() {
           required
           autoFocus
           value={email}
-          onChange={(e) => setEmail(e.target.value)}
+          onChange={(e) => {
+              const raw = e.target.value;
+              if (/^[a-zA-Z0-9._%+\-@]*$/.test(raw)) setEmail(raw);
+            }}
           placeholder="tu@negocio.com"
           className="w-full rounded-lg border border-gray-200 px-4 py-2.5 text-sm text-gray-900 placeholder-gray-400 outline-none transition focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100"
         />

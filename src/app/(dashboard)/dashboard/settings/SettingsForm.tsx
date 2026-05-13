@@ -10,6 +10,26 @@ export default function SettingsForm({ settings }: { settings: TenantSettings })
   const [secondaryColor, setSecondaryColor] = useState(settings.secondary_color);
   const [welcomeMessage, setWelcomeMessage] = useState(settings.welcome_message ?? '');
   const [programLabel,   setProgramLabel]   = useState(settings.program_label);
+  const [saved, setSaved] = useState({
+    primary_color:   settings.primary_color,
+    secondary_color: settings.secondary_color,
+    welcome_message: settings.welcome_message ?? '',
+    program_label:   settings.program_label,
+  });
+
+  const isDirty =
+    primaryColor   !== saved.primary_color   ||
+    secondaryColor !== saved.secondary_color ||
+    welcomeMessage !== saved.welcome_message ||
+    programLabel   !== saved.program_label;
+
+  function handleProgramLabelChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const raw = e.target.value;
+    // Solo letras (incluye acentos, ñ, ü) y espacios; bloquea números y símbolos
+    if (raw !== '' && !/^[a-zA-ZáéíóúÁÉÍÓÚàèìòùÀÈÌÒÙäëïöüÄËÏÖÜñÑçÇ ]*$/.test(raw)) return;
+    // Primera letra de cada palabra en mayúscula
+    setProgramLabel(raw.replace(/(?:^|\s)\S/g, (c) => c.toUpperCase()));
+  }
   const [error,   setError]   = useState('');
   const [success, setSuccess] = useState('');
   const [isPending, startTransition] = useTransition();
@@ -26,6 +46,12 @@ export default function SettingsForm({ settings }: { settings: TenantSettings })
       if ('error' in result && result.error) {
         setError(result.error);
       } else {
+        setSaved({
+          primary_color:   primaryColor,
+          secondary_color: secondaryColor,
+          welcome_message: welcomeMessage,
+          program_label:   programLabel,
+        });
         setSuccess('Configuración guardada');
         router.refresh();
       }
@@ -109,7 +135,7 @@ export default function SettingsForm({ settings }: { settings: TenantSettings })
             name="program_label"
             type="text"
             value={programLabel}
-            onChange={(e) => setProgramLabel(e.target.value)}
+            onChange={handleProgramLabelChange}
             placeholder="Puntos"
             maxLength={30}
             className={inputCls + ' max-w-xs'}
@@ -150,7 +176,7 @@ export default function SettingsForm({ settings }: { settings: TenantSettings })
       <div className="flex justify-end">
         <button
           type="submit"
-          disabled={isPending}
+          disabled={isPending || !isDirty}
           className="rounded-lg bg-indigo-600 px-5 py-2 text-sm font-semibold text-white hover:bg-indigo-700 disabled:opacity-50"
         >
           {isPending ? 'Guardando…' : 'Guardar cambios'}
