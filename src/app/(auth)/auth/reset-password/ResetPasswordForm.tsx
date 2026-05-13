@@ -1,99 +1,219 @@
 'use client';
 
 import { useState } from 'react';
-import { createBrowserClient } from '@supabase/ssr';
+import { useRouter, useSearchParams } from 'next/navigation';
 
-type Status = 'idle' | 'loading' | 'sent' | 'error';
+type Status = 'idle' | 'loading' | 'error' | 'success';
+
+const REQUIREMENTS = [
+  { label: 'Mínimo 8 caracteres',  test: (p: string) => p.length >= 8 },
+  { label: 'Letra mayúscula',       test: (p: string) => /[A-ZÀÁÂÃÄÅÆÇÈÉÊËÌÍÎÏÐÑÒÓÔÕÖØÙÚÛÜÝ]/.test(p) },
+  { label: 'Letra minúscula',       test: (p: string) => /[a-zàáâãäåæçèéêëìíîïðñòóôõöøùúûüýþÿ]/.test(p) },
+  { label: 'Un número (0-9)',        test: (p: string) => /[0-9]/.test(p) },
+  { label: 'Un símbolo (!@#…)',      test: (p: string) => /[^a-zA-Z0-9]/.test(p) },
+];
 
 export default function ResetPasswordForm() {
-  const [email,  setEmail]  = useState('');
-  const [status, setStatus] = useState<Status>('idle');
-  const [error,  setError]  = useState('');
+  const router        = useRouter();
+  const searchParams  = useSearchParams();
+  const token         = searchParams.get('token');
 
-  const supabase = createBrowserClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-  );
+  const [password,        setPassword]        = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [showPassword,    setShowPassword]    = useState(false);
+  const [showConfirm,     setShowConfirm]     = useState(false);
+  const [status,          setStatus]          = useState<Status>('idle');
+  const [error,           setError]           = useState('');
 
-  async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
-    if (!email) return;
-    setStatus('loading');
-    setError('');
+  const allRequirementsMet = REQUIREMENTS.every(({ test }) => test(password));
+  const passwordsMatch     = password === confirmPassword;
+  const canSubmit          = allRequirementsMet && passwordsMatch && confirmPassword.length > 0;
 
-    const { error: sbError } = await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: `${window.location.origin}/auth/callback?next=/auth/reset-password/update`,
-    });
-
-    if (sbError) {
-      setError('No se pudo enviar el correo. Verifica la dirección e inténtalo de nuevo.');
-      setStatus('error');
-    } else {
-      setStatus('sent');
-    }
-  }
-
-  if (status === 'sent') {
+  // No token in URL — show a helpful message
+  if (!token) {
     return (
       <div className="space-y-4 text-center">
-        <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-green-100">
-          <svg className="h-7 w-7 text-green-600" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+        <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-red-100">
+          <svg className="h-7 w-7 text-red-500" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" />
           </svg>
         </div>
         <div>
-          <p className="font-semibold text-gray-900">Revisa tu correo</p>
+          <p className="font-semibold text-gray-900">Enlace inválido</p>
           <p className="mt-1 text-sm text-gray-500 leading-relaxed">
-            Enviamos un enlace de recuperación a{' '}
-            <span className="font-medium text-gray-700">{email}</span>.
-            Expira en 1 hora.
+            Este enlace de recuperación no es válido o ya fue utilizado.
           </p>
         </div>
-        <p className="text-xs text-gray-400">
-          ¿No llegó?{' '}
-          <button
-            type="button"
-            onClick={() => setStatus('idle')}
-            className="text-indigo-500 hover:underline font-medium"
-          >
-            Reenviar
-          </button>
-        </p>
+        <a
+          href="/auth/forgot-password"
+          className="inline-block rounded-lg bg-indigo-600 px-5 py-2 text-sm font-semibold text-white hover:bg-indigo-700 transition"
+        >
+          Solicitar un nuevo enlace
+        </a>
       </div>
     );
   }
 
+  if (status === 'success') {
+    return (
+      <div className="space-y-4 text-center">
+        <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-green-100">
+          <svg className="h-7 w-7 text-green-600" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+          </svg>
+        </div>
+        <div>
+          <p className="font-semibold text-gray-900">¡Contraseña actualizada!</p>
+          <p className="mt-1 text-sm text-gray-500 leading-relaxed">
+            Tu contraseña fue cambiada correctamente. Ya puedes iniciar sesión.
+          </p>
+        </div>
+        <a
+          href="/auth/login"
+          className="inline-block rounded-lg bg-indigo-600 px-5 py-2 text-sm font-semibold text-white hover:bg-indigo-700 transition"
+        >
+          Ir al inicio de sesión
+        </a>
+      </div>
+    );
+  }
+
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    if (!canSubmit) return;
+    setStatus('loading');
+    setError('');
+
+    try {
+      const res = await fetch('/api/auth/reset-password', {
+        method:  'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body:    JSON.stringify({ token, password }),
+      });
+
+      const json = await res.json();
+
+      if (!res.ok) {
+        setError(json.error ?? 'No se pudo actualizar la contraseña. Intenta de nuevo.');
+        setStatus('error');
+      } else {
+        setStatus('success');
+        // Brief pause so the success state renders before navigation
+        setTimeout(() => router.push('/auth/login'), 2500);
+      }
+    } catch {
+      setError('Error de conexión. Verifica tu internet e inténtalo de nuevo.');
+      setStatus('error');
+    }
+  }
+
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
+    <form onSubmit={handleSubmit} className="space-y-5">
       {status === 'error' && (
         <p className="rounded-lg bg-red-50 px-4 py-3 text-sm text-red-600">{error}</p>
       )}
 
+      {/* New password */}
       <div>
-        <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
-          Correo electrónico
+        <label className="block text-sm font-medium text-gray-700 mb-1">
+          Nueva contraseña
         </label>
-        <input
-          id="email"
-          type="email"
-          required
-          autoFocus
-          value={email}
-          onChange={(e) => {
-            const raw = e.target.value;
-            if (/^[a-zA-Z0-9._%+\-@]*$/.test(raw)) setEmail(raw);
-          }}
-          placeholder="tu@negocio.com"
-          className="w-full rounded-lg border border-gray-200 px-4 py-2.5 text-sm text-gray-900 placeholder-gray-400 outline-none transition focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100"
-        />
-        <p className="mt-1.5 text-xs text-gray-400">
-          Te enviaremos un enlace para restablecer tu contraseña.
-        </p>
+        <div className="relative">
+          <input
+            type={showPassword ? 'text' : 'password'}
+            required
+            autoFocus
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            placeholder="Mínimo 8 caracteres"
+            className="w-full rounded-lg border border-gray-200 px-4 py-2.5 text-sm text-gray-900 placeholder-gray-400 outline-none transition focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100"
+          />
+          <button
+            type="button"
+            onClick={() => setShowPassword((v) => !v)}
+            tabIndex={-1}
+            className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+          >
+            {showPassword ? (
+              <svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21" />
+              </svg>
+            ) : (
+              <svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                <path strokeLinecap="round" strokeLinejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+              </svg>
+            )}
+          </button>
+        </div>
+
+        {/* Requirements checklist */}
+        {password.length > 0 && (
+          <div className="mt-2 grid grid-cols-2 gap-x-4 gap-y-1">
+            {REQUIREMENTS.map(({ label, test }) => {
+              const ok = test(password);
+              return (
+                <div key={label} className="flex items-center gap-1.5">
+                  <svg
+                    className={`h-3.5 w-3.5 shrink-0 transition-colors ${ok ? 'text-green-500' : 'text-gray-300'}`}
+                    fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24"
+                  >
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                  </svg>
+                  <span className={`text-xs transition-colors ${ok ? 'text-green-600' : 'text-gray-400'}`}>
+                    {label}
+                  </span>
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </div>
+
+      {/* Confirm password */}
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-1">
+          Confirmar contraseña
+        </label>
+        <div className="relative">
+          <input
+            type={showConfirm ? 'text' : 'password'}
+            required
+            value={confirmPassword}
+            onChange={(e) => setConfirmPassword(e.target.value)}
+            placeholder="Repite tu contraseña"
+            className={`w-full rounded-lg border px-4 py-2.5 text-sm text-gray-900 placeholder-gray-400 outline-none transition focus:ring-2 ${
+              confirmPassword.length > 0 && !passwordsMatch
+                ? 'border-red-300 focus:border-red-400 focus:ring-red-100'
+                : 'border-gray-200 focus:border-indigo-400 focus:ring-indigo-100'
+            }`}
+          />
+          <button
+            type="button"
+            onClick={() => setShowConfirm((v) => !v)}
+            tabIndex={-1}
+            className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+          >
+            {showConfirm ? (
+              <svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21" />
+              </svg>
+            ) : (
+              <svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                <path strokeLinecap="round" strokeLinejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+              </svg>
+            )}
+          </button>
+        </div>
+        {confirmPassword.length > 0 && !passwordsMatch && (
+          <p className="mt-1 text-xs text-red-500">Las contraseñas no coinciden.</p>
+        )}
       </div>
 
       <button
         type="submit"
-        disabled={status === 'loading' || !email}
+        disabled={!canSubmit || status === 'loading'}
         className="w-full rounded-lg bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed"
       >
         {status === 'loading' ? (
@@ -102,9 +222,9 @@ export default function ResetPasswordForm() {
               <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
               <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
             </svg>
-            Enviando…
+            Guardando…
           </span>
-        ) : 'Enviar enlace de recuperación'}
+        ) : 'Guardar nueva contraseña'}
       </button>
     </form>
   );

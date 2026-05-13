@@ -2,8 +2,12 @@
  * Supabase Auth callback.
  *
  * Handles two flows:
- *  1. PKCE  — `?code=xxx`         (same-device flows)
- *  2. OTP   — `?token_hash=xxx&type=yyy` (cross-device email links)
+ *  1. PKCE  — `?code=xxx`              (same-device flows: magic link, OAuth)
+ *  2. OTP   — `?token_hash=xxx&type=yyy` (cross-device email confirmation links)
+ *
+ * NOTE: Password recovery is NOT handled here.
+ * The app uses a custom password reset flow (tokens in DB + Resend emails).
+ * See /api/auth/request-password-reset and /api/auth/reset-password.
  *
  * The `next` query param controls the post-auth redirect (default /dashboard).
  */
@@ -39,23 +43,17 @@ export async function GET(request: Request) {
 
   // ── 1. PKCE flow (same-device: code verifier exists in cookies) ──
   if (code) {
-    const { data, error } = await supabase.auth.exchangeCodeForSession(code);
+    const { error } = await supabase.auth.exchangeCodeForSession(code);
     if (!error) {
-      // Detect password-recovery sessions by AMR claim so we always
-      // land on the update-password page regardless of the `next` param.
-      const amr = (data.session?.user as any)?.amr as { method: string }[] | undefined;
-      const isRecovery = amr?.some((m) => m.method === 'recovery') ?? false;
-      const destination = isRecovery ? '/auth/reset-password/update' : next;
-      return NextResponse.redirect(`${origin}${destination}`);
+      return NextResponse.redirect(`${origin}${next}`);
     }
   }
 
-  // ── 2. Token-hash flow (cross-device: no code verifier needed) ──
+  // ── 2. Token-hash flow (cross-device email links: signup confirmation, etc.) ──
   if (tokenHash && type) {
     const { error } = await supabase.auth.verifyOtp({ token_hash: tokenHash, type });
     if (!error) {
-      const destination = type === 'recovery' ? '/auth/reset-password/update' : next;
-      return NextResponse.redirect(`${origin}${destination}`);
+      return NextResponse.redirect(`${origin}${next}`);
     }
   }
 

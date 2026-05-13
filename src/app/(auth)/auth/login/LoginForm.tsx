@@ -66,7 +66,7 @@ export default function LoginForm() {
           <label htmlFor="password" className="block text-sm font-medium text-gray-700">
             Contraseña
           </label>
-          <a href="/auth/reset-password" className="text-xs text-indigo-500 hover:underline">
+          <a href="/auth/forgot-password" className="text-xs text-indigo-500 hover:underline">
             ¿Olvidaste tu contraseña?
           </a>
         </div>

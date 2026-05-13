@@ -96,6 +96,12 @@ export const rateLimiters = {
 
   /** Customer access code lookup — prevent brute force */
   accessCodeLookup: (key: string) => checkRateLimit(key, 20, 60_000),   // 20/min per tenant
+
+  /** Password reset request — prevent email flooding */
+  passwordResetRequest: (key: string) => checkRateLimit(key, 5, 60 * 60_000),  // 5/hr per IP
+
+  /** Password reset confirm — secondary brute-force guard */
+  passwordResetConfirm: (key: string) => checkRateLimit(key, 10, 15 * 60_000), // 10/15min per IP
 };
 
 /**

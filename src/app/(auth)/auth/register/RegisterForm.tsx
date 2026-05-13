@@ -109,7 +109,8 @@ export default function RegisterForm() {
     if (password.length < 8) return 'La contraseña debe tener al menos 8 caracteres.';
     if (!/[A-ZÀÁÂÃÄÅÆÇÈÉÊËÌÍÎÏÐÑÒÓÔÕÖØÙÚÛÜÝ]/.test(password)) return 'La contraseña debe incluir al menos una letra mayúscula.';
     if (!/[a-zàáâãäåæçèéêëìíîïðñòóôõöøùúûüýþÿ]/.test(password)) return 'La contraseña debe incluir al menos una letra minúscula.';
-    if (!/[\d\W_]/.test(password)) return 'La contraseña debe incluir al menos un número o símbolo.';
+    if (!/[0-9]/.test(password)) return 'La contraseña debe incluir al menos un número (0-9).';
+    if (!/[^a-zA-Z0-9]/.test(password)) return 'La contraseña debe incluir al menos un símbolo (!@#$%...).';
     if (password !== confirmPassword) return 'Las contraseñas no coinciden.';
     if (!acceptedTerms) return 'Debes aceptar los Términos de Servicio y la Política de Privacidad.';
     return null;
@@ -315,7 +316,8 @@ export default function RegisterForm() {
                     { label: 'Mínimo 8 caracteres', ok: password.length >= 8 },
                     { label: 'Letra mayúscula',      ok: /[A-ZÀÁÂÃÄÅÆÇÈÉÊËÌÍÎÏÐÑÒÓÔÕÖØÙÚÛÜÝ]/.test(password) },
                     { label: 'Letra minúscula',      ok: /[a-zàáâãäåæçèéêëìíîïðñòóôõöøùúûüýþÿ]/.test(password) },
-                    { label: 'Número o símbolo',     ok: /[\d\W_]/.test(password) },
+                    { label: 'Un número (0-9)',       ok: /[0-9]/.test(password) },
+                    { label: 'Un símbolo (!@#…)',    ok: /[^a-zA-Z0-9]/.test(password) },
                   ].map(({ label, ok }) => (
                     <div key={label} className="flex items-center gap-1.5">
                       <svg
