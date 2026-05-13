@@ -143,6 +143,6 @@ export async function quickTransactionAction(formData: FormData): Promise<
     revalidatePath('/dashboard');
     return { success: true, delta: points_delta };
   } catch (err) {
-    return { error: err instanceof Error ? err.message : 'Transaction failed' };
+    return { error: err instanceof Error ? err.message : 'La transacción falló.' };
   }
 }

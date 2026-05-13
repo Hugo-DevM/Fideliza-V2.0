@@ -46,8 +46,8 @@ export default function AssignPointsForm({ customerId, enrollments, programLabel
     setError('');
     setSuccess('');
 
-    if (!selectedProgramId) { setError('Select a program'); return; }
-    if (!effectiveDelta)    { setError('Enter an amount or points delta'); return; }
+    if (!selectedProgramId) { setError('Selecciona un programa.'); return; }
+    if (!effectiveDelta)    { setError('Ingresa un monto o cantidad de puntos.'); return; }
 
     const fd = new FormData();
     fd.set('customer_id',  customerId);
@@ -60,7 +60,7 @@ export default function AssignPointsForm({ customerId, enrollments, programLabel
       if ('error' in result && result.error) {
         setError(result.error);
       } else {
-        setSuccess(`${effectiveDelta > 0 ? '+' : ''}${effectiveDelta} ${programLabel} recorded`);
+        setSuccess(`${effectiveDelta > 0 ? '+' : ''}${effectiveDelta} ${programLabel} registrado`);
         setAmountStr('');
         setManualDelta('');
         setNote('');
@@ -72,7 +72,7 @@ export default function AssignPointsForm({ customerId, enrollments, programLabel
   if (!enrollments.length) {
     return (
       <p className="text-sm text-gray-400">
-        Customer is not enrolled in any programs yet. Record a transaction to auto-enroll.
+        El cliente aún no está inscrito en ningún programa. Registra una transacción para inscribirse automáticamente.
       </p>
     );
   }
@@ -84,7 +84,7 @@ export default function AssignPointsForm({ customerId, enrollments, programLabel
 
       {/* Program selector */}
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">Program</label>
+        <label className="block text-sm font-medium text-gray-700 mb-1">Programa</label>
         <select
           value={selectedProgramId}
           onChange={(e) => { setSelectedProgramId(e.target.value); setAmountStr(''); setManualDelta(''); }}
@@ -101,7 +101,7 @@ export default function AssignPointsForm({ customerId, enrollments, programLabel
       {selectedProgram?.type === 'points' || selectedProgram?.type === 'cashback' ? (
         /* Purchase amount → auto-compute points */
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Purchase amount ($)</label>
+          <label className="block text-sm font-medium text-gray-700 mb-1">Monto de compra ($)</label>
           <input
             type="number"
             min="0.01"
@@ -113,7 +113,7 @@ export default function AssignPointsForm({ customerId, enrollments, programLabel
           />
           {preview && !preview.skipped && (
             <p className="mt-1 text-xs text-green-600 font-medium">
-              Will award {preview.points_delta} {programLabel}
+              Se otorgarán {preview.points_delta} {programLabel}
             </p>
           )}
           {preview?.skipped && (
@@ -124,7 +124,7 @@ export default function AssignPointsForm({ customerId, enrollments, programLabel
         /* Stamp / visit: manual delta */
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">
-            {selectedProgram?.type === 'stamp' ? 'Stamps to add' : 'Visits to add'}
+            {selectedProgram?.type === 'stamp' ? 'Sellos a agregar' : 'Visitas a agregar'}
           </label>
           <input
             type="number"
@@ -141,26 +141,26 @@ export default function AssignPointsForm({ customerId, enrollments, programLabel
       {(selectedProgram?.type === 'points' || selectedProgram?.type === 'cashback') && (
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">
-            Override {programLabel} (optional)
+            Ajuste manual de {programLabel} (opcional)
           </label>
           <input
             type="number"
             step="1"
             value={manualDelta}
             onChange={(e) => setManualDelta(e.target.value)}
-            placeholder="Leave blank to use auto-computed amount"
+            placeholder="Dejar en blanco para usar el monto calculado"
             className={inputCls}
           />
         </div>
       )}
 
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">Note (optional)</label>
+        <label className="block text-sm font-medium text-gray-700 mb-1">Nota (opcional)</label>
         <input
           type="text"
           value={note}
           onChange={(e) => setNote(e.target.value)}
-          placeholder="e.g. Purchase #1234"
+          placeholder="Ej. Compra #1234"
           className={inputCls}
         />
       </div>
@@ -170,7 +170,7 @@ export default function AssignPointsForm({ customerId, enrollments, programLabel
         disabled={isPending || !effectiveDelta}
         className="w-full rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-700 disabled:opacity-50"
       >
-        {isPending ? 'Recording…' : `Record ${effectiveDelta > 0 ? `+${effectiveDelta}` : effectiveDelta} ${programLabel}`}
+        {isPending ? 'Registrando…' : `Registrar ${effectiveDelta > 0 ? `+${effectiveDelta}` : effectiveDelta} ${programLabel}`}
       </button>
     </form>
   );

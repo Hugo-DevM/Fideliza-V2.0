@@ -35,7 +35,7 @@ export const GET = withTenantContext<PortalData>(
 
     if (!code) {
       return NextResponse.json<ApiResponse<null>>(
-        { data: null, error: 'code parameter is required' },
+        { data: null, error: 'El parámetro code es requerido.' },
         { status: 400 }
       );
     }
@@ -46,7 +46,7 @@ export const GET = withTenantContext<PortalData>(
     if (sig !== null || exp !== null) {
       if (!sig || !exp) {
         return NextResponse.json<ApiResponse<null>>(
-          { data: null, error: 'Both sig and exp are required for signed URLs' },
+          { data: null, error: 'Los parámetros sig y exp son requeridos para URLs firmadas.' },
           { status: 400 }
         );
       }
@@ -54,7 +54,7 @@ export const GET = withTenantContext<PortalData>(
       const expNum = parseInt(exp, 10);
       if (isNaN(expNum)) {
         return NextResponse.json<ApiResponse<null>>(
-          { data: null, error: 'Invalid exp value' },
+          { data: null, error: 'Valor de exp inválido.' },
           { status: 400 }
         );
       }
@@ -63,7 +63,7 @@ export const GET = withTenantContext<PortalData>(
       if (!secret) {
         // Server is not configured for signed URLs — reject to avoid bypass
         return NextResponse.json<ApiResponse<null>>(
-          { data: null, error: 'Signed URLs are not enabled on this server' },
+          { data: null, error: 'Las URLs firmadas no están habilitadas en este servidor.' },
           { status: 501 }
         );
       }
@@ -71,7 +71,7 @@ export const GET = withTenantContext<PortalData>(
       const valid = await verifyPortalSignature(code, sig, expNum, secret);
       if (!valid) {
         return NextResponse.json<ApiResponse<null>>(
-          { data: null, error: 'This link has expired or is invalid. Ask the business for a new one.' },
+          { data: null, error: 'Este enlace expiró o es inválido. Solicita uno nuevo al negocio.' },
           { status: 401 }
         );
       }

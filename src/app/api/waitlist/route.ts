@@ -86,7 +86,7 @@ export const POST = withPublicContext<{ message: string }>(
       // Unique constraint violation — already signed up
       if (error.code === '23505') {
         return NextResponse.json<ApiResponse<{ message: string }>>(
-          { data: { message: "You're already on the list! We'll be in touch soon." }, error: null },
+          { data: { message: '¡Ya estás en la lista! Pronto estaremos en contacto.' }, error: null },
           { status: 200 }
         );
       }
@@ -94,7 +94,7 @@ export const POST = withPublicContext<{ message: string }>(
     }
 
     return NextResponse.json<ApiResponse<{ message: string }>>(
-      { data: { message: "You're on the list! We'll notify you when Fideliza+ launches." }, error: null },
+      { data: { message: '¡Estás en la lista! Te notificaremos cuando Fideliza+ lance.' }, error: null },
       { status: 201 }
     );
   }

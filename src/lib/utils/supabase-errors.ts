@@ -49,6 +49,9 @@ export function translateAuthError(message: string): string {
   if (msg.includes('user not found'))
     return 'No existe una cuenta con ese correo.';
 
+  if (msg.includes('error sending confirmation email') || msg.includes('sending confirmation'))
+    return 'No se pudo enviar el correo de confirmación. Intenta de nuevo en unos minutos.';
+
   if (msg.includes('network') || msg.includes('fetch'))
     return 'Error de conexión. Verifica tu internet e inténtalo de nuevo.';
 

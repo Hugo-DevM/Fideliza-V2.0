@@ -24,7 +24,7 @@ export async function updateProgramStatusAction(programId: string, status: Progr
     revalidatePath('/dashboard/programs');
     return { success: true };
   } catch (err) {
-    return { error: err instanceof Error ? err.message : 'Failed' };
+    return { error: err instanceof Error ? err.message : 'Error al actualizar el programa.' };
   }
 }
 
@@ -40,7 +40,7 @@ export async function createRewardAction(programId: string, formData: FormData) 
   const expiry_days = expiry_days_str ? parseInt(expiry_days_str, 10) : null;
 
   if (!name || isNaN(cost_points) || cost_points <= 0) {
-    return { error: 'Name and valid cost are required' };
+    return { error: 'El nombre y un costo válido son obligatorios.' };
   }
 
   try {
@@ -48,7 +48,7 @@ export async function createRewardAction(programId: string, formData: FormData) 
     revalidatePath(`/dashboard/programs/${programId}`);
     return { success: true };
   } catch (err) {
-    return { error: err instanceof Error ? err.message : 'Failed to create reward' };
+    return { error: err instanceof Error ? err.message : 'No se pudo crear el premio.' };
   }
 }
 
@@ -59,7 +59,7 @@ export async function toggleRewardAction(programId: string, rewardId: string, is
     revalidatePath(`/dashboard/programs/${programId}`);
     return { success: true };
   } catch (err) {
-    return { error: err instanceof Error ? err.message : 'Failed' };
+    return { error: err instanceof Error ? err.message : 'Error al actualizar el premio.' };
   }
 }
 
@@ -88,6 +88,6 @@ export async function verifyVoucherAction(redemptionCode: string) {
       metadata: { redemption_code: normalizedCode, error: err instanceof Error ? err.message : String(err) },
     });
 
-    return { error: err instanceof Error ? err.message : 'Failed to verify voucher' };
+    return { error: err instanceof Error ? err.message : 'No se pudo verificar el voucher.' };
   }
 }

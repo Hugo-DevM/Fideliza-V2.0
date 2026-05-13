@@ -17,10 +17,10 @@ export async function updateSettingsAction(formData: FormData) {
   // Validate hex color format
   const hexRe = /^#[0-9A-Fa-f]{6}$/;
   if (primary_color && !hexRe.test(primary_color)) {
-    return { error: 'Primary color must be a valid hex code (e.g. #6366F1)' };
+    return { error: 'El color primario debe ser un código hex válido (ej. #6366F1).' };
   }
   if (secondary_color && !hexRe.test(secondary_color)) {
-    return { error: 'Secondary color must be a valid hex code' };
+    return { error: 'El color secundario debe ser un código hex válido.' };
   }
 
   try {
@@ -34,7 +34,7 @@ export async function updateSettingsAction(formData: FormData) {
     revalidatePath('/dashboard');
     return { success: true };
   } catch (err) {
-    return { error: err instanceof Error ? err.message : 'Failed to save settings' };
+    return { error: err instanceof Error ? err.message : 'No se pudo guardar la configuración.' };
   }
 }
 

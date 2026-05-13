@@ -16,7 +16,7 @@ export async function assignPointsAction(formData: FormData) {
 
   const points_delta = parseInt(deltaStr, 10);
   if (!customerId || !programId || isNaN(points_delta) || points_delta === 0) {
-    return { error: 'Invalid input' };
+    return { error: 'Datos inválidos.' };
   }
 
   const type = points_delta > 0 ? 'earn' : 'adjustment';
@@ -35,7 +35,7 @@ export async function assignPointsAction(formData: FormData) {
     revalidatePath(`/dashboard/customers/${customerId}`);
     return { success: true };
   } catch (err) {
-    return { error: err instanceof Error ? err.message : 'Transaction failed' };
+    return { error: err instanceof Error ? err.message : 'La transacción falló.' };
   }
 }
 

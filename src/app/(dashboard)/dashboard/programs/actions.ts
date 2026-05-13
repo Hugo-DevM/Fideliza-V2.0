@@ -12,7 +12,7 @@ export async function createProgramAction(formData: FormData) {
   const description = (formData.get('description') as string | null)?.trim() || null;
   const type        = formData.get('type') as ProgramType;
 
-  if (!name || !type) return { error: 'Name and type are required' };
+  if (!name || !type) return { error: 'El nombre y el tipo son obligatorios.' };
 
   // Build config from type-specific fields
   let config: Record<string, unknown> = {};
@@ -37,6 +37,6 @@ export async function createProgramAction(formData: FormData) {
     revalidatePath('/dashboard/programs');
     return { success: true, programId: program.id };
   } catch (err) {
-    return { error: err instanceof Error ? err.message : 'Failed to create program' };
+    return { error: err instanceof Error ? err.message : 'No se pudo crear el programa.' };
   }
 }
