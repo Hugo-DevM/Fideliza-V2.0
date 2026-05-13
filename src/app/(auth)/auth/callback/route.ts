@@ -39,16 +39,23 @@ export async function GET(request: Request) {
 
   // ── 1. PKCE flow (same-device: code verifier exists in cookies) ──
   if (code) {
-    const { error } = await supabase.auth.exchangeCodeForSession(code);
-    if (!error) return NextResponse.redirect(`${origin}${next}`);
+    const { data, error } = await supabase.auth.exchangeCodeForSession(code);
+    if (!error) {
+      // Detect password-recovery sessions by AMR claim so we always
+      // land on the update-password page regardless of the `next` param.
+      const amr = (data.session?.user as any)?.amr as { method: string }[] | undefined;
+      const isRecovery = amr?.some((m) => m.method === 'recovery') ?? false;
+      const destination = isRecovery ? '/auth/reset-password/update' : next;
+      return NextResponse.redirect(`${origin}${destination}`);
+    }
   }
 
   // ── 2. Token-hash flow (cross-device: no code verifier needed) ──
   if (tokenHash && type) {
     const { error } = await supabase.auth.verifyOtp({ token_hash: tokenHash, type });
     if (!error) {
-      const redirectTo = type === 'recovery' ? '/auth/reset-password/update' : next;
-      return NextResponse.redirect(`${origin}${redirectTo}`);
+      const destination = type === 'recovery' ? '/auth/reset-password/update' : next;
+      return NextResponse.redirect(`${origin}${destination}`);
     }
   }
 
