@@ -96,7 +96,7 @@ function LoyaltyCardMock({ t }: { t: Dictionary['hero']['card'] }) {
 export function Hero({ t }: HeroProps) {
   return (
     <section className="hero-bg min-h-screen flex items-center pt-16 pb-20 overflow-hidden">
-      <Container className="py-16 sm:py-24">
+      <Container className="py-8 sm:py-12">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-16 items-center">
 
           {/* Left: copy */}
