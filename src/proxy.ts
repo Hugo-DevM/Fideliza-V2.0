@@ -106,7 +106,9 @@ export async function proxy(request: NextRequest) {
   // Redirect authenticated users away from login/register
   const isAuthRoute = pathname.startsWith('/auth') &&
     !pathname.startsWith('/auth/callback') &&
-    !pathname.startsWith('/auth/register/confirm');
+    !pathname.startsWith('/auth/register/confirm') &&
+    !pathname.startsWith('/auth/confirmed') &&
+    !pathname.startsWith('/auth/verify');
   if (isAuthRoute && user) {
     return NextResponse.redirect(new URL('/dashboard', request.url));
   }

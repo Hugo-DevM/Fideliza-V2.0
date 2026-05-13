@@ -50,7 +50,7 @@ export async function signUpAndSendConfirmationAction(input: {
   // The callback calls verifyOtp({ token_hash, type: 'signup' }) and then redirects
   // to /auth/confirmed within our own app.
   const confirmUrl =
-    `${appUrl}/auth/callback?token_hash=${encodeURIComponent(hashedToken)}&type=signup&next=/auth/confirmed`;
+    `${appUrl}/auth/verify?token_hash=${encodeURIComponent(hashedToken)}&type=signup`;
 
   try {
     await sendConfirmationEmail(input.email, confirmUrl, input.fullName);

@@ -30,7 +30,9 @@ export async function getAuthenticatedTenant(): Promise<AuthenticatedContext> {
   if (!user) redirect('/auth/login');
 
   const tenantId = user.user_metadata?.tenant_id as string | undefined;
-  if (!tenantId) redirect('/auth/login');
+  // Redirect to register (not login) to avoid a loop: an authenticated user
+  // without a tenant_id would bounce login→dashboard→login infinitely.
+  if (!tenantId) redirect('/auth/register');
 
   const [tenant, settings] = await Promise.all([
     getTenantById(tenantId),

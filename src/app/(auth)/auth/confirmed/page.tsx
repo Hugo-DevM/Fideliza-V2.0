@@ -30,10 +30,10 @@ export default function ConfirmedPage() {
           </div>
 
           <Link
-            href="/auth/login"
+            href="/dashboard"
             className="flex w-full items-center justify-center gap-2 rounded-lg bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white transition-colors duration-150 hover:bg-indigo-500 active:scale-[0.98]"
           >
-            Ir al inicio de sesión
+            Ir a mi panel
             <svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
             </svg>
