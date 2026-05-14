@@ -16,7 +16,7 @@ export async function createCustomerAction(formData: FormData) {
 
   try {
     const customer = await createCustomer(tenantId, { name, phone, notes });
-    revalidateTag('customers');
+    revalidateTag('customers', 'max');
     revalidatePath('/dashboard/customers');
     return { success: true, customerId: customer.id };
   } catch (err) {
@@ -37,7 +37,7 @@ export async function updateCustomerAction(formData: FormData) {
 
   try {
     await updateCustomer(tenantId, customerId, { name, phone, notes });
-    revalidateTag('customers');
+    revalidateTag('customers', 'max');
     revalidatePath(`/dashboard/customers/${customerId}`);
     return { success: true };
   } catch (err) {

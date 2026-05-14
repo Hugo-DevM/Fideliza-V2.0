@@ -34,7 +34,7 @@ export async function createProgramAction(formData: FormData) {
 
   try {
     const program = await createProgram(tenantId, { name, description, type, config });
-    revalidateTag('programs');
+    revalidateTag('programs', 'max');
     revalidatePath('/dashboard/programs');
     return { success: true, programId: program.id };
   } catch (err) {
