@@ -30,11 +30,11 @@ export default function VerifyVoucherForm() {
         setError(result.error);
       } else if ('success' in result) {
         setInfo({
-          redemptionCode: result.redemptionCode,
-          customerName:   result.customerName,
-          rewardName:     result.rewardName,
-          rewardDesc:     result.rewardDesc,
-          usedAt:         result.usedAt,
+          redemptionCode: result.redemptionCode ?? code.toUpperCase(),
+          customerName:   result.customerName ?? null,
+          rewardName:     result.rewardName ?? null,
+          rewardDesc:     result.rewardDesc ?? null,
+          usedAt:         result.usedAt ?? new Date().toISOString(),
         });
         setCode('');
       }
