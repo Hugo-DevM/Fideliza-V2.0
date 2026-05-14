@@ -9,8 +9,8 @@ export const CreateTransactionSchema = z
     type: z.enum(['earn', 'redeem', 'expire', 'adjustment', 'refund']),
     points_delta: z
       .number()
-      .int('Points must be a whole number')
-      .refine((n) => n !== 0, { message: 'Points delta must be non-zero' }),
+      .int('Los puntos deben ser un número entero')
+      .refine((n) => n !== 0, { message: 'El delta de puntos no puede ser cero' }),
     note: z.string().max(500).nullable().optional(),
     staff_id: UUID.nullable().optional(),
   })
@@ -24,7 +24,7 @@ export const CreateTransactionSchema = z
     },
     {
       message:
-        'points_delta direction must match transaction type (earn=positive, redeem/expire=negative)',
+        'El delta de puntos debe coincidir con el tipo de transacción (ganancia=positivo, canje/expiración=negativo)',
       path: ['points_delta'],
     }
   );

@@ -9,12 +9,12 @@ export const PointsConfigSchema = z.object({
   points_per_dollar: z
     .number()
     .int()
-    .min(1, 'Must award at least 1 point per dollar')
-    .max(10_000, 'Cannot exceed 10,000 points per dollar'),
+    .min(1, 'Debe otorgar al menos 1 punto por dólar')
+    .max(10_000, 'No puede exceder 10,000 puntos por dólar'),
   min_redeem: z
     .number()
     .int()
-    .min(1, 'Minimum redeem must be at least 1')
+    .min(1, 'El mínimo de canje debe ser al menos 1')
     .max(1_000_000)
     .optional()
     .default(0),
@@ -24,28 +24,28 @@ export const StampConfigSchema = z.object({
   stamps_needed: z
     .number()
     .int()
-    .min(2, 'A stamp card must require at least 2 stamps')
-    .max(100, 'Cannot exceed 100 stamps per card'),
+    .min(2, 'Una tarjeta de sellos debe requerir al menos 2 sellos')
+    .max(100, 'No puede exceder 100 sellos por tarjeta'),
 });
 
 export const VisitConfigSchema = z.object({
   visits_needed: z
     .number()
     .int()
-    .min(2, 'A visit program must require at least 2 visits')
-    .max(500, 'Cannot exceed 500 visits'),
+    .min(2, 'Un programa de visitas debe requerir al menos 2 visitas')
+    .max(500, 'No puede exceder 500 visitas'),
 });
 
 export const CashbackConfigSchema = z.object({
   cashback_percent: z
     .number()
-    .min(0.1, 'Cashback must be at least 0.1%')
-    .max(50, 'Cashback cannot exceed 50%'),
+    .min(0.1, 'El cashback debe ser al menos 0.1%')
+    .max(50, 'El cashback no puede exceder el 50%'),
   min_purchase_cents: z
     .number()
     .int()
     .min(0)
-    .max(100_000_00, 'Minimum purchase cannot exceed $100,000')
+    .max(100_000_00, 'La compra mínima no puede exceder $100,000')
     .optional()
     .default(0),
 });
@@ -84,7 +84,7 @@ export function validateProgramConfig(
 const httpsUrl = z
   .string()
   .url('Must be a valid URL')
-  .refine((url) => url.startsWith('https://'), 'URL must use HTTPS')
+  .refine((url) => url.startsWith('https://'), 'La URL debe usar HTTPS')
   .nullable()
   .optional();
 
@@ -101,14 +101,14 @@ export const CreateRewardProgramSchema = z.object({
 })
 .refine(
   (data) => !data.starts_at || !data.ends_at || data.starts_at < data.ends_at,
-  { message: 'ends_at must be after starts_at', path: ['ends_at'] }
+  { message: 'La fecha de fin debe ser posterior a la de inicio', path: ['ends_at'] }
 )
 .superRefine((data, ctx) => {
   const err = validateProgramConfig(data.type, data.config);
   if (err !== null) {
     ctx.addIssue({
       code: z.ZodIssueCode.custom,
-      message: err ?? 'Invalid config',
+      message: err ?? 'Configuración inválida',
       path: ['config'],
     });
   }
@@ -119,7 +119,7 @@ export const CreateRewardSchema = z.object({
   name:         z.string().min(2).max(150).trim(),
   description:  z.string().max(500).nullable().optional(),
   image_url:    httpsUrl,
-  cost_points:  z.number().int().positive('Points cost must be a positive integer'),
+  cost_points:  z.number().int().positive('El costo en puntos debe ser un entero positivo'),
   stock:        z.number().int().nonnegative().nullable().optional(),
   expiry_days:  z.number().int().positive().nullable().optional(),
 });
@@ -144,7 +144,7 @@ export const UpdateRewardProgramSchema = z.object({
 })
 .refine(
   (data) => !data.starts_at || !data.ends_at || data.starts_at < data.ends_at,
-  { message: 'ends_at must be after starts_at', path: ['ends_at'] }
+  { message: 'La fecha de fin debe ser posterior a la de inicio', path: ['ends_at'] }
 )
 .superRefine((data, ctx) => {
   if (!data.config || !data.type) return;
@@ -152,7 +152,7 @@ export const UpdateRewardProgramSchema = z.object({
   if (err !== null) {
     ctx.addIssue({
       code: z.ZodIssueCode.custom,
-      message: err ?? 'Invalid config',
+      message: err ?? 'Configuración inválida',
       path: ['config'],
     });
   }

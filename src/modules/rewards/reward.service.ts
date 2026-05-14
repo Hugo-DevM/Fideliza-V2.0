@@ -57,7 +57,7 @@ export async function listRewards(
   const { data, error, count } = await builder;
 
   if (error) {
-    throw new Error(`Failed to list rewards: ${error.message}`);
+    throw new Error(`Error al listar recompensas: ${error.message}`);
   }
 
   return { rewards: (data ?? []) as Reward[], total: count ?? 0 };
@@ -90,7 +90,7 @@ export async function createProgram(
     .single();
 
   if (error || !data) {
-    throw new Error(`Failed to create program: ${error?.message}`);
+    throw new Error(`Error al crear el programa: ${error?.message}`);
   }
 
   return data as unknown as RewardProgram;
@@ -123,7 +123,7 @@ export async function updateProgram(
     .single();
 
   if (error || !data) {
-    throw new Error(`Failed to update program: ${error?.message}`);
+    throw new Error(`Error al actualizar el programa: ${error?.message}`);
   }
 
   return data as unknown as RewardProgram;
@@ -160,9 +160,9 @@ export async function createReward(
   if (error || !data) {
     // Detect tenant mismatch from the DB CHECK constraint
     if (error?.code === '23514') {
-      throw new BadRequestError('Reward program does not belong to your account');
+      throw new BadRequestError('El programa de recompensas no pertenece a tu cuenta');
     }
-    throw new Error(`Failed to create reward: ${error?.message}`);
+    throw new Error(`Error al crear la recompensa: ${error?.message}`);
   }
 
   return data as Reward;
@@ -195,7 +195,7 @@ export async function updateReward(
     .single();
 
   if (error || !data) {
-    throw new Error(`Failed to update reward: ${error?.message}`);
+    throw new Error(`Error al actualizar la recompensa: ${error?.message}`);
   }
 
   return data as Reward;
@@ -223,13 +223,13 @@ export async function enrollCustomer(
       .eq('is_active', true)
       .single()
       .then(({ data, error }) => {
-        if (error || !data) throw new BadRequestError('Customer not found in this tenant');
+        if (error || !data) throw new BadRequestError('Cliente no encontrado en este negocio');
         return data;
       }),
   ]);
 
   if (programRow.status !== 'active') {
-    throw new BadRequestError(`Cannot enroll in a ${programRow.status} program`);
+    throw new BadRequestError(`No se puede inscribir en un programa con estado: ${programRow.status}`);
   }
 
   // Upsert — safe to call multiple times
@@ -247,7 +247,7 @@ export async function enrollCustomer(
     .single();
 
   if (error || !data) {
-    throw new Error(`Failed to enroll customer: ${error?.message}`);
+    throw new Error(`Error al inscribir al cliente: ${error?.message}`);
   }
 
   return data as unknown as import('@/lib/types').CustomerProgramEnrollment;
@@ -290,7 +290,7 @@ export async function listEnrollments(
   const { data, error, count } = await builder;
 
   if (error) {
-    throw new Error(`Failed to list enrollments: ${error.message}`);
+    throw new Error(`Error al listar inscripciones: ${error.message}`);
   }
 
   const enriched = ((data ?? []) as unknown as Record<string, unknown>[]).map((e) => {

@@ -42,10 +42,10 @@ export async function processTransaction(
     if (error) {
       logger.error('rpc_earn_points failed', { error: error.message, tenantId });
       // Map DB error codes to user-facing messages
-      if (error.message.includes('P0002')) throw new BadRequestError('Points delta must be positive for earn transactions');
-      if (error.message.includes('P0003')) throw new NotFoundError('Customer');
-      if (error.message.includes('P0004')) throw new BadRequestError('Program not found or not active');
-      throw new Error(`Transaction failed: ${error.message}`);
+      if (error.message.includes('P0002')) throw new BadRequestError('El monto de puntos debe ser positivo para transacciones de ganancia');
+      if (error.message.includes('P0003')) throw new NotFoundError('Cliente');
+      if (error.message.includes('P0004')) throw new BadRequestError('Programa no encontrado o inactivo');
+      throw new Error(`Transacción fallida: ${error.message}`);
     }
 
     return data as unknown as Transaction;
@@ -62,14 +62,14 @@ export async function processTransaction(
     .single();
 
   if (enrollmentErr || !enrollment) {
-    throw new NotFoundError('Enrollment — customer must be enrolled in this program first');
+    throw new NotFoundError('Inscripción — el cliente debe estar inscrito en este programa primero');
   }
 
   const newBalance = enrollment.current_points + input.points_delta;
 
   if (newBalance < 0) {
     throw new BadRequestError(
-      `Adjustment would result in negative balance. Current: ${enrollment.current_points}, Delta: ${input.points_delta}`
+      `El ajuste resultaría en un saldo negativo. Actual: ${enrollment.current_points}, Delta: ${input.points_delta}`
     );
   }
 
@@ -83,7 +83,7 @@ export async function processTransaction(
     .eq('id', enrollment.id);
 
   if (updateErr) {
-    throw new Error(`Failed to update enrollment: ${updateErr.message}`);
+    throw new Error(`Error al actualizar la inscripción: ${updateErr.message}`);
   }
 
   // Insert transaction
@@ -104,7 +104,7 @@ export async function processTransaction(
     .single();
 
   if (txErr || !tx) {
-    throw new Error(`Failed to insert transaction: ${txErr?.message}`);
+    throw new Error(`Error al registrar la transacción: ${txErr?.message}`);
   }
 
   return tx as Transaction;
@@ -129,15 +129,15 @@ export async function redeemReward(
 
   if (error) {
     logger.error('rpc_redeem_reward failed', { error: error.message, tenantId });
-    if (error.message.includes('P0010')) throw new NotFoundError('Enrollment');
-    if (error.message.includes('P0011')) throw new NotFoundError('Reward');
-    if (error.message.includes('P0012')) throw new BadRequestError('Reward is no longer available');
-    if (error.message.includes('P0013')) throw new BadRequestError('Reward is out of stock');
+    if (error.message.includes('P0010')) throw new NotFoundError('Inscripción');
+    if (error.message.includes('P0011')) throw new NotFoundError('Recompensa');
+    if (error.message.includes('P0012')) throw new BadRequestError('La recompensa ya no está disponible');
+    if (error.message.includes('P0013')) throw new BadRequestError('La recompensa está agotada');
     if (error.message.includes('P0014')) {
       // Extract the balance info from the error message
       throw new BadRequestError(error.message.replace(/^.*EXCEPTION: /, ''));
     }
-    throw new Error(`Redemption failed: ${error.message}`);
+    throw new Error(`Error al canjear: ${error.message}`);
   }
 
   return data as unknown as CustomerRewardRedemption;
@@ -158,10 +158,10 @@ export async function markRedemptionUsed(
   });
 
   if (error) {
-    if (error.message.includes('P0020')) throw new NotFoundError('Redemption code');
+    if (error.message.includes('P0020')) throw new NotFoundError('Código de canje');
     if (error.message.includes('P0021')) throw new BadRequestError(error.message.replace(/^.*EXCEPTION: /, ''));
-    if (error.message.includes('P0022')) throw new BadRequestError('Redemption voucher has expired');
-    throw new Error(`Failed to mark redemption: ${error.message}`);
+    if (error.message.includes('P0022')) throw new BadRequestError('El voucher de canje ha expirado');
+    throw new Error(`Error al marcar el canje: ${error.message}`);
   }
 
   return data as unknown as CustomerRewardRedemption;
@@ -203,7 +203,7 @@ export async function getCustomerTransactionHistory(
   const { data, error, count } = await builder;
 
   if (error) {
-    throw new Error(`Failed to list transactions: ${error.message}`);
+    throw new Error(`Error al listar transacciones: ${error.message}`);
   }
 
   return { transactions: (data ?? []) as Transaction[], total: count ?? 0 };

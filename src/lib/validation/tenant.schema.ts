@@ -3,18 +3,18 @@ import { z } from 'zod';
 export const CreateTenantSchema = z.object({
   name: z
     .string()
-    .min(2, 'Business name must be at least 2 characters')
-    .max(100, 'Business name must be under 100 characters')
+    .min(2, 'El nombre del negocio debe tener al menos 2 caracteres')
+    .max(100, 'El nombre del negocio debe tener menos de 100 caracteres')
     .trim(),
 
   subdomain: z
     .string()
-    .min(3, 'Subdomain must be at least 3 characters')
-    .max(63, 'Subdomain must be under 63 characters')
+    .min(3, 'El subdominio debe tener al menos 3 caracteres')
+    .max(63, 'El subdominio debe tener menos de 63 caracteres')
     .toLowerCase()
     .regex(
       /^[a-z0-9][a-z0-9\-]{1,61}[a-z0-9]$/,
-      'Subdomain must be lowercase alphanumeric with hyphens (e.g. "my-coffee-shop")'
+      'Solo letras minúsculas, números y guiones (ej. "mi-cafe")'
     ),
 
   email: z
@@ -34,7 +34,7 @@ export const UpdateTenantSchema = z.object({
   logo_url: z
     .string()
     .url('Must be a valid URL')
-    .refine((u) => u.startsWith('https://'), 'URL must use HTTPS')
+    .refine((u) => u.startsWith('https://'), 'La URL debe usar HTTPS')
     .nullable()
     .optional(),
   is_active: z.boolean().optional(),
@@ -43,11 +43,11 @@ export const UpdateTenantSchema = z.object({
 export const UpdateTenantSettingsSchema = z.object({
   primary_color: z
     .string()
-    .regex(/^#[0-9A-Fa-f]{6}$/, 'Must be a valid hex color (e.g. #6366F1)')
+    .regex(/^#[0-9A-Fa-f]{6}$/, 'Debe ser un color hex válido (ej. #6366F1)')
     .optional(),
   secondary_color: z
     .string()
-    .regex(/^#[0-9A-Fa-f]{6}$/, 'Must be a valid hex color')
+    .regex(/^#[0-9A-Fa-f]{6}$/, 'Debe ser un color hex válido')
     .optional(),
   welcome_message: z.string().max(500).nullable().optional(),
   program_label: z.string().min(1).max(50).optional(),
@@ -55,7 +55,7 @@ export const UpdateTenantSettingsSchema = z.object({
   terms_url: z
     .string()
     .url()
-    .refine((u) => u.startsWith('https://'), 'URL must use HTTPS')
+    .refine((u) => u.startsWith('https://'), 'La URL debe usar HTTPS')
     .nullable()
     .optional(),
 });

@@ -37,7 +37,7 @@ export async function createCustomer(
       .single();
 
     if (existing) {
-      throw new BadRequestError('A customer with this phone number already exists');
+      throw new BadRequestError('Ya existe un cliente con este número de teléfono');
     }
   }
 
@@ -58,7 +58,7 @@ export async function createCustomer(
   }
 
   if (!accessCode) {
-    throw new Error('Failed to generate unique access code after 5 attempts');
+    throw new Error('No se pudo generar un código de acceso único tras 5 intentos');
   }
 
   const { data, error } = await db
@@ -75,7 +75,7 @@ export async function createCustomer(
     .single();
 
   if (error || !data) {
-    throw new Error(`Failed to create customer: ${error?.message}`);
+    throw new Error(`Error al crear el cliente: ${error?.message}`);
   }
 
   return data as Customer;
@@ -131,7 +131,7 @@ export async function getCustomerPoints(
     .order('last_activity_at', { ascending: false });
 
   if (error) {
-    throw new Error(`Failed to fetch enrollments: ${error.message}`);
+    throw new Error(`Error al obtener inscripciones: ${error.message}`);
   }
 
   const enrichedEnrollments = (enrollments ?? []).map((e: Record<string, unknown>) => ({
@@ -175,7 +175,7 @@ export async function updateCustomer(
     .select('*')
     .single();
 
-  if (error || !data) throw new Error(`Failed to update customer: ${error?.message}`);
+  if (error || !data) throw new Error(`Error al actualizar el cliente: ${error?.message}`);
   return data as Customer;
 }
 

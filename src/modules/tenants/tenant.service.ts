@@ -54,7 +54,7 @@ export async function onboardTenant(
     .single();
 
   if (existing) {
-    throw new BadRequestError(`Subdomain "${input.subdomain}" is already taken`);
+    throw new BadRequestError(`El subdominio "${input.subdomain}" ya está en uso`);
   }
 
   // Check email uniqueness
@@ -65,7 +65,7 @@ export async function onboardTenant(
     .single();
 
   if (existingEmail) {
-    throw new BadRequestError('An account with this email already exists');
+    throw new BadRequestError('Ya existe una cuenta con este correo electrónico');
   }
 
   // Create tenant — use the service-role client directly (no RLS, no session required)
@@ -83,7 +83,7 @@ export async function onboardTenant(
     .single();
 
   if (tenantError || !tenantData) {
-    throw new Error(`Failed to create tenant: ${tenantError?.message}`);
+    throw new Error(`Error al crear el negocio: ${tenantError?.message}`);
   }
 
   const tenant = tenantData as unknown as Tenant;
@@ -96,7 +96,7 @@ export async function onboardTenant(
     .single();
 
   if (settingsError || !settings) {
-    throw new Error(`Failed to create tenant settings: ${settingsError?.message}`);
+    throw new Error(`Error al crear la configuración del negocio: ${settingsError?.message}`);
   }
 
   return { tenant, settings: settings as TenantSettings };

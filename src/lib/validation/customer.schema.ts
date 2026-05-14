@@ -3,8 +3,8 @@ import { z } from 'zod';
 export const CreateCustomerSchema = z.object({
   name: z
     .string()
-    .min(1, 'Name is required')
-    .max(150, 'Name must be under 150 characters')
+    .min(1, 'El nombre es obligatorio')
+    .max(150, 'El nombre debe tener menos de 150 caracteres')
     .trim(),
 
   phone: z
@@ -12,7 +12,7 @@ export const CreateCustomerSchema = z.object({
     .trim()
     .regex(
       /^\+?[1-9]\d{6,14}$/,
-      'Must be a valid international phone number (e.g. +15551234567)'
+      'Debe ser un número de teléfono válido'
     )
     .nullable()
     .optional(),
@@ -35,8 +35,8 @@ export const UpdateCustomerSchema = z.object({
 export const LookupCustomerSchema = z.object({
   code: z
     .string()
-    .min(6, 'Access code must be at least 6 characters')
-    .max(20, 'Access code too long')
+    .min(6, 'El código de acceso debe tener al menos 6 caracteres')
+    .max(20, 'El código de acceso es demasiado largo')
     .toUpperCase()
     .trim(),
 });

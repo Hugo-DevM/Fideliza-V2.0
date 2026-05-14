@@ -26,7 +26,7 @@ export async function listTransactionsByCustomer(
     .range(from, to);
 
   if (error) {
-    throw new Error(`Failed to list transactions: ${error.message}`);
+    throw new Error(`Error al listar transacciones: ${error.message}`);
   }
 
   return { transactions: (data ?? []) as Transaction[], total: count ?? 0 };
@@ -44,7 +44,7 @@ export async function createTransaction(
     .single();
 
   if (error || !data) {
-    throw new Error(`Failed to create transaction: ${error?.message}`);
+    throw new Error(`Error al crear la transacción: ${error?.message}`);
   }
 
   return data as Transaction;

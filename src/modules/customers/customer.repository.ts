@@ -23,7 +23,7 @@ export async function getCustomerByAccessCode(
     .single();
 
   if (error || !data) {
-    throw new NotFoundError('Customer');
+    throw new NotFoundError('Cliente');
   }
 
   return data as Customer;
@@ -40,7 +40,7 @@ export async function getCustomerById(tenantId: UUID, customerId: UUID): Promise
     .single();
 
   if (error || !data) {
-    throw new NotFoundError('Customer');
+    throw new NotFoundError('Cliente');
   }
 
   return data as Customer;
@@ -63,7 +63,7 @@ export async function listCustomers(
     .range(from, to);
 
   if (error) {
-    throw new Error(`Failed to list customers: ${error.message}`);
+    throw new Error(`Error al listar clientes: ${error.message}`);
   }
 
   return { customers: (data ?? []) as Customer[], total: count ?? 0 };

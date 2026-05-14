@@ -21,7 +21,7 @@ export const POST = withTenantContext<Transaction>(async (request, _ctx, tenant)
 
   if (parsed.data.type === 'redeem') {
     return NextResponse.json<ApiResponse<null>>(
-      { data: null, error: 'Use POST /api/rewards/redeem for reward redemptions' },
+      { data: null, error: 'Usa POST /api/rewards/redeem para canjear recompensas' },
       { status: 400 }
     );
   }
@@ -39,7 +39,7 @@ export const GET = withTenantContext<Transaction[]>(async (request, _ctx, tenant
   const page  = Math.max(1, parseInt(url.searchParams.get('page')  ?? '1',  10));
   const limit = Math.min(100, Math.max(1, parseInt(url.searchParams.get('limit') ?? '50', 10)));
 
-  if (!customerId) throw new BadRequestError('customer_id query parameter is required');
+  if (!customerId) throw new BadRequestError('El parámetro customer_id es obligatorio');
 
   const { transactions, total } = await getCustomerTransactionHistory(
     tenant.tenantId, customerId, programId, page, limit

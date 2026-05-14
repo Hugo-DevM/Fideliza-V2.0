@@ -35,7 +35,7 @@ export async function getTenantById(id: UUID): Promise<Tenant> {
     .single();
 
   if (error || !data) {
-    throw new NotFoundError('Tenant');
+    throw new NotFoundError('Negocio');
   }
 
   return data as Tenant;
@@ -51,7 +51,7 @@ export async function getTenantSettings(tenantId: UUID): Promise<TenantSettings>
     .single();
 
   if (error || !data) {
-    throw new NotFoundError('TenantSettings');
+    throw new NotFoundError('Configuración del negocio');
   }
 
   return data as TenantSettings;
@@ -69,7 +69,7 @@ export async function createTenant(
     .single();
 
   if (error || !data) {
-    throw new Error(`Failed to create tenant: ${error?.message}`);
+    throw new Error(`Error al crear el negocio: ${error?.message}`);
   }
 
   return data as Tenant;
@@ -97,7 +97,7 @@ export async function updateTenantSettings(
     .single();
 
   if (error || !data) {
-    throw new Error(`Failed to update tenant settings: ${error?.message}`);
+    throw new Error(`Error al actualizar la configuración: ${error?.message}`);
   }
 
   return data as TenantSettings;
@@ -117,7 +117,7 @@ export async function updateTenant(
     .single();
 
   if (error || !data) {
-    throw new Error(`Failed to update tenant: ${error?.message}`);
+    throw new Error(`Error al actualizar el negocio: ${error?.message}`);
   }
 
   return data as Tenant;
@@ -154,6 +154,6 @@ export async function softDeleteTenant(
     .eq('id', id);
 
   if (error) {
-    throw new Error(`Failed to delete tenant: ${error.message}`);
+    throw new Error(`Error al eliminar el negocio: ${error.message}`);
   }
 }

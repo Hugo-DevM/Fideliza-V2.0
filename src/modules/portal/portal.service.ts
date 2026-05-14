@@ -137,7 +137,7 @@ export async function getPortalData(
     .single();
 
   if (custErr || !customer) {
-    throw new NotFoundError('Customer not found. Check your access code and try again.');
+    throw new NotFoundError('Cliente no encontrado. Verifica tu código de acceso e intenta de nuevo.');
   }
 
   // ── 2. Parallel data fetch ────────────────────────────────────────
@@ -181,7 +181,7 @@ export async function getPortalData(
   ]);
 
   // ── 3. Parse tenant branding ──────────────────────────────────────
-  if (!tenantRes.data) throw new Error('Tenant data unavailable');
+  if (!tenantRes.data) throw new Error('Datos del negocio no disponibles');
 
   const raw = tenantRes.data as unknown as {
     name: string;

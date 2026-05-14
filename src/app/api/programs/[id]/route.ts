@@ -54,7 +54,7 @@ export const PATCH = withTenantContext<RewardProgram>(
     if (parsed.data.status) {
       const current = await getProgramById(tenant.tenantId, id);
       if (current.status === 'archived' && parsed.data.status !== 'archived') {
-        throw new BadRequestError('Archived programs cannot be reactivated');
+        throw new BadRequestError('Los programas archivados no pueden reactivarse');
       }
     }
 

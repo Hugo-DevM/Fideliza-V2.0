@@ -45,7 +45,7 @@ export function computeEarnDelta(
   program: RewardProgram
 ): EarnDelta {
   if (amountCents < 0) {
-    throw new Error('amountCents must be non-negative');
+    throw new Error('El monto no puede ser negativo');
   }
 
   const dollars = amountCents / 100;
@@ -138,21 +138,21 @@ export function validateEarnEligibility(
   amountCents: number
 ): string | null {
   if (program.status !== 'active') {
-    return `Program "${program.name}" is ${program.status} — cannot earn`;
+    return `El programa "${program.name}" está ${program.status} — no se pueden acumular puntos`;
   }
 
   const now = new Date();
 
   if (program.starts_at && new Date(program.starts_at) > now) {
-    return `Program "${program.name}" starts on ${new Date(program.starts_at).toLocaleDateString()}`;
+    return `El programa "${program.name}" inicia el ${new Date(program.starts_at).toLocaleDateString('es')}`;
   }
 
   if (program.ends_at && new Date(program.ends_at) < now) {
-    return `Program "${program.name}" ended on ${new Date(program.ends_at).toLocaleDateString()}`;
+    return `El programa "${program.name}" finalizó el ${new Date(program.ends_at).toLocaleDateString('es')}`;
   }
 
   if (amountCents < 0) {
-    return 'Purchase amount cannot be negative';
+    return 'El monto de compra no puede ser negativo';
   }
 
   return null;
@@ -168,11 +168,11 @@ export function validateRedeemEligibility(
   rewardStock: number | null
 ): string | null {
   if (currentPoints < rewardCostPoints) {
-    return `Insufficient balance. Need ${rewardCostPoints} points, have ${currentPoints}`;
+    return `Saldo insuficiente. Se necesitan ${rewardCostPoints} puntos, tienes ${currentPoints}`;
   }
 
   if (rewardStock !== null && rewardStock <= 0) {
-    return 'Reward is out of stock';
+    return 'La recompensa está agotada';
   }
 
   return null;

@@ -20,7 +20,7 @@ export async function listActivePrograms(tenantId: UUID): Promise<RewardProgram[
     .order('created_at', { ascending: true });
 
   if (error) {
-    throw new Error(`Failed to list programs: ${error.message}`);
+    throw new Error(`Error al listar programas: ${error.message}`);
   }
 
   return (data ?? []) as unknown as RewardProgram[];
@@ -37,7 +37,7 @@ export async function getProgramById(tenantId: UUID, programId: UUID): Promise<R
     .single();
 
   if (error || !data) {
-    throw new NotFoundError('RewardProgram');
+    throw new NotFoundError('Programa de recompensas');
   }
 
   return data as unknown as RewardProgram;
@@ -57,7 +57,7 @@ export async function listRewardsByProgram(tenantId: UUID, programId: UUID): Pro
     .order('cost_points', { ascending: true });
 
   if (error) {
-    throw new Error(`Failed to list rewards: ${error.message}`);
+    throw new Error(`Error al listar recompensas: ${error.message}`);
   }
 
   return (data ?? []) as Reward[];
@@ -74,7 +74,7 @@ export async function getRewardById(tenantId: UUID, rewardId: UUID): Promise<Rew
     .single();
 
   if (error || !data) {
-    throw new NotFoundError('Reward');
+    throw new NotFoundError('Recompensa');
   }
 
   return data as Reward;
