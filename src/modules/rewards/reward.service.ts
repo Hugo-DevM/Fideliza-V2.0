@@ -80,7 +80,7 @@ export async function createProgram(
       name:            input.name,
       description:     input.description ?? null,
       type:            input.type,
-      status:          'draft',
+      status:          'active',
       config:          input.config as import('@/lib/supabase/database.types').Json,
       max_enrollments: input.max_enrollments ?? null,
       starts_at:       input.starts_at ?? null,

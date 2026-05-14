@@ -1,17 +1,21 @@
 /**
  * GET /api/transactions/export — Export all transactions as CSV (Pro plan only).
+ * Uses the dashboard Supabase session — no subdomain header required.
  */
 import { NextResponse } from 'next/server';
-import { withTenantContext } from '@/lib/middleware/api-context';
-import { enforceExportCSV } from '@/lib/middleware/plan-limits';
+import { getAuthenticatedTenant } from '@/lib/auth/get-tenant';
 import { createServiceRoleClient } from '@/lib/supabase/server';
 
-export const GET = withTenantContext(async (request, _ctx, tenant) => {
-  await enforceExportCSV(tenant.tenantId);
+export async function GET(request: Request) {
+  const { tenantId, planLimits } = await getAuthenticatedTenant();
+
+  if (!planLimits.exportCSV) {
+    return NextResponse.json({ error: 'El plan Pro es requerido para exportar.' }, { status: 403 });
+  }
 
   const db = createServiceRoleClient();
   const url = new URL(request.url);
-  const programId = url.searchParams.get('program_id') ?? undefined;
+  const programId  = url.searchParams.get('program_id')  ?? undefined;
   const customerId = url.searchParams.get('customer_id') ?? undefined;
 
   let builder = db
@@ -26,7 +30,7 @@ export const GET = withTenantContext(async (request, _ctx, tenant) => {
       customers(name, access_code),
       reward_programs(name)
     `)
-    .eq('tenant_id', tenant.tenantId)
+    .eq('tenant_id', tenantId)
     .order('created_at', { ascending: false });
 
   if (programId)  builder = builder.eq('program_id', programId);
@@ -35,10 +39,7 @@ export const GET = withTenantContext(async (request, _ctx, tenant) => {
   const { data, error } = await builder;
 
   if (error) {
-    return NextResponse.json(
-      { data: null, error: `Failed to fetch transactions: ${error.message}` },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: `Error al obtener transacciones: ${error.message}` }, { status: 500 });
   }
 
   const rows = (data ?? []) as unknown as Array<{
@@ -52,6 +53,10 @@ export const GET = withTenantContext(async (request, _ctx, tenant) => {
     reward_programs: { name: string } | null;
   }>;
 
+  const TYPE_LABELS: Record<string, string> = {
+    earn: 'Ganar', redeem: 'Canjear', adjustment: 'Ajuste', expire: 'Expirar', refund: 'Reembolso',
+  };
+
   const header = ['id', 'fecha', 'cliente', 'codigo_acceso', 'programa', 'tipo', 'delta', 'saldo_tras', 'nota'];
   const csvLines = [
     header.join(','),
@@ -62,7 +67,7 @@ export const GET = withTenantContext(async (request, _ctx, tenant) => {
         csvField(r.customers?.name ?? ''),
         csvField(r.customers?.access_code ?? ''),
         csvField(r.reward_programs?.name ?? ''),
-        r.type,
+        TYPE_LABELS[r.type] ?? r.type,
         r.points_delta,
         r.balance_after,
         csvField(r.note ?? ''),
@@ -70,7 +75,7 @@ export const GET = withTenantContext(async (request, _ctx, tenant) => {
     ),
   ];
 
-  const csv = csvLines.join('\n');
+  const csv = '\uFEFF' + csvLines.join('\n'); // BOM for Excel UTF-8 compatibility
   const filename = `transacciones_${new Date().toISOString().slice(0, 10)}.csv`;
 
   return new NextResponse(csv, {
@@ -80,7 +85,7 @@ export const GET = withTenantContext(async (request, _ctx, tenant) => {
       'Content-Disposition': `attachment; filename="${filename}"`,
     },
   });
-}, { limiter: 'publicRead', endpoint: 'GET:/api/transactions/export' });
+}
 
 function csvField(value: string): string {
   if (value.includes(',') || value.includes('"') || value.includes('\n')) {

@@ -12,11 +12,12 @@ interface SidebarProps {
 }
 
 const NAV_ITEMS = [
-  { href: '/dashboard',           label: 'Resumen',          icon: HomeIcon },
-  { href: '/dashboard/quick',     label: 'Registro rápido',  icon: BoltIcon },
-  { href: '/dashboard/customers', label: 'Clientes',         icon: UsersIcon },
-  { href: '/dashboard/programs',  label: 'Programas',        icon: GiftIcon },
-  { href: '/dashboard/settings',  label: 'Configuración',    icon: SettingsIcon },
+  { href: '/dashboard',            label: 'Resumen',          icon: HomeIcon },
+  { href: '/dashboard/quick',      label: 'Registro rápido',  icon: BoltIcon },
+  { href: '/dashboard/customers',  label: 'Clientes',         icon: UsersIcon },
+  { href: '/dashboard/programs',   label: 'Programas',        icon: GiftIcon },
+  { href: '/dashboard/analytics',  label: 'Analíticas',       icon: ChartIcon },
+  { href: '/dashboard/settings',   label: 'Configuración',    icon: SettingsIcon },
 ];
 
 export default function Sidebar({ tenantName, isOpen = false, onClose }: SidebarProps) {
@@ -132,6 +133,14 @@ function GiftIcon({ className }: { className?: string }) {
   return (
     <svg className={className} fill="none" stroke="currentColor" strokeWidth={1.8} viewBox="0 0 24 24">
       <path strokeLinecap="round" strokeLinejoin="round" d="M21 11.25v8.25a1.5 1.5 0 0 1-1.5 1.5H5.25a1.5 1.5 0 0 1-1.5-1.5v-8.25M12 4.875A2.625 2.625 0 1 0 9.375 7.5H12m0-2.625V7.5m0-2.625A2.625 2.625 0 1 1 14.625 7.5H12m0 0V21m-8.625-9.75h18c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125h-18c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125Z" />
+    </svg>
+  );
+}
+
+function ChartIcon({ className }: { className?: string }) {
+  return (
+    <svg className={className} fill="none" stroke="currentColor" strokeWidth={1.8} viewBox="0 0 24 24">
+      <path strokeLinecap="round" strokeLinejoin="round" d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 0 1 3 19.875v-6.75ZM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 0 1-1.125-1.125V8.625ZM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 0 1-1.125-1.125V4.125Z" />
     </svg>
   );
 }

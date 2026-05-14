@@ -2,36 +2,38 @@
 
 import { useState, useTransition, useRef } from 'react';
 import { useRouter } from 'next/navigation';
-import { createCustomerAction } from './actions';
+import { updateCustomerAction } from '../actions';
 
-// Permite letras (incluye acentos, ñ, ü) y espacios; bloquea cualquier símbolo
-const NAME_ALLOWED = /^[a-zA-ZáéíóúÁÉÍÓÚàèìòùÀÈÌÒÙäëïöüÄËÏÖÜñÑçÇ ]*$/;
-// Permite dígitos, +, -, (, ), espacios
+const NAME_ALLOWED  = /^[a-zA-ZáéíóúÁÉÍÓÚàèìòùÀÈÌÒÙäëïöüÄËÏÖÜñÑçÇ ]*$/;
 const PHONE_ALLOWED = /^[0-9+\-() ]*$/;
 
 function capitalizeWords(value: string) {
   return value.replace(/(?:^|\s)\S/g, (c) => c.toUpperCase());
 }
 
-export default function NewCustomerModal() {
-  const [open, setOpen]       = useState(false);
-  const [error, setError]     = useState('');
+interface Props {
+  customerId: string;
+  initialName: string;
+  initialPhone: string | null;
+  initialNotes: string | null;
+}
+
+export default function EditCustomerModal({ customerId, initialName, initialPhone, initialNotes }: Props) {
+  const [open, setOpen]   = useState(false);
+  const [error, setError] = useState('');
   const [isPending, startTransition] = useTransition();
-  const [name, setName]   = useState('');
-  const [phone, setPhone] = useState('');
+  const [name,  setName]  = useState(initialName);
+  const [phone, setPhone] = useState(initialPhone ?? '');
+  const [notes, setNotes] = useState(initialNotes ?? '');
   const formRef = useRef<HTMLFormElement>(null);
   const router  = useRouter();
 
-  function handleNameChange(e: React.ChangeEvent<HTMLInputElement>) {
-    const raw = e.target.value;
-    if (!NAME_ALLOWED.test(raw)) return; // bloquea símbolos
-    setName(capitalizeWords(raw));
-  }
-
-  function handlePhoneChange(e: React.ChangeEvent<HTMLInputElement>) {
-    const raw = e.target.value;
-    if (!PHONE_ALLOWED.test(raw)) return; // bloquea letras y símbolos
-    setPhone(raw);
+  function handleOpen() {
+    setName(initialName);
+    setPhone(initialPhone ?? '');
+    setNotes(initialNotes ?? '');
+    setError('');
+    setOpen(true);
   }
 
   function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
@@ -40,13 +42,10 @@ export default function NewCustomerModal() {
     const data = new FormData(e.currentTarget);
 
     startTransition(async () => {
-      const result = await createCustomerAction(data);
+      const result = await updateCustomerAction(data);
       if ('error' in result && result.error) {
         setError(result.error);
       } else {
-        formRef.current?.reset();
-        setName('');
-        setPhone('');
         setOpen(false);
         router.refresh();
       }
@@ -56,47 +55,53 @@ export default function NewCustomerModal() {
   return (
     <>
       <button
-        onClick={() => setOpen(true)}
-        className="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-indigo-700"
+        onClick={handleOpen}
+        className="rounded-lg border border-gray-200 px-3 py-1.5 text-sm font-medium text-gray-600 transition hover:bg-gray-50 flex items-center gap-1.5"
       >
-        + Nuevo cliente
+        <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125" />
+        </svg>
+        Editar
       </button>
 
       {open && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
           <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-xl">
             <div className="mb-5 flex items-center justify-between">
-              <h2 className="text-base font-bold text-gray-900">Agregar cliente</h2>
+              <h2 className="text-base font-bold text-gray-900">Editar cliente</h2>
               <button onClick={() => setOpen(false)} className="text-gray-400 hover:text-gray-600 text-xl leading-none">×</button>
             </div>
 
             <form ref={formRef} onSubmit={handleSubmit} className="space-y-4">
-              {error && (
-                <p className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-600">{error}</p>
-              )}
+              {error && <p className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-600">{error}</p>}
+
+              <input type="hidden" name="customerId" value={customerId} />
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Nombre completo *</label>
                 <input
                   name="name"
                   type="text"
-                  placeholder="Alice Méndez"
                   required
                   value={name}
-                  onChange={handleNameChange}
+                  onChange={(e) => {
+                    if (!NAME_ALLOWED.test(e.target.value)) return;
+                    setName(capitalizeWords(e.target.value));
+                  }}
                   className={inputCls}
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Teléfono *</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Teléfono</label>
                 <input
                   name="phone"
                   type="tel"
-                  placeholder="+15551234567"
-                  required
                   value={phone}
-                  onChange={handlePhoneChange}
+                  onChange={(e) => {
+                    if (!PHONE_ALLOWED.test(e.target.value)) return;
+                    setPhone(e.target.value);
+                  }}
                   className={inputCls}
                 />
               </div>
@@ -106,6 +111,8 @@ export default function NewCustomerModal() {
                 <textarea
                   name="notes"
                   rows={2}
+                  value={notes}
+                  onChange={(e) => setNotes(e.target.value)}
                   placeholder="Notas internas (no visibles al cliente)"
                   className={inputCls}
                 />
@@ -120,7 +127,7 @@ export default function NewCustomerModal() {
                 <button type="submit" disabled={isPending}
                   className="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-700 disabled:opacity-50"
                 >
-                  {isPending ? 'Creando…' : 'Crear cliente'}
+                  {isPending ? 'Guardando…' : 'Guardar cambios'}
                 </button>
               </div>
             </form>

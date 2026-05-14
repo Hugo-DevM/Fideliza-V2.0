@@ -1,5 +1,6 @@
 export {
   createCustomer,
+  updateCustomer,
   lookupCustomerByCode,
   getCustomerPoints,
   getCustomerById,

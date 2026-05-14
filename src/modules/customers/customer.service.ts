@@ -148,4 +148,35 @@ export async function getCustomerPoints(
   return { customer, enrollments: enrichedEnrollments, total_points };
 }
 
+export async function updateCustomer(
+  tenantId: UUID,
+  customerId: UUID,
+  input: { name: string; phone?: string | null; notes?: string | null }
+): Promise<Customer> {
+  const db = createServiceRoleClient();
+
+  if (input.phone) {
+    const { data: existing } = await db
+      .from('customers')
+      .select('id')
+      .eq('tenant_id', tenantId)
+      .eq('phone', input.phone)
+      .neq('id', customerId)
+      .single();
+
+    if (existing) throw new BadRequestError('Ya existe un cliente con este teléfono.');
+  }
+
+  const { data, error } = await db
+    .from('customers')
+    .update({ name: input.name, phone: input.phone ?? null, notes: input.notes ?? null })
+    .eq('tenant_id', tenantId)
+    .eq('id', customerId)
+    .select('*')
+    .single();
+
+  if (error || !data) throw new Error(`Failed to update customer: ${error?.message}`);
+  return data as Customer;
+}
+
 export { getCustomerById, listCustomers };

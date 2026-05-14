@@ -5,6 +5,7 @@ import { getCustomerPoints } from '@/modules/customers';
 import { getCustomerTransactionHistory } from '@/modules/transactions';
 import { createServiceRoleClient } from '@/lib/supabase/server';
 import ToggleStatusButton from './ToggleStatusButton';
+import EditCustomerModal from './EditCustomerModal';
 import { NotFoundError } from '@/lib/middleware/errors';
 
 export default async function CustomerDetailPage({
@@ -67,10 +68,18 @@ export default async function CustomerDetailPage({
                 </p>
               )}
             </div>
-            <ToggleStatusButton
-              customerId={customer.id}
-              isActive={customer.is_active}
-            />
+            <div className="flex items-center gap-2">
+              <EditCustomerModal
+                customerId={customer.id}
+                initialName={customer.name}
+                initialPhone={customer.phone ?? null}
+                initialNotes={customer.notes ?? null}
+              />
+              <ToggleStatusButton
+                customerId={customer.id}
+                isActive={customer.is_active}
+              />
+            </div>
           </div>
         </div>
 

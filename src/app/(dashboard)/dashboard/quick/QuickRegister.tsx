@@ -98,7 +98,7 @@ export default function QuickRegister({ programLabel }: Props) {
   }
 
   return (
-    <div className="max-w-lg mx-auto space-y-4">
+    <div className="space-y-4">
 
       {/* Search */}
       <div className="rounded-xl border bg-white p-5 shadow-sm">
@@ -200,7 +200,14 @@ export default function QuickRegister({ programLabel }: Props) {
                     min="1"
                     step="1"
                     value={deltaStr}
-                    onChange={(e) => setDeltaStr(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === '.' || e.key === ',' || e.key === '-') e.preventDefault();
+                    }}
+                    onChange={(e) => {
+                      const val = e.target.value.replace(/[.,\-].*/, '');
+                      const num = parseInt(val, 10);
+                      setDeltaStr(!isNaN(num) && num < 1 ? '1' : val);
+                    }}
                     className={inputCls}
                   />
                 </div>

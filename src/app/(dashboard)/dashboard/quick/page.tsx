@@ -1,5 +1,6 @@
 import { getAuthenticatedTenant } from '@/lib/auth/get-tenant';
 import QuickRegister from './QuickRegister';
+import VerifyVoucherForm from '../VerifyVoucherForm';
 
 export const metadata = { title: 'Registro rápido — Fideliza+' };
 
@@ -11,11 +12,17 @@ export default async function QuickRegisterPage() {
       <div>
         <h1 className="text-xl font-bold text-gray-900">Registro rápido</h1>
         <p className="mt-0.5 text-sm text-gray-500">
-          Busca al cliente por código de acceso o teléfono y registra su transacción al instante.
+          Busca al cliente para sumar puntos o canjea un voucher directamente.
         </p>
       </div>
 
-      <QuickRegister programLabel={settings.program_label} />
+      <div className="grid grid-cols-1 gap-5 lg:grid-cols-2 lg:items-start">
+        {/* Left — assign points / stamps / visits */}
+        <QuickRegister programLabel={settings.program_label} />
+
+        {/* Right — redeem vouchers */}
+        <VerifyVoucherForm />
+      </div>
     </div>
   );
 }

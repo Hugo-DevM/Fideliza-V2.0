@@ -26,7 +26,7 @@ export default async function DashboardPage() {
     .select('id, type, points_delta, note, created_at, customers(name), reward_programs(name)')
     .eq('tenant_id', tenantId)
     .order('created_at', { ascending: false })
-    .limit(8);
+    .limit(5);
 
   const stats = [
     { label: 'Clientes activos',       value: customerCount ?? 0,      href: '/dashboard/customers', accent: 'text-blue-600' },
@@ -95,7 +95,7 @@ export default async function DashboardPage() {
         ))}
       </div>
 
-      <div className="grid gap-4 lg:grid-cols-2">
+      <div className="grid gap-4 lg:grid-cols-2 lg:items-start">
         {/* Recent activity */}
         <div className="rounded-xl border bg-white shadow-sm">
           <div className="border-b px-5 py-3">
@@ -144,7 +144,7 @@ export default async function DashboardPage() {
             </div>
           ) : (
             <ul className="divide-y">
-              {programs.map((p) => (
+              {programs.slice(0, 5).map((p) => (
                 <li key={p.id} className="flex items-center justify-between px-5 py-3">
                   <div>
                     <p className="text-sm font-medium text-gray-800">{p.name}</p>
@@ -169,34 +169,6 @@ export default async function DashboardPage() {
         </p>
       </div>
 
-      {/* CSV Export (Pro plan only) */}
-      {planLimits.exportCSV ? (
-        <div className="rounded-xl border bg-white p-4 shadow-sm flex items-center justify-between gap-4">
-          <div>
-            <p className="text-sm font-semibold text-gray-800">Exportar transacciones</p>
-            <p className="text-xs text-gray-500 mt-0.5">Descarga el historial completo de transacciones en formato CSV.</p>
-          </div>
-          <a
-            href="/api/transactions/export"
-            className="shrink-0 rounded-lg bg-indigo-600 px-4 py-2 text-xs font-semibold text-white hover:bg-indigo-700 transition"
-          >
-            Descargar CSV
-          </a>
-        </div>
-      ) : (
-        <div className="rounded-xl border border-dashed border-gray-200 bg-gray-50 p-4 flex items-center justify-between gap-4">
-          <div>
-            <p className="text-sm font-semibold text-gray-500">Exportar transacciones</p>
-            <p className="text-xs text-gray-400 mt-0.5">Disponible en el plan Pro.</p>
-          </div>
-          <a
-            href="/dashboard/settings"
-            className="shrink-0 rounded-lg border border-gray-300 px-3 py-1.5 text-xs font-medium text-gray-600 hover:bg-gray-100 transition"
-          >
-            Actualizar a Pro →
-          </a>
-        </div>
-      )}
     </div>
   );
 }

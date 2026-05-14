@@ -13,6 +13,7 @@ export interface PlanLimits {
   transactionHistoryLimit: number | null; // null = unlimited; for FREE = 50 most recent
   rewardCatalog: boolean;
   exportCSV: boolean;
+  analytics: boolean;
   prioritySupport: boolean;
 }
 
@@ -24,6 +25,7 @@ export const PLAN_CONFIG: Record<string, PlanLimits> = {
     transactionHistoryLimit: 50,
     rewardCatalog:          false,
     exportCSV:              false,
+    analytics:              false,
     prioritySupport:        false,
   },
   starter: {
@@ -33,6 +35,7 @@ export const PLAN_CONFIG: Record<string, PlanLimits> = {
     transactionHistoryLimit: null,
     rewardCatalog:          true,
     exportCSV:              false,
+    analytics:              false,
     prioritySupport:        false,
   },
   pro: {
@@ -42,6 +45,7 @@ export const PLAN_CONFIG: Record<string, PlanLimits> = {
     transactionHistoryLimit: null,
     rewardCatalog:          true,
     exportCSV:              true,
+    analytics:              true,
     prioritySupport:        true,
   },
   // Backward compatibility — maps to pro limits
@@ -52,6 +56,7 @@ export const PLAN_CONFIG: Record<string, PlanLimits> = {
     transactionHistoryLimit: null,
     rewardCatalog:          true,
     exportCSV:              true,
+    analytics:              true,
     prioritySupport:        true,
   },
 };

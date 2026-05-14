@@ -116,8 +116,8 @@ export default function NewProgramModal({ allowedTypes }: { allowedTypes: string
               )}
               {type === 'cashback' && (
                 <div className="grid grid-cols-2 gap-3">
-                  <NumField label="Cashback %" name="cashback_percent" defaultValue="5" step="0.1" />
-                  <NumField label="Compra mínima ($)" name="min_purchase" defaultValue="10" step="0.01" />
+                  <NumField label="Cashback %" name="cashback_percent" defaultValue="5" step="0.1" min="0.1" />
+                  <NumField label="Compra mínima ($)" name="min_purchase" defaultValue="10" step="0.01" min="0.01" />
                 </div>
               )}
 
@@ -152,13 +152,42 @@ function Field({ label, name, type, placeholder, required }: {
   );
 }
 
-function NumField({ label, name, defaultValue, step }: {
-  label: string; name: string; defaultValue: string; step?: string;
+function NumField({ label, name, defaultValue, step, min }: {
+  label: string; name: string; defaultValue: string; step?: string; min?: string;
 }) {
+  const resolvedStep = step ?? '1';
+  const resolvedMin  = min  ?? '1';
+  const isInteger    = resolvedStep === '1';
+
+  function handleInput(e: React.ChangeEvent<HTMLInputElement>) {
+    let val = e.target.value;
+    // Strip decimals for integer fields
+    if (isInteger) val = val.replace(/[.,].*/, '');
+    const num = parseFloat(val);
+    if (!isNaN(num) && num < parseFloat(resolvedMin)) {
+      e.target.value = resolvedMin;
+    }
+  }
+
   return (
     <div>
       <label className="block text-sm font-medium text-gray-700 mb-1">{label}</label>
-      <input name={name} type="number" min="0" step={step ?? '1'} defaultValue={defaultValue} required className={inputCls} />
+      <input
+        name={name}
+        type="number"
+        min={resolvedMin}
+        step={resolvedStep}
+        defaultValue={defaultValue}
+        required
+        onKeyDown={(e) => {
+          // Block decimal separators for integer fields
+          if (isInteger && (e.key === '.' || e.key === ',')) e.preventDefault();
+          // Block minus sign
+          if (e.key === '-') e.preventDefault();
+        }}
+        onChange={handleInput}
+        className={inputCls}
+      />
     </div>
   );
 }
