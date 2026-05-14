@@ -95,7 +95,7 @@ export default async function DashboardPage() {
         ))}
       </div>
 
-      <div className="grid gap-4 lg:grid-cols-2 lg:items-start">
+      <div className="grid gap-4 lg:grid-cols-2">
         {/* Recent activity */}
         <div className="rounded-xl border bg-white shadow-sm">
           <div className="border-b px-5 py-3">
