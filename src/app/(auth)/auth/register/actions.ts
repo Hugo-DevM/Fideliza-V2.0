@@ -7,8 +7,13 @@ import { sendConfirmationEmail } from '@/lib/email/resend';
 import { translateAuthError } from '@/lib/utils/supabase-errors';
 
 /**
- * Creates a new auth user via admin.generateLink() (server-side) and sends
- * the confirmation email through Resend.
+ * Step 1 → 2: Creates the auth user and generates the confirmation link,
+ * but does NOT send the email yet.
+ *
+ * The email is intentionally deferred until the tenant is fully created
+ * (step 2 submit), so the user receives the confirmation only after the
+ * entire account setup is complete — not while they are still filling in
+ * their business details.
  *
  * Using admin.generateLink() instead of supabase.auth.signUp():
  *   - Supabase does NOT send its own email → zero duplicate emails
@@ -16,11 +21,11 @@ import { translateAuthError } from '@/lib/utils/supabase-errors';
  *   - Returns userId so the caller can proceed to tenant setup (step 2)
  *     without needing an active session
  */
-export async function signUpAndSendConfirmationAction(input: {
+export async function signUpAction(input: {
   email:    string;
   password: string;
   fullName: string;
-}): Promise<{ userId?: string; error?: string }> {
+}): Promise<{ userId?: string; confirmUrl?: string; error?: string }> {
   const db = createServiceRoleClient();
   const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000';
 
@@ -45,21 +50,28 @@ export async function signUpAndSendConfirmationAction(input: {
     return { error: 'No se pudo generar el enlace de confirmación. Inténtalo de nuevo.' };
   }
 
-  // Build the confirm URL pointing to OUR callback, not Supabase's verify endpoint.
-  // This avoids the implicit-flow redirect (hash tokens) and the Site URL fallback.
-  // The callback calls verifyOtp({ token_hash, type: 'signup' }) and then redirects
-  // to /auth/confirmed within our own app.
   const confirmUrl =
     `${appUrl}/auth/verify?token_hash=${encodeURIComponent(hashedToken)}&type=signup`;
 
+  return { userId, confirmUrl };
+}
+
+/**
+ * Step 2 final submit: sends the confirmation email after the tenant is
+ * fully created. Called only once "Crear cuenta" succeeds.
+ */
+export async function sendConfirmationEmailAction(input: {
+  email:      string;
+  fullName:   string;
+  confirmUrl: string;
+}): Promise<void> {
   try {
-    await sendConfirmationEmail(input.email, confirmUrl, input.fullName);
+    await sendConfirmationEmail(input.email, input.confirmUrl, input.fullName);
     console.info('[signup] Confirmation email sent to:', input.email);
   } catch (emailErr) {
     console.error('[signup] Failed to send confirmation email:', emailErr);
+    // Non-fatal: tenant is already created; user can request a new email later.
   }
-
-  return { userId };
 }
 
 /**

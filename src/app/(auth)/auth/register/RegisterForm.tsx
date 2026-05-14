@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
-import { signUpAndSendConfirmationAction, setupTenantAction, checkSubdomainAction } from './actions';
+import { signUpAction, sendConfirmationEmailAction, setupTenantAction, checkSubdomainAction } from './actions';
 
 type Step = 1 | 2;
 
@@ -37,9 +37,10 @@ export default function RegisterForm() {
   const [showPassword,        setShowPassword]        = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
-  // Auth user created at step 1→2 transition
-  const [authUserId, setAuthUserId] = useState('');
-  const [authEmail,  setAuthEmail]  = useState('');
+  // Auth user created at step 1→2 transition (email sent later, at final submit)
+  const [authUserId,    setAuthUserId]    = useState('');
+  const [authEmail,     setAuthEmail]     = useState('');
+  const [authConfirmUrl, setAuthConfirmUrl] = useState('');
 
   // Step 2 — Business
   const [businessName,      setBusinessName]      = useState('');
@@ -130,7 +131,7 @@ export default function RegisterForm() {
 
     setIsGoingToStep2(true);
 
-    const result = await signUpAndSendConfirmationAction({
+    const result = await signUpAction({
       email,
       password,
       fullName: fullName.trim(),
@@ -138,13 +139,14 @@ export default function RegisterForm() {
 
     setIsGoingToStep2(false);
 
-    if (result.error || !result.userId) {
+    if (result.error || !result.userId || !result.confirmUrl) {
       setGlobalError(result.error ?? 'Error al registrarse. Inténtalo de nuevo.');
       return;
     }
 
     setAuthUserId(result.userId);
     setAuthEmail(email);
+    setAuthConfirmUrl(result.confirmUrl);
     setStep(2);
   }
 
@@ -167,6 +169,13 @@ export default function RegisterForm() {
         setGlobalError(result.error);
         return;
       }
+
+      // Send the confirmation email NOW — only after the tenant is fully created.
+      await sendConfirmationEmailAction({
+        email,
+        fullName: fullName.trim(),
+        confirmUrl: authConfirmUrl,
+      });
 
       router.push('/auth/register/confirm?email=' + encodeURIComponent(email));
     } finally {
@@ -473,6 +482,15 @@ export default function RegisterForm() {
                   <p className="mt-0.5 text-xs text-indigo-400">Compártelo con tus clientes</p>
                 </div>
               )}
+            </div>
+
+            <div className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 flex gap-2.5">
+              <svg className="h-4 w-4 shrink-0 mt-0.5 text-amber-500" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z" />
+              </svg>
+              <p className="text-xs text-amber-700 leading-relaxed">
+                <strong>Elige bien.</strong> El nombre del negocio y el subdominio <strong>no se podrán cambiar</strong> una vez creada la cuenta.
+              </p>
             </div>
 
             <div className="flex gap-3 pt-1">
