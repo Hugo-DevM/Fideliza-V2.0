@@ -224,7 +224,7 @@ export default async function AnalyticsPage() {
       if (b.daysSince === null) return -1;
       return b.daysSince - a.daysSince;
     })
-    .slice(0, 8);
+    .slice(0, 5);
 
   const freqColors = ['bg-indigo-400', 'bg-indigo-500', 'bg-indigo-600', 'bg-indigo-700'];
 
@@ -299,7 +299,7 @@ export default async function AnalyticsPage() {
         </div>
 
         {/* Top 5 customers */}
-        <div className="rounded-xl border bg-white shadow-sm">
+        <div className="rounded-xl border bg-white shadow-sm self-start">
           <div className="border-b px-5 py-3">
             <h2 className="text-sm font-semibold text-gray-700">Top 5 clientes más activos</h2>
             <p className="text-xs text-gray-400">Por número de transacciones en 30 días</p>
@@ -326,7 +326,7 @@ export default async function AnalyticsPage() {
         </div>
 
         {/* At-risk customers */}
-        <div className="rounded-xl border bg-white shadow-sm">
+        <div className="rounded-xl border bg-white shadow-sm self-start">
           <div className="border-b px-5 py-3">
             <h2 className="text-sm font-semibold text-gray-700">Clientes en riesgo</h2>
             <p className="text-xs text-gray-400">Sin actividad en los últimos 30 días</p>
@@ -355,7 +355,7 @@ export default async function AnalyticsPage() {
           )}
           {atRisk.length > 0 && (
             <p className="px-5 py-2 text-xs text-gray-400 border-t">
-              Mostrando hasta 8 · {(activeCustomerCount ?? 0) - activeInLast30.size} clientes en riesgo en total
+              Mostrando hasta 5 · {(activeCustomerCount ?? 0) - activeInLast30.size} clientes en riesgo en total
             </p>
           )}
         </div>
