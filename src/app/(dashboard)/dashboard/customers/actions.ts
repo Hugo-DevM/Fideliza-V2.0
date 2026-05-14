@@ -1,6 +1,6 @@
 'use server';
 
-import { revalidatePath } from 'next/cache';
+import { revalidatePath, revalidateTag } from 'next/cache';
 import { getAuthenticatedTenant } from '@/lib/auth/get-tenant';
 import { createCustomer, updateCustomer } from '@/modules/customers';
 
@@ -16,6 +16,7 @@ export async function createCustomerAction(formData: FormData) {
 
   try {
     const customer = await createCustomer(tenantId, { name, phone, notes });
+    revalidateTag('customers');
     revalidatePath('/dashboard/customers');
     return { success: true, customerId: customer.id };
   } catch (err) {
@@ -36,6 +37,7 @@ export async function updateCustomerAction(formData: FormData) {
 
   try {
     await updateCustomer(tenantId, customerId, { name, phone, notes });
+    revalidateTag('customers');
     revalidatePath(`/dashboard/customers/${customerId}`);
     return { success: true };
   } catch (err) {

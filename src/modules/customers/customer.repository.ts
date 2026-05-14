@@ -4,7 +4,8 @@
  * Supabase RLS policies are the second line (see supabase/migrations/002_rls_policies.sql).
  */
 
-import { createServerClient } from '@/lib/supabase/server';
+import { unstable_cache } from 'next/cache';
+import { createServerClient, createServiceRoleClient } from '@/lib/supabase/server';
 import type { Customer, UUID } from '@/lib/types';
 import { NotFoundError } from '@/lib/middleware/errors';
 
@@ -46,25 +47,25 @@ export async function getCustomerById(tenantId: UUID, customerId: UUID): Promise
   return data as Customer;
 }
 
-export async function listCustomers(
-  tenantId: UUID,
-  page = 1,
-  limit = 50
-): Promise<{ customers: Customer[]; total: number }> {
-  const db = await createServerClient();
-  const from = (page - 1) * limit;
-  const to = from + limit - 1;
+export const listCustomers = unstable_cache(
+  async (tenantId: UUID, page = 1, limit = 50): Promise<{ customers: Customer[]; total: number }> => {
+    const db = createServiceRoleClient();
+    const from = (page - 1) * limit;
+    const to = from + limit - 1;
 
-  const { data, error, count } = await db
-    .from('customers')
-    .select('*', { count: 'exact' })
-    .eq('tenant_id', tenantId)
-    .order('created_at', { ascending: false })
-    .range(from, to);
+    const { data, error, count } = await db
+      .from('customers')
+      .select('*', { count: 'exact' })
+      .eq('tenant_id', tenantId)
+      .order('created_at', { ascending: false })
+      .range(from, to);
 
-  if (error) {
-    throw new Error(`Error al listar clientes: ${error.message}`);
-  }
+    if (error) {
+      throw new Error(`Error al listar clientes: ${error.message}`);
+    }
 
-  return { customers: (data ?? []) as Customer[], total: count ?? 0 };
-}
+    return { customers: (data ?? []) as Customer[], total: count ?? 0 };
+  },
+  ['list-customers'],
+  { revalidate: 15, tags: ['customers'] }
+);

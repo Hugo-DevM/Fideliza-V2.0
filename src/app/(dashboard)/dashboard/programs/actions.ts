@@ -1,6 +1,6 @@
 'use server';
 
-import { revalidatePath } from 'next/cache';
+import { revalidatePath, revalidateTag } from 'next/cache';
 import { getAuthenticatedTenant } from '@/lib/auth/get-tenant';
 import { createProgram } from '@/modules/rewards';
 import type { ProgramType } from '@/lib/types';
@@ -34,6 +34,7 @@ export async function createProgramAction(formData: FormData) {
 
   try {
     const program = await createProgram(tenantId, { name, description, type, config });
+    revalidateTag('programs');
     revalidatePath('/dashboard/programs');
     return { success: true, programId: program.id };
   } catch (err) {

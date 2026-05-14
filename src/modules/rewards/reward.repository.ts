@@ -3,28 +3,33 @@
  * All queries scoped to tenant_id.
  */
 
-import { createServerClient } from '@/lib/supabase/server';
+import { unstable_cache } from 'next/cache';
+import { createServerClient, createServiceRoleClient } from '@/lib/supabase/server';
 import type { Reward, RewardProgram, UUID } from '@/lib/types';
 import { NotFoundError } from '@/lib/middleware/errors';
 
 // ── Programs ─────────────────────────────────────────────────────────
 
-export async function listActivePrograms(tenantId: UUID): Promise<RewardProgram[]> {
-  const db = await createServerClient();
+export const listActivePrograms = unstable_cache(
+  async (tenantId: UUID): Promise<RewardProgram[]> => {
+    const db = createServiceRoleClient();
 
-  const { data, error } = await db
-    .from('reward_programs')
-    .select('*')
-    .eq('tenant_id', tenantId)
-    .eq('status', 'active')
-    .order('created_at', { ascending: true });
+    const { data, error } = await db
+      .from('reward_programs')
+      .select('*')
+      .eq('tenant_id', tenantId)
+      .eq('status', 'active')
+      .order('created_at', { ascending: true });
 
-  if (error) {
-    throw new Error(`Error al listar programas: ${error.message}`);
-  }
+    if (error) {
+      throw new Error(`Error al listar programas: ${error.message}`);
+    }
 
-  return (data ?? []) as unknown as RewardProgram[];
-}
+    return (data ?? []) as unknown as RewardProgram[];
+  },
+  ['list-active-programs'],
+  { revalidate: 30, tags: ['programs'] }
+);
 
 export async function getProgramById(tenantId: UUID, programId: UUID): Promise<RewardProgram> {
   const db = await createServerClient();
@@ -45,23 +50,27 @@ export async function getProgramById(tenantId: UUID, programId: UUID): Promise<R
 
 // ── Rewards ───────────────────────────────────────────────────────────
 
-export async function listRewardsByProgram(tenantId: UUID, programId: UUID): Promise<Reward[]> {
-  const db = await createServerClient();
+export const listRewardsByProgram = unstable_cache(
+  async (tenantId: UUID, programId: UUID): Promise<Reward[]> => {
+    const db = createServiceRoleClient();
 
-  const { data, error } = await db
-    .from('rewards')
-    .select('*')
-    .eq('tenant_id', tenantId)
-    .eq('program_id', programId)
-    .eq('is_active', true)
-    .order('cost_points', { ascending: true });
+    const { data, error } = await db
+      .from('rewards')
+      .select('*')
+      .eq('tenant_id', tenantId)
+      .eq('program_id', programId)
+      .eq('is_active', true)
+      .order('cost_points', { ascending: true });
 
-  if (error) {
-    throw new Error(`Error al listar recompensas: ${error.message}`);
-  }
+    if (error) {
+      throw new Error(`Error al listar recompensas: ${error.message}`);
+    }
 
-  return (data ?? []) as Reward[];
-}
+    return (data ?? []) as Reward[];
+  },
+  ['list-rewards-by-program'],
+  { revalidate: 30, tags: ['rewards'] }
+);
 
 export async function getRewardById(tenantId: UUID, rewardId: UUID): Promise<Reward> {
   const db = await createServerClient();

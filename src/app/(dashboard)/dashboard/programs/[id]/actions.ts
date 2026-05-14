@@ -1,6 +1,6 @@
 'use server';
 
-import { revalidatePath } from 'next/cache';
+import { revalidatePath, revalidateTag } from 'next/cache';
 import { getAuthenticatedTenant } from '@/lib/auth/get-tenant';
 import { updateProgram, createReward, updateReward } from '@/modules/rewards';
 import { markRedemptionUsed } from '@/modules/transactions';
@@ -21,6 +21,7 @@ export async function updateProgramStatusAction(programId: string, status: Progr
       metadata: { status },
     });
 
+    revalidateTag('programs');
     revalidatePath(`/dashboard/programs/${programId}`);
     revalidatePath('/dashboard/programs');
     return { success: true };
@@ -46,6 +47,7 @@ export async function createRewardAction(programId: string, formData: FormData) 
 
   try {
     await createReward(tenantId, { program_id: programId, name, description, cost_points, stock, expiry_days });
+    revalidateTag('rewards');
     revalidatePath(`/dashboard/programs/${programId}`);
     return { success: true };
   } catch (err) {
@@ -57,6 +59,7 @@ export async function toggleRewardAction(programId: string, rewardId: string, is
   const { tenantId } = await getAuthenticatedTenant();
   try {
     await updateReward(tenantId, rewardId, { is_active: isActive });
+    revalidateTag('rewards');
     revalidatePath(`/dashboard/programs/${programId}`);
     return { success: true };
   } catch (err) {
