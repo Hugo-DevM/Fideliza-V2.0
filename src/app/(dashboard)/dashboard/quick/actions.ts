@@ -92,7 +92,7 @@ export async function lookupCustomerAction(query: string): Promise<
         id:             p.id,
         name:           p.name,
         type:           p.type,
-        config:         (p.config as Record<string, unknown>) ?? {},
+        config:         (p.config as unknown as Record<string, unknown>) ?? {},
         current_points: enroll?.current_points ?? null,
         stamp_count:    enroll?.stamp_count    ?? null,
         visit_count:    enroll?.visit_count    ?? null,
