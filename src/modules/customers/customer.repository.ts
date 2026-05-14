@@ -48,15 +48,30 @@ export async function getCustomerById(tenantId: UUID, customerId: UUID): Promise
 }
 
 export const listCustomers = unstable_cache(
-  async (tenantId: UUID, page = 1, limit = 50): Promise<{ customers: Customer[]; total: number }> => {
+  async (
+    tenantId: UUID,
+    page = 1,
+    limit = 50,
+    q?: string,
+    status?: 'active' | 'inactive'
+  ): Promise<{ customers: Customer[]; total: number }> => {
     const db = createServiceRoleClient();
     const from = (page - 1) * limit;
     const to = from + limit - 1;
 
-    const { data, error, count } = await db
+    let query = db
       .from('customers')
       .select('*', { count: 'exact' })
-      .eq('tenant_id', tenantId)
+      .eq('tenant_id', tenantId);
+
+    if (status === 'active')   query = query.eq('is_active', true);
+    if (status === 'inactive') query = query.eq('is_active', false);
+    if (q) {
+      const term = `%${q}%`;
+      query = query.or(`name.ilike.${term},phone.ilike.${term},access_code.ilike.${term}`);
+    }
+
+    const { data, error, count } = await query
       .order('created_at', { ascending: false })
       .range(from, to);
 

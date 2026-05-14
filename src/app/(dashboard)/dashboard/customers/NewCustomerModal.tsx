@@ -39,6 +39,10 @@ export default function NewCustomerModal() {
   function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setError('');
+    if (phone.length !== PHONE_MAX) {
+      setError('El teléfono debe tener exactamente 10 dígitos.');
+      return;
+    }
     const data = new FormData(e.currentTarget);
 
     startTransition(async () => {
@@ -99,8 +103,11 @@ export default function NewCustomerModal() {
                   required
                   value={phone}
                   onChange={handlePhoneChange}
-                  className={inputCls}
+                  className={`${inputCls} ${phone.length > 0 && phone.length < PHONE_MAX ? 'border-amber-400 focus:border-amber-400 focus:ring-amber-100' : ''}`}
                 />
+                {phone.length > 0 && phone.length < PHONE_MAX && (
+                  <p className="mt-1 text-xs text-amber-600">{phone.length}/10 dígitos — faltan {PHONE_MAX - phone.length}</p>
+                )}
               </div>
 
               <div>

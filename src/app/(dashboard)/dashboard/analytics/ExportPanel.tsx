@@ -86,7 +86,12 @@ export default function ExportPanel() {
               type="date"
               value={from}
               max={to}
-              onChange={(e) => setFrom(e.target.value)}
+              onKeyDown={(e) => e.preventDefault()}
+              onChange={(e) => {
+                const val = e.target.value;
+                const today = todayStr();
+                setFrom(val > today ? today : val > to ? to : val);
+              }}
               className="w-full rounded-lg border border-gray-200 px-3 py-1.5 text-sm text-gray-800 focus:border-indigo-400 focus:outline-none focus:ring-1 focus:ring-indigo-400 sm:w-auto"
             />
           </div>
@@ -97,7 +102,12 @@ export default function ExportPanel() {
               value={to}
               min={from}
               max={todayStr()}
-              onChange={(e) => setTo(e.target.value)}
+              onKeyDown={(e) => e.preventDefault()}
+              onChange={(e) => {
+                const val = e.target.value;
+                const today = todayStr();
+                setTo(val > today ? today : val < from ? from : val);
+              }}
               className="w-full rounded-lg border border-gray-200 px-3 py-1.5 text-sm text-gray-800 focus:border-indigo-400 focus:outline-none focus:ring-1 focus:ring-indigo-400 sm:w-auto"
             />
           </div>

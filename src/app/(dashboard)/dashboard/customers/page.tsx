@@ -6,29 +6,24 @@ import CustomerSearchInput from './CustomerSearchInput';
 
 export const metadata = { title: 'Clientes — Fideliza+' };
 
-const LIMIT = 50;
+const LIMIT = 8;
 
 export default async function CustomersPage({
   searchParams,
 }: {
-  searchParams: Promise<{ page?: string; q?: string }>;
+  searchParams: Promise<{ page?: string; q?: string; status?: string }>;
 }) {
   const { tenantId, planLimits } = await getAuthenticatedTenant();
-  const { page: pageStr, q } = await searchParams;
+  const { page: pageStr, q, status } = await searchParams;
   const page = Math.max(1, parseInt(pageStr ?? '1', 10));
+  const statusFilter = status === 'active' ? 'active' : status === 'inactive' ? 'inactive' : 'all';
 
-  const { customers, total } = await listCustomers(tenantId, page, LIMIT);
+  const { customers: filtered, total } = await listCustomers(
+    tenantId, page, LIMIT,
+    q || undefined,
+    statusFilter !== 'all' ? statusFilter : undefined,
+  );
   const atCustomerLimit = planLimits.maxCustomers !== null && total >= planLimits.maxCustomers;
-
-  // Client-side search note: search is applied to the already-fetched list.
-  // For large datasets this should move to the DB query.
-  const filtered = q
-    ? customers.filter((c) =>
-        c.name.toLowerCase().includes(q.toLowerCase()) ||
-        c.phone?.includes(q) ||
-        c.access_code.toLowerCase().includes(q.toLowerCase())
-      )
-    : customers;
 
   const totalPages = Math.ceil(total / LIMIT);
 
@@ -64,14 +59,16 @@ export default async function CustomersPage({
       </div>
 
       {/* Search */}
-      <CustomerSearchInput defaultValue={q} />
+      <CustomerSearchInput defaultValue={q} defaultStatus={statusFilter} />
 
       {/* Table */}
       <div className="rounded-xl border bg-white shadow-sm overflow-x-auto">
         {!filtered.length ? (
           <div className="px-6 py-12 text-center">
             <p className="text-gray-400 text-sm">
-              {q ? `Sin clientes que coincidan con "${q}"` : 'Sin clientes aún. ¡Agrega el primero!'}
+              {q || statusFilter !== 'all'
+                ? 'Sin clientes que coincidan con el filtro aplicado.'
+                : 'Sin clientes aún. ¡Agrega el primero!'}
             </p>
           </div>
         ) : (
@@ -121,12 +118,12 @@ export default async function CustomersPage({
           <span>Página {page} de {totalPages}</span>
           <div className="flex gap-2">
             {page > 1 && (
-              <Link href={`?page=${page - 1}${q ? `&q=${q}` : ''}`}
+              <Link href={`?page=${page - 1}${q ? `&q=${q}` : ''}${statusFilter !== 'all' ? `&status=${statusFilter}` : ''}`}
                 className="rounded border px-3 py-1 hover:bg-gray-50"
               >← Ant</Link>
             )}
             {page < totalPages && (
-              <Link href={`?page=${page + 1}${q ? `&q=${q}` : ''}`}
+              <Link href={`?page=${page + 1}${q ? `&q=${q}` : ''}${statusFilter !== 'all' ? `&status=${statusFilter}` : ''}`}
                 className="rounded border px-3 py-1 hover:bg-gray-50"
               >Sig →</Link>
             )}
