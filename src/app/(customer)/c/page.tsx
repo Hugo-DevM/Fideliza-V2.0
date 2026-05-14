@@ -12,6 +12,7 @@ import { headers } from 'next/headers';
 import { notFound } from 'next/navigation';
 import CodeEntryForm from './CodeEntryForm';
 import RedeemButton from './RedeemButton';
+import AutoRefresh from './AutoRefresh';
 import { getPortalData, getTenantBySubdomainPublic } from '@/modules/portal';
 import { NotFoundError, TenantNotFoundError } from '@/lib/middleware/errors';
 import type {
@@ -131,6 +132,7 @@ function PortalShell({ data, code, tab }: { data: PortalData; code: string; tab:
 
   return (
     <div className="flex min-h-screen flex-col" style={{ backgroundColor: '#F8FAFC' }}>
+      <AutoRefresh intervalMs={20_000} />
 
       {/* ── Gradient header ──────────────────────────────────────── */}
       <header
@@ -398,6 +400,7 @@ function RewardRow({
             rewardId={r.id}
             enrollmentId={enrollmentId}
             primaryColor={primaryColor}
+            rewardName={r.name}
           />
         )}
 

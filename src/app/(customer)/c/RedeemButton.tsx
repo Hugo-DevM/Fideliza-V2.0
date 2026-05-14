@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useTransition } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { redeemPortalRewardAction } from './actions';
 
 interface RedeemButtonProps {
@@ -10,6 +10,7 @@ interface RedeemButtonProps {
   rewardId: string;
   enrollmentId: string;
   primaryColor: string;
+  rewardName: string;
 }
 
 export default function RedeemButton({
@@ -18,11 +19,14 @@ export default function RedeemButton({
   rewardId,
   enrollmentId,
   primaryColor,
+  rewardName,
 }: RedeemButtonProps) {
   const [isPending, startTransition] = useTransition();
   const [code, setCode]   = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const accessCode = searchParams.get('code') ?? '';
 
   function handleRedeem() {
     setError(null);
@@ -32,25 +36,13 @@ export default function RedeemButton({
         setError(result.error);
       } else {
         setCode(result.redemptionCode);
-        router.refresh(); // reload so the Points tab shows the new voucher
       }
     });
   }
 
-  // After successful redemption — show the code
-  if (code) {
-    return (
-      <div
-        className="mt-3 rounded-xl border-2 p-4 text-center"
-        style={{ borderColor: primaryColor, borderStyle: 'dashed' }}
-      >
-        <p className="text-xs font-semibold uppercase tracking-widest mb-2" style={{ color: primaryColor }}>
-          Tu código de canje
-        </p>
-        <p className="font-mono text-xl font-bold tracking-widest text-gray-900">{code}</p>
-        <p className="mt-2 text-xs text-gray-400">Muéstraselo al empleado para recibir tu premio</p>
-      </div>
-    );
+  function handleClose() {
+    router.push(`?code=${accessCode}&tab=points`);
+    router.refresh();
   }
 
   return (
@@ -58,6 +50,7 @@ export default function RedeemButton({
       {error && (
         <p className="mb-2 rounded-lg bg-red-50 px-3 py-2 text-xs text-red-600">{error}</p>
       )}
+
       <button
         onClick={handleRedeem}
         disabled={isPending}
@@ -66,6 +59,39 @@ export default function RedeemButton({
       >
         {isPending ? 'Procesando…' : 'Canjear premio'}
       </button>
+
+      {/* Success overlay */}
+      {code && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4">
+          <div className="w-full max-w-sm rounded-3xl bg-white p-7 shadow-2xl text-center">
+            <p className="text-5xl mb-4">🎉</p>
+            <h2 className="text-xl font-bold text-gray-900">¡Premio canjeado!</h2>
+            <p className="mt-1 text-sm text-gray-500">{rewardName}</p>
+
+            <div
+              className="mt-5 rounded-2xl border-2 border-dashed px-4 py-4"
+              style={{ borderColor: primaryColor, backgroundColor: `${primaryColor}0D` }}
+            >
+              <p className="text-xs font-semibold uppercase tracking-widest mb-2" style={{ color: primaryColor }}>
+                Tu código de canje
+              </p>
+              <p className="font-mono text-2xl font-bold tracking-widest text-gray-900">{code}</p>
+            </div>
+
+            <p className="mt-3 text-xs text-gray-400">
+              Muéstraselo al empleado para recibir tu premio
+            </p>
+
+            <button
+              onClick={handleClose}
+              className="mt-5 w-full rounded-xl py-3 text-sm font-semibold text-white transition hover:opacity-90 active:scale-95"
+              style={{ backgroundColor: primaryColor }}
+            >
+              Ver en mis Puntos →
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

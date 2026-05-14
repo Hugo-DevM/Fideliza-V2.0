@@ -78,7 +78,7 @@ export default async function CustomersPage({
           <table className="w-full text-sm">
             <thead className="border-b bg-gray-50">
               <tr>
-                {['Nombre', 'Código de acceso', 'Email / Teléfono', 'Estado', 'Registro', ''].map((h) => (
+                {['Nombre', 'Código de acceso', 'Teléfono', 'Estado', 'Registro', ''].map((h) => (
                   <th key={h} className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">{h}</th>
                 ))}
               </tr>

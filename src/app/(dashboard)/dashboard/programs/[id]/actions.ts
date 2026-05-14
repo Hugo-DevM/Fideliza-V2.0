@@ -4,6 +4,7 @@ import { revalidatePath } from 'next/cache';
 import { getAuthenticatedTenant } from '@/lib/auth/get-tenant';
 import { updateProgram, createReward, updateReward } from '@/modules/rewards';
 import { markRedemptionUsed } from '@/modules/transactions';
+import { createServiceRoleClient } from '@/lib/supabase/server';
 import { auditLog, AuditEvent } from '@/lib/utils/audit';
 import type { ProgramStatus } from '@/lib/types';
 
@@ -70,6 +71,13 @@ export async function verifyVoucherAction(redemptionCode: string) {
   try {
     const redemption = await markRedemptionUsed(tenantId, normalizedCode);
 
+    // Fetch customer name and reward name for the confirmation modal
+    const db = createServiceRoleClient();
+    const [{ data: customer }, { data: reward }] = await Promise.all([
+      db.from('customers').select('name').eq('id', redemption.customer_id).single(),
+      db.from('rewards').select('name, description').eq('id', redemption.reward_id).single(),
+    ]);
+
     await auditLog({
       tenantId,
       eventType: AuditEvent.REWARD_VERIFIED,
@@ -79,7 +87,14 @@ export async function verifyVoucherAction(redemptionCode: string) {
     });
 
     revalidatePath('/dashboard');
-    return { success: true, redemption };
+    return {
+      success: true,
+      redemptionCode: normalizedCode,
+      customerName:   (customer as { name: string } | null)?.name ?? null,
+      rewardName:     (reward as { name: string; description: string | null } | null)?.name ?? null,
+      rewardDesc:     (reward as { name: string; description: string | null } | null)?.description ?? null,
+      usedAt:         redemption.used_at ?? new Date().toISOString(),
+    };
   } catch (err) {
     await auditLog({
       tenantId,

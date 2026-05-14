@@ -1,27 +1,20 @@
 'use client';
 
 import { useRouter, useSearchParams } from 'next/navigation';
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 
-// Permite: letras (con acentos), dígitos, espacio, +, -, (, ), guion — todo lo necesario para nombre, teléfono y código FSC5-YN5V
 const ALLOWED = /^[a-zA-ZáéíóúÁÉÍÓÚàèìòùÀÈÌÒÙäëïöüÄËÏÖÜñÑçÇ0-9 +\-()]*$/;
 
 export default function CustomerSearchInput({ defaultValue }: { defaultValue?: string }) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [value, setValue] = useState(defaultValue ?? '');
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  function handleChange(e: React.ChangeEvent<HTMLInputElement>) {
-    const raw = e.target.value;
-    if (raw !== '' && !ALLOWED.test(raw)) return; // bloquea símbolos no permitidos
-    setValue(raw.toUpperCase()); // código de acceso siempre en mayúsculas
-  }
-
-  function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
-    e.preventDefault();
+  function pushQuery(q: string) {
     const params = new URLSearchParams(searchParams.toString());
-    if (value.trim()) {
-      params.set('q', value.trim());
+    if (q.trim()) {
+      params.set('q', q.trim());
     } else {
       params.delete('q');
     }
@@ -29,13 +22,30 @@ export default function CustomerSearchInput({ defaultValue }: { defaultValue?: s
     router.push(`/dashboard/customers?${params.toString()}`);
   }
 
+  function handleChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const raw = e.target.value;
+    if (raw !== '' && !ALLOWED.test(raw)) return;
+    const upper = raw.toUpperCase();
+    setValue(upper);
+
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    debounceRef.current = setTimeout(() => pushQuery(upper), 120);
+  }
+
+  function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    pushQuery(value);
+  }
+
   function handleClear() {
     setValue('');
-    const params = new URLSearchParams(searchParams.toString());
-    params.delete('q');
-    params.delete('page');
-    router.push(`/dashboard/customers?${params.toString()}`);
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    pushQuery('');
   }
+
+  // Limpia el timeout al desmontar
+  useEffect(() => () => { if (debounceRef.current) clearTimeout(debounceRef.current); }, []);
 
   return (
     <form onSubmit={handleSubmit} className="flex gap-2">
@@ -45,9 +55,6 @@ export default function CustomerSearchInput({ defaultValue }: { defaultValue?: s
         placeholder="Nombre, teléfono o código (FSC5-YN5V)…"
         className="w-full max-w-sm rounded-lg border border-gray-200 px-3 py-2 text-sm outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100"
       />
-      <button type="submit" className="rounded-lg border px-3 py-2 text-sm text-gray-600 hover:bg-gray-50">
-        Buscar
-      </button>
       {value && (
         <button
           type="button"

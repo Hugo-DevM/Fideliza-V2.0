@@ -4,8 +4,9 @@ import { useState, useTransition, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { updateCustomerAction } from '../actions';
 
-const NAME_ALLOWED  = /^[a-zA-ZáéíóúÁÉÍÓÚàèìòùÀÈÌÒÙäëïöüÄËÏÖÜñÑçÇ ]*$/;
-const PHONE_ALLOWED = /^[0-9+\-() ]*$/;
+const NAME_ALLOWED = /^[a-zA-ZáéíóúÁÉÍÓÚàèìòùÀÈÌÒÙäëïöüÄËÏÖÜñÑçÇ ]*$/;
+const NAME_MAX = 60;
+const PHONE_MAX = 10;
 
 function capitalizeWords(value: string) {
   return value.replace(/(?:^|\s)\S/g, (c) => c.toUpperCase());
@@ -86,6 +87,7 @@ export default function EditCustomerModal({ customerId, initialName, initialPhon
                   value={name}
                   onChange={(e) => {
                     if (!NAME_ALLOWED.test(e.target.value)) return;
+                    if (e.target.value.length > NAME_MAX) return;
                     setName(capitalizeWords(e.target.value));
                   }}
                   className={inputCls}
@@ -97,10 +99,12 @@ export default function EditCustomerModal({ customerId, initialName, initialPhon
                 <input
                   name="phone"
                   type="tel"
+                  placeholder="8134529076"
                   value={phone}
                   onChange={(e) => {
-                    if (!PHONE_ALLOWED.test(e.target.value)) return;
-                    setPhone(e.target.value);
+                    const raw = e.target.value.replace(/\D/g, '');
+                    if (raw.length > PHONE_MAX) return;
+                    setPhone(raw);
                   }}
                   className={inputCls}
                 />

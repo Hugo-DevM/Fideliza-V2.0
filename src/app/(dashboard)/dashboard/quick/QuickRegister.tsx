@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useTransition, useRef } from 'react';
+import { useState, useTransition, useRef, useEffect } from 'react';
 import { lookupCustomerAction, quickTransactionAction } from './actions';
 import type { QuickCustomer, QuickProgram } from './actions';
 
@@ -22,6 +22,16 @@ export default function QuickRegister({ programLabel }: Props) {
 
   const queryRef = useRef<HTMLInputElement>(null);
   const deltaRef = useRef<HTMLInputElement>(null);
+
+  // Poll customer data every 10s to pick up voucher redemptions in real-time
+  useEffect(() => {
+    if (!customer) return;
+    const interval = setInterval(async () => {
+      const refreshed = await lookupCustomerAction(customer.access_code);
+      if ('customer' in refreshed) setCustomer(refreshed.customer);
+    }, 10_000);
+    return () => clearInterval(interval);
+  }, [customer?.access_code]);
 
   function handleLookup(e: React.FormEvent) {
     e.preventDefault();
@@ -59,6 +69,35 @@ export default function QuickRegister({ programLabel }: Props) {
     if (!customer || !selectedProgramId) return;
     const delta = parseInt(deltaStr, 10);
     if (!delta || delta <= 0) { setTxError('Ingresa una cantidad mayor a 0'); return; }
+
+    // Validate cap for stamp and visit programs
+    if (selectedProgram) {
+      if (selectedProgram.type === 'stamp') {
+        const max = typeof selectedProgram.config.stamps_needed === 'number' ? selectedProgram.config.stamps_needed : null;
+        const current = selectedProgram.stamp_count ?? 0;
+        if (max !== null && current >= max) {
+          setTxError(`El cliente ya tiene ${current}/${max} sellos. Debe canjear su recompensa antes de seguir acumulando.`);
+          return;
+        }
+        if (max !== null && current + delta > max) {
+          setTxError(`Agregar ${delta} sellos excedería el límite (${current}/${max}). Máximo permitido: ${max - current}.`);
+          return;
+        }
+      }
+      if (selectedProgram.type === 'visit') {
+        const max = typeof selectedProgram.config.visits_needed === 'number' ? selectedProgram.config.visits_needed : null;
+        const current = selectedProgram.visit_count ?? 0;
+        if (max !== null && current >= max) {
+          setTxError(`El cliente ya tiene ${current}/${max} visitas. Debe canjear su recompensa antes de seguir acumulando.`);
+          return;
+        }
+        if (max !== null && current + delta > max) {
+          setTxError(`Agregar ${delta} visitas excedería el límite (${current}/${max}). Máximo permitido: ${max - current}.`);
+          return;
+        }
+      }
+    }
+
     setTxError('');
 
     const fd = new FormData();
@@ -108,7 +147,16 @@ export default function QuickRegister({ programLabel }: Props) {
             ref={queryRef}
             type="text"
             value={query}
-            onChange={(e) => setQuery(e.target.value)}
+            onChange={(e) => {
+                setQuery(e.target.value);
+                if (!e.target.value) {
+                  setCustomer(null);
+                  setLookupError('');
+                  setLastSuccess(null);
+                  setTxError('');
+                  setDeltaStr('1');
+                }
+              }}
             placeholder="Código de acceso o teléfono…"
             autoFocus
             className="flex-1 rounded-lg border border-gray-200 px-3 py-2 text-sm outline-none transition focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100"
@@ -169,6 +217,33 @@ export default function QuickRegister({ programLabel }: Props) {
           {customer.programs.length > 0 && (
             <div className="rounded-xl border bg-white p-5 shadow-sm">
               <form onSubmit={handleTransaction} className="space-y-4">
+                {/* Cap warning — shown proactively when already at limit */}
+                {selectedProgram && (() => {
+                  if (selectedProgram.type === 'stamp') {
+                    const max = typeof selectedProgram.config.stamps_needed === 'number' ? selectedProgram.config.stamps_needed : null;
+                    const current = selectedProgram.stamp_count ?? 0;
+                    if (max !== null && current >= max) {
+                      return (
+                        <div className="rounded-lg bg-amber-50 border border-amber-200 px-3 py-2.5 text-sm text-amber-700">
+                          <strong>Tarjeta completa ({current}/{max} sellos).</strong> El cliente debe canjear su recompensa antes de seguir acumulando.
+                        </div>
+                      );
+                    }
+                  }
+                  if (selectedProgram.type === 'visit') {
+                    const max = typeof selectedProgram.config.visits_needed === 'number' ? selectedProgram.config.visits_needed : null;
+                    const current = selectedProgram.visit_count ?? 0;
+                    if (max !== null && current >= max) {
+                      return (
+                        <div className="rounded-lg bg-amber-50 border border-amber-200 px-3 py-2.5 text-sm text-amber-700">
+                          <strong>Límite alcanzado ({current}/{max} visitas).</strong> El cliente debe canjear su recompensa antes de seguir acumulando.
+                        </div>
+                      );
+                    }
+                  }
+                  return null;
+                })()}
+
                 {txError && (
                   <p className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-600">{txError}</p>
                 )}

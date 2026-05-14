@@ -6,8 +6,9 @@ import { createCustomerAction } from './actions';
 
 // Permite letras (incluye acentos, ñ, ü) y espacios; bloquea cualquier símbolo
 const NAME_ALLOWED = /^[a-zA-ZáéíóúÁÉÍÓÚàèìòùÀÈÌÒÙäëïöüÄËÏÖÜñÑçÇ ]*$/;
-// Permite dígitos, +, -, (, ), espacios
-const PHONE_ALLOWED = /^[0-9+\-() ]*$/;
+const NAME_MAX = 60;
+// Solo dígitos, máximo 10
+const PHONE_MAX = 10;
 
 function capitalizeWords(value: string) {
   return value.replace(/(?:^|\s)\S/g, (c) => c.toUpperCase());
@@ -24,13 +25,14 @@ export default function NewCustomerModal() {
 
   function handleNameChange(e: React.ChangeEvent<HTMLInputElement>) {
     const raw = e.target.value;
-    if (!NAME_ALLOWED.test(raw)) return; // bloquea símbolos
+    if (!NAME_ALLOWED.test(raw)) return;
+    if (raw.length > NAME_MAX) return;
     setName(capitalizeWords(raw));
   }
 
   function handlePhoneChange(e: React.ChangeEvent<HTMLInputElement>) {
-    const raw = e.target.value;
-    if (!PHONE_ALLOWED.test(raw)) return; // bloquea letras y símbolos
+    const raw = e.target.value.replace(/\D/g, ''); // solo dígitos
+    if (raw.length > PHONE_MAX) return;
     setPhone(raw);
   }
 
@@ -93,7 +95,7 @@ export default function NewCustomerModal() {
                 <input
                   name="phone"
                   type="tel"
-                  placeholder="+15551234567"
+                  placeholder="8134529076"
                   required
                   value={phone}
                   onChange={handlePhoneChange}
