@@ -1,32 +1,30 @@
-import Link from 'next/link';
+import Link from "next/link";
+import { headers } from "next/headers";
+import { getDictionary, isValidLocale } from "@/lib/i18n";
 
-export const metadata = {
-  title: '404 — Page Not Found | Fideliza+',
-  description: 'The page you were looking for does not exist.',
-  robots: { index: false, follow: false },
-};
+export default async function NotFound() {
+  const headersList = await headers();
+  const rawLang = headersList.get("x-locale") ?? "en";
+  const lang = isValidLocale(rawLang) ? rawLang : "en";
+  const dict = await getDictionary(lang);
+  const t = dict.notFound;
 
-export default function NotFound() {
   return (
     <div className="hero-bg min-h-screen flex flex-col items-center justify-center px-4 text-center">
-
       {/* Logotipo */}
       <Link
         href="/"
-        aria-label="Fideliza+ — Back to home"
+        aria-label={t.logoAriaLabel}
         className="mb-12 inline-flex items-center gap-2 animate-fade-in"
       >
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
-          src="/logofpurple.svg"
+          src="/logofideliza.svg"
           alt="Fideliza+"
-          width={32}
-          height={32}
-          className="h-8 w-auto"
+          width={36}
+          height={36}
+          className="h-10 w-auto"
         />
-        <span className="text-lg font-semibold text-white tracking-tight">
-          Fideliza<span className="text-indigo-400">+</span>
-        </span>
       </Link>
 
       {/* Número de error */}
@@ -40,13 +38,12 @@ export default function NotFound() {
 
       {/* Título */}
       <h1 className="mt-4 text-2xl sm:text-3xl font-bold text-white animate-fade-in-delay-1">
-        Page not found
+        {t.title}
       </h1>
 
       {/* Descripción */}
       <p className="mt-3 max-w-md text-base text-indigo-200/70 animate-fade-in-delay-2">
-        The page you&apos;re looking for doesn&apos;t exist or has been moved.
-        Let&apos;s get you back on track.
+        {t.description}
       </p>
 
       {/* Acciones */}
@@ -67,9 +64,13 @@ export default function NotFound() {
             stroke="currentColor"
             strokeWidth={2}
           >
-            <path strokeLinecap="round" strokeLinejoin="round" d="M3 12l9-9 9 9M5 10v9a1 1 0 001 1h4v-5h4v5h4a1 1 0 001-1v-9" />
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              d="M3 12l9-9 9 9M5 10v9a1 1 0 001 1h4v-5h4v5h4a1 1 0 001-1v-9"
+            />
           </svg>
-          Back to home
+          {t.backHome}
         </Link>
 
         <a
@@ -80,7 +81,7 @@ export default function NotFound() {
                      transition-colors
                      focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-500"
         >
-          Contact support
+          {t.contactSupport}
         </a>
       </div>
 
@@ -89,9 +90,11 @@ export default function NotFound() {
         aria-hidden="true"
         className="pointer-events-none absolute inset-0 overflow-hidden -z-0"
       >
-        <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2
+        <div
+          className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2
                         h-[600px] w-[600px] rounded-full
-                        bg-indigo-600/5 blur-3xl" />
+                        bg-indigo-600/5 blur-3xl"
+        />
       </div>
     </div>
   );

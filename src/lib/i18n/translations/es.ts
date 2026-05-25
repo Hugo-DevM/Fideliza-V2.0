@@ -357,4 +357,14 @@ export const es: Dictionary = {
       serverUnreachable: "No se pudo contactar el servidor. Inténtalo de nuevo.",
     },
   },
+
+  notFound: {
+    title: "Página no encontrada",
+    description: "La página que buscas no existe o ha sido movida. Volvamos a encaminarte.",
+    backHome: "Volver al inicio",
+    contactSupport: "Contactar soporte",
+    logoAriaLabel: "Fideliza+ — Volver al inicio",
+    metaTitle: "404 — Página no encontrada | Fideliza+",
+    metaDescription: "La página que buscabas no existe.",
+  },
 };

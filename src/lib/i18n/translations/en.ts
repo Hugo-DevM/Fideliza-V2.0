@@ -354,4 +354,14 @@ export const en = {
       serverUnreachable: "Could not reach the server. Please try again.",
     },
   },
+
+  notFound: {
+    title: "Page not found",
+    description: "The page you're looking for doesn't exist or has been moved. Let's get you back on track.",
+    backHome: "Back to home",
+    contactSupport: "Contact support",
+    logoAriaLabel: "Fideliza+ — Back to home",
+    metaTitle: "404 — Page Not Found | Fideliza+",
+    metaDescription: "The page you were looking for does not exist.",
+  },
 };
