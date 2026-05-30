@@ -46,7 +46,7 @@ function PrivacyEs() {
   return (
     <>
       <P>
-        <Highlight>Fecha de entrada en vigor: 5 de mayo de 2026.</Highlight>{' '}
+        <Highlight>Fecha de entrada en vigor: 30 de mayo de 2026.</Highlight>{' '}
         Esta Política de Privacidad describe cómo Fideliza+ ("<Highlight>Fideliza+</Highlight>",
         "nosotros" o "nuestro") recopila, usa, almacena y protege la información personal
         de quienes usan nuestra plataforma. Al acceder o usar los servicios de Fideliza+,
@@ -136,6 +136,7 @@ function PrivacyEs() {
       <UL items={[
         'Supabase (supabase.com) — base de datos PostgreSQL, autenticación y almacenamiento. Actúa como subencargado bajo un Acuerdo de Procesamiento de Datos (DPA). Los datos pueden almacenarse en servidores en la UE o EE.UU. según la configuración de la instancia.',
         'Stripe (stripe.com) — procesamiento de pagos y gestión de suscripciones. Stripe es responsable independiente respecto a los datos de pago bajo su propia política de privacidad. No almacenamos datos de tarjetas de crédito.',
+        'Meta Platforms Ireland Ltd. (facebook.com) — utilizamos el Meta Pixel para medir el rendimiento de nuestras campañas publicitarias. El Pixel puede establecer cookies de seguimiento (_fbp, _fbc) en tu navegador para identificar visitas y conversiones. Este tratamiento solo se realiza si has otorgado tu consentimiento a través del aviso de cookies. Meta actúa como responsable independiente para sus propias finalidades publicitarias conforme a su Política de datos.',
         'Proveedores de infraestructura de hosting — para alojar la aplicación web. Los datos se transmiten cifrados (TLS 1.2+).',
       ]} />
 
@@ -193,14 +194,38 @@ function PrivacyEs() {
       </P>
 
       <H2 id="cookies">8. Cookies y tecnologías de seguimiento</H2>
+      <H3>8.1 Cookies estrictamente necesarias</H3>
       <P>
-        Fideliza+ usa cookies estrictamente necesarias para la autenticación de los
-        usuarios administradores (sesión de Supabase). No usamos cookies de seguimiento,
-        publicidad o análisis de comportamiento de terceros.
+        Usamos cookies de sesión generadas por Supabase Auth para mantener iniciada la
+        sesión de los usuarios administradores. Estas cookies son esenciales para el
+        funcionamiento del servicio y no requieren consentimiento previo.
+      </P>
+      <H3>8.2 Cookies de publicidad y medición (requieren consentimiento)</H3>
+      <P>
+        Si aceptas las cookies opcionales a través del aviso que aparece al visitar
+        nuestra web, instalamos el <Highlight>Meta Pixel</Highlight> (de Meta Platforms
+        Ireland Ltd.), que puede establecer las siguientes cookies en tu navegador:
+      </P>
+      <UL items={[
+        '_fbp — identificador único de navegador generado por Meta, con una vigencia de 90 días. Se usa para medir la efectividad de la publicidad y atribuir conversiones.',
+        '_fbc — almacena el parámetro fbclid presente en la URL cuando llegas desde un anuncio de Meta. Vigencia: 90 días.',
+      ]} />
+      <P>
+        Estos datos permiten a Meta atribuir visitas y acciones en nuestra web a las
+        campañas publicitarias que ejecutamos en Facebook e Instagram. Meta actúa como
+        responsable independiente de este tratamiento.{' '}
+        <Highlight>Si rechazas las cookies opcionales, el Meta Pixel no se cargará</Highlight>{' '}
+        y ninguna de estas cookies será instalada.
       </P>
       <P>
+        Puedes retirar tu consentimiento en cualquier momento limpiando las cookies de
+        tu navegador o recargando la página, donde el aviso volverá a aparecer.
+      </P>
+      <H3>8.3 Clientes finales</H3>
+      <P>
         Los clientes finales que acceden al portal a través de su código de acceso{' '}
-        <Highlight>no requieren cookies</Highlight> para usar la plataforma.
+        <Highlight>no requieren cookies</Highlight> para usar la plataforma y no están
+        sujetos al Meta Pixel.
       </P>
 
       <H2 id="menores">9. Menores de edad</H2>
@@ -244,7 +269,7 @@ function PrivacyEn() {
   return (
     <>
       <P>
-        <Highlight>Effective date: May 5, 2026.</Highlight>{' '}
+        <Highlight>Effective date: May 30, 2026.</Highlight>{' '}
         This Privacy Policy describes how Fideliza+ ("<Highlight>Fideliza+</Highlight>",
         "we", "us" or "our") collects, uses, stores and protects personal information of
         those who use our platform. By accessing or using Fideliza+ services, you agree to
@@ -331,6 +356,7 @@ function PrivacyEn() {
       <UL items={[
         'Supabase (supabase.com) — PostgreSQL database, authentication and storage. Acts as sub-processor under a Data Processing Agreement (DPA). Data may be stored on EU or US servers depending on the instance configuration.',
         'Stripe (stripe.com) — payment processing and subscription management. Stripe is an independent controller for payment data under its own privacy policy. We do not store credit card data.',
+        'Meta Platforms Ireland Ltd. (facebook.com) — we use the Meta Pixel to measure the performance of our advertising campaigns. The Pixel may set tracking cookies (_fbp, _fbc) in your browser to identify visits and conversions. This processing only occurs if you have given your consent via the cookie notice. Meta acts as an independent controller for its own advertising purposes under its Data Policy.',
         'Hosting infrastructure providers — to host the web application. Data is transmitted encrypted (TLS 1.2+).',
       ]} />
 
@@ -386,14 +412,38 @@ function PrivacyEn() {
       </P>
 
       <H2 id="cookies">8. Cookies and tracking technologies</H2>
+      <H3>8.1 Strictly necessary cookies</H3>
       <P>
-        Fideliza+ uses strictly necessary cookies for admin user authentication (Supabase
-        session). We do not use third-party tracking, advertising or behavioral analytics
-        cookies.
+        We use session cookies generated by Supabase Auth to keep admin users signed in.
+        These cookies are essential for the service to function and do not require prior
+        consent.
+      </P>
+      <H3>8.2 Advertising and measurement cookies (require consent)</H3>
+      <P>
+        If you accept optional cookies via the notice displayed when you visit our website,
+        we load the <Highlight>Meta Pixel</Highlight> (by Meta Platforms Ireland Ltd.),
+        which may set the following cookies in your browser:
+      </P>
+      <UL items={[
+        '_fbp — a unique browser identifier generated by Meta, valid for 90 days. Used to measure advertising effectiveness and attribute conversions.',
+        '_fbc — stores the fbclid parameter present in the URL when you arrive from a Meta ad. Valid for 90 days.',
+      ]} />
+      <P>
+        These cookies allow Meta to attribute visits and actions on our website to the
+        advertising campaigns we run on Facebook and Instagram. Meta acts as an independent
+        controller for this processing.{' '}
+        <Highlight>If you decline optional cookies, the Meta Pixel will not load</Highlight>{' '}
+        and none of these cookies will be set.
       </P>
       <P>
+        You may withdraw your consent at any time by clearing your browser cookies and
+        reloading the page, where the notice will appear again.
+      </P>
+      <H3>8.3 End customers</H3>
+      <P>
         End customers accessing the portal via their access code{' '}
-        <Highlight>do not require cookies</Highlight> to use the platform.
+        <Highlight>do not require cookies</Highlight> to use the platform and are not
+        subject to the Meta Pixel.
       </P>
 
       <H2 id="menores">9. Children's privacy</H2>
@@ -440,7 +490,7 @@ export default async function PrivacyPage({ params }: Props) {
 
   const isEs = (lang as Locale) === 'es';
   const title = isEs ? 'Política de Privacidad' : 'Privacy Policy';
-  const updated = isEs ? 'Última actualización: 5 de mayo de 2026' : 'Last updated: May 5, 2026';
+  const updated = isEs ? 'Última actualización: 30 de mayo de 2026' : 'Last updated: May 30, 2026';
   const backLabel = isEs ? 'Volver al inicio' : 'Back to home';
   const otherLang = isEs ? 'en' : 'es';
   const otherLabel = isEs ? 'EN' : 'ES';
