@@ -167,6 +167,10 @@ function EntryScreen({
 
 // ── Portal shell ──────────────────────────────────────────────────────
 
+// Fixed accent color used for all UI components — independent of tenant branding.
+// Tenant primary/secondary colors are ONLY used for the gradient header.
+const ACCENT = '#6366F1';
+
 function PortalShell({ data, code, tab }: { data: PortalData; code: string; tab: Tab }) {
   const { tenant, customer, enrollments, recent_transactions, pending_vouchers } = data;
   const tabHref = (t: Tab) => `?code=${code}&tab=${t}`;
@@ -238,10 +242,9 @@ function PortalShell({ data, code, tab }: { data: PortalData; code: string; tab:
                 href={tabHref(key)}
                 className={`flex flex-1 flex-col items-center gap-1 py-3 text-xs font-semibold transition-colors border-b-2 ${
                   active
-                    ? 'border-b-2 text-indigo-600 dark:text-indigo-400'
+                    ? 'border-indigo-600 dark:border-indigo-400 text-indigo-600 dark:text-indigo-400'
                     : 'border-transparent text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300'
                 }`}
-                style={active ? { borderColor: tenant.primary_color, color: tenant.primary_color } : {}}
               >
                 {icon}
                 {label}
@@ -309,17 +312,14 @@ function PointsTab({
         <section className="space-y-3">
           <SectionHeading>Listo para usar</SectionHeading>
           {pendingVouchers.map((v) => (
-            <VoucherCard key={v.id} voucher={v} primaryColor={tenant.primary_color} />
+            <VoucherCard key={v.id} voucher={v} primaryColor={ACCENT} />
           ))}
         </section>
       )}
 
       {/* Affordable callout */}
       {affordableCount > 0 && pendingVouchers.length === 0 && (
-        <div
-          className="rounded-2xl p-4 flex items-center gap-3"
-          style={{ backgroundColor: `${tenant.primary_color}15`, color: tenant.primary_color }}
-        >
+        <div className="rounded-2xl p-4 flex items-center gap-3 bg-indigo-50 dark:bg-indigo-500/15 text-indigo-600 dark:text-indigo-400">
           <svg className="h-5 w-5 shrink-0" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" d="M21 11.25v8.25a1.5 1.5 0 0 1-1.5 1.5H5.25a1.5 1.5 0 0 1-1.5-1.5v-8.25M12 4.875A2.625 2.625 0 1 0 9.375 7.5H12m0-2.625V7.5m0-2.625A2.625 2.625 0 1 1 14.625 7.5H12m0 0V21m-8.625-9.75h18c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125h-18c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125Z" />
           </svg>
@@ -337,7 +337,7 @@ function PointsTab({
             <EnrollmentCard
               key={e.program_id}
               enrollment={e}
-              primaryColor={tenant.primary_color}
+              primaryColor={ACCENT}
               programLabel={tenant.program_label}
             />
           ))}
@@ -388,7 +388,7 @@ function RewardsTab({
                 <RewardRow
                   key={r.id}
                   reward={r}
-                  primaryColor={tenant.primary_color}
+                  primaryColor={ACCENT}
                   tenantId={tenant.id}
                   customerId={customerId}
                   enrollmentId={e.enrollment_id}
@@ -540,7 +540,7 @@ function HistoryTab({
       <SectionHeading>Actividad reciente</SectionHeading>
       <div className="overflow-hidden rounded-2xl border border-gray-100 dark:border-[#1e2438] bg-white dark:bg-[#161b2e] shadow-sm divide-y divide-gray-50 dark:divide-[#1e2438]">
         {shown.map((tx) => (
-          <TransactionRow key={tx.id} tx={tx} programLabel={tenant.program_label} primaryColor={tenant.primary_color} />
+          <TransactionRow key={tx.id} tx={tx} programLabel={tenant.program_label} primaryColor={ACCENT} />
         ))}
       </div>
     </section>
