@@ -135,8 +135,8 @@ export default async function AnalyticsPage({
     db.from('customers').select('id, name').eq('tenant_id', tenantId).eq('is_active', true),
     db.from('customer_reward_redemptions').select('created_at').eq('tenant_id', tenantId).gte('created_at', thirtyDaysAgo),
     db.from('customer_program_enrollments').select('customer_id, lifetime_points, visit_count').eq('tenant_id', tenantId),
-    db.from('customer_program_enrollments').select('created_at').eq('tenant_id', tenantId).gte('created_at', thirtyDaysAgo),
-    db.from('customer_program_enrollments').select('id', { count: 'exact', head: true }).eq('tenant_id', tenantId).lt('created_at', thirtyDaysAgo),
+    db.from('customer_program_enrollments').select('enrolled_at').eq('tenant_id', tenantId).gte('enrolled_at', thirtyDaysAgo),
+    db.from('customer_program_enrollments').select('id', { count: 'exact', head: true }).eq('tenant_id', tenantId).lt('enrolled_at', thirtyDaysAgo),
     db.from('transactions').select('created_at').eq('tenant_id', tenantId).gte('created_at', thirtyDaysAgo),
   ]);
 
@@ -185,7 +185,7 @@ export default async function AnalyticsPage({
 
   const enrollmentsByKey: Record<string, number> = {};
   for (const e of enrollments6m ?? []) {
-    const k = toChartKey(e.created_at, granularity);
+    const k = toChartKey(e.enrolled_at, granularity);
     enrollmentsByKey[k] = (enrollmentsByKey[k] ?? 0) + 1;
   }
   const txCountByKey: Record<string, number> = {};
