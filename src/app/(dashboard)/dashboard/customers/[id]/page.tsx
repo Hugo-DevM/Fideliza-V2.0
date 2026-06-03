@@ -253,9 +253,10 @@ export default async function CustomerDetailPage({
                     const progName = programNameMap.get(tx.program_id) ?? '—';
                     const timeStr = formatTxTime(new Date(tx.created_at));
                     const desc = tx.note ?? TX_TYPE_LABELS[tx.type] ?? tx.type;
+                    const txType = tx.type as string;
                     const deltaLabel =
-                      tx.type === 'stamp' ? '+1 sello' :
-                      tx.type === 'visit' ? '+1 visita' :
+                      txType === 'stamp' ? '+1 sello' :
+                      txType === 'visit' ? '+1 visita' :
                       `${isPositive ? '+' : ''}${tx.points_delta} pts`;
 
                     return (
