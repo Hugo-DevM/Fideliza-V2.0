@@ -106,6 +106,7 @@ export default async function CustomerDetailPage({
                 initialName={customer.name}
                 initialPhone={customer.phone ?? null}
                 initialNotes={customer.notes ?? null}
+                phonePrefix={settings.phone_prefix ?? null}
               />
               <ToggleStatusButton customerId={customer.id} isActive={customer.is_active} />
             </div>

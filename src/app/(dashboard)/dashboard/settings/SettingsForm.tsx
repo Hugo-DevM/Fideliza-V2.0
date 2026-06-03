@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useTransition } from 'react';
+import { useState, useTransition, useRef, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { updateSettingsAction } from './actions';
 import type { TenantSettings } from '@/lib/types';
@@ -20,11 +20,13 @@ export default function SettingsForm({
   const [secondaryColor, setSecondaryColor] = useState(settings.secondary_color);
   const [welcomeMessage, setWelcomeMessage] = useState(settings.welcome_message ?? '');
   const [programLabel,   setProgramLabel]   = useState(settings.program_label);
+  const [phonePrefix,    setPhonePrefix]    = useState(settings.phone_prefix ?? '');
   const [saved, setSaved] = useState({
     primary_color:   settings.primary_color,
     secondary_color: settings.secondary_color,
     welcome_message: settings.welcome_message ?? '',
     program_label:   settings.program_label,
+    phone_prefix:    settings.phone_prefix ?? '',
   });
   const [copied, setCopied] = useState(false);
 
@@ -32,7 +34,8 @@ export default function SettingsForm({
     primaryColor   !== saved.primary_color   ||
     secondaryColor !== saved.secondary_color ||
     welcomeMessage !== saved.welcome_message ||
-    programLabel   !== saved.program_label;
+    programLabel   !== saved.program_label   ||
+    phonePrefix    !== saved.phone_prefix;
 
   function handleProgramLabelChange(e: React.ChangeEvent<HTMLInputElement>) {
     const raw = e.target.value;
@@ -60,6 +63,7 @@ export default function SettingsForm({
           secondary_color: secondaryColor,
           welcome_message: welcomeMessage,
           program_label:   programLabel,
+          phone_prefix:    phonePrefix,
         });
         setSuccess('Configuración guardada');
         router.refresh();
@@ -192,6 +196,31 @@ export default function SettingsForm({
         </div>
       </div>
 
+      {/* ── Región card ─────────────────────────────────────────────────────── */}
+      <div className="rounded-2xl border border-gray-100 dark:border-[#1e2438] bg-white dark:bg-[#161b2e] shadow-sm p-5 space-y-4">
+        <div>
+          <h2 className="text-sm font-semibold text-gray-800 dark:text-white">Región</h2>
+          <p className="mt-0.5 text-xs text-gray-400 dark:text-gray-500">
+            Prefijo telefónico por defecto al agregar clientes.
+          </p>
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
+            País / prefijo telefónico
+          </label>
+          {/* Hidden input so FormData picks up the value */}
+          <input type="hidden" name="phone_prefix" value={phonePrefix} />
+          <PhonePrefixSelect
+            value={phonePrefix}
+            onChange={setPhonePrefix}
+          />
+          <p className="mt-1 text-xs text-gray-400 dark:text-gray-500">
+            Al agregar un cliente, el campo de teléfono mostrará este prefijo automáticamente.
+          </p>
+        </div>
+      </div>
+
       {/* ── Portal del cliente card ──────────────────────────────────────────── */}
       <div className="rounded-2xl border border-gray-100 dark:border-[#1e2438] bg-white dark:bg-[#161b2e] shadow-sm p-5 space-y-4">
         <div>
@@ -276,6 +305,147 @@ export default function SettingsForm({
     </form>
   );
 }
+
+function PhonePrefixSelect({ value, onChange }: { value: string; onChange: (v: string) => void }) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+
+  const selected = PHONE_PREFIXES.find((c) => c.code === value) ?? null;
+
+  useEffect(() => {
+    function handleOutside(e: MouseEvent) {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+    }
+    function handleEscape(e: KeyboardEvent) {
+      if (e.key === 'Escape') setOpen(false);
+    }
+    if (open) {
+      document.addEventListener('mousedown', handleOutside);
+      document.addEventListener('keydown', handleEscape);
+    }
+    return () => {
+      document.removeEventListener('mousedown', handleOutside);
+      document.removeEventListener('keydown', handleEscape);
+    };
+  }, [open]);
+
+  return (
+    <div ref={ref} className="relative max-w-xs">
+      {/* Trigger button */}
+      <button
+        type="button"
+        onClick={() => setOpen((o) => !o)}
+        className="w-full flex items-center justify-between gap-2 rounded-xl border border-gray-200 dark:border-[#1e2438] bg-white dark:bg-[#1a1f35] px-3 py-2.5 text-sm text-gray-800 dark:text-gray-200 outline-none transition hover:border-indigo-400 dark:hover:border-indigo-500 focus:border-indigo-400 dark:focus:border-indigo-500 focus:ring-2 focus:ring-indigo-400/20"
+      >
+        <span className="flex items-center gap-2.5 min-w-0">
+          {selected ? (
+            <>
+              <CountryBadge code={selected.iso} />
+              <span className="truncate">{selected.name}</span>
+              <span className="shrink-0 text-xs font-mono text-gray-400 dark:text-gray-500">{selected.code}</span>
+            </>
+          ) : (
+            <span className="text-gray-400 dark:text-gray-500">Sin prefijo</span>
+          )}
+        </span>
+        <ChevronDownIcon className={`h-4 w-4 shrink-0 text-gray-400 transition-transform ${open ? 'rotate-180' : ''}`} />
+      </button>
+
+      {/* Dropdown panel */}
+      {open && (
+        <div className="absolute z-50 mt-1.5 w-full rounded-xl border border-gray-200 dark:border-[#1e2438] bg-white dark:bg-[#1a1f35] shadow-lg overflow-hidden">
+          {/* No prefix option */}
+          <button
+            type="button"
+            onClick={() => { onChange(''); setOpen(false); }}
+            className={[
+              'w-full flex items-center gap-2.5 px-3 py-2.5 text-sm transition',
+              value === ''
+                ? 'bg-indigo-50 dark:bg-indigo-500/10 text-indigo-600 dark:text-indigo-400'
+                : 'text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-[#161b2e]',
+            ].join(' ')}
+          >
+            <span className="flex h-6 w-8 items-center justify-center rounded-md bg-gray-100 dark:bg-[#2a3147] text-xs font-bold text-gray-500 dark:text-gray-400 shrink-0">
+              —
+            </span>
+            <span>Sin prefijo</span>
+          </button>
+
+          <div className="h-px bg-gray-100 dark:bg-[#1e2438]" />
+
+          {/* Country list */}
+          <div className="max-h-56 overflow-y-auto">
+            {PHONE_PREFIXES.map((c) => (
+              <button
+                key={c.code}
+                type="button"
+                onClick={() => { onChange(c.code); setOpen(false); }}
+                className={[
+                  'w-full flex items-center gap-2.5 px-3 py-2.5 text-sm transition',
+                  value === c.code
+                    ? 'bg-indigo-50 dark:bg-indigo-500/10 text-indigo-600 dark:text-indigo-400'
+                    : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-[#161b2e]',
+                ].join(' ')}
+              >
+                <CountryBadge code={c.iso} />
+                <span className="flex-1 text-left truncate">{c.name}</span>
+                <span className="shrink-0 text-xs font-mono text-gray-400 dark:text-gray-500">{c.code}</span>
+                {value === c.code && (
+                  <svg className="h-3.5 w-3.5 shrink-0 text-indigo-500" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                  </svg>
+                )}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function CountryBadge({ code }: { code: string }) {
+  return (
+    <span className="inline-flex h-6 w-8 items-center justify-center rounded-md bg-gray-100 dark:bg-[#2a3147] text-[10px] font-bold tracking-wide text-gray-600 dark:text-gray-300 shrink-0">
+      {code}
+    </span>
+  );
+}
+
+function ChevronDownIcon({ className }: { className?: string }) {
+  return (
+    <svg className={className} fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+      <path strokeLinecap="round" strokeLinejoin="round" d="m19 9-7 7-7-7" />
+    </svg>
+  );
+}
+
+const PHONE_PREFIXES = [
+  { code: '+52',  iso: 'MX', name: 'México'            },
+  { code: '+54',  iso: 'AR', name: 'Argentina'          },
+  { code: '+1',   iso: 'US', name: 'EE.UU. / Canadá'   },
+  { code: '+57',  iso: 'CO', name: 'Colombia'           },
+  { code: '+56',  iso: 'CL', name: 'Chile'              },
+  { code: '+55',  iso: 'BR', name: 'Brasil'             },
+  { code: '+51',  iso: 'PE', name: 'Perú'               },
+  { code: '+598', iso: 'UY', name: 'Uruguay'            },
+  { code: '+595', iso: 'PY', name: 'Paraguay'           },
+  { code: '+591', iso: 'BO', name: 'Bolivia'            },
+  { code: '+593', iso: 'EC', name: 'Ecuador'            },
+  { code: '+502', iso: 'GT', name: 'Guatemala'          },
+  { code: '+503', iso: 'SV', name: 'El Salvador'        },
+  { code: '+504', iso: 'HN', name: 'Honduras'           },
+  { code: '+505', iso: 'NI', name: 'Nicaragua'          },
+  { code: '+506', iso: 'CR', name: 'Costa Rica'         },
+  { code: '+507', iso: 'PA', name: 'Panamá'             },
+  { code: '+509', iso: 'HT', name: 'Haití'              },
+  { code: '+53',  iso: 'CU', name: 'Cuba'               },
+  { code: '+34',  iso: 'ES', name: 'España'             },
+  { code: '+44',  iso: 'GB', name: 'Reino Unido'        },
+  { code: '+49',  iso: 'DE', name: 'Alemania'           },
+  { code: '+33',  iso: 'FR', name: 'Francia'            },
+  { code: '+39',  iso: 'IT', name: 'Italia'             },
+];
 
 function ColorField({
   label, name, value, onChange,

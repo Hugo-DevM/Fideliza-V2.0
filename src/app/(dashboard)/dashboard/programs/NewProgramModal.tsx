@@ -26,6 +26,7 @@ export default function NewProgramModal({
   function setOpen(v: boolean) { if (onClose && !v) onClose(); else setInternalOpen(v); }
   const [type, setType]       = useState(() => PROGRAM_TYPES[0]?.value ?? 'points');
   const [error, setError]     = useState('');
+  const [nameLen, setNameLen] = useState(0);
   const [descLen, setDescLen] = useState(0);
   const [isPending, startTransition] = useTransition();
   const formRef = useRef<HTMLFormElement>(null);
@@ -72,7 +73,7 @@ export default function NewProgramModal({
             <form ref={formRef} onSubmit={handleSubmit} className="space-y-4">
               {error && <p className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-600">{error}</p>}
 
-              <Field label="Nombre del programa *" name="name" type="text" placeholder="Recompensas Café" required />
+              <NameField charCount={nameLen} onCharCount={setNameLen} />
               <DescField charCount={descLen} onCharCount={setDescLen} />
 
               {/* Type selector */}
@@ -165,32 +166,49 @@ export default function NewProgramModal({
 
 const inputCls = 'w-full rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-900 placeholder-gray-400 outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100';
 
-function Field({ label, name, type, placeholder, required }: {
-  label: string; name: string; type: string; placeholder?: string; required?: boolean;
-}) {
+function NameField({ charCount, onCharCount }: { charCount: number; onCharCount: (n: number) => void }) {
+  const MAX = 60;
+  const warn = charCount >= Math.floor(MAX * 0.85);
   return (
     <div>
-      <label className="block text-sm font-medium text-gray-700 mb-1">{label}</label>
-      <input name={name} type={type} placeholder={placeholder} required={required} className={inputCls} />
+      <div className="flex items-center justify-between mb-1">
+        <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Nombre del programa *</label>
+        <span className={`text-xs ${warn ? 'text-amber-500' : 'text-gray-400 dark:text-gray-500'}`}>
+          {charCount} / {MAX}
+        </span>
+      </div>
+      <input
+        name="name"
+        type="text"
+        placeholder="Recompensas Café"
+        required
+        maxLength={MAX}
+        onChange={(e) => onCharCount(e.target.value.length)}
+        className={inputCls}
+      />
     </div>
   );
 }
 
 function DescField({ charCount, onCharCount }: { charCount: number; onCharCount: (n: number) => void }) {
+  const MAX = 200;
+  const warn = charCount >= Math.floor(MAX * 0.85);
   return (
     <div>
-      <label className="block text-sm font-medium text-gray-700 mb-1">Descripción</label>
+      <div className="flex items-center justify-between mb-1">
+        <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Descripción</label>
+        <span className={`text-xs ${warn ? 'text-amber-500' : 'text-gray-400 dark:text-gray-500'}`}>
+          {charCount} / {MAX}
+        </span>
+      </div>
       <textarea
         name="description"
         placeholder="Acumula puntos en cada compra"
-        maxLength={50}
+        maxLength={MAX}
         rows={3}
         onChange={(e) => onCharCount(e.target.value.length)}
         className={`${inputCls} resize-none`}
       />
-      <p className={`mt-1 text-xs text-right ${charCount >= 40 ? 'text-amber-500' : 'text-gray-400'}`}>
-        {charCount} / 50
-      </p>
     </div>
   );
 }

@@ -3,13 +3,22 @@
 import { useState, useTransition, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { updateCustomerAction } from '../actions';
+import { getLocalLimits } from '@/lib/constants/phone-limits';
 
 const NAME_ALLOWED = /^[a-zA-ZáéíóúÁÉÍÓÚàèìòùÀÈÌÒÙäëïöüÄËÏÖÜñÑçÇ ]*$/;
 const NAME_MAX = 60;
-const PHONE_MAX = 10;
 
 function capitalizeWords(value: string) {
   return value.replace(/(?:^|\s)\S/g, (c) => c.toUpperCase());
+}
+
+/** Strip the prefix from a stored phone if it starts with it; otherwise return as-is. */
+function extractLocal(phone: string | null, prefix: string | null): string {
+  if (!phone) return '';
+  if (prefix && phone.startsWith(prefix)) return phone.slice(prefix.length);
+  // Old format (digits only) — treat as local digits
+  if (/^\d+$/.test(phone)) return phone;
+  return phone;
 }
 
 interface Props {
@@ -17,21 +26,25 @@ interface Props {
   initialName: string;
   initialPhone: string | null;
   initialNotes: string | null;
+  phonePrefix: string | null;
 }
 
-export default function EditCustomerModal({ customerId, initialName, initialPhone, initialNotes }: Props) {
+export default function EditCustomerModal({ customerId, initialName, initialPhone, initialNotes, phonePrefix }: Props) {
   const [open, setOpen]   = useState(false);
   const [error, setError] = useState('');
   const [isPending, startTransition] = useTransition();
   const [name,  setName]  = useState(initialName);
-  const [phone, setPhone] = useState(initialPhone ?? '');
+  const [phone, setPhone] = useState(extractLocal(initialPhone, phonePrefix));
   const [notes, setNotes] = useState(initialNotes ?? '');
   const formRef = useRef<HTMLFormElement>(null);
   const router  = useRouter();
 
+  const { min: localMin, max: localMax, hint: localHint } = getLocalLimits(phonePrefix);
+  const fullPhone = phonePrefix ? phonePrefix + phone : phone;
+
   function handleOpen() {
     setName(initialName);
-    setPhone(initialPhone ?? '');
+    setPhone(extractLocal(initialPhone, phonePrefix));
     setNotes(initialNotes ?? '');
     setError('');
     setOpen(true);
@@ -40,7 +53,12 @@ export default function EditCustomerModal({ customerId, initialName, initialPhon
   function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setError('');
+    if (phone && phone.length < localMin) {
+      setError(`El teléfono debe tener ${localHint}.`);
+      return;
+    }
     const data = new FormData(e.currentTarget);
+    if (phone) data.set('phone', fullPhone);
 
     startTransition(async () => {
       const result = await updateCustomerAction(data);
@@ -96,18 +114,49 @@ export default function EditCustomerModal({ customerId, initialName, initialPhon
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Teléfono</label>
-                <input
-                  name="phone"
-                  type="tel"
-                  placeholder="8134529076"
-                  value={phone}
-                  onChange={(e) => {
-                    const raw = e.target.value.replace(/\D/g, '');
-                    if (raw.length > PHONE_MAX) return;
-                    setPhone(raw);
-                  }}
-                  className={inputCls}
-                />
+                <div className="flex">
+                  {phonePrefix && (
+                    <span className="inline-flex items-center rounded-l-xl border border-r-0 border-gray-200 dark:border-[#2a3147] bg-gray-100 dark:bg-[#1a1f35] px-3 text-sm font-medium text-gray-600 dark:text-gray-400 select-none shrink-0">
+                      {phonePrefix}
+                    </span>
+                  )}
+                  {/* Hidden input carries the full phone value to the server */}
+                  <input type="hidden" name="phone" value={phone ? fullPhone : ''} />
+                  <input
+                    type="tel"
+                    placeholder={phonePrefix ? '8134529076' : '+521234567890'}
+                    value={phone}
+                    maxLength={localMax}
+                    onChange={(e) => {
+                      const raw = e.target.value.replace(/\D/g, '');
+                      if (raw.length > localMax) return;
+                      setPhone(raw);
+                    }}
+                    className={[
+                      inputCls,
+                      phonePrefix ? 'rounded-l-none' : '',
+                      phone.length > 0 && phone.length < localMin ? 'border-amber-400 dark:border-amber-500 focus:border-amber-400 dark:focus:border-amber-500 focus:ring-amber-100 dark:focus:ring-amber-500/20' : '',
+                    ].join(' ')}
+                  />
+                </div>
+                {phone.length === 0 && phonePrefix && (
+                  <p className="mt-1 text-xs text-gray-400 dark:text-gray-500">
+                    Se esperan <span className="font-medium">{localHint}</span>
+                  </p>
+                )}
+                {phone.length > 0 && phone.length < localMin && (
+                  <p className="mt-1 text-xs text-amber-600 dark:text-amber-400">
+                    {localMin - phone.length} dígito{localMin - phone.length !== 1 ? 's' : ''} más · se esperan {localHint}
+                  </p>
+                )}
+                {phone.length >= localMin && (
+                  <p className="mt-1 text-xs text-gray-400 dark:text-gray-500">
+                    {phonePrefix
+                      ? <>Se guardará como <span className="font-mono text-gray-600 dark:text-gray-300">{fullPhone}</span></>
+                      : <span className="font-mono text-gray-600 dark:text-gray-300">{phone}</span>
+                    }
+                  </p>
+                )}
               </div>
 
               <div>

@@ -90,6 +90,7 @@ export interface Database {
           program_label: string;
           stamp_icon: string;
           terms_url: string | null;
+          phone_prefix: string | null;
           created_at: string;
           updated_at: string;
         };
@@ -102,6 +103,7 @@ export interface Database {
           program_label?: string;
           stamp_icon?: string;
           terms_url?: string | null;
+          phone_prefix?: string | null;
         };
         Update: {
           primary_color?: string;
@@ -110,6 +112,7 @@ export interface Database {
           program_label?: string;
           stamp_icon?: string;
           terms_url?: string | null;
+          phone_prefix?: string | null;
           updated_at?: string;
         };
         Relationships: GenericRelationship[];

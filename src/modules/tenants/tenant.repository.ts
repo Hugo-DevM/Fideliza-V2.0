@@ -82,6 +82,7 @@ export async function updateTenantSettings(
     secondary_color?: string;
     welcome_message?: string | null;
     program_label?: string;
+    phone_prefix?: string | null;
   }
 ): Promise<TenantSettings> {
   const db = await createServerClient();

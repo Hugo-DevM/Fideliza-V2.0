@@ -15,7 +15,10 @@ export default function EditProgramModal({
 }) {
   const [open, setOpen] = useState(false);
   const [error, setError] = useState('');
+  const [nameLen, setNameLen] = useState(currentName.length);
   const [descLen, setDescLen] = useState(currentDescription?.length ?? 0);
+  const NAME_MAX = 60;
+  const DESC_MAX = 200;
   const [isPending, startTransition] = useTransition();
   const formRef = useRef<HTMLFormElement>(null);
   const router = useRouter();
@@ -59,34 +62,43 @@ export default function EditProgramModal({
               {error && <p className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-600">{error}</p>}
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  Nombre del programa *
-                </label>
+                <div className="flex items-center justify-between mb-1">
+                  <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                    Nombre del programa *
+                  </label>
+                  <span className={`text-xs ${nameLen >= Math.floor(NAME_MAX * 0.85) ? 'text-amber-500' : 'text-gray-400 dark:text-gray-500'}`}>
+                    {nameLen} / {NAME_MAX}
+                  </span>
+                </div>
                 <input
                   name="name"
                   type="text"
                   defaultValue={currentName}
                   required
+                  maxLength={NAME_MAX}
+                  onChange={(e) => setNameLen(e.target.value.length)}
                   className="w-full rounded-xl border border-gray-200 dark:border-[#2a3147] bg-white dark:bg-[#0d0f17] px-3 py-2 text-sm text-gray-900 dark:text-white placeholder-gray-400 outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100 dark:focus:ring-indigo-500/20"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  Descripción
-                </label>
+                <div className="flex items-center justify-between mb-1">
+                  <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                    Descripción
+                  </label>
+                  <span className={`text-xs ${descLen >= Math.floor(DESC_MAX * 0.85) ? 'text-amber-500' : 'text-gray-400 dark:text-gray-500'}`}>
+                    {descLen} / {DESC_MAX}
+                  </span>
+                </div>
                 <textarea
                   name="description"
                   defaultValue={currentDescription ?? ''}
                   placeholder="Describe brevemente el programa"
-                  maxLength={50}
+                  maxLength={DESC_MAX}
                   rows={3}
                   onChange={(e) => setDescLen(e.target.value.length)}
                   className="w-full resize-none rounded-xl border border-gray-200 dark:border-[#2a3147] bg-white dark:bg-[#0d0f17] px-3 py-2 text-sm text-gray-900 dark:text-white placeholder-gray-400 outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100 dark:focus:ring-indigo-500/20"
                 />
-                <p className={`mt-1 text-xs text-right ${descLen >= 40 ? 'text-amber-500' : 'text-gray-400 dark:text-gray-500'}`}>
-                  {descLen} / 50
-                </p>
               </div>
 
               <div className="flex justify-end gap-3 pt-1">

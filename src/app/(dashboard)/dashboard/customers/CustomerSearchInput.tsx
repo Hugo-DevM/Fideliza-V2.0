@@ -22,7 +22,7 @@ export default function CustomerSearchInput({
 }) {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const [value, setValue]   = useState(defaultValue ?? '');
+  const [value, setValue]   = useState((defaultValue ?? '').slice(0, 60));
   const [status, setStatus] = useState<StatusFilter>(defaultStatus);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -35,7 +35,7 @@ export default function CustomerSearchInput({
   }
 
   function handleChange(e: React.ChangeEvent<HTMLInputElement>) {
-    const raw = e.target.value;
+    const raw = e.target.value.slice(0, 60);
     if (raw !== '' && !ALLOWED.test(raw)) return;
     const upper = raw.toUpperCase();
     setValue(upper);
@@ -75,6 +75,7 @@ export default function CustomerSearchInput({
           value={value}
           onChange={handleChange}
           placeholder="Nombre, teléfono o código…"
+          maxLength={60}
           className="w-full rounded-xl border border-gray-200 dark:border-[#2a3147] bg-white dark:bg-[#161b2e] pl-10 pr-9 py-2.5 text-sm text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-600 outline-none transition focus:border-indigo-400 dark:focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 dark:focus:ring-indigo-500/20"
         />
         {value && (

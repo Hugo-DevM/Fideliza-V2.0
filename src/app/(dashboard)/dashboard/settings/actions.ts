@@ -13,6 +13,8 @@ export async function updateSettingsAction(formData: FormData) {
   const secondary_color = (formData.get('secondary_color') as string | null)?.trim();
   const welcome_message = (formData.get('welcome_message') as string | null)?.trim() || null;
   const program_label   = (formData.get('program_label')   as string | null)?.trim();
+  const phone_prefix_raw = (formData.get('phone_prefix')  as string | null)?.trim();
+  const phone_prefix = phone_prefix_raw === '' ? null : (phone_prefix_raw ?? null);
 
   // Validate hex color format
   const hexRe = /^#[0-9A-Fa-f]{6}$/;
@@ -23,12 +25,18 @@ export async function updateSettingsAction(formData: FormData) {
     return { error: 'El color secundario debe ser un código hex válido.' };
   }
 
+  // Validate phone prefix format: must be + followed by 1-4 digits
+  if (phone_prefix && !/^\+[1-9]\d{0,3}$/.test(phone_prefix)) {
+    return { error: 'El prefijo telefónico debe tener formato +XX (ej. +52, +54).' };
+  }
+
   try {
     await updateTenantSettings(tenantId, {
       ...(primary_color   && { primary_color }),
       ...(secondary_color && { secondary_color }),
       welcome_message,
       ...(program_label   && { program_label }),
+      phone_prefix,
     });
     revalidatePath('/dashboard/settings');
     revalidatePath('/dashboard');

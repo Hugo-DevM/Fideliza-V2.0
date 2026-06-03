@@ -14,7 +14,7 @@ export default async function CustomersPage({
 }: {
   searchParams: Promise<{ page?: string; q?: string; status?: string }>;
 }) {
-  const { tenantId, planLimits, effectivePlan } = await getAuthenticatedTenant();
+  const { tenantId, settings, planLimits, effectivePlan } = await getAuthenticatedTenant();
   const { page: pageStr, q, status } = await searchParams;
   const page = Math.max(1, parseInt(pageStr ?? '1', 10));
   const statusFilter = status === 'active' ? 'active' : status === 'inactive' ? 'inactive' : 'all';
@@ -77,7 +77,7 @@ export default async function CustomersPage({
             {total} registrados · {activeCount ?? 0} activos · {planLabel} ({limitLabel})
           </p>
         </div>
-        {!atCustomerLimit && <NewCustomerModal />}
+        {!atCustomerLimit && <NewCustomerModal phonePrefix={settings.phone_prefix ?? null} />}
       </div>
 
       {/* Search + filter */}
@@ -207,14 +207,8 @@ function formatPhone(phone: string): string {
 }
 
 const AVATAR_COLORS = [
-  'bg-indigo-500',
-  'bg-violet-500',
-  'bg-emerald-500',
-  'bg-amber-500',
-  'bg-rose-500',
-  'bg-cyan-500',
-  'bg-pink-500',
-  'bg-teal-500',
+  'bg-indigo-500', 'bg-violet-500', 'bg-emerald-500',
+  'bg-amber-500',  'bg-rose-500',   'bg-cyan-500',
 ];
 
 // ── Icons ─────────────────────────────────────────────────────────
