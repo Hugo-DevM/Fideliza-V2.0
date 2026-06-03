@@ -46,7 +46,7 @@ export default async function CustomerDetailPage({
 
     // Build program config map
     const programConfigMap = new Map<string, { type: string; config: ProgramConfig }>(
-      (programs ?? []).map((p) => [p.id, { type: p.type, config: p.config as ProgramConfig }])
+      (programs ?? []).map((p) => [p.id, { type: p.type, config: p.config as unknown as ProgramConfig }])
     );
 
     // Build program name map for transactions
