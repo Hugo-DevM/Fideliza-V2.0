@@ -33,25 +33,25 @@ export default function DeleteAccountSection({ subdomain }: { subdomain: string 
   return (
     <>
       {/* ── Danger zone card ── */}
-      <section className="rounded-xl border border-gray-200 bg-white shadow-sm overflow-hidden">
-        <div className="flex items-center gap-2 border-b border-gray-100 px-5 py-3 bg-gray-50">
+      <section className="rounded-2xl border border-gray-200 dark:border-red-500/20 bg-white dark:bg-[#161b2e] shadow-sm overflow-hidden">
+        <div className="flex items-center gap-2 border-b border-gray-100 dark:border-red-500/20 px-5 py-3 bg-gray-50 dark:bg-red-500/5">
           <svg className="h-3.5 w-3.5 text-red-500" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" />
           </svg>
-          <h2 className="text-xs font-semibold uppercase tracking-widest text-red-600">Zona de peligro</h2>
+          <h2 className="text-xs font-semibold uppercase tracking-widest text-red-600 dark:text-red-400">Zona de peligro</h2>
         </div>
 
         <div className="flex items-center justify-between gap-6 px-5 py-4">
           <div>
-            <p className="text-sm font-semibold text-gray-800">Eliminar esta cuenta</p>
-            <p className="mt-0.5 text-xs text-gray-500 leading-relaxed max-w-sm">
+            <p className="text-sm font-semibold text-gray-800 dark:text-gray-100">Eliminar esta cuenta</p>
+            <p className="mt-0.5 text-xs text-gray-500 dark:text-gray-400 leading-relaxed max-w-sm">
               Una vez eliminada, tu cuenta y todos sus datos quedarán permanentemente inaccesibles. Esta acción no se puede deshacer.
             </p>
           </div>
           <button
             type="button"
             onClick={() => setOpen(true)}
-            className="shrink-0 rounded-lg bg-red-600 px-4 py-2 text-sm font-semibold text-white hover:bg-red-700 active:scale-95 transition-all"
+            className="shrink-0 rounded-xl bg-red-600 px-4 py-2 text-sm font-semibold text-white hover:bg-red-700 active:scale-95 transition-all"
           >
             Eliminar cuenta
           </button>
@@ -61,7 +61,7 @@ export default function DeleteAccountSection({ subdomain }: { subdomain: string 
       {/* ── Confirmation modal ── */}
       {open && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm">
-          <div className="w-full max-w-md rounded-2xl bg-white shadow-2xl overflow-hidden">
+          <div className="w-full max-w-md rounded-2xl bg-white dark:bg-[#161b2e] shadow-2xl overflow-hidden">
 
             {/* Modal header */}
             <div className="bg-red-600 px-6 py-5">
@@ -91,7 +91,7 @@ export default function DeleteAccountSection({ subdomain }: { subdomain: string 
 
             <div className="p-6 space-y-5">
               {/* Consequences */}
-              <div className="rounded-lg border border-red-100 bg-red-50 divide-y divide-red-100">
+              <div className="rounded-lg border border-red-100 dark:border-red-500/20 bg-red-50 dark:bg-red-500/10 divide-y divide-red-100 dark:divide-red-500/20">
                 {[
                   { icon: 'M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1', text: 'Tu sesión se cerrará de inmediato' },
                   { icon: 'M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z', text: 'No podrás volver a iniciar sesión con esta cuenta' },
@@ -102,7 +102,7 @@ export default function DeleteAccountSection({ subdomain }: { subdomain: string 
                     <svg className="h-4 w-4 shrink-0 text-red-400" fill="none" stroke="currentColor" strokeWidth={1.8} viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" d={icon} />
                     </svg>
-                    <span className="text-xs text-red-700">{text}</span>
+                    <span className="text-xs text-red-700 dark:text-red-400">{text}</span>
                   </div>
                 ))}
               </div>
@@ -113,25 +113,25 @@ export default function DeleteAccountSection({ subdomain }: { subdomain: string 
 
                 {/* Reason */}
                 <div>
-                  <label className="block text-xs font-semibold text-gray-600 mb-1.5 uppercase tracking-wide">
-                    Motivo <span className="font-normal normal-case text-gray-400">(opcional)</span>
+                  <label className="block text-xs font-semibold text-gray-600 dark:text-gray-400 mb-1.5 uppercase tracking-wide">
+                    Motivo <span className="font-normal normal-case text-gray-400 dark:text-gray-500">(opcional)</span>
                   </label>
                   <textarea
                     rows={2}
                     value={reason}
                     onChange={(e) => setReason(e.target.value)}
                     placeholder="¿Por qué eliminas tu cuenta?"
-                    className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-900 placeholder-gray-400 outline-none resize-none focus:border-red-300 focus:ring-2 focus:ring-red-100 transition"
+                    className="w-full rounded-lg border border-gray-200 dark:border-[#1e2438] bg-white dark:bg-[#1a1f35] px-3 py-2 text-sm text-gray-900 dark:text-gray-200 placeholder-gray-400 dark:placeholder-gray-500 outline-none resize-none focus:border-red-300 dark:focus:border-red-500/60 focus:ring-2 focus:ring-red-100 dark:focus:ring-red-500/20 transition"
                   />
                 </div>
 
                 {/* Subdomain confirmation */}
                 <div>
-                  <label className="block text-xs font-semibold text-gray-600 mb-1.5 uppercase tracking-wide">
+                  <label className="block text-xs font-semibold text-gray-600 dark:text-gray-400 mb-1.5 uppercase tracking-wide">
                     Confirmar eliminación
                   </label>
-                  <p className="text-xs text-gray-500 mb-2">
-                    Escribe <span className="font-mono font-bold text-gray-800 bg-gray-100 px-1.5 py-0.5 rounded">{subdomain}</span> para continuar
+                  <p className="text-xs text-gray-500 dark:text-gray-400 mb-2">
+                    Escribe <span className="font-mono font-bold text-gray-800 dark:text-gray-200 bg-gray-100 dark:bg-[#1e2438] px-1.5 py-0.5 rounded">{subdomain}</span> para continuar
                   </p>
                   <input
                     type="text"
@@ -142,14 +142,14 @@ export default function DeleteAccountSection({ subdomain }: { subdomain: string 
                     }}
                     placeholder={subdomain}
                     autoComplete="off"
-                    className={`w-full rounded-lg border px-3 py-2 text-sm font-mono text-gray-900 placeholder-gray-400 outline-none transition focus:ring-2 ${
+                    className={`w-full rounded-lg border px-3 py-2 text-sm font-mono placeholder-gray-400 dark:placeholder-gray-500 outline-none transition focus:ring-2 ${
                       confirmed
-                        ? 'border-red-400 bg-red-50 focus:border-red-500 focus:ring-red-100'
-                        : 'border-gray-200 focus:border-red-300 focus:ring-red-100'
+                        ? 'border-red-400 dark:border-red-500/60 bg-red-50 dark:bg-red-500/10 text-gray-900 dark:text-gray-200 focus:border-red-500 focus:ring-red-100 dark:focus:ring-red-500/20'
+                        : 'border-gray-200 dark:border-[#1e2438] bg-white dark:bg-[#1a1f35] text-gray-900 dark:text-gray-200 focus:border-red-300 dark:focus:border-red-500/60 focus:ring-red-100 dark:focus:ring-red-500/20'
                     }`}
                   />
                   {/* Progress indicator */}
-                  <div className="mt-1.5 h-0.5 w-full rounded-full bg-gray-100 overflow-hidden">
+                  <div className="mt-1.5 h-0.5 w-full rounded-full bg-gray-100 dark:bg-[#1e2438] overflow-hidden">
                     <div
                       className="h-full rounded-full bg-red-500 transition-all duration-300"
                       style={{ width: `${Math.min(100, (confirmation.length / subdomain.length) * 100)}%` }}
@@ -158,7 +158,7 @@ export default function DeleteAccountSection({ subdomain }: { subdomain: string 
                 </div>
 
                 {error && (
-                  <p className="rounded-lg bg-red-50 border border-red-100 px-3 py-2 text-xs text-red-600">{error}</p>
+                  <p className="rounded-lg bg-red-50 dark:bg-red-500/10 border border-red-100 dark:border-red-500/20 px-3 py-2 text-xs text-red-600 dark:text-red-400">{error}</p>
                 )}
 
                 <div className="flex gap-3 pt-1">
@@ -166,14 +166,14 @@ export default function DeleteAccountSection({ subdomain }: { subdomain: string 
                     type="button"
                     onClick={handleClose}
                     disabled={isPending}
-                    className="flex-1 rounded-lg border border-gray-200 px-4 py-2.5 text-sm font-medium text-gray-600 hover:bg-gray-50 disabled:opacity-50 transition"
+                    className="flex-1 rounded-xl border border-gray-200 dark:border-[#1e2438] px-4 py-2.5 text-sm font-medium text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-[#1a1f35] disabled:opacity-50 transition"
                   >
                     Cancelar
                   </button>
                   <button
                     type="submit"
                     disabled={!confirmed || isPending}
-                    className="flex-1 rounded-lg bg-red-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-red-700 disabled:opacity-40 disabled:cursor-not-allowed active:scale-95 transition-all"
+                    className="flex-1 rounded-xl bg-red-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-red-700 disabled:opacity-40 disabled:cursor-not-allowed active:scale-95 transition-all"
                   >
                     {isPending ? (
                       <span className="flex items-center justify-center gap-2">

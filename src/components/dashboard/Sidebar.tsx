@@ -7,20 +7,36 @@ import { useRouter } from 'next/navigation';
 
 interface SidebarProps {
   tenantName: string;
+  tenantPlan?: string;
   isOpen?: boolean;
   onClose?: () => void;
 }
 
-const NAV_ITEMS = [
-  { href: '/dashboard',            label: 'Resumen',          icon: HomeIcon },
-  { href: '/dashboard/quick',      label: 'Registro rápido',  icon: BoltIcon },
-  { href: '/dashboard/customers',  label: 'Clientes',         icon: UsersIcon },
-  { href: '/dashboard/programs',   label: 'Programas',        icon: GiftIcon },
-  { href: '/dashboard/analytics',  label: 'Analíticas',       icon: ChartIcon },
-  { href: '/dashboard/settings',   label: 'Configuración',    icon: SettingsIcon },
+const NAV_SECTIONS = [
+  {
+    label: 'Operación',
+    items: [
+      { href: '/dashboard',       label: 'Resumen',         icon: HomeIcon },
+      { href: '/dashboard/quick', label: 'Registro rápido', icon: BoltIcon },
+    ],
+  },
+  {
+    label: 'Gestión',
+    items: [
+      { href: '/dashboard/customers',  label: 'Clientes',    icon: UsersIcon },
+      { href: '/dashboard/programs',   label: 'Programas',   icon: GiftIcon },
+      { href: '/dashboard/analytics',  label: 'Analíticas',  icon: ChartIcon },
+    ],
+  },
+  {
+    label: 'Cuenta',
+    items: [
+      { href: '/dashboard/settings', label: 'Configuración', icon: SettingsIcon },
+    ],
+  },
 ];
 
-export default function Sidebar({ tenantName, isOpen = false, onClose }: SidebarProps) {
+export default function Sidebar({ tenantName, tenantPlan, isOpen = false, onClose }: SidebarProps) {
   const pathname = usePathname();
   const router   = useRouter();
 
@@ -35,66 +51,103 @@ export default function Sidebar({ tenantName, isOpen = false, onClose }: Sidebar
     router.refresh();
   }
 
+  const initials = tenantName
+    .split(' ')
+    .slice(0, 2)
+    .map((w) => w[0])
+    .join('')
+    .toUpperCase();
+
+  const planLabel = tenantPlan
+    ? tenantPlan.charAt(0).toUpperCase() + tenantPlan.slice(1)
+    : 'Free';
+
   return (
     <aside
       className={[
-        // Base: fixed on mobile (drawer), static on md+
-        'fixed inset-y-0 left-0 z-30 flex flex-col border-r border-gray-100 bg-white',
+        'fixed inset-y-0 left-0 z-30 flex flex-col',
+        'bg-white dark:bg-[#111520]',
+        'border-r border-gray-100 dark:border-[#1e2438]',
         'transition-transform duration-200 ease-in-out',
-        // Desktop: always visible, in document flow
-        'md:static md:z-auto md:h-screen md:w-56 md:shrink-0 md:translate-x-0',
-        // Mobile width
+        'md:static md:z-auto md:h-screen md:w-64 md:shrink-0 md:translate-x-0',
         'w-64',
-        // Mobile open/close
         isOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0',
       ].join(' ')}
     >
-      {/* Logo + mobile close button */}
-      <div className="flex h-14 items-center justify-between border-b border-gray-100 px-4">
-        <img src="/logofpurple.svg" alt="Fideliza+" className="h-10" />
+      {/* Logo + mobile close */}
+      <div className="flex h-16 items-center justify-between px-5 border-b border-gray-100 dark:border-[#1e2438]">
+        <div className="flex items-center gap-2.5">
+          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-indigo-600 text-white text-sm font-bold">
+            F
+          </div>
+          <span className="text-base font-bold text-gray-900 dark:text-white tracking-tight">
+            Fideliza<span className="text-indigo-500">+</span>
+          </span>
+        </div>
         <button
           onClick={onClose}
-          className="rounded-md p-1.5 text-gray-400 hover:bg-gray-100 md:hidden"
+          className="rounded-md p-1.5 text-gray-400 hover:bg-gray-100 dark:hover:bg-white/10 md:hidden"
           aria-label="Cerrar menú"
         >
           <CloseIcon className="h-4 w-4" />
         </button>
       </div>
 
-      {/* Nav */}
-      <nav className="flex-1 overflow-y-auto px-3 py-4 space-y-0.5">
-        {NAV_ITEMS.map(({ href, label, icon: Icon }) => {
-          // Active if exact match for /dashboard, startsWith otherwise
-          const isActive =
-            href === '/dashboard'
-              ? pathname === '/dashboard'
-              : pathname.startsWith(href);
+      {/* Nav sections */}
+      <nav className="flex-1 overflow-y-auto px-3 py-4 space-y-5">
+        {NAV_SECTIONS.map((section) => (
+          <div key={section.label}>
+            <p className="px-3 mb-1.5 text-[10px] font-semibold uppercase tracking-widest text-gray-400 dark:text-gray-500">
+              {section.label}
+            </p>
+            <div className="space-y-0.5">
+              {section.items.map(({ href, label, icon: Icon }) => {
+                const isActive =
+                  href === '/dashboard'
+                    ? pathname === '/dashboard'
+                    : pathname.startsWith(href);
 
-          return (
-            <Link
-              key={href}
-              href={href}
-              onClick={onClose}
-              onMouseEnter={() => router.prefetch(href)}
-              className={`flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
-                isActive
-                  ? 'bg-indigo-50 text-indigo-600'
-                  : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
-              }`}
-            >
-              <Icon className="h-4 w-4 shrink-0" />
-              {label}
-            </Link>
-          );
-        })}
+                return (
+                  <Link
+                    key={href}
+                    href={href}
+                    onClick={onClose}
+                    onMouseEnter={() => router.prefetch(href)}
+                    className={[
+                      'flex items-center gap-3 rounded-xl px-3 py-2 text-sm font-medium transition-colors',
+                      isActive
+                        ? 'bg-indigo-50 text-indigo-600 dark:bg-indigo-500/15 dark:text-indigo-300'
+                        : 'text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-white/5 hover:text-gray-900 dark:hover:text-white',
+                    ].join(' ')}
+                  >
+                    <Icon className="h-4 w-4 shrink-0" />
+                    {label}
+                  </Link>
+                );
+              })}
+            </div>
+          </div>
+        ))}
       </nav>
 
-      {/* Footer */}
-      <div className="border-t border-gray-100 p-3 space-y-1">
-        <p className="truncate px-3 text-xs font-medium text-gray-400">{tenantName}</p>
+      {/* Footer: tenant info + logout */}
+      <div className="border-t border-gray-100 dark:border-[#1e2438] p-3 space-y-1">
+        <div className="flex items-center gap-3 rounded-xl px-3 py-2">
+          <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-indigo-100 dark:bg-indigo-500/20 text-indigo-700 dark:text-indigo-300 text-xs font-bold">
+            {initials}
+          </div>
+          <div className="min-w-0">
+            <p className="truncate text-sm font-semibold text-gray-800 dark:text-white leading-tight">
+              {tenantName}
+            </p>
+            <p className="text-xs text-gray-400 dark:text-gray-500">
+              Plan {planLabel} · activo
+            </p>
+          </div>
+        </div>
         <button
           onClick={handleLogout}
-          className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-gray-500 transition hover:bg-gray-50 hover:text-gray-700"
+          className="flex w-full items-center gap-3 rounded-xl px-3 py-2 text-sm font-medium text-gray-500 dark:text-gray-400 transition hover:bg-gray-50 dark:hover:bg-white/5 hover:text-gray-700 dark:hover:text-white"
         >
           <LogoutIcon className="h-4 w-4 shrink-0" />
           Cerrar sesión
@@ -104,7 +157,7 @@ export default function Sidebar({ tenantName, isOpen = false, onClose }: Sidebar
   );
 }
 
-// ── Inline icons (no icon library dependency) ─────────────────────────
+// ── Inline icons ───────────────────────────────────────────────────
 
 function BoltIcon({ className }: { className?: string }) {
   return (

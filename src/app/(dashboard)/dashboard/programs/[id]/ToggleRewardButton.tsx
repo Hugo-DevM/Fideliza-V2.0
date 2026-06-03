@@ -19,10 +19,10 @@ export default function ToggleRewardButton({
         await toggleRewardAction(programId, rewardId, !isActive);
         router.refresh();
       })}
-      className={`shrink-0 rounded-lg border px-2 py-1 text-xs font-medium transition disabled:opacity-50 ${
+      className={`shrink-0 rounded-lg border px-2.5 py-1 text-xs font-medium transition disabled:opacity-50 ${
         isActive
-          ? 'border-gray-200 text-gray-400 hover:border-red-200 hover:text-red-500'
-          : 'border-green-200 text-green-600 hover:bg-green-50'
+          ? 'border-gray-200 dark:border-[#2a3147] text-gray-400 dark:text-gray-500 hover:border-red-200 dark:hover:border-red-900/50 hover:text-red-500 dark:hover:text-red-400'
+          : 'border-emerald-200 dark:border-emerald-900/50 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-950/30'
       }`}
     >
       {isPending ? '…' : isActive ? 'Desactivar' : 'Activar'}

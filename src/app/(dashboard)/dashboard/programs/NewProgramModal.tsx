@@ -11,11 +11,22 @@ const ALL_PROGRAM_TYPES = [
   { value: 'cashback', label: 'Cashback',          hint: 'Gana % de vuelta como crédito' },
 ];
 
-export default function NewProgramModal({ allowedTypes }: { allowedTypes: string[] }) {
+export default function NewProgramModal({
+  allowedTypes,
+  controlledOpen,
+  onClose,
+}: {
+  allowedTypes: string[];
+  controlledOpen?: boolean;
+  onClose?: () => void;
+}) {
   const PROGRAM_TYPES = ALL_PROGRAM_TYPES.filter((t) => allowedTypes.includes(t.value));
-  const [open, setOpen]   = useState(false);
-  const [type, setType]   = useState(() => PROGRAM_TYPES[0]?.value ?? 'points');
-  const [error, setError] = useState('');
+  const [internalOpen, setInternalOpen] = useState(false);
+  const open = controlledOpen ?? internalOpen;
+  function setOpen(v: boolean) { if (onClose && !v) onClose(); else setInternalOpen(v); }
+  const [type, setType]       = useState(() => PROGRAM_TYPES[0]?.value ?? 'points');
+  const [error, setError]     = useState('');
+  const [descLen, setDescLen] = useState(0);
   const [isPending, startTransition] = useTransition();
   const formRef = useRef<HTMLFormElement>(null);
   const router  = useRouter();
@@ -42,24 +53,27 @@ export default function NewProgramModal({ allowedTypes }: { allowedTypes: string
     <>
       <button
         onClick={() => setOpen(true)}
-        className="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-700"
+        className="inline-flex items-center gap-2 rounded-xl bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-indigo-700 transition shrink-0"
       >
-        + Nuevo programa
+        <svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+        </svg>
+        Nuevo programa
       </button>
 
       {open && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
-          <div className="w-full max-w-lg rounded-2xl bg-white p-6 shadow-xl">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
+          <div className="w-full max-w-lg rounded-2xl bg-white dark:bg-[#161b2e] p-6 shadow-2xl">
             <div className="mb-5 flex items-center justify-between">
-              <h2 className="text-base font-bold text-gray-900">Crear programa</h2>
-              <button onClick={() => setOpen(false)} className="text-xl leading-none text-gray-400 hover:text-gray-600">×</button>
+              <h2 className="text-base font-bold text-gray-900 dark:text-white">Crear programa</h2>
+              <button onClick={() => setOpen(false)} className="text-xl leading-none text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition">×</button>
             </div>
 
             <form ref={formRef} onSubmit={handleSubmit} className="space-y-4">
               {error && <p className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-600">{error}</p>}
 
               <Field label="Nombre del programa *" name="name" type="text" placeholder="Recompensas Café" required />
-              <Field label="Descripción" name="description" type="text" placeholder="Acumula puntos en cada compra" />
+              <DescField charCount={descLen} onCharCount={setDescLen} />
 
               {/* Type selector */}
               <div>
@@ -104,8 +118,18 @@ export default function NewProgramModal({ allowedTypes }: { allowedTypes: string
               {/* Type-specific config */}
               {type === 'points' && (
                 <div className="grid grid-cols-2 gap-3">
-                  <NumField label="Puntos por $" name="points_per_dollar" defaultValue="10" />
-                  <NumField label="Mínimo para canjear" name="min_redeem" defaultValue="100" />
+                  <NumField
+                    label="Puntos por cada $1 gastado"
+                    name="points_per_dollar"
+                    defaultValue="10"
+                    hint="Ej: 10 → el cliente gana 10 pts por cada $1"
+                  />
+                  <NumField
+                    label="Puntos mínimos para canjear"
+                    name="min_redeem"
+                    defaultValue="100"
+                    hint="El cliente necesita acumular al menos este número de puntos"
+                  />
                 </div>
               )}
               {type === 'stamp' && (
@@ -152,8 +176,27 @@ function Field({ label, name, type, placeholder, required }: {
   );
 }
 
-function NumField({ label, name, defaultValue, step, min }: {
-  label: string; name: string; defaultValue: string; step?: string; min?: string;
+function DescField({ charCount, onCharCount }: { charCount: number; onCharCount: (n: number) => void }) {
+  return (
+    <div>
+      <label className="block text-sm font-medium text-gray-700 mb-1">Descripción</label>
+      <textarea
+        name="description"
+        placeholder="Acumula puntos en cada compra"
+        maxLength={50}
+        rows={3}
+        onChange={(e) => onCharCount(e.target.value.length)}
+        className={`${inputCls} resize-none`}
+      />
+      <p className={`mt-1 text-xs text-right ${charCount >= 40 ? 'text-amber-500' : 'text-gray-400'}`}>
+        {charCount} / 50
+      </p>
+    </div>
+  );
+}
+
+function NumField({ label, name, defaultValue, step, min, hint }: {
+  label: string; name: string; defaultValue: string; step?: string; min?: string; hint?: string;
 }) {
   const resolvedStep = step ?? '1';
   const resolvedMin  = min  ?? '1';
@@ -161,7 +204,6 @@ function NumField({ label, name, defaultValue, step, min }: {
 
   function handleInput(e: React.ChangeEvent<HTMLInputElement>) {
     let val = e.target.value;
-    // Strip decimals for integer fields
     if (isInteger) val = val.replace(/[.,].*/, '');
     const num = parseFloat(val);
     if (!isNaN(num) && num < parseFloat(resolvedMin)) {
@@ -180,14 +222,13 @@ function NumField({ label, name, defaultValue, step, min }: {
         defaultValue={defaultValue}
         required
         onKeyDown={(e) => {
-          // Block decimal separators for integer fields
           if (isInteger && (e.key === '.' || e.key === ',')) e.preventDefault();
-          // Block minus sign
           if (e.key === '-') e.preventDefault();
         }}
         onChange={handleInput}
         className={inputCls}
       />
+      {hint && <p className="mt-1 text-xs text-gray-400 leading-snug">{hint}</p>}
     </div>
   );
 }

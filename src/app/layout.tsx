@@ -1,12 +1,12 @@
 import type { Metadata } from 'next';
-import { Geist, Geist_Mono } from 'next/font/google';
+import { Space_Grotesk, Geist_Mono } from 'next/font/google';
 import { headers } from 'next/headers';
 import { CookieBanner } from '@/components/analytics/CookieBanner';
 import { MetaPixel } from '@/components/analytics/MetaPixel';
 import './globals.css';
 
-const geistSans = Geist({
-  variable: '--font-geist-sans',
+const spaceGrotesk = Space_Grotesk({
+  variable: '--font-space-grotesk',
   subsets: ['latin'],
 });
 
@@ -43,14 +43,22 @@ export default async function RootLayout({
   return (
     <html
       lang={lang}
-      data-scroll-behavior="smooth"
-      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
+      suppressHydrationWarning
+      className={`${spaceGrotesk.variable} ${geistMono.variable} h-full antialiased`}
     >
+      <head>
+        {/* Prevent dark mode flash before hydration */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `try{var t=localStorage.getItem('theme');if(t==='dark'||(t==null&&window.matchMedia('(prefers-color-scheme:dark)').matches)){document.documentElement.classList.add('dark')}}catch(e){}`
+          }}
+        />
+      </head>
       <body className="min-h-full flex flex-col">
-          {children}
-          <MetaPixel />
-          <CookieBanner lang={lang} />
-        </body>
+        {children}
+        <MetaPixel />
+        <CookieBanner lang={lang} />
+      </body>
     </html>
   );
 }

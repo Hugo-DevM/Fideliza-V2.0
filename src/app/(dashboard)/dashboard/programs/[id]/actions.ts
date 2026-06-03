@@ -3,10 +3,27 @@
 import { revalidatePath, revalidateTag } from 'next/cache';
 import { getAuthenticatedTenant } from '@/lib/auth/get-tenant';
 import { updateProgram, createReward, updateReward } from '@/modules/rewards';
+import { getPlanLimits } from '@/lib/config/plans';
 import { markRedemptionUsed } from '@/modules/transactions';
 import { createServiceRoleClient } from '@/lib/supabase/server';
 import { auditLog, AuditEvent } from '@/lib/utils/audit';
 import type { ProgramStatus } from '@/lib/types';
+
+export async function updateProgramInfoAction(programId: string, formData: FormData) {
+  const { tenantId } = await getAuthenticatedTenant();
+  const name        = (formData.get('name') as string).trim();
+  const description = (formData.get('description') as string | null)?.trim() || null;
+  if (!name) return { error: 'El nombre es obligatorio.' };
+  try {
+    await updateProgram(tenantId, programId, { name, description });
+    revalidateTag('programs', 'max');
+    revalidatePath(`/dashboard/programs/${programId}`);
+    revalidatePath('/dashboard/programs');
+    return { success: true };
+  } catch (err) {
+    return { error: err instanceof Error ? err.message : 'Error al actualizar el programa.' };
+  }
+}
 
 export async function updateProgramStatusAction(programId: string, status: ProgramStatus) {
   const { tenantId } = await getAuthenticatedTenant();
@@ -31,7 +48,7 @@ export async function updateProgramStatusAction(programId: string, status: Progr
 }
 
 export async function createRewardAction(programId: string, formData: FormData) {
-  const { tenantId } = await getAuthenticatedTenant();
+  const { tenantId, effectivePlan } = await getAuthenticatedTenant();
 
   const name        = (formData.get('name') as string).trim();
   const description = (formData.get('description') as string | null)?.trim() || null;
@@ -46,6 +63,20 @@ export async function createRewardAction(programId: string, formData: FormData) 
   }
 
   try {
+    const db = createServiceRoleClient();
+    const limits = getPlanLimits(effectivePlan);
+    if (limits.maxRewardsPerProgram !== null) {
+      const { count } = await db
+        .from('rewards')
+        .select('id', { count: 'exact', head: true })
+        .eq('program_id', programId)
+        .eq('tenant_id', tenantId)
+        .eq('is_active', true);
+      if ((count ?? 0) >= limits.maxRewardsPerProgram) {
+        return { error: `Límite alcanzado: máximo ${limits.maxRewardsPerProgram} recompensas activas por programa.` };
+      }
+    }
+
     await createReward(tenantId, { program_id: programId, name, description, cost_points, stock, expiry_days });
     revalidateTag('rewards', 'max');
     revalidatePath(`/dashboard/programs/${programId}`);
@@ -64,6 +95,19 @@ export async function toggleRewardAction(programId: string, rewardId: string, is
     return { success: true };
   } catch (err) {
     return { error: err instanceof Error ? err.message : 'Error al actualizar el premio.' };
+  }
+}
+
+export async function deleteRewardAction(programId: string, rewardId: string) {
+  const { tenantId } = await getAuthenticatedTenant();
+  try {
+    // Soft delete — keeps referential integrity with redemption history
+    await updateReward(tenantId, rewardId, { is_active: false });
+    revalidateTag('rewards', 'max');
+    revalidatePath(`/dashboard/programs/${programId}`);
+    return { success: true };
+  } catch (err) {
+    return { error: err instanceof Error ? err.message : 'Error al eliminar la recompensa.' };
   }
 }
 

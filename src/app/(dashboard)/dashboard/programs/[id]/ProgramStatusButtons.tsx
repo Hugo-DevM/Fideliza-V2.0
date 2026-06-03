@@ -13,12 +13,12 @@ interface Props {
 }
 
 const TRANSITIONS: Record<ProgramStatus, { label: string; next: ProgramStatus; style: string }[]> = {
-  draft:    [{ label: 'Activar',  next: 'active',   style: 'bg-green-600 text-white hover:bg-green-700' }],
-  active:   [{ label: 'Pausar',  next: 'paused',   style: 'bg-yellow-500 text-white hover:bg-yellow-600' },
-             { label: 'Archivar', next: 'archived', style: 'border border-red-300 text-red-600 hover:bg-red-50' }],
-  paused:   [{ label: 'Reanudar', next: 'active',  style: 'bg-green-600 text-white hover:bg-green-700' },
-             { label: 'Archivar', next: 'archived', style: 'border border-red-300 text-red-600 hover:bg-red-50' }],
-  archived: [],
+  draft:    [{ label: 'Activar',   next: 'active',   style: 'rounded-xl bg-emerald-600 text-white hover:bg-emerald-700' }],
+  active:   [{ label: 'Pausar',   next: 'paused',   style: 'rounded-xl border border-amber-200 dark:border-amber-700/50 text-amber-700 dark:text-amber-400 hover:bg-amber-50 dark:hover:bg-amber-950/30' },
+             { label: 'Archivar', next: 'archived', style: 'rounded-xl border border-red-200 dark:border-red-900/50 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/30' }],
+  paused:   [{ label: 'Reanudar', next: 'active',   style: 'rounded-xl bg-emerald-600 text-white hover:bg-emerald-700' },
+             { label: 'Archivar', next: 'archived', style: 'rounded-xl border border-red-200 dark:border-red-900/50 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/30' }],
+  archived: [{ label: 'Reactivar', next: 'active', style: 'rounded-xl bg-emerald-600 text-white hover:bg-emerald-700' }],
 };
 
 export default function ProgramStatusButtons({ programId, currentStatus, plan, enrollmentCount }: Props) {
@@ -38,7 +38,7 @@ export default function ProgramStatusButtons({ programId, currentStatus, plan, e
     });
   }
 
-  if (!transitions.length) return <span className="text-sm text-gray-400">Archivado — solo lectura</span>;
+  if (!transitions.length) return null;
 
   return (
     <>
@@ -48,7 +48,7 @@ export default function ProgramStatusButtons({ programId, currentStatus, plan, e
             key={t.next}
             disabled={isPending}
             onClick={() => t.next === 'archived' ? setShowArchiveModal(true) : runTransition(t.next)}
-            className={`rounded-lg px-3 py-1.5 text-xs font-semibold transition disabled:opacity-50 ${t.style}`}
+            className={`px-3.5 py-2 text-sm font-semibold transition disabled:opacity-50 ${t.style}`}
           >
             {isPending ? '…' : t.label}
           </button>
@@ -57,8 +57,8 @@ export default function ProgramStatusButtons({ programId, currentStatus, plan, e
 
       {/* Archive confirmation modal */}
       {showArchiveModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
-          <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-xl">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
+          <div className="w-full max-w-md rounded-2xl bg-white dark:bg-[#161b2e] p-6 shadow-2xl">
 
             {/* Icon */}
             <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-red-50">
@@ -67,17 +67,14 @@ export default function ProgramStatusButtons({ programId, currentStatus, plan, e
               </svg>
             </div>
 
-            <h2 className="text-center text-base font-bold text-gray-900">¿Archivar este programa?</h2>
+            <h2 className="text-center text-base font-bold text-gray-900 dark:text-white">¿Archivar este programa?</h2>
 
-            {/* Impact */}
-            <div className="mt-4 rounded-xl bg-red-50 border border-red-100 p-4 space-y-2 text-sm text-red-700">
+            <div className="mt-4 rounded-xl bg-red-50 dark:bg-red-950/30 border border-red-100 dark:border-red-900/30 p-4 space-y-2 text-sm text-red-700 dark:text-red-400">
               <p className="font-semibold">Esto afectará a tus clientes de inmediato:</p>
-              <ul className="space-y-1.5 text-red-600">
+              <ul className="space-y-1.5 text-red-600 dark:text-red-400">
                 <li className="flex items-start gap-2">
                   <span className="mt-0.5 shrink-0">•</span>
-                  <span>
-                    <strong>{enrollmentCount} cliente{enrollmentCount !== 1 ? 's' : ''}</strong> inscritos perderán acceso al programa en su portal.
-                  </span>
+                  <span><strong>{enrollmentCount} cliente{enrollmentCount !== 1 ? 's' : ''}</strong> inscritos perderán acceso al programa.</span>
                 </li>
                 <li className="flex items-start gap-2">
                   <span className="mt-0.5 shrink-0">•</span>
@@ -85,24 +82,24 @@ export default function ProgramStatusButtons({ programId, currentStatus, plan, e
                 </li>
                 <li className="flex items-start gap-2">
                   <span className="mt-0.5 shrink-0">•</span>
-                  <span>Los puntos acumulados se conservan en la base de datos pero los clientes no podrán verlos.</span>
+                  <span>Los puntos acumulados se conservan pero los clientes no podrán verlos.</span>
                 </li>
               </ul>
             </div>
 
-            <p className="mt-3 text-xs text-gray-400 text-center">Esta acción no se puede deshacer desde el panel.</p>
+            <p className="mt-3 text-xs text-gray-400 dark:text-gray-500 text-center">Esta acción no se puede deshacer desde el panel.</p>
 
             <div className="mt-5 flex gap-3">
               <button
                 onClick={() => setShowArchiveModal(false)}
-                className="flex-1 rounded-lg border border-gray-200 px-4 py-2 text-sm font-medium text-gray-600 hover:bg-gray-50 transition"
+                className="flex-1 rounded-xl border border-gray-200 dark:border-[#2a3147] px-4 py-2 text-sm font-medium text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-[#1e2438] transition"
               >
                 Cancelar
               </button>
               <button
                 disabled={isPending}
                 onClick={() => { setShowArchiveModal(false); runTransition('archived'); }}
-                className="flex-1 rounded-lg bg-red-600 px-4 py-2 text-sm font-semibold text-white hover:bg-red-700 disabled:opacity-50 transition"
+                className="flex-1 rounded-xl bg-red-600 px-4 py-2 text-sm font-semibold text-white hover:bg-red-700 disabled:opacity-50 transition"
               >
                 {isPending ? 'Archivando…' : 'Sí, archivar'}
               </button>

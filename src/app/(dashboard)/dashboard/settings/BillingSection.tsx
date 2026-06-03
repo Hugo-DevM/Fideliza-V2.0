@@ -14,9 +14,9 @@ interface Props {
 }
 
 interface UpgradePreview {
-  amountDue: number;   // cents
+  amountDue: number;
   currency:  string;
-  periodEnd: number;   // unix timestamp
+  periodEnd: number;
 }
 
 const PLAN_LABELS: Record<string, string> = {
@@ -27,13 +27,13 @@ const PLAN_LABELS: Record<string, string> = {
 };
 
 const STATUS_CONFIG: Record<string, { label: string; cls: string }> = {
-  active:             { label: 'Activa',          cls: 'bg-green-50 text-green-700' },
-  trialing:           { label: 'Prueba',           cls: 'bg-blue-50 text-blue-700' },
-  past_due:           { label: 'Pago pendiente',   cls: 'bg-red-50 text-red-700' },
-  canceled:           { label: 'Cancelada',        cls: 'bg-gray-100 text-gray-500' },
-  incomplete:         { label: 'Incompleta',       cls: 'bg-yellow-50 text-yellow-700' },
-  incomplete_expired: { label: 'Expirada',         cls: 'bg-gray-100 text-gray-500' },
-  unpaid:             { label: 'Sin pagar',        cls: 'bg-red-50 text-red-700' },
+  active:             { label: 'Activa',          cls: 'bg-green-50 dark:bg-green-500/10 text-green-700 dark:text-green-400' },
+  trialing:           { label: 'Prueba',           cls: 'bg-blue-50 dark:bg-blue-500/10 text-blue-700 dark:text-blue-400' },
+  past_due:           { label: 'Pago pendiente',   cls: 'bg-red-50 dark:bg-red-500/10 text-red-700 dark:text-red-400' },
+  canceled:           { label: 'Cancelada',        cls: 'bg-gray-100 dark:bg-[#1e2438] text-gray-500 dark:text-gray-400' },
+  incomplete:         { label: 'Incompleta',       cls: 'bg-yellow-50 dark:bg-yellow-500/10 text-yellow-700 dark:text-yellow-400' },
+  incomplete_expired: { label: 'Expirada',         cls: 'bg-gray-100 dark:bg-[#1e2438] text-gray-500 dark:text-gray-400' },
+  unpaid:             { label: 'Sin pagar',        cls: 'bg-red-50 dark:bg-red-500/10 text-red-700 dark:text-red-400' },
 };
 
 function formatCurrency(cents: number, currency: string) {
@@ -57,7 +57,6 @@ export default function BillingSection({
   const [isPending, startTransition] = useTransition();
   const [error, setError]   = useState('');
 
-  // Upgrade confirmation modal state
   const [upgradeModal, setUpgradeModal]     = useState(false);
   const [preview, setPreview]               = useState<UpgradePreview | null>(null);
   const [previewLoading, setPreviewLoading] = useState(false);
@@ -143,7 +142,7 @@ export default function BillingSection({
     });
   }
 
-  const statusCfg   = subscriptionStatus ? STATUS_CONFIG[subscriptionStatus] : null;
+  const statusCfg    = subscriptionStatus ? STATUS_CONFIG[subscriptionStatus] : null;
   const isDowngraded = currentPlan !== 'free' && effectivePlan === 'free';
 
   return (
@@ -151,10 +150,10 @@ export default function BillingSection({
       {/* ── Upgrade confirmation modal ─────────────────────────────────────── */}
       {upgradeModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
-          <div className="w-full max-w-sm rounded-2xl bg-white p-6 shadow-xl space-y-4">
+          <div className="w-full max-w-sm rounded-2xl bg-white dark:bg-[#161b2e] p-6 shadow-xl space-y-4">
             <div>
-              <h3 className="text-lg font-bold text-gray-900">Actualizar a Pro</h3>
-              <p className="mt-1 text-sm text-gray-500">
+              <h3 className="text-lg font-bold text-gray-900 dark:text-white">Actualizar a Pro</h3>
+              <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
                 Se cobrará inmediatamente la diferencia prorrateada a tu método de pago registrado.
               </p>
             </div>
@@ -170,39 +169,43 @@ export default function BillingSection({
             )}
 
             {preview && !previewLoading && (
-              <div className="rounded-xl bg-indigo-50 px-4 py-3 space-y-1">
-                <p className="text-xs text-indigo-500 font-medium uppercase tracking-widest">Cargo inmediato</p>
-                <p className="text-3xl font-bold text-indigo-700">
+              <div className="rounded-xl bg-indigo-50 dark:bg-indigo-500/10 px-4 py-3 space-y-1">
+                <p className="text-xs text-indigo-500 dark:text-indigo-400 font-medium uppercase tracking-widest">
+                  Cargo inmediato
+                </p>
+                <p className="text-3xl font-bold text-indigo-700 dark:text-indigo-400">
                   {formatCurrency(preview.amountDue, preview.currency)}
                 </p>
-                <p className="text-xs text-indigo-400">
+                <p className="text-xs text-indigo-400 dark:text-indigo-400/70">
                   Por los días restantes del ciclo actual hasta{' '}
                   {new Date(preview.periodEnd * 1000).toLocaleDateString('es', {
                     day: 'numeric', month: 'long',
                   })}
                 </p>
-                <p className="text-xs text-indigo-400">
+                <p className="text-xs text-indigo-400 dark:text-indigo-400/70">
                   A partir del próximo ciclo: $59/mes
                 </p>
               </div>
             )}
 
             {previewError && (
-              <p className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-600">{previewError}</p>
+              <p className="rounded-xl bg-red-50 dark:bg-red-500/10 px-3 py-2 text-sm text-red-600 dark:text-red-400">
+                {previewError}
+              </p>
             )}
 
             <div className="flex gap-3 pt-1">
               <button
                 onClick={() => setUpgradeModal(false)}
                 disabled={confirming}
-                className="flex-1 rounded-lg border border-gray-200 px-4 py-2.5 text-sm font-medium text-gray-600 hover:bg-gray-50 disabled:opacity-50 transition"
+                className="flex-1 rounded-xl border border-gray-200 dark:border-[#1e2438] px-4 py-2.5 text-sm font-medium text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-[#1a1f35] disabled:opacity-50 transition"
               >
                 Cancelar
               </button>
               <button
                 onClick={confirmUpgrade}
                 disabled={confirming || previewLoading || !!previewError}
-                className="flex-1 rounded-lg bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-indigo-700 disabled:opacity-50 transition"
+                className="flex-1 rounded-xl bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-indigo-700 disabled:opacity-50 transition"
               >
                 {confirming ? 'Procesando…' : 'Confirmar y pagar'}
               </button>
@@ -211,45 +214,64 @@ export default function BillingSection({
         </div>
       )}
 
-      {/* ── Main billing card ──────────────────────────────────────────────── */}
-      <div className="rounded-xl border bg-white p-5 shadow-sm space-y-4">
-        <h2 className="text-sm font-semibold text-gray-700">Facturación y plan</h2>
+      {/* ── Billing card ────────────────────────────────────────────────────── */}
+      <div className="rounded-2xl border border-gray-100 dark:border-[#1e2438] bg-white dark:bg-[#161b2e] shadow-sm p-5 space-y-4">
 
+        {/* Header */}
+        <div className="flex items-center justify-between">
+          <h2 className="text-sm font-semibold text-gray-800 dark:text-white">Facturación y plan</h2>
+          {hasStripeCustomer && (
+            <button
+              onClick={handlePortal}
+              disabled={isPending}
+              className="inline-flex items-center gap-1.5 rounded-xl border border-gray-200 dark:border-[#1e2438] px-3 py-1.5 text-xs font-semibold text-gray-600 dark:text-gray-300 hover:text-indigo-600 dark:hover:text-indigo-400 hover:border-indigo-200 dark:hover:border-indigo-500/40 disabled:opacity-50 transition"
+            >
+              <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 8.25h19.5M2.25 9h19.5m-16.5 5.25h6m-6 2.25h3m-3.75 3h15a2.25 2.25 0 002.25-2.25V6.75A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25v10.5A2.25 2.25 0 004.5 19.5z" />
+              </svg>
+              {isPending ? 'Abriendo…' : 'Gestionar facturación'}
+            </button>
+          )}
+        </div>
+
+        {/* Alerts */}
         {checkoutSuccess && (
-          <div className="rounded-lg bg-green-50 border border-green-200 px-4 py-3">
-            <p className="text-sm font-semibold text-green-800">¡Pago completado!</p>
-            <p className="text-xs text-green-700 mt-0.5">
+          <div className="rounded-xl bg-green-50 dark:bg-green-500/10 border border-green-200 dark:border-green-500/20 px-4 py-3">
+            <p className="text-sm font-semibold text-green-800 dark:text-green-400">¡Pago completado!</p>
+            <p className="text-xs text-green-700 dark:text-green-400/80 mt-0.5">
               Tu plan se está activando. Si no ves el cambio en unos segundos, recarga la página.
             </p>
           </div>
         )}
         {checkoutCanceled && (
-          <div className="rounded-lg bg-gray-50 border border-gray-200 px-4 py-3">
-            <p className="text-sm text-gray-600">Pago cancelado — no se realizó ningún cargo.</p>
+          <div className="rounded-xl bg-gray-50 dark:bg-[#1a1f35] border border-gray-200 dark:border-[#1e2438] px-4 py-3">
+            <p className="text-sm text-gray-600 dark:text-gray-400">Pago cancelado — no se realizó ningún cargo.</p>
           </div>
         )}
-
         {isDowngraded && (
-          <div className="rounded-lg bg-amber-50 border border-amber-200 px-4 py-3">
-            <p className="text-sm font-semibold text-amber-800">Suscripción no activa</p>
-            <p className="text-xs text-amber-700 mt-0.5">
+          <div className="rounded-xl bg-amber-50 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-500/20 px-4 py-3">
+            <p className="text-sm font-semibold text-amber-800 dark:text-amber-400">Suscripción no activa</p>
+            <p className="text-xs text-amber-700 dark:text-amber-400/80 mt-0.5">
               Tu plan {PLAN_LABELS[currentPlan]} no está activo. Acceso limitado al plan Gratis hasta regularizar el pago.
             </p>
           </div>
         )}
+        {error && (
+          <p className="rounded-xl bg-red-50 dark:bg-red-500/10 px-3 py-2 text-sm text-red-600 dark:text-red-400">{error}</p>
+        )}
 
         {/* Current plan + status */}
-        <div className="flex flex-wrap items-center gap-3">
+        <div className="flex flex-wrap items-center gap-4">
           <div>
-            <p className="text-xs text-gray-400 mb-1">Plan actual</p>
-            <span className="rounded-full bg-indigo-50 px-3 py-1 text-sm font-semibold text-indigo-700 capitalize">
+            <p className="text-xs text-gray-400 dark:text-gray-500 mb-1">Plan actual</p>
+            <span className="rounded-full bg-indigo-50 dark:bg-indigo-500/10 px-3 py-1 text-sm font-semibold text-indigo-700 dark:text-indigo-400 capitalize">
               {PLAN_LABELS[effectivePlan] ?? effectivePlan}
             </span>
           </div>
 
           {statusCfg && (
             <div>
-              <p className="text-xs text-gray-400 mb-1">Estado suscripción</p>
+              <p className="text-xs text-gray-400 dark:text-gray-500 mb-1">Estado suscripción</p>
               <span className={`rounded-full px-3 py-1 text-xs font-semibold ${statusCfg.cls}`}>
                 {statusCfg.label}
               </span>
@@ -258,8 +280,8 @@ export default function BillingSection({
 
           {subscriptionEndDate && subscriptionStatus === 'active' && (
             <div>
-              <p className="text-xs text-gray-400 mb-1">Próxima renovación</p>
-              <p className="text-sm text-gray-700">
+              <p className="text-xs text-gray-400 dark:text-gray-500 mb-1">Próxima renovación</p>
+              <p className="text-sm text-gray-700 dark:text-gray-300">
                 {new Date(subscriptionEndDate).toLocaleDateString('es', {
                   day: 'numeric', month: 'long', year: 'numeric',
                 })}
@@ -269,8 +291,8 @@ export default function BillingSection({
 
           {subscriptionEndDate && subscriptionStatus === 'canceled' && (
             <div>
-              <p className="text-xs text-gray-400 mb-1">Acceso hasta</p>
-              <p className="text-sm text-gray-700">
+              <p className="text-xs text-gray-400 dark:text-gray-500 mb-1">Acceso hasta</p>
+              <p className="text-sm text-gray-700 dark:text-gray-300">
                 {new Date(subscriptionEndDate).toLocaleDateString('es', {
                   day: 'numeric', month: 'long', year: 'numeric',
                 })}
@@ -279,20 +301,31 @@ export default function BillingSection({
           )}
         </div>
 
-        {error && (
-          <p className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-600">{error}</p>
+        {/* Pro: "Estás en el plan más completo" */}
+        {effectivePlan === 'pro' && (
+          <div className="flex items-start gap-3 rounded-xl bg-indigo-50 dark:bg-indigo-500/10 border border-indigo-100 dark:border-indigo-500/20 px-4 py-3">
+            <svg className="mt-0.5 h-4 w-4 shrink-0 text-indigo-500 dark:text-indigo-400" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12c0 1.268-.63 2.39-1.593 3.068a3.745 3.745 0 01-1.043 3.296 3.745 3.745 0 01-3.296 1.043A3.745 3.745 0 0112 21c-1.268 0-2.39-.63-3.068-1.593a3.745 3.745 0 01-3.296-1.043 3.745 3.745 0 01-1.043-3.296A3.745 3.745 0 013 12c0-1.268.63-2.39 1.593-3.068a3.745 3.745 0 011.043-3.296 3.745 3.745 0 013.296-1.043A3.745 3.745 0 0112 3c1.268 0 2.39.63 3.068 1.593a3.745 3.745 0 013.296 1.043 3.745 3.745 0 011.043 3.296A3.745 3.745 0 0121 12z" />
+            </svg>
+            <div>
+              <p className="text-sm font-semibold text-indigo-700 dark:text-indigo-400">Estás en el plan más completo</p>
+              <p className="text-xs text-indigo-500 dark:text-indigo-400/70 mt-0.5">
+                Tienes acceso a todas las funciones de Fideliza+.
+              </p>
+            </div>
+          </div>
         )}
 
         {/* Free → Starter / Pro */}
         {effectivePlan === 'free' && (
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-            <div className="rounded-xl border border-gray-200 p-4 space-y-3">
+            <div className="rounded-xl border border-gray-200 dark:border-[#1e2438] p-4 space-y-3">
               <div>
-                <p className="font-semibold text-gray-900">Starter</p>
-                <p className="text-2xl font-bold text-gray-900 mt-0.5">
-                  $29 <span className="text-sm font-normal text-gray-400">/mes</span>
+                <p className="font-semibold text-gray-900 dark:text-white">Starter</p>
+                <p className="text-2xl font-bold text-gray-900 dark:text-white mt-0.5">
+                  $29 <span className="text-sm font-normal text-gray-400 dark:text-gray-500">/mes</span>
                 </p>
-                <ul className="mt-2 space-y-1 text-xs text-gray-500">
+                <ul className="mt-2 space-y-1 text-xs text-gray-500 dark:text-gray-400">
                   <li>✓ Hasta 500 clientes</li>
                   <li>✓ 3 programas</li>
                   <li>✓ Catálogo de recompensas</li>
@@ -302,24 +335,24 @@ export default function BillingSection({
               <button
                 onClick={() => handleCheckout('starter')}
                 disabled={isPending}
-                className="w-full rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-700 disabled:opacity-50 transition"
+                className="w-full rounded-xl bg-indigo-600 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-700 disabled:opacity-50 transition"
               >
                 {isPending ? 'Redirigiendo…' : 'Actualizar a Starter'}
               </button>
             </div>
 
-            <div className="rounded-xl border-2 border-indigo-400 p-4 space-y-3">
+            <div className="rounded-xl border-2 border-indigo-400 dark:border-indigo-500/60 p-4 space-y-3">
               <div>
                 <div className="flex items-center gap-2">
-                  <p className="font-semibold text-gray-900">Pro</p>
-                  <span className="rounded-full bg-indigo-100 px-2 py-0.5 text-[10px] font-semibold text-indigo-700">
+                  <p className="font-semibold text-gray-900 dark:text-white">Pro</p>
+                  <span className="rounded-full bg-indigo-100 dark:bg-indigo-500/20 px-2 py-0.5 text-[10px] font-semibold text-indigo-700 dark:text-indigo-400">
                     MÁS POTENTE
                   </span>
                 </div>
-                <p className="text-2xl font-bold text-gray-900 mt-0.5">
-                  $59 <span className="text-sm font-normal text-gray-400">/mes</span>
+                <p className="text-2xl font-bold text-gray-900 dark:text-white mt-0.5">
+                  $59 <span className="text-sm font-normal text-gray-400 dark:text-gray-500">/mes</span>
                 </p>
-                <ul className="mt-2 space-y-1 text-xs text-gray-500">
+                <ul className="mt-2 space-y-1 text-xs text-gray-500 dark:text-gray-400">
                   <li>✓ Clientes ilimitados</li>
                   <li>✓ Programas ilimitados</li>
                   <li>✓ Todos los tipos de programa</li>
@@ -330,7 +363,7 @@ export default function BillingSection({
               <button
                 onClick={() => handleCheckout('pro')}
                 disabled={isPending}
-                className="w-full rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-700 disabled:opacity-50 transition"
+                className="w-full rounded-xl bg-indigo-600 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-700 disabled:opacity-50 transition"
               >
                 {isPending ? 'Redirigiendo…' : 'Actualizar a Pro'}
               </button>
@@ -340,17 +373,17 @@ export default function BillingSection({
 
         {/* Starter → Pro */}
         {effectivePlan === 'starter' && subscriptionStatus === 'active' && (
-          <div className="rounded-xl border-2 border-indigo-400 p-4 space-y-3">
+          <div className="rounded-xl border-2 border-indigo-400 dark:border-indigo-500/60 p-4 space-y-3">
             <div className="flex items-center gap-2">
-              <p className="font-semibold text-gray-900">Pro</p>
-              <span className="rounded-full bg-indigo-100 px-2 py-0.5 text-[10px] font-semibold text-indigo-700">
+              <p className="font-semibold text-gray-900 dark:text-white">Pro</p>
+              <span className="rounded-full bg-indigo-100 dark:bg-indigo-500/20 px-2 py-0.5 text-[10px] font-semibold text-indigo-700 dark:text-indigo-400">
                 MÁS POTENTE
               </span>
             </div>
-            <p className="text-2xl font-bold text-gray-900">
-              $59 <span className="text-sm font-normal text-gray-400">/mes</span>
+            <p className="text-2xl font-bold text-gray-900 dark:text-white">
+              $59 <span className="text-sm font-normal text-gray-400 dark:text-gray-500">/mes</span>
             </p>
-            <ul className="space-y-1 text-xs text-gray-500">
+            <ul className="space-y-1 text-xs text-gray-500 dark:text-gray-400">
               <li>✓ Clientes ilimitados</li>
               <li>✓ Programas ilimitados</li>
               <li>✓ Todos los tipos de programa</li>
@@ -360,23 +393,9 @@ export default function BillingSection({
             <button
               onClick={() => openUpgradeModal('pro')}
               disabled={isPending}
-              className="w-full rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-700 disabled:opacity-50 transition"
+              className="w-full rounded-xl bg-indigo-600 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-700 disabled:opacity-50 transition"
             >
               Actualizar a Pro
-            </button>
-          </div>
-        )}
-
-        {/* Manage subscription */}
-        {hasStripeCustomer && (
-          <div className="flex items-center justify-between pt-1 border-t">
-            <p className="text-sm text-gray-500">Cambiar plan, cancelar o actualizar método de pago</p>
-            <button
-              onClick={handlePortal}
-              disabled={isPending}
-              className="rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50 transition"
-            >
-              {isPending ? 'Abriendo…' : 'Gestionar suscripción →'}
             </button>
           </div>
         )}

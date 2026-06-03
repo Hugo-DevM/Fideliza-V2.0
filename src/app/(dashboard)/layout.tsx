@@ -9,7 +9,7 @@ export default async function DashboardLayout({
   const { tenant } = await getAuthenticatedTenant();
 
   return (
-    <DashboardShell tenantName={tenant.name}>
+    <DashboardShell tenantName={tenant.name} tenantPlan={tenant.plan}>
       {children}
     </DashboardShell>
   );

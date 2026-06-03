@@ -3,30 +3,13 @@
  */
 
 import { createServiceRoleClient } from '@/lib/supabase/server';
-import { invalidateTenantCache } from '@/lib/middleware/api-context';
 import {
   getTenantBySubdomain,
-  getTenantById,
   getTenantSettings,
-  updateTenant,
 } from './tenant.repository';
 import { BadRequestError } from '@/lib/middleware/errors';
-import type { Tenant, TenantSettings, UUID } from '@/lib/types';
-import type { CreateTenantInput, UpdateTenantInput } from '@/lib/validation/tenant.schema';
-
-export async function resolveTenant(subdomain: string): Promise<Tenant> {
-  return getTenantBySubdomain(subdomain);
-}
-
-export async function getTenantProfile(
-  tenantId: UUID
-): Promise<{ tenant: Tenant; settings: TenantSettings }> {
-  const [tenant, settings] = await Promise.all([
-    getTenantById(tenantId),
-    getTenantSettings(tenantId),
-  ]);
-  return { tenant, settings };
-}
+import type { Tenant, TenantSettings } from '@/lib/types';
+import type { CreateTenantInput } from '@/lib/validation/tenant.schema';
 
 export async function getTenantBySubdomainPublic(subdomain: string): Promise<{
   tenant: Tenant;
@@ -102,12 +85,3 @@ export async function onboardTenant(
   return { tenant, settings: settings as TenantSettings };
 }
 
-export async function modifyTenant(
-  tenantId: UUID,
-  input: UpdateTenantInput
-): Promise<Tenant> {
-  const tenant = await updateTenant(tenantId, input);
-  // Invalidate subdomain → tenantId cache in case subdomain changed
-  invalidateTenantCache(tenant.subdomain);
-  return tenant;
-}

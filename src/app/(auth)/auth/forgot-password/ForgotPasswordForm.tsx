@@ -39,26 +39,26 @@ export default function ForgotPasswordForm() {
   if (status === 'sent') {
     return (
       <div className="space-y-4 text-center">
-        <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-green-100">
-          <svg className="h-7 w-7 text-green-600" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+        <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-green-100 dark:bg-green-500/15">
+          <svg className="h-7 w-7 text-green-600 dark:text-green-400" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
           </svg>
         </div>
         <div>
-          <p className="font-semibold text-gray-900">Revisa tu correo</p>
-          <p className="mt-1 text-sm text-gray-500 leading-relaxed">
+          <p className="font-semibold text-gray-900 dark:text-white">Revisa tu correo</p>
+          <p className="mt-1 text-sm text-gray-500 dark:text-gray-400 leading-relaxed">
             Si{' '}
-            <span className="font-medium text-gray-700">{email}</span>{' '}
+            <span className="font-medium text-gray-700 dark:text-gray-300">{email}</span>{' '}
             está registrado, recibirás un enlace de recuperación en breve.
             El enlace expira en 15 minutos.
           </p>
         </div>
-        <p className="text-xs text-gray-400">
+        <p className="text-xs text-gray-400 dark:text-gray-500">
           ¿No llegó?{' '}
           <button
             type="button"
             onClick={() => setStatus('idle')}
-            className="text-indigo-500 hover:underline font-medium"
+            className="text-indigo-600 dark:text-indigo-400 hover:underline font-medium"
           >
             Reintentar
           </button>
@@ -70,11 +70,13 @@ export default function ForgotPasswordForm() {
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       {status === 'error' && (
-        <p className="rounded-lg bg-red-50 px-4 py-3 text-sm text-red-600">{error}</p>
+        <p className="rounded-xl bg-red-50 dark:bg-red-500/10 border border-red-100 dark:border-red-500/20 px-4 py-3 text-sm text-red-600 dark:text-red-400">
+          {error}
+        </p>
       )}
 
       <div>
-        <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
+        <label htmlFor="email" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
           Correo electrónico
         </label>
         <input
@@ -88,9 +90,9 @@ export default function ForgotPasswordForm() {
             if (/^[a-zA-Z0-9._%+\-@]*$/.test(raw)) setEmail(raw);
           }}
           placeholder="tu@negocio.com"
-          className="w-full rounded-lg border border-gray-200 px-4 py-2.5 text-sm text-gray-900 placeholder-gray-400 outline-none transition focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100"
+          className={inputCls}
         />
-        <p className="mt-1.5 text-xs text-gray-400">
+        <p className="mt-1.5 text-xs text-gray-400 dark:text-gray-500">
           Te enviaremos un enlace para restablecer tu contraseña.
         </p>
       </div>
@@ -98,7 +100,7 @@ export default function ForgotPasswordForm() {
       <button
         type="submit"
         disabled={status === 'loading' || !email}
-        className="w-full rounded-lg bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed"
+        className="w-full rounded-xl bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed"
       >
         {status === 'loading' ? (
           <span className="flex items-center justify-center gap-2">
@@ -113,3 +115,5 @@ export default function ForgotPasswordForm() {
     </form>
   );
 }
+
+const inputCls = 'w-full rounded-xl border border-gray-200 dark:border-[#2a3147] bg-white dark:bg-[#0f1222] px-4 py-2.5 text-sm text-gray-900 dark:text-gray-200 placeholder-gray-400 dark:placeholder-gray-500 outline-none transition focus:border-indigo-400 dark:focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 dark:focus:ring-indigo-500/20';

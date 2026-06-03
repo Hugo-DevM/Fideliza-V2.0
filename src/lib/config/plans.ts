@@ -9,6 +9,7 @@ export type ProgramTypeAllowed = 'points' | 'stamp' | 'visit' | 'cashback';
 export interface PlanLimits {
   maxCustomers: number | null;            // null = unlimited
   maxPrograms: number | null;             // null = unlimited
+  maxRewardsPerProgram: number | null;    // null = unlimited
   allowedProgramTypes: ProgramTypeAllowed[];
   transactionHistoryLimit: number | null; // null = unlimited; for FREE = 50 most recent
   rewardCatalog: boolean;
@@ -21,6 +22,7 @@ export const PLAN_CONFIG: Record<string, PlanLimits> = {
   free: {
     maxCustomers:           50,
     maxPrograms:            1,
+    maxRewardsPerProgram:   null, // irrelevant — rewardCatalog: false blocks it entirely
     allowedProgramTypes:    ['points', 'stamp'],
     transactionHistoryLimit: 50,
     rewardCatalog:          false,
@@ -31,6 +33,7 @@ export const PLAN_CONFIG: Record<string, PlanLimits> = {
   starter: {
     maxCustomers:           500,
     maxPrograms:            3,
+    maxRewardsPerProgram:   3,
     allowedProgramTypes:    ['points', 'stamp', 'visit'],
     transactionHistoryLimit: null,
     rewardCatalog:          true,
@@ -41,6 +44,7 @@ export const PLAN_CONFIG: Record<string, PlanLimits> = {
   pro: {
     maxCustomers:           null,
     maxPrograms:            null,
+    maxRewardsPerProgram:   5,
     allowedProgramTypes:    ['points', 'stamp', 'visit', 'cashback'],
     transactionHistoryLimit: null,
     rewardCatalog:          true,
@@ -52,6 +56,7 @@ export const PLAN_CONFIG: Record<string, PlanLimits> = {
   enterprise: {
     maxCustomers:           null,
     maxPrograms:            null,
+    maxRewardsPerProgram:   5,
     allowedProgramTypes:    ['points', 'stamp', 'visit', 'cashback'],
     transactionHistoryLimit: null,
     rewardCatalog:          true,

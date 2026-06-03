@@ -25,10 +25,10 @@ export default function ToggleStatusButton({
     <button
       onClick={handleClick}
       disabled={isPending}
-      className={`rounded-lg border px-3 py-1.5 text-xs font-semibold transition disabled:opacity-50 ${
+      className={`rounded-xl border px-3.5 py-2 text-sm font-semibold transition disabled:opacity-50 ${
         isActive
-          ? 'border-red-200 text-red-600 hover:bg-red-50'
-          : 'border-green-200 text-green-600 hover:bg-green-50'
+          ? 'border-red-200 dark:border-red-900/50 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/30'
+          : 'border-emerald-200 dark:border-emerald-900/50 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-950/30'
       }`}
     >
       {isPending ? '…' : isActive ? 'Desactivar' : 'Reactivar'}
