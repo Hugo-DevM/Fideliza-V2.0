@@ -18,8 +18,8 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   metadataBase: new URL("https://fideliza.app"),
   title: {
-    default: "Fideliza+ — Loyalty Programs for Independent Businesses",
-    template: "%s | Fideliza+",
+    default: "Fideliza — Programa de lealtad para tu negocio",
+    template: "%s | Fideliza",
   },
   description:
     "Run a loyalty program your customers actually use — no app downloads, no complex setup. Points, stamps, and visits. Your own branded subdomain. Up and running in under 5 minutes.",
@@ -31,8 +31,8 @@ export const metadata: Metadata = {
   openGraph: {
     type: "website",
     url: "https://fideliza.app",
-    siteName: "Fideliza+",
-    title: "Fideliza+ — Loyalty Programs for Independent Businesses",
+    siteName: "Fideliza",
+    title: "Fideliza — Programa de lealtad para tu negocio",
     description:
       "Run a loyalty program your customers actually use — no app downloads, no complex setup. Points, stamps, and visits. Up and running in under 5 minutes.",
     images: [
@@ -40,13 +40,13 @@ export const metadata: Metadata = {
         url: "/og-image.jpg",
         width: 1200,
         height: 630,
-        alt: "Fideliza+ — Loyalty Programs for Independent Businesses",
+        alt: "Fideliza — Programa de lealtad para tu negocio",
       },
     ],
   },
   twitter: {
     card: "summary_large_image",
-    title: "Fideliza+ — Loyalty Programs for Independent Businesses",
+    title: "Fideliza — Programa de lealtad para tu negocio",
     description:
       "Run a loyalty program your customers actually use — no app downloads, no complex setup. Points, stamps, and visits. Up and running in under 5 minutes.",
     images: ["/og-image.jpg"],
