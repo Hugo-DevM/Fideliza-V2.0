@@ -116,13 +116,13 @@ export function Hero({ t }: HeroProps) {
             </p>
 
             <div className="animate-fade-in-delay-3 flex flex-col sm:flex-row gap-3 justify-center lg:justify-start">
-              <LinkButton href="#waitlist" size="lg" className="relative pulse-ring">
+              <LinkButton href="#waitlist" size="lg" className="relative pulse-ring whitespace-nowrap">
                 {t.cta1}
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} className="w-4 h-4">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6" />
                 </svg>
               </LinkButton>
-              <LinkButton href="#how-it-works" size="lg" variant="ghost" className="text-gray-300 hover:text-white hover:bg-white/10">
+              <LinkButton href="#how-it-works" size="lg" variant="ghost" className="text-gray-300 hover:text-white hover:bg-white/10 whitespace-nowrap">
                 {t.cta2}
               </LinkButton>
             </div>
