@@ -1,16 +1,6 @@
 import type { Dictionary } from "../index";
 
 export const es: Dictionary = {
-  meta: {
-    title: "Fideliza+ — Programas de Fidelización para Negocios Independientes",
-    description:
-      "Lanza un programa de fidelización que tus clientes realmente usen — sin descargas, sin configuraciones complejas. Puntos, sellos y visitas. Tu propio subdominio. En marcha en menos de 5 minutos.",
-    ogTitle:
-      "Fideliza+ — Programas de Fidelización para Negocios Independientes",
-    ogDescription:
-      "Sin descargas. Sin complejidad. Un programa de fidelización real en menos de 5 minutos. Puntos, sellos, visitas — tus clientes vuelven.",
-  },
-
   navbar: {
     howItWorks: "Cómo funciona",
     features: "Funciones",

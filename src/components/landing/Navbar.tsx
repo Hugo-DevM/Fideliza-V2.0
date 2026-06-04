@@ -1,20 +1,19 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { usePathname } from "next/navigation";
 import { Container } from "@/components/ui/Container";
 import { LinkButton } from "@/components/ui/Button";
-import type { Dictionary } from "@/lib/i18n";
+import type { Dictionary, Locale } from "@/lib/i18n";
 
 interface NavbarProps {
   t: Dictionary["navbar"];
+  lang: Locale;
+  onLangChange: (lang: Locale) => void;
 }
 
-export function Navbar({ t }: NavbarProps) {
+export function Navbar({ t, lang, onLangChange }: NavbarProps) {
   const [scrolled, setScrolled] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
-  const pathname = usePathname();
-  const lang = pathname.startsWith("/es") ? "es" : "en";
   const manualHref = `/${lang}/manual`;
 
   useEffect(() => {
@@ -71,9 +70,30 @@ export function Navbar({ t }: NavbarProps) {
 
         {/* Desktop CTA */}
         <div className="hidden md:flex items-center gap-3">
-          {/* <a href="/auth/login" className="text-sm text-gray-400 hover:text-white transition-colors">
-            {t.signIn}
-          </a> */}
+          {/* Language toggle */}
+          <div className="flex items-center gap-0.5 rounded-lg bg-white/5 border border-white/10 p-0.5">
+            <button
+              type="button"
+              onClick={() => onLangChange('es')}
+              className={[
+                'px-2.5 py-1 rounded-md text-xs font-semibold transition-colors',
+                lang === 'es' ? 'bg-indigo-500 text-white' : 'text-gray-400 hover:text-white',
+              ].join(' ')}
+            >
+              ES
+            </button>
+            <button
+              type="button"
+              onClick={() => onLangChange('en')}
+              className={[
+                'px-2.5 py-1 rounded-md text-xs font-semibold transition-colors',
+                lang === 'en' ? 'bg-indigo-500 text-white' : 'text-gray-400 hover:text-white',
+              ].join(' ')}
+            >
+              EN
+            </button>
+          </div>
+
           <LinkButton href="/auth/register" size="sm">
             {t.cta}
           </LinkButton>
@@ -150,6 +170,30 @@ export function Navbar({ t }: NavbarProps) {
             >
               {t.manual}
             </a>
+            {/* Language toggle mobile */}
+            <div className="flex items-center gap-0.5 rounded-lg bg-white/5 border border-white/10 p-0.5 self-start">
+              <button
+                type="button"
+                onClick={() => { onLangChange('es'); setMenuOpen(false); }}
+                className={[
+                  'px-3 py-1.5 rounded-md text-xs font-semibold transition-colors',
+                  lang === 'es' ? 'bg-indigo-500 text-white' : 'text-gray-400 hover:text-white',
+                ].join(' ')}
+              >
+                ES
+              </button>
+              <button
+                type="button"
+                onClick={() => { onLangChange('en'); setMenuOpen(false); }}
+                className={[
+                  'px-3 py-1.5 rounded-md text-xs font-semibold transition-colors',
+                  lang === 'en' ? 'bg-indigo-500 text-white' : 'text-gray-400 hover:text-white',
+                ].join(' ')}
+              >
+                EN
+              </button>
+            </div>
+
             <LinkButton
               href="/auth/register"
               size="sm"

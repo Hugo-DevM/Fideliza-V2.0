@@ -1,13 +1,4 @@
 export const en = {
-  meta: {
-    title: "Fideliza+ — Loyalty Programs for Independent Businesses",
-    description:
-      "Run a loyalty program your customers actually use — no app downloads, no complex setup. Points, stamps, and visits. Your own branded subdomain. Up and running in under 5 minutes.",
-    ogTitle: "Fideliza+ — Loyalty Programs for Independent Businesses",
-    ogDescription:
-      "No app downloads. No complexity. Run a real loyalty program in under 5 minutes. Points, stamps, visits — your customers come back.",
-  },
-
   navbar: {
     howItWorks: "How it works",
     features: "Features",
