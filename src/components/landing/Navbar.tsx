@@ -68,13 +68,6 @@ export function Navbar({ t, lang, onLangChange }: NavbarProps) {
 
         {/* Desktop CTA */}
         <div className="hidden md:flex items-center gap-3">
-          {/* <LinkButton href="/auth/login" size="sm">
-            {t.signIn}
-          </LinkButton> */}
-          {/* Desktop CTA */}
-          <LinkButton href="/auth/register" size="sm">
-            {t.cta}
-          </LinkButton>
           {/* Language toggle */}
           <div className="flex items-center gap-0.5 rounded-lg bg-white/5 border border-white/10 p-0.5">
             <button
@@ -102,6 +95,13 @@ export function Navbar({ t, lang, onLangChange }: NavbarProps) {
               EN
             </button>
           </div>
+          {/* <LinkButton href="/auth/login" size="sm">
+            {t.signIn}
+          </LinkButton> */}
+          {/* Desktop CTA */}
+          <LinkButton href="/auth/register" size="sm">
+            {t.cta}
+          </LinkButton>
         </div>
 
         {/* Mobile menu button */}
