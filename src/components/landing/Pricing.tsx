@@ -8,30 +8,34 @@ interface PricingProps {
 }
 
 export function Pricing({ t }: PricingProps) {
+  const stagger = ['', 'reveal-d2', 'reveal-d4'];
+
   return (
     <section id="pricing" className="py-20 sm:py-28 bg-gray-50">
       <Container>
         <div className="text-center mb-14">
-          <p className="text-sm font-semibold text-indigo-600 uppercase tracking-wider mb-3">
+          <p className="reveal reveal-left text-sm font-semibold text-indigo-600 uppercase tracking-wider mb-3">
             {t.label}
           </p>
-          <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-4">
+          <h2 className="reveal text-3xl sm:text-4xl font-bold text-gray-900 mb-4">
             {t.heading}
           </h2>
-          <p className="text-lg text-gray-500 max-w-xl mx-auto">
+          <p className="reveal reveal-d1 text-lg text-gray-500 max-w-xl mx-auto">
             {t.body}
           </p>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-start">
-          {t.plans.map((plan) => (
+          {t.plans.map((plan, idx) => (
             <div
               key={plan.name}
               className={[
+                'reveal-scale',
+                stagger[idx],
                 'rounded-2xl border p-6 flex flex-col',
                 plan.highlight
                   ? 'bg-indigo-600 border-indigo-500 shadow-xl shadow-indigo-200 text-white'
-                  : 'bg-white border-gray-200 text-gray-900',
+                  : 'bg-white border-gray-200 text-gray-900 card-hover',
               ].join(' ')}
             >
               {/* Plan header */}
@@ -90,7 +94,7 @@ export function Pricing({ t }: PricingProps) {
           ))}
         </div>
 
-        <p className="text-center text-sm text-gray-400 mt-8">
+        <p className="reveal text-center text-sm text-gray-400 mt-8">
           {t.footnote}
         </p>
       </Container>

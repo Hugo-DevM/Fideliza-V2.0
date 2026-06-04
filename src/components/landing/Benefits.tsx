@@ -19,6 +19,8 @@ const BENEFIT_ICONS = [
 
 const AVATAR_COLORS = ['bg-indigo-500', 'bg-violet-500', 'bg-sky-500'];
 
+const STAGGER = ['', 'reveal-d1', 'reveal-d2', 'reveal-d3'];
+
 interface BenefitsProps {
   t: Dictionary['benefits'];
 }
@@ -29,9 +31,9 @@ export function Benefits({ t }: BenefitsProps) {
       <Container>
         {/* Stats row */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 mb-20">
-          {t.stats.map((b) => (
-            <div key={b.stat} className="text-center">
-              <div className="text-4xl font-bold text-indigo-600 mb-1 tabular-nums">
+          {t.stats.map((b, i) => (
+            <div key={b.stat} className={`reveal ${STAGGER[i]} text-center`}>
+              <div className="text-4xl font-bold mb-1 tabular-nums stat-shimmer">
                 {b.stat}
               </div>
               <div className="text-sm font-semibold text-gray-800 mb-2">{b.unit}</div>
@@ -43,18 +45,18 @@ export function Benefits({ t }: BenefitsProps) {
         {/* Benefits grid */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
           <div>
-            <p className="text-sm font-semibold text-indigo-600 uppercase tracking-wider mb-3">
+            <p className="reveal reveal-left text-sm font-semibold text-indigo-600 uppercase tracking-wider mb-3">
               {t.label}
             </p>
-            <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-6">
+            <h2 className="reveal text-3xl sm:text-4xl font-bold text-gray-900 mb-6">
               {t.heading}
             </h2>
-            <p className="text-lg text-gray-500 mb-8 leading-relaxed">
+            <p className="reveal reveal-d1 text-lg text-gray-500 mb-8 leading-relaxed">
               {t.body}
             </p>
             <ul className="space-y-5">
               {t.items.map((benefit, i) => (
-                <li key={i} className="flex gap-4">
+                <li key={i} className={`reveal reveal-d${i + 1} flex gap-4`}>
                   <div className="flex-shrink-0 w-9 h-9 rounded-xl bg-indigo-50 border border-indigo-100 flex items-center justify-center text-indigo-600">
                     {BENEFIT_ICONS[i]}
                   </div>
@@ -68,7 +70,7 @@ export function Benefits({ t }: BenefitsProps) {
           </div>
 
           {/* Dashboard mockup */}
-          <div className="relative">
+          <div className="reveal-right relative">
             <div
               className="absolute inset-0 rounded-3xl opacity-10 blur-3xl"
               style={{ background: 'linear-gradient(135deg, #6366f1, #8b5cf6)' }}

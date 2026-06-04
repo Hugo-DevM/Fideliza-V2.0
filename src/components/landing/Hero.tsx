@@ -12,8 +12,8 @@ function LoyaltyCardMock({ t }: { t: Dictionary['hero']['card'] }) {
     <div className="relative mx-auto w-full max-w-sm select-none">
       {/* Glow */}
       <div
-        className="absolute inset-0 rounded-3xl blur-3xl opacity-30"
-        style={{ background: 'linear-gradient(135deg, #6366f1, #8b5cf6)' }}
+        className="absolute inset-0 rounded-3xl blur-3xl glow-pulse"
+        style={{ background: 'linear-gradient(135deg, #6366f1, #8b5cf6)', opacity: 0.28 }}
         aria-hidden="true"
       />
 
@@ -148,8 +148,10 @@ export function Hero({ t }: HeroProps) {
           </div>
 
           {/* Right: product mockup */}
-          <div className="flex justify-center lg:justify-end animate-fade-in-delay-2">
-            <LoyaltyCardMock t={t.card} />
+          <div className="flex justify-center lg:justify-end animate-slide-right">
+            <div className="card-float">
+              <LoyaltyCardMock t={t.card} />
+            </div>
           </div>
         </div>
       </Container>

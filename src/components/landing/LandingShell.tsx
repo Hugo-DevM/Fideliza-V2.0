@@ -11,6 +11,7 @@ import { MultiDevice } from './MultiDevice';
 import { Pricing } from './Pricing';
 import { CTA } from './CTA';
 import { Footer } from './Footer';
+import { ScrollReveal } from '@/components/ui/ScrollReveal';
 
 interface Props {
   dictEn: Dictionary;
@@ -40,6 +41,7 @@ export function LandingShell({ dictEn, dictEs }: Props) {
 
   return (
     <>
+      <ScrollReveal />
       <Navbar t={dict.navbar} lang={lang} onLangChange={handleLangChange} />
       <main>
         <Hero t={dict.hero} />

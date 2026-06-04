@@ -5,13 +5,13 @@ type Size    = 'sm' | 'md' | 'lg';
 
 const variantClasses: Record<Variant, string> = {
   primary:
-    'bg-indigo-600 text-white hover:bg-indigo-700 active:bg-indigo-800 shadow-sm focus-visible:outline-2 focus-visible:outline-indigo-500',
+    'bg-indigo-600 text-white hover:bg-indigo-700 active:bg-indigo-800 active:scale-[0.97] shadow-sm focus-visible:outline-2 focus-visible:outline-indigo-500',
   secondary:
-    'bg-white text-indigo-600 border border-indigo-200 hover:bg-indigo-50 active:bg-indigo-100 shadow-sm',
+    'bg-white text-indigo-600 border border-indigo-200 hover:bg-indigo-50 active:bg-indigo-100 active:scale-[0.97] shadow-sm',
   ghost:
-    'text-gray-600 hover:text-gray-900 hover:bg-gray-100 active:bg-gray-200',
+    'text-gray-600 hover:text-gray-900 hover:bg-gray-100 active:bg-gray-200 active:scale-[0.97]',
   outline:
-    'border border-gray-300 text-gray-700 bg-transparent hover:bg-gray-50 active:bg-gray-100',
+    'border border-gray-300 text-gray-700 bg-transparent hover:bg-gray-50 active:bg-gray-100 active:scale-[0.97]',
 };
 
 const sizeClasses: Record<Size, string> = {
@@ -39,7 +39,8 @@ export function Button({
   return (
     <button
       className={[
-        'inline-flex items-center justify-center gap-2 rounded-lg font-medium transition-colors',
+        'inline-flex items-center justify-center gap-2 rounded-lg font-medium',
+        'transition-[color,background-color,transform,box-shadow] duration-150',
         'focus-visible:outline focus-visible:outline-offset-2',
         'disabled:opacity-50 disabled:cursor-not-allowed',
         variantClasses[variant],
@@ -76,7 +77,8 @@ export function LinkButton({
   return (
     <a
       className={[
-        'inline-flex items-center justify-center gap-2 rounded-lg font-medium transition-colors',
+        'inline-flex items-center justify-center gap-2 rounded-lg font-medium',
+        'transition-[color,background-color,transform,box-shadow] duration-150',
         'focus-visible:outline focus-visible:outline-offset-2',
         variantClasses[variant],
         sizeClasses[size],

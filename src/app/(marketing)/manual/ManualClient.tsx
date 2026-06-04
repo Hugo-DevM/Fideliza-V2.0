@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { Container } from "@/components/ui/Container";
+import { ScrollReveal } from "@/components/ui/ScrollReveal";
 import { TocNav } from "@/app/[lang]/manual/TocNav";
 import { ContentEs, tocEs } from "@/app/[lang]/manual/content/es";
 import { ContentEn, tocEn } from "@/app/[lang]/manual/content/en";
@@ -23,6 +24,7 @@ export function ManualClient() {
 
   return (
     <div className="min-h-screen bg-gray-950 text-gray-100">
+      <ScrollReveal deps={[lang]} />
       {/* ── Top bar ── */}
       <header className="sticky top-0 z-50 bg-gray-950/95 backdrop-blur-md border-b border-white/10">
         <Container className="flex items-center justify-between h-14">
@@ -80,13 +82,13 @@ export function ManualClient() {
       {/* ── Hero ── */}
       <div className="bg-gradient-to-b from-indigo-950/40 to-gray-950 border-b border-white/10">
         <Container className="py-12">
-          <p className="text-xs font-semibold text-indigo-400 uppercase tracking-widest mb-3">
+          <p className="animate-fade-in text-xs font-semibold text-indigo-400 uppercase tracking-widest mb-3">
             {docsLabel}
           </p>
-          <h1 className="text-3xl sm:text-4xl font-bold text-white mb-3">
+          <h1 className="animate-fade-in-delay-1 text-3xl sm:text-4xl font-bold text-white mb-3">
             {title}
           </h1>
-          <p className="text-gray-400 max-w-xl">{description}</p>
+          <p className="animate-fade-in-delay-2 text-gray-400 max-w-xl">{description}</p>
         </Container>
       </div>
 

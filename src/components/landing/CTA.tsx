@@ -24,21 +24,23 @@ export function CTA({ t, waitlistT }: CTAProps) {
 
       <Container className="relative">
         <div className="max-w-2xl mx-auto text-center">
-          <div className="inline-flex items-center gap-2 bg-white/10 border border-white/20 rounded-full px-4 py-1.5 mb-6">
+          <div className="reveal inline-flex items-center gap-2 bg-white/10 border border-white/20 rounded-full px-4 py-1.5 mb-6">
             <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
             <span className="text-sm font-medium text-indigo-100">{t.badge}</span>
           </div>
 
-          <h2 className="text-3xl sm:text-4xl font-bold text-white mb-4">
+          <h2 className="reveal reveal-d1 text-3xl sm:text-4xl font-bold text-white mb-4">
             {t.heading}
           </h2>
-          <p className="text-lg text-indigo-200 mb-10 leading-relaxed">
+          <p className="reveal reveal-d2 text-lg text-indigo-200 mb-10 leading-relaxed">
             {t.body}
           </p>
 
-          <WaitlistForm variant="cta" t={waitlistT} />
+          <div className="reveal reveal-d3">
+            <WaitlistForm variant="cta" t={waitlistT} />
+          </div>
 
-          <div className="mt-10 flex flex-wrap justify-center gap-6 text-sm text-indigo-300">
+          <div className="reveal reveal-d4 mt-10 flex flex-wrap justify-center gap-6 text-sm text-indigo-300">
             {t.bullets.map((bullet) => (
               <span key={bullet} className="flex items-center gap-1.5">
                 <svg viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4 text-indigo-400">

@@ -2,12 +2,13 @@
 
 import { useState, useEffect } from 'react';
 import { Container } from '@/components/ui/Container';
+import { ScrollReveal } from '@/components/ui/ScrollReveal';
 
 /* ─── Shared primitives ─────────────────────────────────────────────────── */
 
 function H2({ id, children }: { id: string; children: React.ReactNode }) {
   return (
-    <h2 id={id} className="scroll-mt-20 text-lg font-semibold text-white mt-10 mb-3 border-b border-white/10 pb-2">
+    <h2 id={id} className="section-reveal scroll-mt-20 text-lg font-semibold text-white mt-10 mb-3 border-b border-white/10 pb-2">
       {children}
     </h2>
   );
@@ -497,6 +498,7 @@ export default function PrivacyPage() {
 
   return (
     <div className="min-h-screen bg-gray-950 text-gray-100">
+      <ScrollReveal deps={[lang]} />
 
       {/* ── Top bar ── */}
       <header className="sticky top-0 z-50 bg-gray-950/95 backdrop-blur-md border-b border-white/10">
@@ -529,8 +531,8 @@ export default function PrivacyPage() {
       {/* ── Hero ── */}
       <div className="bg-gradient-to-b from-indigo-950/40 to-gray-950 border-b border-white/10">
         <Container className="py-12">
-          <h1 className="text-3xl sm:text-4xl font-bold text-white mb-2">{title}</h1>
-          <p className="text-gray-500 text-sm">{updated}</p>
+          <h1 className="animate-fade-in text-3xl sm:text-4xl font-bold text-white mb-2">{title}</h1>
+          <p className="animate-fade-in-delay-1 text-gray-500 text-sm">{updated}</p>
         </Container>
       </div>
 

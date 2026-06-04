@@ -10,7 +10,7 @@ export function Section({
   children: ReactNode;
 }) {
   return (
-    <section id={id} className="scroll-mt-20 pt-10 pb-2 border-b border-white/10 last:border-0">
+    <section id={id} className="section-reveal scroll-mt-20 pt-10 pb-2 border-b border-white/10 last:border-0">
       <h2 className="text-xl font-semibold text-white mb-4">{title}</h2>
       <div className="space-y-4 text-gray-300 text-sm leading-relaxed">{children}</div>
     </section>

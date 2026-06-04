@@ -117,17 +117,19 @@ export function Features({ t }: FeaturesProps) {
     <TransactionVisual  key="txn"      t={t.visuals.transaction} />,
   ];
 
+  const staggerDelays = ['', 'reveal-d1', 'reveal-d2', 'reveal-d3'];
+
   return (
     <section id="features" className="py-20 sm:py-28 bg-gray-50">
       <Container>
         <div className="text-center mb-16">
-          <p className="text-sm font-semibold text-indigo-600 uppercase tracking-wider mb-3">
+          <p className="reveal reveal-left text-sm font-semibold text-indigo-600 uppercase tracking-wider mb-3">
             {t.label}
           </p>
-          <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-4">
+          <h2 className="reveal text-3xl sm:text-4xl font-bold text-gray-900 mb-4">
             {t.heading}
           </h2>
-          <p className="text-lg text-gray-500 max-w-xl mx-auto">
+          <p className="reveal reveal-d1 text-lg text-gray-500 max-w-xl mx-auto">
             {t.body}
           </p>
         </div>
@@ -136,7 +138,7 @@ export function Features({ t }: FeaturesProps) {
           {t.items.map((item, i) => (
             <div
               key={i}
-              className="card-hover bg-white rounded-2xl border border-gray-200 p-6 flex flex-col gap-5"
+              className={`reveal-scale ${staggerDelays[i]} card-hover bg-white rounded-2xl border border-gray-200 p-6 flex flex-col gap-5`}
             >
               <div>
                 <Badge color={item.badgeColor} className="mb-4">

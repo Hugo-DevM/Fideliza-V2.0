@@ -18,6 +18,7 @@ const STEP_ICONS = [
 ];
 
 const STEP_NUMBERS = ['01', '02', '03', '04'];
+const STAGGER = ['', 'reveal-d1', 'reveal-d2', 'reveal-d3'];
 
 interface HowItWorksProps {
   t: Dictionary['howItWorks'];
@@ -28,29 +29,28 @@ export function HowItWorks({ t }: HowItWorksProps) {
     <section id="how-it-works" className="py-20 sm:py-28 bg-white">
       <Container>
         <div className="text-center mb-16">
-          <p className="text-sm font-semibold text-indigo-600 uppercase tracking-wider mb-3">
+          <p className="reveal reveal-left text-sm font-semibold text-indigo-600 uppercase tracking-wider mb-3">
             {t.label}
           </p>
-          <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-4">
+          <h2 className="reveal text-3xl sm:text-4xl font-bold text-gray-900 mb-4">
             {t.heading}
           </h2>
-          <p className="text-lg text-gray-500 max-w-xl mx-auto">
+          <p className="reveal reveal-d1 text-lg text-gray-500 max-w-xl mx-auto">
             {t.body}
           </p>
         </div>
 
         <div className="relative">
-          {/* Connecting line (desktop) */}
-          <div
-            className="absolute top-8 left-0 right-0 h-px bg-gradient-to-r from-transparent via-indigo-200 to-transparent hidden lg:block"
-            aria-hidden="true"
-          />
+          {/* Connecting line (desktop) — draws left-to-right on scroll */}
+          <div className="absolute top-8 left-0 right-0 hidden lg:block" aria-hidden="true">
+            <div className="h-px bg-gradient-to-r from-transparent via-indigo-200 to-transparent line-draw" />
+          </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
             {t.steps.map((step, i) => (
-              <div key={i} className="relative flex flex-col">
+              <div key={i} className={`reveal ${STAGGER[i]} relative flex flex-col`}>
                 <div className="relative mb-5 flex-shrink-0">
-                  <div className="w-16 h-16 rounded-2xl bg-indigo-50 border border-indigo-100 flex items-center justify-center text-indigo-600">
+                  <div className="w-16 h-16 rounded-2xl bg-indigo-50 border border-indigo-100 flex items-center justify-center text-indigo-600 transition-all duration-240 hover:bg-indigo-100 hover:border-indigo-200 hover:shadow-md hover:shadow-indigo-100">
                     {STEP_ICONS[i]}
                   </div>
                   <span className="absolute -top-2 -right-2 text-[10px] font-bold text-indigo-400 bg-white border border-indigo-100 rounded-full w-6 h-6 flex items-center justify-center">
