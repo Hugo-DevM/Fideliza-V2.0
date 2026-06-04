@@ -69,32 +69,17 @@ export function Navbar({ t, lang, onLangChange }: NavbarProps) {
         {/* Desktop CTA */}
         <div className="hidden md:flex items-center gap-3">
           {/* Language toggle */}
-          <div className="flex items-center gap-0.5 rounded-lg bg-white/5 border border-white/10 p-0.5">
-            <button
-              type="button"
-              onClick={() => onLangChange("es")}
-              className={[
-                "px-2.5 py-1 rounded-md text-xs font-semibold transition-colors",
-                lang === "es"
-                  ? "bg-indigo-500 text-white"
-                  : "text-gray-400 hover:text-white",
-              ].join(" ")}
-            >
-              ES
-            </button>
-            <button
-              type="button"
-              onClick={() => onLangChange("en")}
-              className={[
-                "px-2.5 py-1 rounded-md text-xs font-semibold transition-colors",
-                lang === "en"
-                  ? "bg-indigo-500 text-white"
-                  : "text-gray-400 hover:text-white",
-              ].join(" ")}
-            >
-              EN
-            </button>
-          </div>
+          <button
+            type="button"
+            onClick={() => onLangChange(lang === "es" ? "en" : "es")}
+            className="flex items-center gap-1.5 text-xs font-medium text-gray-400 hover:text-white border border-white/10 hover:border-white/30 rounded-md px-3 py-1.5 transition-colors"
+            aria-label={lang === "es" ? "Switch to English" : "Cambiar a Español"}
+          >
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} className="w-3.5 h-3.5" aria-hidden="true">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M10.5 21l5.25-11.25L21 21m-9-3h7.5M3 5.621a48.474 48.474 0 016-.371m0 0c1.12 0 2.233.038 3.334.114M9 5.25V3m3.334 2.364C11.176 10.658 7.69 15.08 3 17.502m9.334-12.138c.896.061 1.785.147 2.666.257m-4.589 8.495a18.023 18.023 0 01-3.827-5.802" />
+            </svg>
+            {lang === "es" ? "English" : "Español"}
+          </button>
           {/* <LinkButton href="/auth/login" size="sm">
             {t.signIn}
           </LinkButton> */}
@@ -176,38 +161,20 @@ export function Navbar({ t, lang, onLangChange }: NavbarProps) {
               {t.manual}
             </a>
             {/* Language toggle mobile */}
-            <div className="flex items-center gap-0.5 rounded-lg bg-white/5 border border-white/10 p-0.5 self-start">
-              <button
-                type="button"
-                onClick={() => {
-                  onLangChange("es");
-                  setMenuOpen(false);
-                }}
-                className={[
-                  "px-3 py-1.5 rounded-md text-xs font-semibold transition-colors",
-                  lang === "es"
-                    ? "bg-indigo-500 text-white"
-                    : "text-gray-400 hover:text-white",
-                ].join(" ")}
-              >
-                ES
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  onLangChange("en");
-                  setMenuOpen(false);
-                }}
-                className={[
-                  "px-3 py-1.5 rounded-md text-xs font-semibold transition-colors",
-                  lang === "en"
-                    ? "bg-indigo-500 text-white"
-                    : "text-gray-400 hover:text-white",
-                ].join(" ")}
-              >
-                EN
-              </button>
-            </div>
+            <button
+              type="button"
+              onClick={() => {
+                onLangChange(lang === "es" ? "en" : "es");
+                setMenuOpen(false);
+              }}
+              className="flex items-center gap-1.5 text-xs font-medium text-gray-400 hover:text-white border border-white/10 hover:border-white/30 rounded-md px-3 py-1.5 transition-colors self-start"
+              aria-label={lang === "es" ? "Switch to English" : "Cambiar a Español"}
+            >
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} className="w-3.5 h-3.5" aria-hidden="true">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M10.5 21l5.25-11.25L21 21m-9-3h7.5M3 5.621a48.474 48.474 0 016-.371m0 0c1.12 0 2.233.038 3.334.114M9 5.25V3m3.334 2.364C11.176 10.658 7.69 15.08 3 17.502m9.334-12.138c.896.061 1.785.147 2.666.257m-4.589 8.495a18.023 18.023 0 01-3.827-5.802" />
+              </svg>
+              {lang === "es" ? "English" : "Español"}
+            </button>
 
             <LinkButton
               href="/auth/register"
