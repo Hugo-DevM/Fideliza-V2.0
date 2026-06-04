@@ -14,8 +14,6 @@ interface NavbarProps {
 export function Navbar({ t, lang, onLangChange }: NavbarProps) {
   const [scrolled, setScrolled] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
-  const manualHref = `/${lang}/manual`;
-
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 10);
     window.addEventListener("scroll", onScroll, { passive: true });
@@ -60,12 +58,12 @@ export function Navbar({ t, lang, onLangChange }: NavbarProps) {
           >
             {t.pricing}
           </a>
-          {/* <a
-            href={manualHref}
+          <a
+            href="/manual"
             className="text-sm text-gray-400 hover:text-white transition-colors"
           >
             {t.manual}
-          </a> */}
+          </a>
         </nav>
 
         {/* Desktop CTA */}
@@ -164,7 +162,7 @@ export function Navbar({ t, lang, onLangChange }: NavbarProps) {
               {t.pricing}
             </a>
             <a
-              href={manualHref}
+              href="/manual"
               onClick={() => setMenuOpen(false)}
               className="text-sm text-gray-300 hover:text-white py-1"
             >
