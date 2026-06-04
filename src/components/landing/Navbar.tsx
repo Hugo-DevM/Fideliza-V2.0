@@ -58,43 +58,50 @@ export function Navbar({ t, lang, onLangChange }: NavbarProps) {
           >
             {t.pricing}
           </a>
-          <a
+          {/* <a
             href="/manual"
             className="text-sm text-gray-400 hover:text-white transition-colors"
           >
             {t.manual}
-          </a>
+          </a> */}
         </nav>
 
         {/* Desktop CTA */}
         <div className="hidden md:flex items-center gap-3">
+          {/* <LinkButton href="/auth/login" size="sm">
+            {t.signIn}
+          </LinkButton> */}
+          {/* Desktop CTA */}
+          <LinkButton href="/auth/register" size="sm">
+            {t.cta}
+          </LinkButton>
           {/* Language toggle */}
           <div className="flex items-center gap-0.5 rounded-lg bg-white/5 border border-white/10 p-0.5">
             <button
               type="button"
-              onClick={() => onLangChange('es')}
+              onClick={() => onLangChange("es")}
               className={[
-                'px-2.5 py-1 rounded-md text-xs font-semibold transition-colors',
-                lang === 'es' ? 'bg-indigo-500 text-white' : 'text-gray-400 hover:text-white',
-              ].join(' ')}
+                "px-2.5 py-1 rounded-md text-xs font-semibold transition-colors",
+                lang === "es"
+                  ? "bg-indigo-500 text-white"
+                  : "text-gray-400 hover:text-white",
+              ].join(" ")}
             >
               ES
             </button>
             <button
               type="button"
-              onClick={() => onLangChange('en')}
+              onClick={() => onLangChange("en")}
               className={[
-                'px-2.5 py-1 rounded-md text-xs font-semibold transition-colors',
-                lang === 'en' ? 'bg-indigo-500 text-white' : 'text-gray-400 hover:text-white',
-              ].join(' ')}
+                "px-2.5 py-1 rounded-md text-xs font-semibold transition-colors",
+                lang === "en"
+                  ? "bg-indigo-500 text-white"
+                  : "text-gray-400 hover:text-white",
+              ].join(" ")}
             >
               EN
             </button>
           </div>
-
-          <LinkButton href="/auth/register" size="sm">
-            {t.cta}
-          </LinkButton>
         </div>
 
         {/* Mobile menu button */}
@@ -172,21 +179,31 @@ export function Navbar({ t, lang, onLangChange }: NavbarProps) {
             <div className="flex items-center gap-0.5 rounded-lg bg-white/5 border border-white/10 p-0.5 self-start">
               <button
                 type="button"
-                onClick={() => { onLangChange('es'); setMenuOpen(false); }}
+                onClick={() => {
+                  onLangChange("es");
+                  setMenuOpen(false);
+                }}
                 className={[
-                  'px-3 py-1.5 rounded-md text-xs font-semibold transition-colors',
-                  lang === 'es' ? 'bg-indigo-500 text-white' : 'text-gray-400 hover:text-white',
-                ].join(' ')}
+                  "px-3 py-1.5 rounded-md text-xs font-semibold transition-colors",
+                  lang === "es"
+                    ? "bg-indigo-500 text-white"
+                    : "text-gray-400 hover:text-white",
+                ].join(" ")}
               >
                 ES
               </button>
               <button
                 type="button"
-                onClick={() => { onLangChange('en'); setMenuOpen(false); }}
+                onClick={() => {
+                  onLangChange("en");
+                  setMenuOpen(false);
+                }}
                 className={[
-                  'px-3 py-1.5 rounded-md text-xs font-semibold transition-colors',
-                  lang === 'en' ? 'bg-indigo-500 text-white' : 'text-gray-400 hover:text-white',
-                ].join(' ')}
+                  "px-3 py-1.5 rounded-md text-xs font-semibold transition-colors",
+                  lang === "en"
+                    ? "bg-indigo-500 text-white"
+                    : "text-gray-400 hover:text-white",
+                ].join(" ")}
               >
                 EN
               </button>
