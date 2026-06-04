@@ -29,6 +29,9 @@ function UL({ items }: { items: string[] }) {
 function Highlight({ children }: { children: React.ReactNode }) {
   return <span className="text-white font-medium">{children}</span>;
 }
+function Brand() {
+  return <strong className="text-indigo-400 font-bold">Fideliza</strong>;
+}
 
 /* ─── Content ───────────────────────────────────────────────────────────── */
 
@@ -37,13 +40,13 @@ function PrivacyEs() {
     <>
       <P>
         <Highlight>Fecha de entrada en vigor: 30 de mayo de 2026.</Highlight>{' '}
-        Esta Política de Privacidad describe cómo Fideliza+ ("<Highlight>Fideliza+</Highlight>",
+        Esta Política de Privacidad describe cómo <Brand /> ("<Brand />",
         "nosotros" o "nuestro") recopila, usa, almacena y protege la información personal
-        de quienes usan nuestra plataforma. Al acceder o usar los servicios de Fideliza+,
+        de quienes usan nuestra plataforma. Al acceder o usar los servicios de <Brand />,
         aceptas las prácticas descritas en este documento.
       </P>
       <P>
-        Fideliza+ opera como una plataforma SaaS de fidelización multi-tenant. Existen dos
+        <Brand /> opera como una plataforma SaaS de fidelización multi-tenant. Existen dos
         tipos de usuarios: los <Highlight>negocios</Highlight> que administran sus programas
         de lealtad (usuarios administradores) y los <Highlight>clientes finales</Highlight>{' '}
         de esos negocios. Esta política cubre ambos casos.
@@ -51,9 +54,9 @@ function PrivacyEs() {
 
       <H2 id="responsable">1. Responsable del tratamiento</H2>
       <P>
-        Fideliza+ actúa como <Highlight>responsable del tratamiento</Highlight> respecto a
+        <Brand /> actúa como <Highlight>responsable del tratamiento</Highlight> respecto a
         los datos de los usuarios administradores (negocios). Respecto a los datos de los
-        clientes finales ingresados por los negocios, Fideliza+ actúa como{' '}
+        clientes finales ingresados por los negocios, <Brand /> actúa como{' '}
         <Highlight>encargado del tratamiento</Highlight> bajo las instrucciones del negocio
         correspondiente, que es el responsable.
       </P>
@@ -65,7 +68,7 @@ function PrivacyEs() {
       <H2 id="datos-recopilados">2. Datos que recopilamos</H2>
 
       <H3>2.1 Datos de usuarios administradores (negocios)</H3>
-      <P>Al registrar un negocio en Fideliza+, recopilamos:</P>
+      <P>Al registrar un negocio en <Brand />, recopilamos:</P>
       <UL items={[
         'Nombre completo del usuario registrante',
         'Dirección de correo electrónico',
@@ -77,7 +80,7 @@ function PrivacyEs() {
 
       <H3>2.2 Datos de clientes finales (ingresados por el negocio)</H3>
       <P>
-        Los negocios registran a sus clientes en la plataforma. Fideliza+ almacena la
+        Los negocios registran a sus clientes en la plataforma. <Brand /> almacena la
         siguiente información por instrucción del negocio:
       </P>
       <UL items={[
@@ -90,7 +93,7 @@ function PrivacyEs() {
         'Vouchers emitidos y su estado (pendiente, canjeado, expirado)',
       ]} />
       <P>
-        Los clientes finales <Highlight>no crean una cuenta</Highlight> en Fideliza+ ni
+        Los clientes finales <Highlight>no crean una cuenta</Highlight> en <Brand /> ni
         proporcionan su correo electrónico a la plataforma. Su acceso es mediante un código
         alfanumérico gestionado por el negocio.
       </P>
@@ -178,9 +181,9 @@ function PrivacyEs() {
       </P>
       <P>
         <Highlight>Nota para clientes finales de negocios:</Highlight> si eres el cliente
-        de un negocio que usa Fideliza+ y quieres ejercer tus derechos sobre los datos que
+        de un negocio que usa <Brand /> y quieres ejercer tus derechos sobre los datos que
         ese negocio tiene registrados sobre ti, debes dirigirte directamente al negocio
-        (responsable del tratamiento). Fideliza+ actuará siguiendo sus instrucciones.
+        (responsable del tratamiento). <Brand /> actuará siguiendo sus instrucciones.
       </P>
 
       <H2 id="cookies">8. Cookies y tecnologías de seguimiento</H2>
@@ -220,7 +223,7 @@ function PrivacyEs() {
 
       <H2 id="menores">9. Menores de edad</H2>
       <P>
-        Fideliza+ está dirigida exclusivamente a negocios y profesionales. No recopilamos
+        <Brand /> está dirigida exclusivamente a negocios y profesionales. No recopilamos
         intencionalmente datos de menores de 16 años. Si tienes conocimiento de que un
         menor ha proporcionado datos personales sin consentimiento parental, contáctanos
         para eliminarlos.
@@ -248,7 +251,7 @@ function PrivacyEs() {
         tus datos, puedes contactarnos en:
       </P>
       <P>
-        <Highlight>Fideliza+</Highlight><br />
+        <Brand /><br />
         Correo: <Highlight>privacy@fideliza.app</Highlight>
       </P>
     </>
@@ -260,13 +263,13 @@ function PrivacyEn() {
     <>
       <P>
         <Highlight>Effective date: May 30, 2026.</Highlight>{' '}
-        This Privacy Policy describes how Fideliza+ ("<Highlight>Fideliza+</Highlight>",
+        This Privacy Policy describes how <Brand /> ("<Brand />",
         "we", "us" or "our") collects, uses, stores and protects personal information of
-        those who use our platform. By accessing or using Fideliza+ services, you agree to
+        those who use our platform. By accessing or using <Brand /> services, you agree to
         the practices described in this document.
       </P>
       <P>
-        Fideliza+ operates as a multi-tenant loyalty SaaS platform. There are two types of
+        <Brand /> operates as a multi-tenant loyalty SaaS platform. There are two types of
         users: <Highlight>businesses</Highlight> that manage their loyalty programs (admin
         users) and the <Highlight>end customers</Highlight> of those businesses. This policy
         covers both cases.
@@ -274,9 +277,9 @@ function PrivacyEn() {
 
       <H2 id="responsable">1. Data controller</H2>
       <P>
-        Fideliza+ acts as <Highlight>data controller</Highlight> with respect to admin
+        <Brand /> acts as <Highlight>data controller</Highlight> with respect to admin
         users' (businesses') data. With respect to end-customer data entered by businesses,
-        Fideliza+ acts as a <Highlight>data processor</Highlight> under the instructions of
+        <Brand /> acts as a <Highlight>data processor</Highlight> under the instructions of
         the respective business, which is the controller.
       </P>
       <P>
@@ -286,7 +289,7 @@ function PrivacyEn() {
       <H2 id="datos-recopilados">2. Data we collect</H2>
 
       <H3>2.1 Admin user data (businesses)</H3>
-      <P>When registering a business on Fideliza+, we collect:</P>
+      <P>When registering a business on <Brand />, we collect:</P>
       <UL items={[
         'Full name of the registering user',
         'Email address',
@@ -298,7 +301,7 @@ function PrivacyEn() {
 
       <H3>2.2 End-customer data (entered by the business)</H3>
       <P>
-        Businesses register their customers on the platform. Fideliza+ stores the following
+        Businesses register their customers on the platform. <Brand /> stores the following
         information at the business's instruction:
       </P>
       <UL items={[
@@ -311,7 +314,7 @@ function PrivacyEn() {
         'Issued vouchers and their status (pending, redeemed, expired)',
       ]} />
       <P>
-        End customers <Highlight>do not create an account</Highlight> on Fideliza+ and do
+        End customers <Highlight>do not create an account</Highlight> on <Brand /> and do
         not provide their email address to the platform. Their access is via an alphanumeric
         code managed by the business.
       </P>
@@ -396,9 +399,9 @@ function PrivacyEn() {
       </P>
       <P>
         <Highlight>Note for end customers of businesses:</Highlight> if you are a customer
-        of a business that uses Fideliza+ and wish to exercise your rights over the data
+        of a business that uses <Brand /> and wish to exercise your rights over the data
         that business has registered about you, you must contact the business directly
-        (the data controller). Fideliza+ will act on their instructions.
+        (the data controller). <Brand /> will act on their instructions.
       </P>
 
       <H2 id="cookies">8. Cookies and tracking technologies</H2>
@@ -438,7 +441,7 @@ function PrivacyEn() {
 
       <H2 id="menores">9. Children's privacy</H2>
       <P>
-        Fideliza+ is intended exclusively for businesses and professionals. We do not
+        <Brand /> is intended exclusively for businesses and professionals. We do not
         intentionally collect data from children under 16. If you are aware that a minor
         has provided personal data without parental consent, contact us to have it removed.
       </P>
@@ -465,7 +468,7 @@ function PrivacyEn() {
         contact us at:
       </P>
       <P>
-        <Highlight>Fideliza+</Highlight><br />
+        <Brand /><br />
         Email: <Highlight>privacy@fideliza.app</Highlight>
       </P>
     </>
@@ -531,8 +534,13 @@ export default function PrivacyPage() {
       {/* ── Hero ── */}
       <div className="bg-gradient-to-b from-indigo-950/40 to-gray-950 border-b border-white/10">
         <Container className="py-12">
-          <h1 className="animate-fade-in text-3xl sm:text-4xl font-bold text-white mb-2">{title}</h1>
-          <p className="animate-fade-in-delay-1 text-gray-500 text-sm">{updated}</p>
+          <div className="flex items-center justify-between gap-8">
+            <div>
+              <h1 className="animate-fade-in text-3xl sm:text-4xl font-bold text-white mb-2">{title}</h1>
+              <p className="animate-fade-in-delay-1 text-gray-500 text-sm">{updated}</p>
+            </div>
+            <img src="/logofideliza.svg" alt="Fideliza" className="hidden sm:block h-24 opacity-80" />
+          </div>
         </Container>
       </div>
 
@@ -541,7 +549,7 @@ export default function PrivacyPage() {
         {isEs ? <PrivacyEs /> : <PrivacyEn />}
 
         <div className="pt-10 pb-4 text-center text-xs text-gray-600 border-t border-white/5 mt-10">
-          Fideliza+ · {isEs ? 'Política de Privacidad' : 'Privacy Policy'} ·{' '}
+          <strong className="text-indigo-400 font-bold">Fideliza</strong> · {isEs ? 'Política de Privacidad' : 'Privacy Policy'} ·{' '}
           <a href="/terms" className="hover:text-gray-400 transition-colors">
             {isEs ? 'Términos de servicio' : 'Terms of service'}
           </a>

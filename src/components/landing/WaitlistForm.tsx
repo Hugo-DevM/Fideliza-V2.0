@@ -3,6 +3,7 @@
 import { useState, type FormEvent } from 'react';
 import { Button } from '@/components/ui/Button';
 import type { Dictionary } from '@/lib/i18n';
+import { withBrand } from '@/lib/brand';
 
 interface WaitlistFormProps {
   variant?: 'hero' | 'cta';
@@ -84,7 +85,7 @@ export function WaitlistForm({ variant = 'hero', t }: WaitlistFormProps) {
           {t.successTitle}
         </p>
         <p className={`text-sm ${variant === 'cta' ? 'text-indigo-200' : 'text-gray-500'}`}>
-          {message}
+          {withBrand(message, variant === 'cta' ? 'font-bold text-white' : 'font-bold text-gray-900')}
         </p>
       </div>
     );

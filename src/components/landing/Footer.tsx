@@ -1,8 +1,8 @@
-import { Container } from '@/components/ui/Container';
-import type { Dictionary } from '@/lib/i18n';
+import { Container } from "@/components/ui/Container";
+import type { Dictionary } from "@/lib/i18n";
 
 interface FooterProps {
-  t: Dictionary['footer'];
+  t: Dictionary["footer"];
 }
 
 export function Footer({ t }: FooterProps) {
@@ -20,11 +20,16 @@ export function Footer({ t }: FooterProps) {
 
           {/* Product links */}
           <div>
-            <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-4">{t.product}</h3>
+            <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-4">
+              {t.product}
+            </h3>
             <ul className="space-y-2.5">
               {t.nav.product.map((link) => (
                 <li key={link.label}>
-                  <a href={link.href} className="text-sm hover:text-white transition-colors">
+                  <a
+                    href={link.href}
+                    className="text-sm hover:text-white transition-colors"
+                  >
                     {link.label}
                   </a>
                 </li>
@@ -34,11 +39,16 @@ export function Footer({ t }: FooterProps) {
 
           {/* Legal links */}
           <div>
-            <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-4">{t.legal}</h3>
+            <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-4">
+              {t.legal}
+            </h3>
             <ul className="space-y-2.5">
               {t.nav.legal.map((link) => (
                 <li key={link.label}>
-                  <a href={link.href} className="text-sm hover:text-white transition-colors">
+                  <a
+                    href={link.href}
+                    className="text-sm hover:text-white transition-colors"
+                  >
                     {link.label}
                   </a>
                 </li>
@@ -49,7 +59,10 @@ export function Footer({ t }: FooterProps) {
 
         {/* Bottom bar */}
         <div className="border-t border-gray-800 py-6 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-gray-600">
-          <p>&copy; {new Date().getFullYear()} Fideliza+. {t.copyright}</p>
+          <p>
+            &copy; {new Date().getFullYear()}{" "}
+            <span className="font-semibold">Fideliza</span>. {t.copyright}
+          </p>
           <p>{t.bottomTagline}</p>
         </div>
       </Container>

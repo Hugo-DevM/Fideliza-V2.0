@@ -76,13 +76,9 @@ export default function Sidebar({ tenantName, tenantPlan, isOpen = false, onClos
     >
       {/* Logo + mobile close */}
       <div className="flex h-16 items-center justify-between px-5 border-b border-gray-100 dark:border-[#1e2438]">
-        <div className="flex items-center gap-2.5">
-          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-indigo-600 text-white text-sm font-bold">
-            F
-          </div>
-          <span className="text-base font-bold text-gray-900 dark:text-white tracking-tight">
-            Fideliza<span className="text-indigo-500">+</span>
-          </span>
+        <div className="flex flex-1 items-center justify-center">
+          <img src="/logofidelizalight.svg" alt="Fideliza" className="block dark:hidden h-12 w-auto" />
+          <img src="/logofideliza.svg" alt="Fideliza" className="hidden dark:block h-12 w-auto" />
         </div>
         <button
           onClick={onClose}

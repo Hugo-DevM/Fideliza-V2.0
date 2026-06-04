@@ -32,7 +32,7 @@ export const en = {
   howItWorks: {
     label: "Simple by design",
     heading: "Up and running in minutes",
-    body: "No complex setup. No training required. Fideliza+ is built for business owners, not developers.",
+    body: "No complex setup. No training required. Fideliza is built for business owners, not developers.",
     steps: [
       {
         title: "Sign up and claim your subdomain",
@@ -81,7 +81,7 @@ export const en = {
         badgeColor: "indigo" as const,
         title: "Your own branded subdomain",
         description:
-          "Every business on Fideliza+ gets an isolated subdomain like marios.fideliza.app. Your data, your customers, your brand — completely separate from every other business.",
+          "Every business on Fideliza gets an isolated subdomain like marios.fideliza.app. Your data, your customers, your brand — completely separate from every other business.",
       },
       {
         badge: "Real-time",
@@ -152,7 +152,7 @@ export const en = {
     ],
     label: "Built for businesses",
     heading: "More return visits, less guesswork",
-    body: "Loyalty shouldn't require a developer, a dedicated app, or a six-month onboarding process. Fideliza+ is the loyalty platform that independent businesses can actually use and afford.",
+    body: "Loyalty shouldn't require a developer, a dedicated app, or a six-month onboarding process. Fideliza is the loyalty platform that independent businesses can actually use and afford.",
     items: [
       {
         title: "Retain customers, not just attract them",
@@ -168,7 +168,7 @@ export const en = {
       },
       {
         title: "Works alongside your existing setup",
-        body: "Fideliza+ doesn't require a specific POS system or payment processor. It's a standalone loyalty layer that sits on top of whatever you already use.",
+        body: "Fideliza doesn't require a specific POS system or payment processor. It's a standalone loyalty layer that sits on top of whatever you already use.",
       },
     ],
     dashboard: {
@@ -198,7 +198,7 @@ export const en = {
         price: "$0",
         period: "forever",
         description:
-          "Try Fideliza+ risk-free. Good for validating with your first customers.",
+          "Try Fideliza risk-free. Good for validating with your first customers.",
         badge: null,
         highlight: false,
         features: [
@@ -271,7 +271,7 @@ export const en = {
   cta: {
     badge: "Early access open",
     heading: "Launch your loyalty program this week",
-    body: "Join the waitlist and be among the first businesses to run Fideliza+. Early access members lock in founder pricing — 1 month of Starter, free.",
+    body: "Join the waitlist and be among the first businesses to run Fideliza. Early access members lock in founder pricing — 1 month of Starter, free.",
     bullets: [
       "No credit card required",
       "Set up in under 5 minutes",
@@ -333,7 +333,7 @@ export const en = {
     businessPlaceholder: "Business name",
     disclaimer: "No credit card. No spam. Unsubscribe anytime.",
     successTitle: "You're on the list!",
-    successMessage: "We'll notify you when Fideliza+ launches.",
+    successMessage: "We'll notify you when Fideliza launches.",
     alreadyOnList: "You're already on the list! We'll be in touch soon.",
     errors: {
       emailInvalid: "Please enter a valid email address.",
@@ -351,8 +351,8 @@ export const en = {
     description: "The page you're looking for doesn't exist or has been moved. Let's get you back on track.",
     backHome: "Back to home",
     contactSupport: "Contact support",
-    logoAriaLabel: "Fideliza+ — Back to home",
-    metaTitle: "404 — Page Not Found | Fideliza+",
+    logoAriaLabel: "Fideliza — Back to home",
+    metaTitle: "404 — Page Not Found | Fideliza",
     metaDescription: "The page you were looking for does not exist.",
   },
 };

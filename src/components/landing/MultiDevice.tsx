@@ -117,7 +117,7 @@ function TabletMockup() {
 
           {/* App top bar */}
           <div className="flex items-center justify-between bg-white border-b border-gray-100 px-3 py-[5px]">
-            <span className="text-[8px] font-extrabold text-indigo-600">Fideliza+</span>
+            <span className="text-[8px] font-extrabold text-indigo-600">Fideliza</span>
             <span className="text-[6px] text-gray-400 font-medium">Registro rápido</span>
           </div>
 
@@ -217,7 +217,7 @@ function PhoneMockup() {
 
             {/* Header */}
             <div className="text-center mb-2">
-              <p className="text-[7px] font-extrabold text-indigo-600 leading-tight">Fideliza+</p>
+              <p className="text-[7px] font-extrabold text-indigo-600 leading-tight">Fideliza</p>
               <p className="text-[6px] text-gray-400">Hola, Ana García</p>
             </div>
 

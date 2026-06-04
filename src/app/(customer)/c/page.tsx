@@ -125,13 +125,10 @@ function EntryScreen({
       <div className="flex min-h-screen items-center justify-center p-4">
         <div className="w-full max-w-sm space-y-6 text-center">
 
-          {/* Icon + tenant name */}
+          {/* Logo + tenant name */}
           <div className="flex flex-col items-center gap-3">
-            <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-indigo-500 to-violet-600 shadow-lg shadow-indigo-500/25">
-              <svg className="h-8 w-8 text-white" fill="none" stroke="currentColor" strokeWidth={1.8} viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M21 11.25v8.25a1.5 1.5 0 0 1-1.5 1.5H5.25a1.5 1.5 0 0 1-1.5-1.5v-8.25M12 4.875A2.625 2.625 0 1 0 9.375 7.5H12m0-2.625V7.5m0-2.625A2.625 2.625 0 1 1 14.625 7.5H12m0 0V21m-8.625-9.75h18c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125h-18c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125Z" />
-              </svg>
-            </div>
+            <img src="/logofidelizalight.svg" alt="Fideliza" className="block dark:hidden h-16 w-auto" />
+            <img src="/logofideliza.svg" alt="Fideliza" className="hidden dark:block h-16 w-auto" />
             {tenantName && (
               <p className="text-[11px] font-bold uppercase tracking-widest text-indigo-500 dark:text-indigo-400">
                 {tenantName}
@@ -156,7 +153,7 @@ function EntryScreen({
 
           {/* Footer */}
           <p className="font-mono text-xs text-gray-400 dark:text-gray-500">
-            Fideliza+ · sin descargas, sin contraseñas
+            <strong className="text-indigo-400 font-bold">Fideliza</strong> · sin descargas, sin contraseñas
           </p>
 
         </div>

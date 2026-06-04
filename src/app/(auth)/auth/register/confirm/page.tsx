@@ -12,8 +12,8 @@ export default async function ConfirmPage({ searchParams }: Props) {
       <div className="w-full max-w-sm space-y-8 text-center">
 
         {/* Logo */}
-        <img src="/logofpurple.svg" alt="Fideliza+" className="block dark:hidden h-16 mx-auto" />
-        <img src="/logofideliza.svg" alt="Fideliza+" className="hidden dark:block h-16 mx-auto" />
+        <img src="/logofidelizalight.svg" alt="Fideliza+" className="block dark:hidden h-24 mx-auto" />
+        <img src="/logofideliza.svg" alt="Fideliza+" className="hidden dark:block h-24 mx-auto" />
 
         {/* Icon + heading */}
         <div className="space-y-4">

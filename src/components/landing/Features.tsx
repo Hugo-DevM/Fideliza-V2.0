@@ -1,6 +1,8 @@
 import { Container } from '@/components/ui/Container';
 import { Badge } from '@/components/ui/Badge';
+import { Reveal, RevealGroup, RevealItem } from '@/components/ui/Reveal';
 import type { Dictionary } from '@/lib/i18n';
+import { withBrand } from '@/lib/brand';
 
 type VisualsDict = Dictionary['features']['visuals'];
 
@@ -38,16 +40,12 @@ function AccessCodeVisual({ t }: { t: VisualsDict['accessCode'] }) {
   return (
     <div className="space-y-3">
       <div className="flex items-center gap-3 p-3 rounded-xl bg-gray-50 border border-gray-200">
-        <div className="w-8 h-8 rounded-full bg-indigo-100 flex items-center justify-center text-xs font-bold text-indigo-700">
-          A
-        </div>
+        <div className="w-8 h-8 rounded-full bg-indigo-100 flex items-center justify-center text-xs font-bold text-indigo-700">A</div>
         <div>
           <div className="text-sm font-medium text-gray-800">Alice Méndez</div>
           <div className="text-xs text-gray-400 font-mono tracking-wider">ALIC-BB01</div>
         </div>
-        <div className="ml-auto text-xs font-semibold text-emerald-600 bg-emerald-50 rounded-full px-2 py-0.5">
-          {t.status}
-        </div>
+        <div className="ml-auto text-xs font-semibold text-emerald-600 bg-emerald-50 rounded-full px-2 py-0.5">{t.status}</div>
       </div>
       <p className="text-xs text-gray-400 flex items-center gap-1.5">
         <svg viewBox="0 0 24 24" fill="currentColor" className="w-3.5 h-3.5 text-emerald-500 flex-shrink-0">
@@ -64,14 +62,7 @@ function SubdomainVisual({ t }: { t: VisualsDict['subdomain'] }) {
   return (
     <div className="space-y-2">
       {urls.map((url, i) => (
-        <div
-          key={url}
-          className={`flex items-center gap-2 px-3 py-2 rounded-lg border text-sm font-mono ${
-            i === 0
-              ? 'bg-indigo-50 border-indigo-200 text-indigo-700'
-              : 'bg-gray-50 border-gray-200 text-gray-500'
-          }`}
-        >
+        <div key={url} className={`flex items-center gap-2 px-3 py-2 rounded-lg border text-sm font-mono ${i === 0 ? 'bg-indigo-50 border-indigo-200 text-indigo-700' : 'bg-gray-50 border-gray-200 text-gray-500'}`}>
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} className="w-3.5 h-3.5 flex-shrink-0">
             <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z" />
           </svg>
@@ -92,9 +83,7 @@ function TransactionVisual({ t }: { t: VisualsDict['transaction'] }) {
             <div className={`w-1.5 h-1.5 rounded-full ${tx.type === 'earn' ? 'bg-emerald-500' : 'bg-red-400'}`} />
             <span className="text-gray-700">{tx.label}</span>
           </div>
-          <span className={`font-semibold tabular-nums ${tx.type === 'earn' ? 'text-emerald-600' : 'text-red-500'}`}>
-            {tx.points}
-          </span>
+          <span className={`font-semibold tabular-nums ${tx.type === 'earn' ? 'text-emerald-600' : 'text-red-500'}`}>{tx.points}</span>
         </div>
       ))}
       <div className="flex justify-between pt-2 px-1 text-xs text-gray-500">
@@ -117,40 +106,37 @@ export function Features({ t }: FeaturesProps) {
     <TransactionVisual  key="txn"      t={t.visuals.transaction} />,
   ];
 
-  const staggerDelays = ['', 'reveal-d1', 'reveal-d2', 'reveal-d3'];
-
   return (
     <section id="features" className="py-20 sm:py-28 bg-gray-50">
       <Container>
+        {/* Section header */}
         <div className="text-center mb-16">
-          <p className="reveal reveal-left text-sm font-semibold text-indigo-600 uppercase tracking-wider mb-3">
-            {t.label}
-          </p>
-          <h2 className="reveal text-3xl sm:text-4xl font-bold text-gray-900 mb-4">
-            {t.heading}
-          </h2>
-          <p className="reveal reveal-d1 text-lg text-gray-500 max-w-xl mx-auto">
-            {t.body}
-          </p>
+          <Reveal direction="left" className="mb-3">
+            <p className="text-sm font-semibold text-indigo-600 uppercase tracking-wider">{t.label}</p>
+          </Reveal>
+          <Reveal delay={0.06}>
+            <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-4">{t.heading}</h2>
+          </Reveal>
+          <Reveal delay={0.12}>
+            <p className="text-lg text-gray-500 max-w-xl mx-auto">{t.body}</p>
+          </Reveal>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {/* Cards — stagger */}
+        <RevealGroup className="grid grid-cols-1 md:grid-cols-2 gap-6" stagger={0.1}>
           {t.items.map((item, i) => (
-            <div
-              key={i}
-              className={`reveal-scale ${staggerDelays[i]} card-hover bg-white rounded-2xl border border-gray-200 p-6 flex flex-col gap-5`}
-            >
-              <div>
-                <Badge color={item.badgeColor} className="mb-4">
-                  {item.badge}
-                </Badge>
-                <h3 className="text-lg font-semibold text-gray-900 mb-2">{item.title}</h3>
-                <p className="text-sm text-gray-500 leading-relaxed">{item.description}</p>
+            <RevealItem key={i} direction="scale">
+              <div className="card-hover bg-white rounded-2xl border border-gray-200 p-6 flex flex-col gap-5 h-full">
+                <div>
+                  <Badge color={item.badgeColor} className="mb-4">{item.badge}</Badge>
+                  <h3 className="text-lg font-semibold text-gray-900 mb-2">{item.title}</h3>
+                  <p className="text-sm text-gray-500 leading-relaxed">{withBrand(item.description)}</p>
+                </div>
+                <div className="mt-auto pt-4 border-t border-gray-100">{visuals[i]}</div>
               </div>
-              <div className="mt-auto pt-4 border-t border-gray-100">{visuals[i]}</div>
-            </div>
+            </RevealItem>
           ))}
-        </div>
+        </RevealGroup>
       </Container>
     </section>
   );

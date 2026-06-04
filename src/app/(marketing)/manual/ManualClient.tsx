@@ -18,9 +18,12 @@ export function ManualClient() {
     : "User Manual · v1.0 · May 2026";
   const docsLabel = isEs ? "Documentación" : "Documentation";
   const title = isEs ? "Manual de Usuario" : "User Manual";
-  const description = isEs
-    ? "Configura y opera tu programa de fidelización en Fideliza+. Basado en la implementación real del sistema."
-    : "Configure and operate your loyalty program in Fideliza+. Based on the real system implementation.";
+  const descriptionEs = (
+    <>Configura y opera tu programa de fidelización en <strong className="text-indigo-400 font-bold">Fideliza</strong>. Basado en la implementación real del sistema.</>
+  );
+  const descriptionEn = (
+    <>Configure and operate your loyalty program in <strong className="text-indigo-400 font-bold">Fideliza</strong>. Based on the real system implementation.</>
+  );
 
   return (
     <div className="min-h-screen bg-gray-950 text-gray-100">
@@ -82,13 +85,18 @@ export function ManualClient() {
       {/* ── Hero ── */}
       <div className="bg-gradient-to-b from-indigo-950/40 to-gray-950 border-b border-white/10">
         <Container className="py-12">
-          <p className="animate-fade-in text-xs font-semibold text-indigo-400 uppercase tracking-widest mb-3">
-            {docsLabel}
-          </p>
-          <h1 className="animate-fade-in-delay-1 text-3xl sm:text-4xl font-bold text-white mb-3">
-            {title}
-          </h1>
-          <p className="animate-fade-in-delay-2 text-gray-400 max-w-xl">{description}</p>
+          <div className="flex items-center justify-between gap-8">
+            <div>
+              <p className="animate-fade-in text-xs font-semibold text-indigo-400 uppercase tracking-widest mb-3">
+                {docsLabel}
+              </p>
+              <h1 className="animate-fade-in-delay-1 text-3xl sm:text-4xl font-bold text-white mb-3">
+                {title}
+              </h1>
+              <p className="animate-fade-in-delay-2 text-gray-400 max-w-xl">{isEs ? descriptionEs : descriptionEn}</p>
+            </div>
+            <img src="/logofideliza.svg" alt="Fideliza" className="hidden sm:block h-24 opacity-80" />
+          </div>
         </Container>
       </div>
 
@@ -101,7 +109,7 @@ export function ManualClient() {
             {isEs ? <ContentEs /> : <ContentEn />}
 
             <div className="pt-10 pb-4 text-center text-xs text-gray-600">
-              Fideliza+ · v1.0 ·{" "}
+              <strong className="text-indigo-400 font-bold">Fideliza</strong> · v1.0 ·{" "}
               <a href="/" className="hover:text-gray-400 transition-colors">
                 {backLabel}
               </a>

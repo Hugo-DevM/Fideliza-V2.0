@@ -36,6 +36,9 @@ function Warning({ children }: { children: React.ReactNode }) {
     </div>
   );
 }
+function Brand() {
+  return <strong className="text-indigo-400 font-bold">Fideliza</strong>;
+}
 
 /* ─── Content ───────────────────────────────────────────────────────────── */
 
@@ -45,14 +48,14 @@ function TermsEs() {
       <P>
         <Highlight>Fecha de entrada en vigor: 5 de mayo de 2026.</Highlight>{' '}
         Estos Términos de Servicio (en adelante, "los Términos") regulan el acceso y uso
-        de la plataforma Fideliza+ operada por Fideliza+ ("<Highlight>Fideliza+</Highlight>",
+        de la plataforma <Brand /> operada por <Brand /> ("<Brand />",
         "nosotros" o "nuestro"). Al registrarte o usar el servicio, aceptas estos Términos
         en su totalidad. Si no estás de acuerdo, no uses el servicio.
       </P>
 
       <H2 id="descripcion">1. Descripción del servicio</H2>
       <P>
-        Fideliza+ es una plataforma de software como servicio (SaaS) que permite a negocios
+        <Brand /> es una plataforma de software como servicio (SaaS) que permite a negocios
         crear, gestionar y operar programas de fidelización de clientes. El servicio incluye:
       </P>
       <UL items={[
@@ -64,7 +67,7 @@ function TermsEs() {
         'Integración con Stripe para gestión de suscripciones y pagos',
       ]} />
       <P>
-        Fideliza+ se reserva el derecho de modificar, suspender o descontinuar cualquier
+        <Brand /> se reserva el derecho de modificar, suspender o descontinuar cualquier
         funcionalidad del servicio con un preaviso razonable, excepto en casos de urgencia
         o incidencia de seguridad.
       </P>
@@ -86,7 +89,7 @@ function TermsEs() {
       <UL items={[
         'No puede transferirse a terceros',
         'No puede usarse para actividades distintas a las descritas en estos Términos',
-        'Puede ser reclamado por Fideliza+ si viola estos Términos o está inactivo por más de 12 meses consecutivos',
+        'Puede ser reclamado por Fideliza si viola estos Términos o está inactivo por más de 12 meses consecutivos',
       ]} />
 
       <H3>2.3 Seguridad de la cuenta</H3>
@@ -99,7 +102,7 @@ function TermsEs() {
       <H2 id="planes">3. Planes, precios y facturación</H2>
 
       <H3>3.1 Planes disponibles</H3>
-      <P>Fideliza+ ofrece los siguientes planes:</P>
+      <P><Brand /> ofrece los siguientes planes:</P>
       <UL items={[
         'Plan Gratis: hasta 50 clientes, 1 programa (tipos: Puntos y Sellos), historial limitado a las últimas 50 transacciones. Sin costo. Sin tarjeta de crédito requerida.',
         'Plan Starter: hasta 500 clientes, hasta 3 programas (tipos: Puntos, Sellos y Visitas), historial ilimitado, catálogo de recompensas.',
@@ -110,7 +113,7 @@ function TermsEs() {
       <UL items={[
         'Los planes de pago se facturan de forma recurrente (mensual o anual, según lo seleccionado) mediante Stripe',
         'Los precios están sujetos a los impuestos aplicables en tu jurisdicción',
-        'Al proporcionar un método de pago, autorizas a Fideliza+ (a través de Stripe) a cargar el importe correspondiente en las fechas de renovación',
+        'Al proporcionar un método de pago, autorizas a Fideliza (a través de Stripe) a cargar el importe correspondiente en las fechas de renovación',
         'Los precios pueden actualizarse con un preaviso de 30 días por correo electrónico',
       ]} />
 
@@ -119,7 +122,7 @@ function TermsEs() {
         Si un pago falla o la suscripción se cancela, tu cuenta se degradará
         automáticamente al <Highlight>Plan Gratis</Highlight> con sus limitaciones
         correspondientes. Tus datos se conservarán durante 90 días adicionales para que
-        puedas reactivar el servicio. Transcurrido ese período sin regularización, Fideliza+
+        puedas reactivar el servicio. Transcurrido ese período sin regularización, <Brand />
         podrá eliminar los datos asociados a las funcionalidades del plan de pago.
       </P>
 
@@ -132,7 +135,7 @@ function TermsEs() {
 
       <H2 id="uso-aceptable">4. Uso aceptable</H2>
       <P>
-        Al usar Fideliza+, te comprometes a no realizar ninguna de las siguientes
+        Al usar <Brand />, te comprometes a no realizar ninguna de las siguientes
         actividades:
       </P>
       <UL items={[
@@ -146,19 +149,19 @@ function TermsEs() {
         'Almacenar o procesar datos especialmente sensibles (datos de salud, documentos de identidad, datos financieros más allá de lo que el servicio permite explícitamente)',
       ]} />
       <P>
-        Fideliza+ se reserva el derecho de suspender o eliminar cuentas que infrinjan estas
+        <Brand /> se reserva el derecho de suspender o eliminar cuentas que infrinjan estas
         normas sin previo aviso y sin derecho a reembolso.
       </P>
 
       <H2 id="datos-clientes">5. Datos de clientes finales y responsabilidad</H2>
       <P>
-        En lo que respecta a los datos de tus clientes finales que ingresas en Fideliza+:
+        En lo que respecta a los datos de tus clientes finales que ingresas en <Brand />:
       </P>
       <UL items={[
         'Eres el responsable del tratamiento de dichos datos conforme al RGPD y la normativa aplicable',
         'Eres responsable de obtener las bases legales necesarias para registrar y tratar los datos de tus clientes (ej. consentimiento explícito, interés legítimo)',
         'Debes informar a tus clientes sobre el uso de sus datos de acuerdo con tu propia política de privacidad',
-        'Fideliza+ actúa exclusivamente como encargado del tratamiento bajo tus instrucciones',
+        'Fideliza actúa exclusivamente como encargado del tratamiento bajo tus instrucciones',
         'No debes registrar datos de menores de 16 años sin el consentimiento de sus tutores legales',
       ]} />
       <Warning>
@@ -170,17 +173,17 @@ function TermsEs() {
       </Warning>
 
       <H2 id="propiedad-intelectual">6. Propiedad intelectual</H2>
-      <H3>6.1 Propiedad de Fideliza+</H3>
+      <H3>6.1 Propiedad de <Brand /></H3>
       <P>
         Todo el software, diseño, código fuente, marcas, logotipos y contenido de la
-        plataforma son propiedad exclusiva de Fideliza+ y están protegidos por las leyes
+        plataforma son propiedad exclusiva de <Brand /> y están protegidos por las leyes
         de propiedad intelectual aplicables. No te concedemos ningún derecho sobre ellos
         más allá del acceso al servicio descrito en estos Términos.
       </P>
 
       <H3>6.2 Tus datos y contenido</H3>
       <P>
-        Los datos que ingresas en Fideliza+ (información de clientes, configuración del
+        Los datos que ingresas en <Brand /> (información de clientes, configuración del
         negocio, transacciones) te pertenecen. Nos otorgas una licencia limitada,
         no exclusiva y revocable para almacenar y procesar dichos datos exclusivamente con
         el fin de prestar el servicio.
@@ -194,7 +197,7 @@ function TermsEs() {
       <UL items={[
         'El Plan Gratis no incluye ningún Acuerdo de Nivel de Servicio (SLA)',
         'Los planes de pago incluyen acceso prioritario al soporte pero no garantizan tiempos de resolución específicos en la versión actual del servicio',
-        'Fideliza+ puede realizar mantenimientos programados con previo aviso',
+        'Fideliza puede realizar mantenimientos programados con previo aviso',
         'No somos responsables por interrupciones causadas por terceros (Supabase, Stripe, proveedores de red)',
       ]} />
 
@@ -204,13 +207,13 @@ function TermsEs() {
       </P>
       <UL items={[
         'El servicio se presta "tal cual" y "según disponibilidad", sin garantías de ningún tipo, expresas o implícitas',
-        'Fideliza+ no será responsable por pérdidas de datos, lucro cesante, daño a la reputación, ni por daños indirectos, incidentales, especiales o consecuentes derivados del uso o la imposibilidad de uso del servicio',
-        'La responsabilidad total máxima de Fideliza+ hacia ti por cualquier causa no superará el importe total que hayas pagado a Fideliza+ durante los 12 meses anteriores al evento que origina la reclamación, o 100 USD si no has realizado ningún pago',
+        'Fideliza no será responsable por pérdidas de datos, lucro cesante, daño a la reputación, ni por daños indirectos, incidentales, especiales o consecuentes derivados del uso o la imposibilidad de uso del servicio',
+        'La responsabilidad total máxima de Fideliza hacia ti por cualquier causa no superará el importe total que hayas pagado a Fideliza durante los 12 meses anteriores al evento que origina la reclamación, o 100 USD si no has realizado ningún pago',
       ]} />
 
       <H2 id="indemnizacion">9. Indemnización</H2>
       <P>
-        Aceptas indemnizar y mantener indemne a Fideliza+ y a sus empleados, directores y
+        Aceptas indemnizar y mantener indemne a <Brand /> y a sus empleados, directores y
         colaboradores frente a cualquier reclamación, daño, pérdida o gasto (incluidos
         honorarios legales razonables) derivados de: (a) tu uso del servicio en
         incumplimiento de estos Términos; (b) los datos que ingresas en la plataforma;
@@ -227,9 +230,9 @@ function TermsEs() {
         no genera reembolso por el período ya pagado.
       </P>
 
-      <H3>10.2 Por parte de Fideliza+</H3>
+      <H3>10.2 Por parte de <Brand /></H3>
       <P>
-        Fideliza+ puede suspender o cancelar tu acceso si: (a) incumples estos Términos;
+        <Brand /> puede suspender o cancelar tu acceso si: (a) incumples estos Términos;
         (b) tu cuenta presenta actividad fraudulenta o sospechosa; (c) el pago está
         pendiente por más de 30 días. Ante infracciones graves, la cancelación puede ser
         inmediata sin previo aviso.
@@ -245,7 +248,7 @@ function TermsEs() {
       <H2 id="ley-aplicable">11. Ley aplicable y resolución de disputas</H2>
       <P>
         Estos Términos se rigen por la ley aplicable en la jurisdicción de operación de
-        Fideliza+. Ante cualquier disputa, las partes se comprometen a intentar resolverla
+        <Brand />. Ante cualquier disputa, las partes se comprometen a intentar resolverla
         de forma amistosa en un plazo de 30 días. Si no se alcanza un acuerdo, la disputa
         se someterá a los tribunales competentes de dicha jurisdicción.
       </P>
@@ -257,7 +260,7 @@ function TermsEs() {
 
       <H2 id="modificaciones">12. Modificaciones de los términos</H2>
       <P>
-        Fideliza+ puede actualizar estos Términos en cualquier momento. Te notificaremos
+        <Brand /> puede actualizar estos Términos en cualquier momento. Te notificaremos
         cambios materiales por correo electrónico y/o mediante un aviso en la plataforma
         con al menos <Highlight>15 días de antelación</Highlight>. El uso continuado del
         servicio tras la fecha de vigencia de los nuevos Términos implica su aceptación.
@@ -270,7 +273,7 @@ function TermsEs() {
         Para cualquier consulta sobre estos Términos:
       </P>
       <P>
-        <Highlight>Fideliza+</Highlight><br />
+        <Brand /><br />
         Correo: <Highlight>support@fideliza.app</Highlight><br />
         Privacidad: <Highlight>privacy@fideliza.app</Highlight>
       </P>
@@ -283,15 +286,15 @@ function TermsEn() {
     <>
       <P>
         <Highlight>Effective date: May 5, 2026.</Highlight>{' '}
-        These Terms of Service ("Terms") govern access to and use of the Fideliza+ platform
-        operated by Fideliza+ ("<Highlight>Fideliza+</Highlight>", "we", "us" or "our").
+        These Terms of Service ("Terms") govern access to and use of the <Brand /> platform
+        operated by <Brand /> ("<Brand />", "we", "us" or "our").
         By registering or using the service, you agree to these Terms in full. If you
         disagree, do not use the service.
       </P>
 
       <H2 id="descripcion">1. Description of service</H2>
       <P>
-        Fideliza+ is a software-as-a-service (SaaS) platform that enables businesses to
+        <Brand /> is a software-as-a-service (SaaS) platform that enables businesses to
         create, manage and operate customer loyalty programs. The service includes:
       </P>
       <UL items={[
@@ -303,7 +306,7 @@ function TermsEn() {
         'Stripe integration for subscription and payment management',
       ]} />
       <P>
-        Fideliza+ reserves the right to modify, suspend or discontinue any feature of the
+        <Brand /> reserves the right to modify, suspend or discontinue any feature of the
         service with reasonable prior notice, except in cases of emergency or security
         incidents.
       </P>
@@ -325,7 +328,7 @@ function TermsEn() {
       <UL items={[
         'Cannot be transferred to third parties',
         'Cannot be used for activities other than those described in these Terms',
-        'May be reclaimed by Fideliza+ if it violates these Terms or has been inactive for more than 12 consecutive months',
+        'May be reclaimed by Fideliza if it violates these Terms or has been inactive for more than 12 consecutive months',
       ]} />
 
       <H3>2.3 Account security</H3>
@@ -338,7 +341,7 @@ function TermsEn() {
       <H2 id="planes">3. Plans, pricing and billing</H2>
 
       <H3>3.1 Available plans</H3>
-      <P>Fideliza+ offers the following plans:</P>
+      <P><Brand /> offers the following plans:</P>
       <UL items={[
         'Free plan: up to 50 customers, 1 program (types: Points and Stamps), history limited to the last 50 transactions. No cost. No credit card required.',
         'Starter plan: up to 500 customers, up to 3 programs (types: Points, Stamps and Visits), unlimited history, reward catalog.',
@@ -349,7 +352,7 @@ function TermsEn() {
       <UL items={[
         'Paid plans are billed on a recurring basis (monthly or annual, as selected) via Stripe',
         'Prices are subject to applicable taxes in your jurisdiction',
-        'By providing a payment method, you authorize Fideliza+ (through Stripe) to charge the corresponding amount on renewal dates',
+        'By providing a payment method, you authorize Fideliza (through Stripe) to charge the corresponding amount on renewal dates',
         'Prices may be updated with 30 days\' prior notice by email',
       ]} />
 
@@ -358,7 +361,7 @@ function TermsEn() {
         If a payment fails or the subscription is cancelled, your account will automatically
         be downgraded to the <Highlight>Free Plan</Highlight> with its corresponding
         limitations. Your data will be retained for an additional 90 days so you can
-        reactivate the service. After that period without resolution, Fideliza+ may delete
+        reactivate the service. After that period without resolution, <Brand /> may delete
         data associated with paid-plan features.
       </P>
 
@@ -371,7 +374,7 @@ function TermsEn() {
 
       <H2 id="uso-aceptable">4. Acceptable use</H2>
       <P>
-        By using Fideliza+, you agree not to engage in any of the following activities:
+        By using <Brand />, you agree not to engage in any of the following activities:
       </P>
       <UL items={[
         'Using the service for illegal, fraudulent or deceptive purposes',
@@ -384,19 +387,19 @@ function TermsEn() {
         'Storing or processing specially sensitive data (health records, identity documents, financial data beyond what the service explicitly supports)',
       ]} />
       <P>
-        Fideliza+ reserves the right to suspend or delete accounts that violate these rules
+        <Brand /> reserves the right to suspend or delete accounts that violate these rules
         without prior notice and without entitlement to a refund.
       </P>
 
       <H2 id="datos-clientes">5. End-customer data and responsibility</H2>
       <P>
-        Regarding your end customers' data that you enter into Fideliza+:
+        Regarding your end customers' data that you enter into <Brand />:
       </P>
       <UL items={[
         'You are the data controller for such data under GDPR and applicable law',
         'You are responsible for obtaining the necessary legal bases to register and process your customers\' data (e.g. explicit consent, legitimate interest)',
         'You must inform your customers about the use of their data in accordance with your own privacy policy',
-        'Fideliza+ acts solely as data processor under your instructions',
+        'Fideliza acts solely as data processor under your instructions',
         'You must not register data of children under 16 without the consent of their legal guardians',
       ]} />
       <Warning>
@@ -407,17 +410,17 @@ function TermsEn() {
       </Warning>
 
       <H2 id="propiedad-intelectual">6. Intellectual property</H2>
-      <H3>6.1 Fideliza+ property</H3>
+      <H3>6.1 <Brand /> property</H3>
       <P>
         All software, design, source code, trademarks, logos and content of the platform
-        are the exclusive property of Fideliza+ and are protected by applicable intellectual
+        are the exclusive property of <Brand /> and are protected by applicable intellectual
         property laws. We grant you no rights thereto beyond access to the service described
         in these Terms.
       </P>
 
       <H3>6.2 Your data and content</H3>
       <P>
-        The data you enter into Fideliza+ (customer information, business configuration,
+        The data you enter into <Brand /> (customer information, business configuration,
         transactions) belongs to you. You grant us a limited, non-exclusive and revocable
         license to store and process such data solely for the purpose of providing the
         service.
@@ -431,7 +434,7 @@ function TermsEn() {
       <UL items={[
         'The Free Plan does not include any Service Level Agreement (SLA)',
         'Paid plans include priority support access but do not guarantee specific resolution times in the current version of the service',
-        'Fideliza+ may perform scheduled maintenance with prior notice',
+        'Fideliza may perform scheduled maintenance with prior notice',
         'We are not responsible for interruptions caused by third parties (Supabase, Stripe, network providers)',
       ]} />
 
@@ -441,13 +444,13 @@ function TermsEn() {
       </P>
       <UL items={[
         'The service is provided "as is" and "as available", without warranties of any kind, express or implied',
-        'Fideliza+ will not be liable for data loss, lost profits, reputational damage, or any indirect, incidental, special or consequential damages arising from the use or inability to use the service',
-        'Fideliza\'s total maximum liability to you for any cause shall not exceed the total amount you have paid to Fideliza+ during the 12 months preceding the event giving rise to the claim, or USD 100 if you have made no payments',
+        'Fideliza will not be liable for data loss, lost profits, reputational damage, or any indirect, incidental, special or consequential damages arising from the use or inability to use the service',
+        'Fideliza\'s total maximum liability to you for any cause shall not exceed the total amount you have paid to Fideliza during the 12 months preceding the event giving rise to the claim, or USD 100 if you have made no payments',
       ]} />
 
       <H2 id="indemnizacion">9. Indemnification</H2>
       <P>
-        You agree to indemnify and hold harmless Fideliza+ and its employees, directors and
+        You agree to indemnify and hold harmless <Brand /> and its employees, directors and
         collaborators against any claims, damages, losses or expenses (including reasonable
         legal fees) arising from: (a) your use of the service in breach of these Terms;
         (b) the data you enter into the platform; (c) any breach of applicable data
@@ -463,9 +466,9 @@ function TermsEn() {
         a refund for the period already paid.
       </P>
 
-      <H3>10.2 By Fideliza+</H3>
+      <H3>10.2 By <Brand /></H3>
       <P>
-        Fideliza+ may suspend or cancel your access if: (a) you breach these Terms;
+        <Brand /> may suspend or cancel your access if: (a) you breach these Terms;
         (b) your account shows fraudulent or suspicious activity; (c) payment is outstanding
         for more than 30 days. For serious violations, cancellation may be immediate without
         prior notice.
@@ -480,7 +483,7 @@ function TermsEn() {
 
       <H2 id="ley-aplicable">11. Governing law and dispute resolution</H2>
       <P>
-        These Terms are governed by the applicable law in Fideliza+'s operating jurisdiction.
+        These Terms are governed by the applicable law in <Brand />'s operating jurisdiction.
         In the event of any dispute, the parties commit to attempting amicable resolution
         within 30 days. If no agreement is reached, the dispute shall be submitted to the
         competent courts of that jurisdiction.
@@ -493,7 +496,7 @@ function TermsEn() {
 
       <H2 id="modificaciones">12. Changes to terms</H2>
       <P>
-        Fideliza+ may update these Terms at any time. We will notify you of material changes
+        <Brand /> may update these Terms at any time. We will notify you of material changes
         by email and/or via a notice on the platform at least{' '}
         <Highlight>15 days in advance</Highlight>. Continued use of the service after the
         new Terms take effect constitutes your acceptance. If you disagree with the changes,
@@ -505,7 +508,7 @@ function TermsEn() {
         For any questions regarding these Terms:
       </P>
       <P>
-        <Highlight>Fideliza+</Highlight><br />
+        <Brand /><br />
         Email: <Highlight>support@fideliza.app</Highlight><br />
         Privacy: <Highlight>privacy@fideliza.app</Highlight>
       </P>
@@ -572,8 +575,13 @@ export default function TermsPage() {
       {/* ── Hero ── */}
       <div className="bg-gradient-to-b from-indigo-950/40 to-gray-950 border-b border-white/10">
         <Container className="py-12">
-          <h1 className="animate-fade-in text-3xl sm:text-4xl font-bold text-white mb-2">{title}</h1>
-          <p className="animate-fade-in-delay-1 text-gray-500 text-sm">{updated}</p>
+          <div className="flex items-center justify-between gap-8">
+            <div>
+              <h1 className="animate-fade-in text-3xl sm:text-4xl font-bold text-white mb-2">{title}</h1>
+              <p className="animate-fade-in-delay-1 text-gray-500 text-sm">{updated}</p>
+            </div>
+            <img src="/logofideliza.svg" alt="Fideliza" className="hidden sm:block h-24 opacity-80" />
+          </div>
         </Container>
       </div>
 
@@ -582,7 +590,7 @@ export default function TermsPage() {
         {isEs ? <TermsEs /> : <TermsEn />}
 
         <div className="pt-10 pb-4 text-center text-xs text-gray-600 border-t border-white/5 mt-10">
-          Fideliza+ · {isEs ? 'Términos de Servicio' : 'Terms of Service'} ·{' '}
+          <strong className="text-indigo-400 font-bold">Fideliza</strong> · {isEs ? 'Términos de Servicio' : 'Terms of Service'} ·{' '}
           <a href="/privacy" className="hover:text-gray-400 transition-colors">
             {isEs ? 'Política de privacidad' : 'Privacy policy'}
           </a>

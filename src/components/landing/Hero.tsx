@@ -1,3 +1,7 @@
+'use client';
+
+import { useRef } from 'react';
+import { motion, useMotionValue, useSpring, useTransform } from 'motion/react';
 import { Container } from '@/components/ui/Container';
 import { LinkButton } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
@@ -7,13 +11,15 @@ interface HeroProps {
   t: Dictionary['hero'];
 }
 
+/* ── Loyalty card mockup ─────────────────────────────────────────── */
+
 function LoyaltyCardMock({ t }: { t: Dictionary['hero']['card'] }) {
   return (
     <div className="relative mx-auto w-full max-w-sm select-none">
       {/* Glow */}
       <div
         className="absolute inset-0 rounded-3xl blur-3xl glow-pulse"
-        style={{ background: 'linear-gradient(135deg, #6366f1, #8b5cf6)', opacity: 0.28 }}
+        style={{ background: 'linear-gradient(135deg, #6366f1, #8b5cf6)', opacity: 0.32 }}
         aria-hidden="true"
       />
 
@@ -93,6 +99,54 @@ function LoyaltyCardMock({ t }: { t: Dictionary['hero']['card'] }) {
   );
 }
 
+/* ── Mouse-tracked card with spring physics ──────────────────────── */
+function CardWithParallax({ t }: { t: Dictionary['hero']['card'] }) {
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  const mouseX = useMotionValue(0.5);
+  const mouseY = useMotionValue(0.5);
+
+  const springConfig = { stiffness: 80, damping: 18 };
+  const springX = useSpring(mouseX, springConfig);
+  const springY = useSpring(mouseY, springConfig);
+
+  const rotateY = useTransform(springX, [0, 1], [-10, 10]);
+  const rotateX = useTransform(springY, [0, 1], [8, -8]);
+
+  function onMouseMove(e: React.MouseEvent<HTMLDivElement>) {
+    const rect = containerRef.current?.getBoundingClientRect();
+    if (!rect) return;
+    mouseX.set((e.clientX - rect.left) / rect.width);
+    mouseY.set((e.clientY - rect.top) / rect.height);
+  }
+
+  function onMouseLeave() {
+    mouseX.set(0.5);
+    mouseY.set(0.5);
+  }
+
+  return (
+    <div
+      ref={containerRef}
+      onMouseMove={onMouseMove}
+      onMouseLeave={onMouseLeave}
+      style={{ perspective: 1000 }}
+      className="will-change-transform"
+    >
+      <motion.div
+        style={{ rotateX, rotateY, transformStyle: 'preserve-3d' }}
+        className="card-float"
+      >
+        <LoyaltyCardMock t={t} />
+      </motion.div>
+    </div>
+  );
+}
+
+/* ── Hero section ────────────────────────────────────────────────── */
+
+const EASE = [0.23, 1, 0.32, 1] as [number, number, number, number];
+
 export function Hero({ t }: HeroProps) {
   return (
     <section className="hero-bg min-h-screen flex items-center pt-16 pb-20 overflow-hidden">
@@ -101,21 +155,50 @@ export function Hero({ t }: HeroProps) {
 
           {/* Left: copy */}
           <div className="text-center lg:text-left">
-            <Badge color="indigo" className="mb-6 animate-fade-in">
-              <span className="w-1.5 h-1.5 rounded-full bg-indigo-400 inline-block" />
-              {t.badge}
-            </Badge>
 
-            <h1 className="animate-fade-in-delay-1 text-4xl sm:text-5xl lg:text-[3.25rem] font-bold leading-[1.15] text-white mb-6">
-              {t.headingPlain}
-              <span className="gradient-text">{t.headingGradient}</span>
-            </h1>
+            {/* Badge */}
+            <motion.div
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.6, ease: EASE }}
+              className="mb-6 inline-block"
+            >
+              <Badge color="indigo">
+                <span className="w-1.5 h-1.5 rounded-full bg-indigo-400 inline-block" />
+                {t.badge}
+              </Badge>
+            </motion.div>
 
-            <p className="animate-fade-in-delay-2 text-lg text-gray-400 mb-8 max-w-lg mx-auto lg:mx-0 leading-relaxed">
+            {/* Headline */}
+            <div className="overflow-hidden mb-2">
+              <motion.h1
+                initial={{ opacity: 0, y: 48 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.8, ease: EASE, delay: 0.08 }}
+                className="text-4xl sm:text-5xl lg:text-[3.25rem] font-bold leading-[1.15] text-white"
+              >
+                {t.headingPlain}
+                <span className="gradient-text">{t.headingGradient}</span>
+              </motion.h1>
+            </div>
+
+            {/* Body */}
+            <motion.p
+              initial={{ opacity: 0, y: 24 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.7, ease: EASE, delay: 0.2 }}
+              className="text-lg text-gray-400 mb-8 max-w-lg mx-auto lg:mx-0 leading-relaxed"
+            >
               {t.body}
-            </p>
+            </motion.p>
 
-            <div className="animate-fade-in-delay-3 flex flex-col sm:flex-row gap-3 justify-center lg:justify-start">
+            {/* CTAs */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, ease: EASE, delay: 0.32 }}
+              className="flex flex-col sm:flex-row gap-3 justify-center lg:justify-start"
+            >
               <LinkButton href="#waitlist" size="lg" className="relative pulse-ring whitespace-nowrap">
                 {t.cta1}
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} className="w-4 h-4">
@@ -125,10 +208,15 @@ export function Hero({ t }: HeroProps) {
               <LinkButton href="#how-it-works" size="lg" variant="ghost" className="text-gray-300 hover:text-white hover:bg-white/10 whitespace-nowrap">
                 {t.cta2}
               </LinkButton>
-            </div>
+            </motion.div>
 
             {/* Social proof */}
-            <div className="animate-fade-in-delay-3 mt-10 flex items-center gap-6 justify-center lg:justify-start">
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 0.6, ease: EASE, delay: 0.48 }}
+              className="mt-10 flex items-center gap-6 justify-center lg:justify-start"
+            >
               <div className="flex -space-x-2">
                 {['B', 'M', 'S', 'K'].map((letter, i) => (
                   <div
@@ -144,15 +232,20 @@ export function Hero({ t }: HeroProps) {
                 <span className="text-white font-semibold">{t.socialProofCount}</span>{' '}
                 {t.socialProofText}
               </p>
-            </div>
+            </motion.div>
           </div>
 
           {/* Right: product mockup */}
-          <div className="flex justify-center lg:justify-end animate-slide-right">
-            <div className="card-float">
-              <LoyaltyCardMock t={t.card} />
-            </div>
-          </div>
+          <motion.div
+            initial={{ opacity: 0, x: 60, rotateY: -8 }}
+            animate={{ opacity: 1, x: 0, rotateY: 0 }}
+            transition={{ duration: 0.9, ease: EASE, delay: 0.14 }}
+            className="flex justify-center lg:justify-end"
+            style={{ perspective: 1000 }}
+          >
+            <CardWithParallax t={t.card} />
+          </motion.div>
+
         </div>
       </Container>
     </section>

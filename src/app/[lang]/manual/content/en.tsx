@@ -26,7 +26,7 @@ export function ContentEn() {
       {/* ─ 1. Introduction ─ */}
       <Section id="introduccion" title="1. Introduction">
         <p>
-          <strong className="text-white">Fideliza+</strong> is a multi-tenant loyalty SaaS
+          <strong className="text-indigo-400 font-bold">Fideliza</strong> is a multi-tenant loyalty SaaS
           platform. It lets businesses create and manage loyalty programs without mobile apps
           or special hardware.
         </p>
@@ -362,7 +362,7 @@ export function ContentEn() {
         <p>
           From <strong className="text-white">Settings → Billing</strong> you can view your
           current plan, upgrade, and manage your payment method. Payments are handled by
-          Stripe. Fideliza+ does not store card data.
+          Stripe. <strong className="text-indigo-400 font-bold">Fideliza</strong> does not store card data.
         </p>
         <Note>
           If payment fails, the system automatically reverts to the Free plan until the

@@ -26,7 +26,7 @@ export function ContentEs() {
       {/* ─ 1. Introducción ─ */}
       <Section id="introduccion" title="1. Introducción">
         <p>
-          <strong className="text-white">Fideliza+</strong> es una plataforma SaaS de
+          <strong className="text-indigo-400 font-bold">Fideliza</strong> es una plataforma SaaS de
           fidelización de clientes. Permite a negocios crear y gestionar programas de
           lealtad sin necesidad de apps móviles ni hardware especial.
         </p>
@@ -361,7 +361,7 @@ export function ContentEs() {
         <p>
           Desde <strong className="text-white">Configuración → Facturación</strong> puedes
           ver tu plan actual, hacer upgrade y administrar el método de pago.
-          Los pagos son gestionados por Stripe. Fideliza+ no almacena datos de tarjetas.
+          Los pagos son gestionados por Stripe. <strong className="text-indigo-400 font-bold">Fideliza</strong> no almacena datos de tarjetas.
         </p>
         <Note>
           Si el pago falla, el sistema revierte automáticamente al plan Gratis hasta

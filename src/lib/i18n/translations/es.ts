@@ -34,7 +34,7 @@ export const es: Dictionary = {
   howItWorks: {
     label: "Simple por diseño",
     heading: "En marcha en minutos",
-    body: "Sin configuraciones complejas. Sin capacitación. Fideliza+ está hecho para dueños de negocios, no para desarrolladores.",
+    body: "Sin configuraciones complejas. Sin capacitación. Fideliza está hecho para dueños de negocios, no para desarrolladores.",
     steps: [
       {
         title: "Regístrate y elige tu subdominio",
@@ -83,7 +83,7 @@ export const es: Dictionary = {
         badgeColor: "indigo" as const,
         title: "Tu propio subdominio con tu marca",
         description:
-          "Cada negocio en Fideliza+ obtiene un subdominio aislado como marios.fideliza.app. Tus datos, tus clientes, tu marca — completamente separados de los demás negocios.",
+          "Cada negocio en Fideliza obtiene un subdominio aislado como marios.fideliza.app. Tus datos, tus clientes, tu marca — completamente separados de los demás negocios.",
       },
       {
         badge: "Tiempo real",
@@ -154,7 +154,7 @@ export const es: Dictionary = {
     ],
     label: "Hecho para negocios",
     heading: "Más visitas repetidas, menos incertidumbre",
-    body: "La fidelización no debería requerir un desarrollador, una app dedicada ni seis meses de implementación. Fideliza+ es la plataforma que los negocios independientes pueden usar y costear.",
+    body: "La fidelización no debería requerir un desarrollador, una app dedicada ni seis meses de implementación. Fideliza es la plataforma que los negocios independientes pueden usar y costear.",
     items: [
       {
         title: "Retén clientes, no solo atráelos",
@@ -170,7 +170,7 @@ export const es: Dictionary = {
       },
       {
         title: "Funciona junto a tu configuración actual",
-        body: "Fideliza+ no requiere un sistema POS específico ni un procesador de pagos. Es una capa de fidelización independiente que se suma a lo que ya usas.",
+        body: "Fideliza no requiere un sistema POS específico ni un procesador de pagos. Es una capa de fidelización independiente que se suma a lo que ya usas.",
       },
     ],
     dashboard: {
@@ -200,7 +200,7 @@ export const es: Dictionary = {
         price: "$0",
         period: "siempre",
         description:
-          "Prueba Fideliza+ sin riesgo. Ideal para validar con tus primeros clientes.",
+          "Prueba Fideliza sin riesgo. Ideal para validar con tus primeros clientes.",
         badge: null,
         highlight: false,
         features: [
@@ -273,7 +273,7 @@ export const es: Dictionary = {
   cta: {
     badge: "Acceso anticipado abierto",
     heading: "Lanza tu programa de fidelización esta semana",
-    body: "Únete a la lista de espera y sé uno de los primeros negocios en usar Fideliza+. Los miembros de acceso anticipado bloquean el precio fundador — 1 mes de Starter, gratis.",
+    body: "Únete a la lista de espera y sé uno de los primeros negocios en usar Fideliza. Los miembros de acceso anticipado bloquean el precio fundador — 1 mes de Starter, gratis.",
     bullets: [
       "Sin tarjeta de crédito",
       "Configuración en menos de 5 minutos",
@@ -335,7 +335,7 @@ export const es: Dictionary = {
     businessPlaceholder: "Nombre del negocio",
     disclaimer: "Sin tarjeta de crédito. Sin spam. Cancela cuando quieras.",
     successTitle: "¡Estás en la lista!",
-    successMessage: "Te avisaremos cuando Fideliza+ lance oficialmente.",
+    successMessage: "Te avisaremos cuando Fideliza lance oficialmente.",
     alreadyOnList: "¡Ya estás en la lista! Pronto estaremos en contacto.",
     errors: {
       emailInvalid: "Ingresa un correo electrónico válido.",
@@ -353,8 +353,8 @@ export const es: Dictionary = {
     description: "La página que buscas no existe o ha sido movida. Volvamos a encaminarte.",
     backHome: "Volver al inicio",
     contactSupport: "Contactar soporte",
-    logoAriaLabel: "Fideliza+ — Volver al inicio",
-    metaTitle: "404 — Página no encontrada | Fideliza+",
+    logoAriaLabel: "Fideliza — Volver al inicio",
+    metaTitle: "404 — Página no encontrada | Fideliza",
     metaDescription: "La página que buscabas no existe.",
   },
 };

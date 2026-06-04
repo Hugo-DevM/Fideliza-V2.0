@@ -27,7 +27,7 @@ const NON_MARKETING_PREFIXES = ['/api', '/dashboard', '/auth', '/c', '/_next'];
 function shouldRedirectForLocale(pathname: string, hasTenantSubdomain: boolean): boolean {
   if (hasTenantSubdomain) return false;
   // Root landing and legal pages are language-agnostic — no redirect needed
-  if (pathname === '/' || pathname === '/privacy' || pathname === '/terms') return false;
+  if (pathname === '/' || pathname === '/privacy' || pathname === '/terms' || pathname === '/manual') return false;
   if (NON_MARKETING_PREFIXES.some((p) => pathname.startsWith(p))) return false;
   // Already has a locale prefix — don't redirect again
   if (locales.some((l) => pathname === `/${l}` || pathname.startsWith(`/${l}/`))) return false;

@@ -13,8 +13,8 @@ const cardCls = 'rounded-2xl bg-white dark:bg-[#161b2e] px-8 pt-8 pb-7 shadow-xl
 function LogoGroup() {
   return (
     <>
-      <img src="/logofpurple.svg" alt="Fideliza+" className="block dark:hidden h-16 mx-auto" />
-      <img src="/logofideliza.svg" alt="Fideliza+" className="hidden dark:block h-16 mx-auto" />
+      <img src="/logofidelizalight.svg" alt="Fideliza+" className="block dark:hidden h-24 mx-auto" />
+      <img src="/logofideliza.svg" alt="Fideliza+" className="hidden dark:block h-24 mx-auto" />
     </>
   );
 }

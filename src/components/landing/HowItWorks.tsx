@@ -1,7 +1,8 @@
 import { Container } from '@/components/ui/Container';
+import { Reveal, RevealGroup, RevealItem } from '@/components/ui/Reveal';
 import type { Dictionary } from '@/lib/i18n';
+import { withBrand } from '@/lib/brand';
 
-// Icons are purely decorative — defined by position, not by translated content
 const STEP_ICONS = [
   <svg key="0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} className="w-6 h-6">
     <path strokeLinecap="round" strokeLinejoin="round" d="M12 21a9.004 9.004 0 008.716-6.747M12 21a9.004 9.004 0 01-8.716-6.747M12 21c2.485 0 4.5-4.03 4.5-9S14.485 3 12 3m0 18c-2.485 0-4.5-4.03-4.5-9S9.515 3 12 3m0 0a8.997 8.997 0 017.843 4.582M12 3a8.997 8.997 0 00-7.843 4.582m15.686 0A11.953 11.953 0 0112 10.5c-2.998 0-5.74-1.1-7.843-2.918m15.686 0A8.959 8.959 0 0121 12c0 .778-.099 1.533-.284 2.253m0 0A17.919 17.919 0 0112 16.5c-3.162 0-6.133-.815-8.716-2.247m0 0A9.015 9.015 0 013 12c0-1.605.42-3.113 1.157-4.418" />
@@ -18,7 +19,6 @@ const STEP_ICONS = [
 ];
 
 const STEP_NUMBERS = ['01', '02', '03', '04'];
-const STAGGER = ['', 'reveal-d1', 'reveal-d2', 'reveal-d3'];
 
 interface HowItWorksProps {
   t: Dictionary['howItWorks'];
@@ -29,39 +29,42 @@ export function HowItWorks({ t }: HowItWorksProps) {
     <section id="how-it-works" className="py-20 sm:py-28 bg-white">
       <Container>
         <div className="text-center mb-16">
-          <p className="reveal reveal-left text-sm font-semibold text-indigo-600 uppercase tracking-wider mb-3">
-            {t.label}
-          </p>
-          <h2 className="reveal text-3xl sm:text-4xl font-bold text-gray-900 mb-4">
-            {t.heading}
-          </h2>
-          <p className="reveal reveal-d1 text-lg text-gray-500 max-w-xl mx-auto">
-            {t.body}
-          </p>
+          <Reveal direction="left" className="mb-3">
+            <p className="text-sm font-semibold text-indigo-600 uppercase tracking-wider">{t.label}</p>
+          </Reveal>
+          <Reveal delay={0.06}>
+            <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-4">{t.heading}</h2>
+          </Reveal>
+          <Reveal delay={0.12}>
+            <p className="text-lg text-gray-500 max-w-xl mx-auto">{withBrand(t.body)}</p>
+          </Reveal>
         </div>
 
         <div className="relative">
-          {/* Connecting line (desktop) — draws left-to-right on scroll */}
-          <div className="absolute top-8 left-0 right-0 hidden lg:block" aria-hidden="true">
-            <div className="h-px bg-gradient-to-r from-transparent via-indigo-200 to-transparent line-draw" />
-          </div>
+          {/* Connecting line (desktop) — reveals on scroll */}
+          <Reveal duration={1.2} triggerMargin="-100px" className="absolute top-8 left-0 right-0 hidden lg:block" direction="fade">
+            <div className="h-px bg-gradient-to-r from-transparent via-indigo-200 to-transparent" aria-hidden="true" />
+          </Reveal>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+          {/* Steps stagger */}
+          <RevealGroup className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8" stagger={0.12}>
             {t.steps.map((step, i) => (
-              <div key={i} className={`reveal ${STAGGER[i]} relative flex flex-col`}>
-                <div className="relative mb-5 flex-shrink-0">
-                  <div className="w-16 h-16 rounded-2xl bg-indigo-50 border border-indigo-100 flex items-center justify-center text-indigo-600 transition-all duration-240 hover:bg-indigo-100 hover:border-indigo-200 hover:shadow-md hover:shadow-indigo-100">
-                    {STEP_ICONS[i]}
+              <RevealItem key={i} direction="up">
+                <div className="relative flex flex-col">
+                  <div className="relative mb-5 flex-shrink-0">
+                    <div className="w-16 h-16 rounded-2xl bg-indigo-50 border border-indigo-100 flex items-center justify-center text-indigo-600 transition-all duration-[240ms] hover:bg-indigo-100 hover:border-indigo-200 hover:shadow-lg hover:shadow-indigo-100/60 hover:-translate-y-1">
+                      {STEP_ICONS[i]}
+                    </div>
+                    <span className="absolute -top-2 -right-2 text-[10px] font-bold text-indigo-400 bg-white border border-indigo-100 rounded-full w-6 h-6 flex items-center justify-center">
+                      {STEP_NUMBERS[i]}
+                    </span>
                   </div>
-                  <span className="absolute -top-2 -right-2 text-[10px] font-bold text-indigo-400 bg-white border border-indigo-100 rounded-full w-6 h-6 flex items-center justify-center">
-                    {STEP_NUMBERS[i]}
-                  </span>
+                  <h3 className="text-base font-semibold text-gray-900 mb-2">{step.title}</h3>
+                  <p className="text-sm text-gray-500 leading-relaxed">{step.description}</p>
                 </div>
-                <h3 className="text-base font-semibold text-gray-900 mb-2">{step.title}</h3>
-                <p className="text-sm text-gray-500 leading-relaxed">{step.description}</p>
-              </div>
+              </RevealItem>
             ))}
-          </div>
+          </RevealGroup>
         </div>
       </Container>
     </section>
