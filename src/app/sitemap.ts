@@ -24,30 +24,24 @@ export default function sitemap(): MetadataRoute.Sitemap {
         languages: { en: `${BASE}/en`, es: `${BASE}/es` },
       },
     },
-    // Legal pages
+    // Legal & docs — standalone pages with client-side language toggle
     {
-      url:             `${BASE}/en/privacy`,
+      url:             `${BASE}/privacy`,
       lastModified:    NOW,
       changeFrequency: 'monthly',
       priority:        0.3,
     },
     {
-      url:             `${BASE}/es/privacy`,
+      url:             `${BASE}/terms`,
       lastModified:    NOW,
       changeFrequency: 'monthly',
       priority:        0.3,
     },
     {
-      url:             `${BASE}/en/terms`,
+      url:             `${BASE}/manual`,
       lastModified:    NOW,
       changeFrequency: 'monthly',
-      priority:        0.3,
-    },
-    {
-      url:             `${BASE}/es/terms`,
-      lastModified:    NOW,
-      changeFrequency: 'monthly',
-      priority:        0.3,
+      priority:        0.5,
     },
   ];
 }
