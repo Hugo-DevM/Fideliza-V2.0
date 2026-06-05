@@ -313,11 +313,11 @@ export default function RegisterForm() {
               />
               <span className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed">
                 Acepto los{' '}
-                <a href="/es/terms" target="_blank" className="text-indigo-600 dark:text-indigo-400 hover:underline font-medium">
+                <a href="/terms" target="_blank" className="text-indigo-600 dark:text-indigo-400 hover:underline font-medium">
                   Términos de Servicio
                 </a>{' '}
                 y la{' '}
-                <a href="/es/privacy" target="_blank" className="text-indigo-600 dark:text-indigo-400 hover:underline font-medium">
+                <a href="/privacy" target="_blank" className="text-indigo-600 dark:text-indigo-400 hover:underline font-medium">
                   Política de Privacidad
                 </a>
               </span>

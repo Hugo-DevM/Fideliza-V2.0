@@ -5,26 +5,16 @@ const NOW  = new Date();
 
 export default function sitemap(): MetadataRoute.Sitemap {
   return [
-    // Landing pages — highest priority, both languages
+    // ── Landing (canonical root) ────────────────────────────────────
+    // /en and /es both redirect to / — only the canonical URL goes in sitemap.
     {
-      url:             `${BASE}/en`,
+      url:             `${BASE}/`,
       lastModified:    NOW,
       changeFrequency: 'weekly',
       priority:        1.0,
-      alternates: {
-        languages: { en: `${BASE}/en`, es: `${BASE}/es` },
-      },
     },
-    {
-      url:             `${BASE}/es`,
-      lastModified:    NOW,
-      changeFrequency: 'weekly',
-      priority:        1.0,
-      alternates: {
-        languages: { en: `${BASE}/en`, es: `${BASE}/es` },
-      },
-    },
-    // Legal & docs — standalone pages with client-side language toggle
+
+    // ── Legal & docs ────────────────────────────────────────────────
     {
       url:             `${BASE}/privacy`,
       lastModified:    NOW,

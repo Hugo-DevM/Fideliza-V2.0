@@ -19,42 +19,18 @@ import {
   resolveTenantSubdomain,
   injectTenantHeaders,
 } from '@/lib/middleware/tenant';
-import { getPreferredLocale, locales, type Locale } from '@/lib/i18n';
-
-// Paths that must never trigger a locale redirect
-const NON_MARKETING_PREFIXES = ['/api', '/dashboard', '/auth', '/c', '/_next'];
-
-function shouldRedirectForLocale(pathname: string, hasTenantSubdomain: boolean): boolean {
-  if (hasTenantSubdomain) return false;
-  // Root landing and legal pages are language-agnostic — no redirect needed
-  if (pathname === '/' || pathname === '/privacy' || pathname === '/terms' || pathname === '/manual') return false;
-  if (NON_MARKETING_PREFIXES.some((p) => pathname.startsWith(p))) return false;
-  // Already has a locale prefix — don't redirect again
-  if (locales.some((l) => pathname === `/${l}` || pathname.startsWith(`/${l}/`))) return false;
-  return true;
-}
+import { getPreferredLocale, type Locale } from '@/lib/i18n';
 
 export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
   // ── Resolve tenant subdomain ──────────────────────────────────────────
   const resolution = resolveTenantSubdomain(request);
-  const hasTenantSubdomain = Boolean(resolution.subdomain);
 
   // ── Locale detection ─────────────────────────────────────────────────
   const locale: Locale = getPreferredLocale(
     request.headers.get('accept-language')
   );
-
-  // Redirect bare marketing paths to their locale-prefixed versions
-  if (shouldRedirectForLocale(pathname, hasTenantSubdomain)) {
-    const localizedUrl = new URL(
-      `/${locale}${pathname === '/' ? '' : pathname}`,
-      request.url
-    );
-    localizedUrl.search = request.nextUrl.search;
-    return NextResponse.redirect(localizedUrl, { status: 307 });
-  }
 
   // ── Build request headers (forwarded to Server Components) ───────────
   const requestHeaders = new Headers(request.headers);

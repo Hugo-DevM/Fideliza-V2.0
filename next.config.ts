@@ -99,6 +99,12 @@ const API_EXTRA_HEADERS = [
 // ── Config ──────────────────────────────────────────────────────────────────
 
 const nextConfig: NextConfig = {
+  redirects: async () => [
+    // Legacy / mistyped URLs that Google has crawled as 404
+    { source: '/policy', destination: '/privacy', permanent: true },
+    { source: '/mes',    destination: '/',        permanent: true },
+  ],
+
   headers: async () => [
     // Apply security headers to all routes
     {

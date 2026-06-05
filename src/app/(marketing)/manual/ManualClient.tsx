@@ -3,9 +3,9 @@
 import { useState } from "react";
 import { Container } from "@/components/ui/Container";
 import { ScrollReveal } from "@/components/ui/ScrollReveal";
-import { TocNav } from "@/app/[lang]/manual/TocNav";
-import { ContentEs, tocEs } from "@/app/[lang]/manual/content/es";
-import { ContentEn, tocEn } from "@/app/[lang]/manual/content/en";
+import { TocNav } from "./TocNav";
+import { ContentEs, tocEs } from "./content/es";
+import { ContentEn, tocEn } from "./content/en";
 
 export function ManualClient() {
   const [lang, setLang] = useState<"es" | "en">("es");
