@@ -35,8 +35,8 @@ export async function processTransaction(
       p_customer_id:  input.customer_id,
       p_program_id:   input.program_id,
       p_points_delta: input.points_delta,
-      p_note:         input.note ?? null,
-      p_staff_id:     input.staff_id ?? null,
+      p_note:         input.note ?? undefined,
+      p_staff_id:     input.staff_id ?? undefined,
     });
 
     if (error) {
@@ -124,7 +124,7 @@ export async function redeemReward(
     p_customer_id:   input.customer_id,
     p_reward_id:     input.reward_id,
     p_enrollment_id: input.enrollment_id,
-    p_note:          input.note ?? null,
+    p_note:          input.note ?? undefined,
   });
 
   if (error) {
