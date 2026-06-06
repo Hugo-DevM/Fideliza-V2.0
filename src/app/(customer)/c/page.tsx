@@ -65,12 +65,16 @@ export default async function CustomerPortalPage({ searchParams }: PageProps) {
 
   if (!code) {
     let tenantName: string | undefined;
+    let tenantLogoUrl: string | null = null;
+    let tenantLogoPadding = 8;
     let primaryColor: string | undefined;
     try {
-      const tenant = await getTenantBySubdomainPublic(subdomain);
-      tenantName = tenant.name;
+      const tenant      = await getTenantBySubdomainPublic(subdomain);
+      tenantName        = tenant.name;
+      tenantLogoUrl     = tenant.logo_url;
+      tenantLogoPadding = tenant.logo_padding;
     } catch { /* Tenant not found */ }
-    return <EntryScreen tenantName={tenantName} primaryColor={primaryColor} />;
+    return <EntryScreen tenantName={tenantName} logoUrl={tenantLogoUrl} logoPadding={tenantLogoPadding} primaryColor={primaryColor} />;
   }
 
   let data: PortalData;
@@ -110,10 +114,14 @@ function AuthBg() {
 
 function EntryScreen({
   tenantName,
+  logoUrl,
+  logoPadding = 8,
   primaryColor,
   error,
 }: {
   tenantName?: string;
+  logoUrl?: string | null;
+  logoPadding?: number;
   primaryColor?: string;
   error?: string;
 }) {
@@ -125,10 +133,24 @@ function EntryScreen({
       <div className="flex min-h-screen items-center justify-center p-4">
         <div className="w-full max-w-sm space-y-6 text-center">
 
-          {/* Logo + tenant name */}
+          {/* Brand block: tenant logo (if set) or Fideliza logo */}
           <div className="flex flex-col items-center gap-3">
-            <img src="/logofidelizalight.svg" alt="Fideliza" className="block dark:hidden h-16 w-auto" />
-            <img src="/logofideliza.svg" alt="Fideliza" className="hidden dark:block h-16 w-auto" />
+            {logoUrl ? (
+              <div className="flex h-20 w-20 items-center justify-center overflow-hidden rounded-2xl bg-white dark:bg-[#161b2e] shadow-md ring-1 ring-black/5 dark:ring-white/10">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={logoUrl}
+                  alt={tenantName ?? 'Logo'}
+                  className="h-full w-full object-contain"
+                  style={{ padding: logoPadding }}
+                />
+              </div>
+            ) : (
+              <>
+                <img src="/logofidelizalight.svg" alt="Fideliza" className="block dark:hidden h-16 w-auto" />
+                <img src="/logofideliza.svg" alt="Fideliza" className="hidden dark:block h-16 w-auto" />
+              </>
+            )}
             {tenantName && (
               <p className="text-[11px] font-bold uppercase tracking-widest text-indigo-500 dark:text-indigo-400">
                 {tenantName}
@@ -184,15 +206,29 @@ function PortalShell({ data, code, tab }: { data: PortalData; code: string; tab:
         }}
       >
         <div className="mx-auto max-w-lg flex items-start justify-between gap-4">
-          <div>
-            <p className="text-[11px] font-semibold uppercase tracking-widest opacity-70">
-              {tenant.name}
-            </p>
-            <h1 className="mt-1 text-2xl font-bold leading-tight">{customer.name}</h1>
-            <p className="mt-0.5 font-mono text-sm opacity-60">{customer.access_code}</p>
-            {tenant.welcome_message && (
-              <p className="mt-2 text-sm opacity-80 leading-snug">{tenant.welcome_message}</p>
+          <div className="flex items-start gap-3 min-w-0">
+            {/* Tenant logo (if uploaded) */}
+            {tenant.logo_url && (
+              <div className="shrink-0 flex h-11 w-11 items-center justify-center overflow-hidden rounded-xl bg-white/20 backdrop-blur-sm ring-1 ring-white/30">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={tenant.logo_url}
+                  alt={tenant.name}
+                  className="h-full w-full object-contain"
+                  style={{ padding: tenant.logo_padding }}
+                />
+              </div>
             )}
+            <div className="min-w-0">
+              <p className="text-[11px] font-semibold uppercase tracking-widest opacity-70">
+                {tenant.name}
+              </p>
+              <h1 className="mt-1 text-2xl font-bold leading-tight">{customer.name}</h1>
+              <p className="mt-0.5 font-mono text-sm opacity-60">{customer.access_code}</p>
+              {tenant.welcome_message && (
+                <p className="mt-2 text-sm opacity-80 leading-snug">{tenant.welcome_message}</p>
+              )}
+            </div>
           </div>
           <div className="shrink-0 pt-1">
             <ThemeToggle />

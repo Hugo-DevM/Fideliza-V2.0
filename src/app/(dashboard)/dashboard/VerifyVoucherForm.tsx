@@ -2,6 +2,8 @@
 
 import { useState, useTransition, useRef } from 'react';
 import { verifyVoucherAction } from './programs/[id]/actions';
+import { useDashboardI18n } from '@/lib/i18n/dashboard-context';
+import { formatTimeOnly } from '@/lib/utils/date';
 
 interface RedemptionInfo {
   redemptionCode: string;
@@ -12,6 +14,7 @@ interface RedemptionInfo {
 }
 
 export default function VerifyVoucherForm() {
+  const { timezone, locale } = useDashboardI18n();
   const [code, setCode]               = useState('');
   const [error, setError]             = useState('');
   const [info, setInfo]               = useState<RedemptionInfo | null>(null);
@@ -46,9 +49,7 @@ export default function VerifyVoucherForm() {
     setTimeout(() => inputRef.current?.focus(), 50);
   }
 
-  const usedTime = info
-    ? new Date(info.usedAt).toLocaleTimeString('es', { hour: '2-digit', minute: '2-digit' })
-    : '';
+  const usedTime = info ? formatTimeOnly(info.usedAt, timezone, locale) : '';
 
   return (
     <div className="rounded-2xl border border-gray-100 dark:border-[#1e2438] bg-white dark:bg-[#161b2e] shadow-sm p-5">

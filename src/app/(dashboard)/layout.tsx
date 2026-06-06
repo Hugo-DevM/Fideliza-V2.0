@@ -6,10 +6,14 @@ export default async function DashboardLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const { tenant } = await getAuthenticatedTenant();
+  const { tenant, settings } = await getAuthenticatedTenant();
 
   return (
-    <DashboardShell tenantName={tenant.name} tenantPlan={tenant.plan}>
+    <DashboardShell
+      tenantName={tenant.name}
+      tenantPlan={tenant.plan}
+      timezone={settings.timezone ?? 'America/Mexico_City'}
+    >
       {children}
     </DashboardShell>
   );

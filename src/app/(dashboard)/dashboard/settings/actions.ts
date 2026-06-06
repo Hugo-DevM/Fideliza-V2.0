@@ -15,6 +15,7 @@ export async function updateSettingsAction(formData: FormData) {
   const program_label   = (formData.get('program_label')   as string | null)?.trim();
   const phone_prefix_raw = (formData.get('phone_prefix')  as string | null)?.trim();
   const phone_prefix = phone_prefix_raw === '' ? null : (phone_prefix_raw ?? null);
+  const timezone = (formData.get('timezone') as string | null)?.trim() || 'America/Mexico_City';
 
   // Validate hex color format
   const hexRe = /^#[0-9A-Fa-f]{6}$/;
@@ -30,6 +31,13 @@ export async function updateSettingsAction(formData: FormData) {
     return { error: 'El prefijo telefónico debe tener formato +XX (ej. +52, +54).' };
   }
 
+  // Validate timezone is a known IANA identifier
+  try {
+    Intl.DateTimeFormat(undefined, { timeZone: timezone });
+  } catch {
+    return { error: 'La zona horaria seleccionada no es válida.' };
+  }
+
   try {
     await updateTenantSettings(tenantId, {
       ...(primary_color   && { primary_color }),
@@ -37,6 +45,7 @@ export async function updateSettingsAction(formData: FormData) {
       welcome_message,
       ...(program_label   && { program_label }),
       phone_prefix,
+      timezone,
     });
     revalidatePath('/dashboard/settings');
     revalidatePath('/dashboard');

@@ -252,7 +252,7 @@ export default async function CustomerDetailPage({
                   {transactions.map((tx) => {
                     const isPositive = tx.points_delta > 0;
                     const progName = programNameMap.get(tx.program_id) ?? '—';
-                    const timeStr = formatTxTime(new Date(tx.created_at));
+                    const timeStr = formatTxTime(new Date(tx.created_at), settings.timezone ?? 'America/Mexico_City');
                     const desc = tx.note ?? TX_TYPE_LABELS[tx.type] ?? tx.type;
                     const txType = tx.type as string;
                     const deltaLabel =
@@ -355,15 +355,16 @@ function formatPhone(phone: string): string {
   return phone;
 }
 
-function formatTxTime(date: Date): string {
+function formatTxTime(date: Date, timezone: string): string {
   const diff = Date.now() - date.getTime();
   const mins = Math.floor(diff / 60000);
   if (mins < 1)  return 'Ahora';
   if (mins < 60) return `Hace ${mins} min`;
-  const hrs = Math.floor(mins / 60);
-  if (hrs < 24)  return `Hoy · ${date.toLocaleTimeString('es', { hour: '2-digit', minute: '2-digit' })}`;
-  if (hrs < 48)  return `Ayer · ${date.toLocaleTimeString('es', { hour: '2-digit', minute: '2-digit' })}`;
-  return date.toLocaleDateString('es', { day: 'numeric', month: 'short' });
+  const hrs     = Math.floor(mins / 60);
+  const timeStr = date.toLocaleTimeString('es', { hour: '2-digit', minute: '2-digit', timeZone: timezone });
+  if (hrs < 24)  return `Hoy · ${timeStr}`;
+  if (hrs < 48)  return `Ayer · ${timeStr}`;
+  return date.toLocaleDateString('es', { day: 'numeric', month: 'short', timeZone: timezone });
 }
 
 const AVATAR_COLORS = [

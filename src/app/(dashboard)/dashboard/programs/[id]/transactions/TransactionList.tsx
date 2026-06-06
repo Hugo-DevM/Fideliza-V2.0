@@ -2,15 +2,10 @@
 
 import { useState, useTransition } from 'react';
 import { loadMoreProgramTransactions, type ProgramTxRow } from './actions';
+import { useDashboardI18n } from '@/lib/i18n/dashboard-context';
+import { formatDateTime } from '@/lib/utils/date';
 
 const AVATAR_COLORS = ['bg-indigo-500','bg-violet-500','bg-emerald-500','bg-amber-500','bg-rose-500','bg-cyan-500'];
-
-function formatDate(iso: string) {
-  return new Date(iso).toLocaleDateString('es', {
-    day: '2-digit', month: 'short', year: 'numeric',
-    hour: '2-digit', minute: '2-digit',
-  });
-}
 
 export default function TransactionList({
   programId,
@@ -23,6 +18,7 @@ export default function TransactionList({
   initialRows: ProgramTxRow[];
   initialHasMore: boolean;
 }) {
+  const { timezone, locale } = useDashboardI18n();
   const [rows, setRows] = useState(initialRows);
   const [hasMore, setHasMore] = useState(initialHasMore);
   const [isPending, startTransition] = useTransition();
@@ -60,7 +56,7 @@ export default function TransactionList({
                   <span className="font-semibold">{tx.customerName}</span>{' '}
                   <span className="text-gray-500 dark:text-gray-400 font-normal">{action}</span>
                 </p>
-                <p className="text-xs text-gray-400 dark:text-gray-500">{formatDate(tx.created_at)}</p>
+                <p className="text-xs text-gray-400 dark:text-gray-500">{formatDateTime(tx.created_at, timezone, locale)}</p>
               </div>
               <span className={`shrink-0 text-sm font-semibold ${isPos ? 'text-emerald-500' : 'text-gray-400 dark:text-gray-500'}`}>
                 {isPos ? `+${tx.points_delta}` : tx.points_delta} pts

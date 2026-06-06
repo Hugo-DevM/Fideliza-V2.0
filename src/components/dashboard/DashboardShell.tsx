@@ -4,28 +4,28 @@ import { useState, useEffect } from 'react';
 import { usePathname } from 'next/navigation';
 import Link from 'next/link';
 import Sidebar from './Sidebar';
+import {
+  DashboardI18nProvider,
+  useDashboardI18n,
+} from '@/lib/i18n/dashboard-context';
 
 interface DashboardShellProps {
   tenantName: string;
   tenantPlan?: string;
+  timezone: string;
   children: React.ReactNode;
 }
 
-const PAGE_LABELS: Record<string, string> = {
-  '/dashboard':            'Resumen',
-  '/dashboard/quick':      'Registro rápido',
-  '/dashboard/customers':  'Clientes',
-  '/dashboard/programs':   'Programas',
-  '/dashboard/analytics':  'Analíticas',
-  '/dashboard/settings':   'Configuración',
-};
+export default function DashboardShell(props: DashboardShellProps) {
+  return (
+    <DashboardI18nProvider defaultTimezone={props.timezone}>
+      <DashboardShellContent {...props} />
+    </DashboardI18nProvider>
+  );
+}
 
-// Known sub-page segment → label (for depth >= 4 routes like /customers/[id]/transactions)
-const SUB_SEGMENT_LABELS: Record<string, string> = {
-  transactions: 'Transacciones',
-};
-
-export default function DashboardShell({ tenantName, tenantPlan, children }: DashboardShellProps) {
+function DashboardShellContent({ tenantName, tenantPlan, children }: DashboardShellProps) {
+  const { t } = useDashboardI18n();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [isDark, setIsDark] = useState(false);
   const [leafLabel, setLeafLabel] = useState('');
@@ -41,7 +41,6 @@ export default function DashboardShell({ tenantName, tenantPlan, children }: Das
       return document.title.replace(/\s*[—–-]\s*Fideliza\+?.*$/i, '').trim();
     }
 
-    // Set immediately in case title is already updated
     setLeafLabel(extractLabel());
 
     const titleEl = document.querySelector('title');
@@ -64,14 +63,12 @@ export default function DashboardShell({ tenantName, tenantPlan, children }: Das
 
   // Build breadcrumb segments
   const segments     = pathname.split('/').filter(Boolean);
-  const depth        = segments.length; // 1=/dashboard 2=/dashboard/section 3=.../id 4=.../id/sub
+  const depth        = segments.length;
   const sectionPath  = depth >= 2 ? '/' + segments.slice(0, 2).join('/') : '';
-  const sectionLabel = PAGE_LABELS[sectionPath] ?? PAGE_LABELS[pathname] ?? 'Panel';
+  const sectionLabel = t.shell.pageLabels[sectionPath] ?? t.shell.pageLabels[pathname] ?? t.shell.panel;
   const parentIdPath = depth >= 4 ? '/' + segments.slice(0, 3).join('/') : '';
-  // For depth>=4, use the URL segment to derive the leaf label (reliable, no title-timing issues)
   const lastSegment   = segments[segments.length - 1] ?? '';
-  const knownSubLabel = SUB_SEGMENT_LABELS[lastSegment];
-  // Parent name: strip the known sub-label from leafLabel if present, otherwise use leafLabel
+  const knownSubLabel = t.shell.subSegmentLabels[lastSegment];
   const parentName = knownSubLabel && leafLabel
     ? leafLabel.replace(new RegExp(`\\s*·\\s*${knownSubLabel}$`, 'i'), '').trim() || leafLabel
     : leafLabel;
@@ -102,12 +99,12 @@ export default function DashboardShell({ tenantName, tenantPlan, children }: Das
             <button
               onClick={() => setSidebarOpen(true)}
               className="rounded-lg p-1.5 text-gray-500 hover:bg-gray-100 dark:hover:bg-white/10 md:hidden"
-              aria-label="Abrir menú"
+              aria-label={t.shell.openMenu}
             >
               <MenuIcon className="h-5 w-5" />
             </button>
             <nav className="hidden md:flex items-center gap-1.5 text-sm">
-              <span className="text-gray-400 dark:text-gray-500">Panel</span>
+              <span className="text-gray-400 dark:text-gray-500">{t.shell.panel}</span>
               <ChevronIcon className="h-3.5 w-3.5 text-gray-300 dark:text-gray-600" />
               {depth <= 2 ? (
                 <span className="font-semibold text-gray-700 dark:text-gray-200">{sectionLabel}</span>
@@ -129,18 +126,16 @@ export default function DashboardShell({ tenantName, tenantPlan, children }: Das
             </nav>
           </div>
 
-          {/* Right: search + notification + theme toggle */}
+          {/* Right: bell + theme toggle */}
           <div className="flex items-center gap-2">
-            {/* Bell */}
             <button className="flex h-8 w-8 items-center justify-center rounded-xl border border-gray-200 dark:border-[#2a3147] bg-white dark:bg-[#161b2e] text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-[#1e2438] transition">
               <BellIcon className="h-4 w-4" />
             </button>
 
-            {/* Theme toggle */}
             <button
               onClick={toggleTheme}
               className="flex h-8 w-8 items-center justify-center rounded-xl border border-gray-200 dark:border-[#2a3147] bg-white dark:bg-[#161b2e] text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-[#1e2438] transition"
-              aria-label={isDark ? 'Cambiar a modo claro' : 'Cambiar a modo oscuro'}
+              aria-label={isDark ? t.shell.lightMode : t.shell.darkMode}
             >
               {isDark ? <SunIcon className="h-4 w-4" /> : <MoonIcon className="h-4 w-4" />}
             </button>

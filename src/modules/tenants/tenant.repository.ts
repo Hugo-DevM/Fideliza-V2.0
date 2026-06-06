@@ -83,6 +83,8 @@ export async function updateTenantSettings(
     welcome_message?: string | null;
     program_label?: string;
     phone_prefix?: string | null;
+    timezone?: string;
+    logo_padding?: number;
   }
 ): Promise<TenantSettings> {
   const db = await createServerClient();

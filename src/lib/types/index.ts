@@ -52,6 +52,8 @@ export interface TenantSettings {
   stamp_icon: string;
   terms_url: string | null;
   phone_prefix: string | null;
+  timezone: string;
+  logo_padding: number;
   created_at: string;
   updated_at: string;
 }

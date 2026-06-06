@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { createBrowserClient } from '@supabase/ssr';
 import { useRouter } from 'next/navigation';
+import { useDashboardI18n } from '@/lib/i18n/dashboard-context';
 
 interface SidebarProps {
   tenantName: string;
@@ -12,26 +13,27 @@ interface SidebarProps {
   onClose?: () => void;
 }
 
-const NAV_SECTIONS = [
+// Static structure — only hrefs and icons; labels come from translations
+const NAV_STRUCTURE = [
   {
-    label: 'Operación',
+    key: 'operation' as const,
     items: [
-      { href: '/dashboard',       label: 'Resumen',         icon: HomeIcon },
-      { href: '/dashboard/quick', label: 'Registro rápido', icon: BoltIcon },
+      { href: '/dashboard',       key: 'overview'  as const, icon: HomeIcon },
+      { href: '/dashboard/quick', key: 'quick'     as const, icon: BoltIcon },
     ],
   },
   {
-    label: 'Gestión',
+    key: 'management' as const,
     items: [
-      { href: '/dashboard/customers',  label: 'Clientes',    icon: UsersIcon },
-      { href: '/dashboard/programs',   label: 'Programas',   icon: GiftIcon },
-      { href: '/dashboard/analytics',  label: 'Analíticas',  icon: ChartIcon },
+      { href: '/dashboard/customers', key: 'customers' as const, icon: UsersIcon },
+      { href: '/dashboard/programs',  key: 'programs'  as const, icon: GiftIcon  },
+      { href: '/dashboard/analytics', key: 'analytics' as const, icon: ChartIcon },
     ],
   },
   {
-    label: 'Cuenta',
+    key: 'account' as const,
     items: [
-      { href: '/dashboard/settings', label: 'Configuración', icon: SettingsIcon },
+      { href: '/dashboard/settings', key: 'settings' as const, icon: SettingsIcon },
     ],
   },
 ];
@@ -39,6 +41,7 @@ const NAV_SECTIONS = [
 export default function Sidebar({ tenantName, tenantPlan, isOpen = false, onClose }: SidebarProps) {
   const pathname = usePathname();
   const router   = useRouter();
+  const { t }    = useDashboardI18n();
 
   const supabase = createBrowserClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -83,7 +86,7 @@ export default function Sidebar({ tenantName, tenantPlan, isOpen = false, onClos
         <button
           onClick={onClose}
           className="rounded-md p-1.5 text-gray-400 hover:bg-gray-100 dark:hover:bg-white/10 md:hidden"
-          aria-label="Cerrar menú"
+          aria-label={t.sidebar.closeMenu}
         >
           <CloseIcon className="h-4 w-4" />
         </button>
@@ -91,13 +94,13 @@ export default function Sidebar({ tenantName, tenantPlan, isOpen = false, onClos
 
       {/* Nav sections */}
       <nav className="flex-1 overflow-y-auto px-3 py-4 space-y-5">
-        {NAV_SECTIONS.map((section) => (
-          <div key={section.label}>
+        {NAV_STRUCTURE.map((section) => (
+          <div key={section.key}>
             <p className="px-3 mb-1.5 text-[10px] font-semibold uppercase tracking-widest text-gray-400 dark:text-gray-500">
-              {section.label}
+              {t.sidebar.sections[section.key]}
             </p>
             <div className="space-y-0.5">
-              {section.items.map(({ href, label, icon: Icon }) => {
+              {section.items.map(({ href, key, icon: Icon }) => {
                 const isActive =
                   href === '/dashboard'
                     ? pathname === '/dashboard'
@@ -117,7 +120,7 @@ export default function Sidebar({ tenantName, tenantPlan, isOpen = false, onClos
                     ].join(' ')}
                   >
                     <Icon className="h-4 w-4 shrink-0" />
-                    {label}
+                    {t.sidebar.nav[key]}
                   </Link>
                 );
               })}
@@ -137,7 +140,7 @@ export default function Sidebar({ tenantName, tenantPlan, isOpen = false, onClos
               {tenantName}
             </p>
             <p className="text-xs text-gray-400 dark:text-gray-500">
-              Plan {planLabel} · activo
+              Plan {planLabel} · {t.sidebar.planActive}
             </p>
           </div>
         </div>
@@ -146,7 +149,7 @@ export default function Sidebar({ tenantName, tenantPlan, isOpen = false, onClos
           className="flex w-full items-center gap-3 rounded-xl px-3 py-2 text-sm font-medium text-gray-500 dark:text-gray-400 transition hover:bg-gray-50 dark:hover:bg-white/5 hover:text-gray-700 dark:hover:text-white"
         >
           <LogoutIcon className="h-4 w-4 shrink-0" />
-          Cerrar sesión
+          {t.sidebar.logout}
         </button>
       </div>
     </aside>

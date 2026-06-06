@@ -20,6 +20,7 @@ export default async function SettingsPage({
         settings={settings}
         tenantName={tenant.name}
         subdomain={tenant.subdomain}
+        logoUrl={tenant.logo_url}
         year={year}
       />
 

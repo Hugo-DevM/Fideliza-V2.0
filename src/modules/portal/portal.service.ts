@@ -25,12 +25,14 @@ import type { UUID } from '@/lib/types';
  * in unauthenticated contexts (e.g. the customer portal) where RLS blocks
  * the anon client from reading the tenants table.
  */
-export async function getTenantBySubdomainPublic(subdomain: string): Promise<{ id: UUID; name: string; is_active: boolean }> {
+export async function getTenantBySubdomainPublic(
+  subdomain: string
+): Promise<{ id: UUID; name: string; is_active: boolean; logo_url: string | null; logo_padding: number }> {
   const db = createServiceRoleClient();
 
   const { data, error } = await db
     .from('tenants')
-    .select('id, name, is_active')
+    .select('id, name, is_active, logo_url, tenant_settings(logo_padding)')
     .eq('subdomain', subdomain.toLowerCase())
     .eq('is_active', true)
     .single();
@@ -39,7 +41,19 @@ export async function getTenantBySubdomainPublic(subdomain: string): Promise<{ i
     throw new TenantNotFoundError(subdomain);
   }
 
-  return data as { id: UUID; name: string; is_active: boolean };
+  const raw = data as unknown as {
+    id: UUID; name: string; is_active: boolean; logo_url: string | null;
+    tenant_settings: Array<{ logo_padding: number }> | { logo_padding: number } | null;
+  };
+  const settings = Array.isArray(raw.tenant_settings) ? raw.tenant_settings[0] : raw.tenant_settings;
+
+  return {
+    id:          raw.id,
+    name:        raw.name,
+    is_active:   raw.is_active,
+    logo_url:    raw.logo_url,
+    logo_padding: settings?.logo_padding ?? 8,
+  };
 }
 
 // ── Response types ────────────────────────────────────────────────────
@@ -48,6 +62,8 @@ export interface PortalTenant {
   id: string;
   name: string;
   subdomain: string;
+  logo_url: string | null;
+  logo_padding: number;
   primary_color: string;
   secondary_color: string;
   welcome_message: string | null;
@@ -145,7 +161,7 @@ export async function getPortalData(
     // Tenant name + branding settings (no email, no plan)
     db
       .from('tenants')
-      .select('name, subdomain, tenant_settings(primary_color, secondary_color, welcome_message, program_label)')
+      .select('name, subdomain, logo_url, tenant_settings(primary_color, secondary_color, welcome_message, program_label, logo_padding)')
       .eq('id', tenantId)
       .single(),
 
@@ -186,11 +202,13 @@ export async function getPortalData(
   const raw = tenantRes.data as unknown as {
     name: string;
     subdomain: string;
+    logo_url: string | null;
     tenant_settings: Array<{
       primary_color: string;
       secondary_color: string;
       welcome_message: string | null;
       program_label: string;
+      logo_padding: number;
     }> | null;
   };
 
@@ -202,6 +220,8 @@ export async function getPortalData(
     id:              tenantId,
     name:            raw.name,
     subdomain:       raw.subdomain,
+    logo_url:        raw.logo_url ?? null,
+    logo_padding:    settings?.logo_padding    ?? 8,
     primary_color:   settings?.primary_color   ?? '#6366F1',
     secondary_color: settings?.secondary_color ?? '#A5B4FC',
     welcome_message: settings?.welcome_message ?? null,

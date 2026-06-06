@@ -2,18 +2,13 @@
 
 import { useState, useTransition } from 'react';
 import { loadMoreCustomerTransactions, type CustomerTxRow } from './actions';
+import { useDashboardI18n } from '@/lib/i18n/dashboard-context';
+import { formatDateTime } from '@/lib/utils/date';
 
 const TX_TYPE_LABELS: Record<string, string> = {
   earn: 'Compra', redeem: 'Canje de recompensa', adjustment: 'Ajuste',
   expire: 'Puntos expirados', refund: 'Reembolso', stamp: 'Sello agregado', visit: 'Visita registrada',
 };
-
-function formatDate(iso: string) {
-  return new Date(iso).toLocaleDateString('es', {
-    day: '2-digit', month: 'short', year: 'numeric',
-    hour: '2-digit', minute: '2-digit',
-  });
-}
 
 export default function TransactionList({
   customerId,
@@ -24,6 +19,7 @@ export default function TransactionList({
   initialRows: CustomerTxRow[];
   initialHasMore: boolean;
 }) {
+  const { timezone, locale } = useDashboardI18n();
   const [rows, setRows] = useState(initialRows);
   const [hasMore, setHasMore] = useState(initialHasMore);
   const [isPending, startTransition] = useTransition();
@@ -62,7 +58,7 @@ export default function TransactionList({
               </div>
               <div className="min-w-0 flex-1">
                 <p className="truncate text-sm font-medium text-gray-800 dark:text-gray-100">{desc}</p>
-                <p className="text-xs text-gray-400 dark:text-gray-500">{formatDate(tx.created_at)} · {tx.programName}</p>
+                <p className="text-xs text-gray-400 dark:text-gray-500">{formatDateTime(tx.created_at, timezone, locale)} · {tx.programName}</p>
               </div>
               <span className={`shrink-0 text-sm font-semibold ${isPos ? 'text-emerald-500' : 'text-gray-400 dark:text-gray-500'}`}>
                 {delta}
