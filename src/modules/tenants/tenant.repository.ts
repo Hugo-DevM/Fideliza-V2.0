@@ -85,6 +85,7 @@ export async function updateTenantSettings(
     phone_prefix?: string | null;
     timezone?: string;
     logo_padding?: number;
+    currency?: string;
   }
 ): Promise<TenantSettings> {
   const db = await createServerClient();

@@ -24,7 +24,7 @@ export default async function QuickRegisterPage() {
       </div>
 
       <div className="grid grid-cols-1 gap-5 lg:grid-cols-2 lg:items-start">
-        <QuickRegister programLabel={settings.program_label} />
+        <QuickRegister programLabel={settings.program_label} currency={settings.currency ?? 'MXN'} />
         <VerifyVoucherForm />
       </div>
     </div>

@@ -85,6 +85,8 @@ export const dashboardEn: DashboardDictionary = {
       timezoneLabel:   'Timezone',
       timezoneHint:    'All dates and times in the dashboard will be shown in this timezone.',
       timezoneSearch:  'Search timezone…',
+      currencyLabel:   'Currency',
+      currencyHint:    'Symbol shown next to purchase amounts (cashback programs).',
     },
     portal: {
       title:              'Customer portal',

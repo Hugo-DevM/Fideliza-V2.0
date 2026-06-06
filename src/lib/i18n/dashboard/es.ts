@@ -83,6 +83,8 @@ export const dashboardEs = {
       timezoneLabel:   'Zona horaria',
       timezoneHint:    'Todas las fechas y horas del panel se mostrarán en esta zona horaria.',
       timezoneSearch:  'Buscar zona horaria…',
+      currencyLabel:   'Moneda',
+      currencyHint:    'Símbolo que aparece en los montos de compra (programas cashback).',
     },
     portal: {
       title:              'Portal del cliente',

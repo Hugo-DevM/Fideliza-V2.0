@@ -54,6 +54,7 @@ export interface TenantSettings {
   phone_prefix: string | null;
   timezone: string;
   logo_padding: number;
+  currency: string;
   created_at: string;
   updated_at: string;
 }

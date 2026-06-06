@@ -115,13 +115,22 @@ export async function quickTransactionAction(formData: FormData): Promise<
 > {
   const { tenantId } = await getAuthenticatedTenant();
 
-  const customerId   = formData.get('customer_id') as string;
-  const programId    = formData.get('program_id')  as string;
-  const deltaStr     = formData.get('points_delta') as string;
+  const customerId      = formData.get('customer_id')    as string;
+  const programId       = formData.get('program_id')     as string;
+  const deltaStr        = formData.get('points_delta')   as string;
+  const purchaseAmtStr  = formData.get('purchase_amount') as string | null;
+  const currencyCode    = formData.get('currency')        as string | null;
 
   const points_delta = parseInt(deltaStr, 10);
   if (!customerId || !programId || isNaN(points_delta) || points_delta === 0) {
     return { error: 'Ingresa una cantidad válida' };
+  }
+
+  // Build note for cashback: "150.00 MXN"
+  let note: string | null = null;
+  if (purchaseAmtStr && currencyCode) {
+    const amount = parseFloat(purchaseAmtStr);
+    if (amount > 0) note = `${amount.toFixed(2)} ${currencyCode}`;
   }
 
   try {
@@ -130,7 +139,7 @@ export async function quickTransactionAction(formData: FormData): Promise<
       program_id:  programId,
       type:        'earn',
       points_delta,
-      note:        null,
+      note,
     });
 
     await auditLog({

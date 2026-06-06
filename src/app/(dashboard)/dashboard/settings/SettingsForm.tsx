@@ -30,6 +30,7 @@ export default function SettingsForm({
   const [programLabel,   setProgramLabel]   = useState(settings.program_label);
   const [phonePrefix,    setPhonePrefix]    = useState(settings.phone_prefix ?? '');
   const [tz,             setTz]             = useState(settings.timezone ?? 'America/Mexico_City');
+  const [currency,       setCurrency]       = useState(settings.currency ?? 'MXN');
   const [saved, setSaved] = useState({
     primary_color:   settings.primary_color,
     secondary_color: settings.secondary_color,
@@ -37,6 +38,7 @@ export default function SettingsForm({
     program_label:   settings.program_label,
     phone_prefix:    settings.phone_prefix ?? '',
     timezone:        settings.timezone ?? 'America/Mexico_City',
+    currency:        settings.currency ?? 'MXN',
   });
   const [copied, setCopied] = useState(false);
 
@@ -46,7 +48,8 @@ export default function SettingsForm({
     welcomeMessage !== saved.welcome_message ||
     programLabel   !== saved.program_label   ||
     phonePrefix    !== saved.phone_prefix    ||
-    tz             !== saved.timezone;
+    tz             !== saved.timezone        ||
+    currency       !== saved.currency;
 
   function handleProgramLabelChange(e: React.ChangeEvent<HTMLInputElement>) {
     const raw = e.target.value;
@@ -76,6 +79,7 @@ export default function SettingsForm({
           program_label:   programLabel,
           phone_prefix:    phonePrefix,
           timezone:        tz,
+          currency,
         });
         setSuccess(s.saved);
         router.refresh();
@@ -250,6 +254,17 @@ export default function SettingsForm({
             {s.region.timezoneHint}
           </p>
         </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
+            {s.region.currencyLabel}
+          </label>
+          <input type="hidden" name="currency" value={currency} />
+          <CurrencySelect value={currency} onChange={setCurrency} />
+          <p className="mt-1 text-xs text-gray-400 dark:text-gray-500">
+            {s.region.currencyHint}
+          </p>
+        </div>
       </div>
 
       {/* ── Portal del cliente card ──────────────────────────────────────────── */}
@@ -370,6 +385,97 @@ export default function SettingsForm({
       </div>
 
     </form>
+  );
+}
+
+// ── Currency selector ─────────────────────────────────────────────────────────
+
+const CURRENCIES = [
+  { code: 'MXN', symbol: '$',  name: 'Peso mexicano'          },
+  { code: 'USD', symbol: '$',  name: 'Dólar estadounidense'   },
+  { code: 'EUR', symbol: '€',  name: 'Euro'                   },
+  { code: 'COP', symbol: '$',  name: 'Peso colombiano'        },
+  { code: 'ARS', symbol: '$',  name: 'Peso argentino'         },
+  { code: 'CLP', symbol: '$',  name: 'Peso chileno'           },
+  { code: 'PEN', symbol: 'S/', name: 'Sol peruano'            },
+  { code: 'BRL', symbol: 'R$', name: 'Real brasileño'         },
+  { code: 'GTQ', symbol: 'Q',  name: 'Quetzal guatemalteco'   },
+  { code: 'CRC', symbol: '₡',  name: 'Colón costarricense'    },
+  { code: 'FDZ', symbol: '₣',  name: 'Peso Fideliza 🪙'        },
+] as const;
+
+export type CurrencyCode = typeof CURRENCIES[number]['code'];
+
+export function getCurrencySymbol(code: string): string {
+  return CURRENCIES.find((c) => c.code === code)?.symbol ?? code;
+}
+
+function CurrencySelect({ value, onChange }: { value: string; onChange: (v: string) => void }) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+
+  const selected = CURRENCIES.find((c) => c.code === value) ?? CURRENCIES[0];
+
+  useEffect(() => {
+    function handleOutside(e: MouseEvent) {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+    }
+    function handleEscape(e: KeyboardEvent) {
+      if (e.key === 'Escape') setOpen(false);
+    }
+    if (open) {
+      document.addEventListener('mousedown', handleOutside);
+      document.addEventListener('keydown', handleEscape);
+    }
+    return () => {
+      document.removeEventListener('mousedown', handleOutside);
+      document.removeEventListener('keydown', handleEscape);
+    };
+  }, [open]);
+
+  return (
+    <div ref={ref} className="relative max-w-xs">
+      <button
+        type="button"
+        onClick={() => setOpen((o) => !o)}
+        className="w-full flex items-center justify-between gap-2 rounded-xl border border-gray-200 dark:border-[#1e2438] bg-white dark:bg-[#1a1f35] px-3 py-2.5 text-sm text-gray-800 dark:text-gray-200 outline-none transition hover:border-indigo-400 dark:hover:border-indigo-500 focus:border-indigo-400 dark:focus:border-indigo-500 focus:ring-2 focus:ring-indigo-400/20"
+      >
+        <span className="flex items-center gap-2.5">
+          <span className="w-6 text-center font-mono text-xs font-bold text-indigo-600 dark:text-indigo-400">
+            {selected.symbol}
+          </span>
+          <span>{selected.code}</span>
+          <span className="text-gray-400 dark:text-gray-500">·</span>
+          <span className="text-gray-500 dark:text-gray-400">{selected.name}</span>
+        </span>
+        <ChevronDownIcon className={`h-4 w-4 shrink-0 text-gray-400 transition-transform ${open ? 'rotate-180' : ''}`} />
+      </button>
+
+      {open && (
+        <div className="absolute z-50 mt-1.5 w-full rounded-xl border border-gray-200 dark:border-[#1e2438] bg-white dark:bg-[#1a1f35] shadow-lg overflow-hidden">
+          <ul className="max-h-60 overflow-y-auto py-1">
+            {CURRENCIES.map((c) => (
+              <li key={c.code}>
+                <button
+                  type="button"
+                  onClick={() => { onChange(c.code); setOpen(false); }}
+                  className={[
+                    'w-full flex items-center gap-2.5 px-3 py-2 text-sm transition',
+                    c.code === value
+                      ? 'bg-indigo-50 dark:bg-indigo-500/10 text-indigo-600 dark:text-indigo-400'
+                      : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-[#161b2e]',
+                  ].join(' ')}
+                >
+                  <span className="w-6 text-center font-mono text-xs font-bold shrink-0">{c.symbol}</span>
+                  <span className="font-medium">{c.code}</span>
+                  <span className="text-gray-400 dark:text-gray-500 truncate">{c.name}</span>
+                </button>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+    </div>
   );
 }
 

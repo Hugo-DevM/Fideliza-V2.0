@@ -6,6 +6,7 @@ import type { QuickCustomer, QuickProgram } from './actions';
 
 interface Props {
   programLabel: string;
+  currency: string;
 }
 
 type ActionTab = 'points' | 'stamp' | 'visit' | 'cashback';
@@ -17,7 +18,7 @@ const TAB_META: Record<ActionTab, { label: string; buttonLabel: string }> = {
   cashback: { label: 'Cashback',  buttonLabel: 'Registrar compra' },
 };
 
-export default function QuickRegister({ programLabel }: Props) {
+export default function QuickRegister({ programLabel, currency }: Props) {
   const [query, setQuery]             = useState('');
   const [customer, setCustomer]       = useState<QuickCustomer | null>(null);
   const [lookupError, setLookupError] = useState('');
@@ -121,6 +122,10 @@ export default function QuickRegister({ programLabel }: Props) {
     fd.set('customer_id',  customer.id);
     fd.set('program_id',   selectedProgramId);
     fd.set('points_delta', String(delta));
+    if (activeTab === 'cashback' && purchaseAmount > 0) {
+      fd.set('purchase_amount', purchaseStr);
+      fd.set('currency', currency);
+    }
 
     startSubmit(async () => {
       const result = await quickTransactionAction(fd);
@@ -421,14 +426,14 @@ export default function QuickRegister({ programLabel }: Props) {
                   Monto de compra
                 </label>
                 <div className="relative">
-                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-gray-400 dark:text-gray-500">$</span>
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs font-mono font-bold text-gray-400 dark:text-gray-500">{currency}</span>
                   <input
                     ref={purchaseRef}
                     type="number" min="0.01" step="0.01"
                     value={purchaseStr}
                     onChange={(e) => setPurchaseStr(e.target.value)}
                     placeholder="0.00"
-                    className={`${inputCls} pl-7`}
+                    className={`${inputCls} pl-12`}
                   />
                 </div>
               </div>
@@ -440,7 +445,7 @@ export default function QuickRegister({ programLabel }: Props) {
                   </p>
                   <p className="text-lg font-bold text-indigo-600 dark:text-indigo-400">
                     +{cashbackPreview} pts
-                    <span className="text-xs font-normal text-indigo-400 ml-1">({cashbackPct}% de ${purchaseAmount.toFixed(2)})</span>
+                    <span className="text-xs font-normal text-indigo-400 ml-1">({cashbackPct}% · {purchaseAmount.toFixed(2)} {currency})</span>
                   </p>
                 </div>
               )}
