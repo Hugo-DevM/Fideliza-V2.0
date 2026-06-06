@@ -1,4 +1,5 @@
 import { Container } from '@/components/ui/Container';
+import { Reveal, RevealGroup, RevealItem } from '@/components/ui/Reveal';
 import type { Dictionary } from '@/lib/i18n';
 
 interface MultiDeviceProps {
@@ -296,22 +297,29 @@ export function MultiDevice({ t }: MultiDeviceProps) {
 
         {/* Header */}
         <div className="text-center max-w-2xl mx-auto mb-14">
-          <p className="text-sm font-semibold text-indigo-600 uppercase tracking-wider mb-3">
-            {t.label}
-          </p>
-          <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-5">
-            {t.heading}
-          </h2>
-          <p className="text-lg text-gray-500 leading-relaxed">
-            {t.body}
-          </p>
+          <Reveal direction="left" className="mb-3">
+            <p className="text-sm font-semibold text-indigo-600 uppercase tracking-wider">
+              {t.label}
+            </p>
+          </Reveal>
+          <Reveal delay={0.06}>
+            <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-5">
+              {t.heading}
+            </h2>
+          </Reveal>
+          <Reveal delay={0.12}>
+            <p className="text-lg text-gray-500 leading-relaxed">
+              {t.body}
+            </p>
+          </Reveal>
         </div>
 
         {/* Device cards */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 mb-12">
+        <RevealGroup className="grid grid-cols-1 sm:grid-cols-3 gap-6 mb-12" stagger={0.14}>
           {t.devices.map((device, i) => (
-            <div
+            <RevealItem
               key={device.name}
+              direction="scale"
               className="flex flex-col rounded-2xl border border-gray-200 bg-white shadow-sm overflow-hidden"
             >
               {/* Mockup area */}
@@ -332,15 +340,17 @@ export function MultiDevice({ t }: MultiDeviceProps) {
                   <span className="text-xs text-gray-400">{device.hint}</span>
                 </div>
               </div>
-            </div>
+            </RevealItem>
           ))}
-        </div>
+        </RevealGroup>
 
         {/* Wi-Fi note */}
-        <div className="flex items-center justify-center gap-2 text-sm text-gray-400">
-          <WifiIcon className="h-4 w-4 shrink-0" />
-          <span>{t.wifi}</span>
-        </div>
+        <Reveal delay={0.1}>
+          <div className="flex items-center justify-center gap-2 text-sm text-gray-400">
+            <WifiIcon className="h-4 w-4 shrink-0" />
+            <span>{t.wifi}</span>
+          </div>
+        </Reveal>
 
       </Container>
     </section>

@@ -58,6 +58,12 @@ export function Navbar({ t, lang, onLangChange }: NavbarProps) {
           >
             {t.pricing}
           </a>
+          <a
+            href="#faq"
+            className="text-sm text-gray-400 hover:text-white transition-colors"
+          >
+            {t.faq}
+          </a>
           {/* <a
             href="/manual"
             className="text-sm text-gray-400 hover:text-white transition-colors"
@@ -152,6 +158,13 @@ export function Navbar({ t, lang, onLangChange }: NavbarProps) {
               className="text-sm text-gray-300 hover:text-white py-1"
             >
               {t.pricing}
+            </a>
+            <a
+              href="#faq"
+              onClick={() => setMenuOpen(false)}
+              className="text-sm text-gray-300 hover:text-white py-1"
+            >
+              {t.faq}
             </a>
             <a
               href="/manual"

@@ -3,6 +3,7 @@ import { getAuthenticatedTenant } from '@/lib/auth/get-tenant';
 import { createServiceRoleClient } from '@/lib/supabase/server';
 import { listActivePrograms } from '@/modules/rewards';
 import PortalCard from '@/components/dashboard/PortalCard';
+import OnboardingChecklist from '@/components/dashboard/OnboardingChecklist';
 
 export const metadata = { title: 'Resumen — Fideliza+' };
 
@@ -32,6 +33,7 @@ export default async function DashboardPage() {
     { count: redemptionsThisWeek },
     { count: redemptionsLastWeek },
     { count: newProgramsThisMonth },
+    { count: everHadTransaction },
   ] = await Promise.all([
     db.from('customers').select('id', { count: 'exact', head: true }).eq('tenant_id', tenantId).eq('is_active', true),
     listActivePrograms(tenantId),
@@ -49,6 +51,8 @@ export default async function DashboardPage() {
     db.from('customer_reward_redemptions').select('id', { count: 'exact', head: true }).eq('tenant_id', tenantId).gte('created_at', startOfLastWeek).lt('created_at', startOfThisWeek),
     // New programs this month
     db.from('reward_programs').select('id', { count: 'exact', head: true }).eq('tenant_id', tenantId).gte('created_at', startOfThisMonth),
+    // Ever had a transaction (for onboarding checklist)
+    db.from('transactions').select('id', { count: 'exact', head: true }).eq('tenant_id', tenantId).limit(1),
   ]);
 
   const { data: recentTx } = await db
@@ -61,6 +65,13 @@ export default async function DashboardPage() {
   const isPastDue    = tenant.subscription_status === 'past_due' || tenant.subscription_status === 'unpaid';
   const isDowngraded = tenant.plan !== 'free' && effectivePlan === 'free';
   const shortName    = tenant.name.split(' ')[0];
+
+  const onboardingSteps = [
+    { label: 'Cuenta creada',                        done: true },
+    { label: 'Crea tu primer programa de fidelización', done: programs.length > 0,          href: '/dashboard/programs' },
+    { label: 'Agrega tu primer cliente',              done: (customerCount ?? 0) > 0,       href: '/dashboard/customers' },
+    { label: 'Registra tu primera transacción',       done: (everHadTransaction ?? 0) > 0,  href: '/dashboard/quick' },
+  ];
 
   // ── Trend helpers ────────────────────────────────────────────────
   function pctChange(current: number, previous: number): number | null {
@@ -158,6 +169,9 @@ export default async function DashboardPage() {
           </a>
         </div>
       )}
+
+      {/* Onboarding checklist */}
+      <OnboardingChecklist tenantId={tenantId} steps={onboardingSteps} />
 
       {/* Header */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">

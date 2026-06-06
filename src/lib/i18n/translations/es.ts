@@ -5,6 +5,7 @@ export const es: Dictionary = {
     howItWorks: "Cómo funciona",
     features: "Funciones",
     pricing: "Precios",
+    faq: "FAQ",
     signIn: "Iniciar sesión",
     cta: "Acceso anticipado",
     openMenu: "Abrir menú",
@@ -361,6 +362,42 @@ export const es: Dictionary = {
       },
     ],
     wifi: "Requiere conexión a internet activa (Wi-Fi o datos móviles)",
+  },
+
+  faq: {
+    label: "FAQ",
+    heading: "Preguntas frecuentes",
+    body: "Todo lo que necesitas saber antes de empezar.",
+    items: [
+      {
+        question: "¿Mis clientes necesitan descargar una app?",
+        answer: "No. Los clientes se identifican con un código de acceso único de 8 caracteres que tú les das. Pueden ver su saldo desde cualquier navegador — sin app, sin cuenta, sin contraseña.",
+      },
+      {
+        question: "¿Cuánto tiempo tarda la configuración?",
+        answer: "Menos de 5 minutos. Regístrate, elige tu subdominio, crea tu primer programa y empieza a agregar clientes. No se requieren conocimientos técnicos.",
+      },
+      {
+        question: "¿Puedo tener varios programas de fidelización al mismo tiempo?",
+        answer: "Sí. El plan Gratis incluye 1 programa, Starter incluye 3 y Pro te da programas ilimitados. Puedes tener una tarjeta de sellos y un programa de puntos funcionando a la vez en la misma cuenta.",
+      },
+      {
+        question: "¿Qué pasa si un cliente pierde su código de acceso?",
+        answer: "Puedes buscar cualquier cliente desde tu panel y copiar o compartir su código en cualquier momento. Como no hay app ni contraseña, no hay nada que restablecer.",
+      },
+      {
+        question: "¿Fideliza funciona con mi sistema de punto de venta?",
+        answer: "Sí. Fideliza es una capa de fidelización independiente — no reemplaza tu sistema de cobro. El personal ingresa o escanea el código del cliente por separado, sin ninguna integración.",
+      },
+      {
+        question: "¿Puedo cancelar cuando quiera?",
+        answer: "Sí. No hay contratos a largo plazo ni cargos por cancelación. Puedes cancelar tu suscripción desde la configuración de facturación en cualquier momento y conservar el acceso hasta el fin de tu período pagado.",
+      },
+      {
+        question: "¿Los datos de mis clientes están seguros?",
+        answer: "Sí. Cada negocio en Fideliza opera en un entorno completamente aislado. Tus clientes, transacciones y premios están totalmente separados de cualquier otra cuenta en la plataforma.",
+      },
+    ],
   },
 
   waitlistForm: {

@@ -17,6 +17,7 @@ import { emailConfirmationTemplate } from './templates/email-confirmation';
 import { newCustomerTemplate }       from './templates/new-customer';
 import { redemptionAlertTemplate }   from './templates/redemption-alert';
 import { weeklyDigestTemplate, type WeeklyDigestStats } from './templates/weekly-digest';
+import { welcomeTenantTemplate }     from './templates/welcome-tenant';
 
 function getResendClient(): Resend {
   const key = process.env.RESEND_API_KEY;
@@ -125,6 +126,25 @@ export async function sendWeeklyDigest(
       html:    weeklyDigestTemplate(tenantName, stats),
     });
   } catch { /* best-effort */ }
+}
+
+/**
+ * Sends a welcome email to a newly created tenant.
+ * Non-blocking — never throws; tenant creation must not depend on this.
+ */
+export async function sendWelcomeTenantEmail(
+  to: string,
+  businessName: string,
+): Promise<void> {
+  try {
+    const resend = getResendClient();
+    await resend.emails.send({
+      from:    getFromAddress(),
+      to,
+      subject: `¡Bienvenido a Fideliza+, ${businessName}!`,
+      html:    welcomeTenantTemplate(businessName),
+    });
+  } catch { /* best-effort — never blocks account creation */ }
 }
 
 export type { WeeklyDigestStats };

@@ -3,6 +3,7 @@ export const en = {
     howItWorks: "How it works",
     features: "Features",
     pricing: "Pricing",
+    faq: "FAQ",
     signIn: "Sign in",
     cta: "Get early access",
     openMenu: "Open menu",
@@ -359,6 +360,42 @@ export const en = {
       },
     ],
     wifi: "Requires an active internet connection (Wi-Fi or mobile data)",
+  },
+
+  faq: {
+    label: "FAQ",
+    heading: "Frequently asked questions",
+    body: "Everything you need to know before getting started.",
+    items: [
+      {
+        question: "Do my customers need to download an app?",
+        answer: "No. Customers identify themselves with a unique 8-character access code you give them. They can check their balance from any browser — no app, no account, no password.",
+      },
+      {
+        question: "How long does setup take?",
+        answer: "Under 5 minutes. Sign up, claim your subdomain, create your first loyalty program, and start adding customers. No technical knowledge required.",
+      },
+      {
+        question: "Can I run multiple loyalty programs at the same time?",
+        answer: "Yes. The Free plan includes 1 program, Starter includes 3, and Pro gives you unlimited programs. You can run a stamp card and a points program simultaneously on the same account.",
+      },
+      {
+        question: "What happens if a customer loses their access code?",
+        answer: "You can look up any customer from your dashboard and resend or copy their access code at any time. Since there's no app or password, there's nothing to reset.",
+      },
+      {
+        question: "Does Fideliza work with my existing POS system?",
+        answer: "Yes. Fideliza is a standalone loyalty layer — it doesn't replace your point-of-sale system. Staff enter or scan the customer's code independently, without any integration required.",
+      },
+      {
+        question: "Can I cancel at any time?",
+        answer: "Absolutely. There are no long-term contracts or cancellation fees. You can cancel your subscription from the billing settings at any time and keep access until the end of your billing period.",
+      },
+      {
+        question: "Is my customer data safe?",
+        answer: "Yes. Every business on Fideliza runs in a fully isolated environment. Your customers, transactions, and rewards are completely separate from every other account on the platform.",
+      },
+    ],
   },
 
   waitlistForm: {

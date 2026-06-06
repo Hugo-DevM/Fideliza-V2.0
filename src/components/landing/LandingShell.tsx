@@ -9,6 +9,7 @@ import { Features } from './Features';
 import { Benefits } from './Benefits';
 import { MultiDevice } from './MultiDevice';
 import { Pricing } from './Pricing';
+import { FAQ } from './FAQ';
 import { CTA } from './CTA';
 import { Footer } from './Footer';
 import { ScrollReveal } from '@/components/ui/ScrollReveal';
@@ -50,6 +51,7 @@ export function LandingShell({ dictEn, dictEs }: Props) {
         <Benefits t={dict.benefits} />
         <MultiDevice t={dict.multiDevice} />
         <Pricing t={dict.pricing} />
+        <FAQ t={dict.faq} />
         <CTA t={dict.cta} waitlistT={dict.waitlistForm} />
       </main>
       <Footer t={dict.footer} />

@@ -3,6 +3,11 @@
 import { useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
 
+interface PlanUsage {
+  customers: { used: number; max: number };
+  programs:  { used: number; max: number };
+}
+
 interface Props {
   currentPlan:        string;
   effectivePlan:      string;
@@ -11,6 +16,7 @@ interface Props {
   hasStripeCustomer:  boolean;
   checkoutSuccess:    boolean;
   checkoutCanceled:   boolean;
+  planUsage?:         PlanUsage | null;
 }
 
 interface UpgradePreview {
@@ -44,6 +50,33 @@ function formatCurrency(cents: number, currency: string) {
   }).format(cents / 100);
 }
 
+function UsageBar({ label, used, max }: { label: string; used: number; max: number }) {
+  const pct = Math.min((used / max) * 100, 100);
+  const barColor =
+    pct >= 90 ? 'bg-red-500' :
+    pct >= 70 ? 'bg-amber-500' :
+    'bg-indigo-500';
+  const textColor =
+    pct >= 90 ? 'text-red-600 dark:text-red-400' :
+    pct >= 70 ? 'text-amber-600 dark:text-amber-400' :
+    'text-gray-500 dark:text-gray-400';
+
+  return (
+    <div className="space-y-1.5">
+      <div className="flex items-center justify-between text-sm">
+        <span className="text-gray-500 dark:text-gray-400">{label}</span>
+        <span className={`font-semibold tabular-nums ${textColor}`}>{used} / {max}</span>
+      </div>
+      <div className="h-1.5 w-full rounded-full bg-gray-100 dark:bg-white/10 overflow-hidden">
+        <div
+          className={`h-full rounded-full transition-all duration-300 ${barColor}`}
+          style={{ width: `${pct}%` }}
+        />
+      </div>
+    </div>
+  );
+}
+
 export default function BillingSection({
   currentPlan,
   effectivePlan,
@@ -52,6 +85,7 @@ export default function BillingSection({
   hasStripeCustomer,
   checkoutSuccess,
   checkoutCanceled,
+  planUsage,
 }: Props) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
@@ -300,6 +334,15 @@ export default function BillingSection({
             </div>
           )}
         </div>
+
+        {/* Plan usage (free / starter only) */}
+        {planUsage && (
+          <div className="rounded-xl border border-gray-100 dark:border-[#1e2438] bg-gray-50 dark:bg-[#1a1f35] px-4 py-3 space-y-3">
+            <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Uso del plan</p>
+            <UsageBar label="Clientes activos" used={planUsage.customers.used} max={planUsage.customers.max} />
+            <UsageBar label="Programas"        used={planUsage.programs.used}  max={planUsage.programs.max}  />
+          </div>
+        )}
 
         {/* Pro: "Estás en el plan más completo" */}
         {effectivePlan === 'pro' && (

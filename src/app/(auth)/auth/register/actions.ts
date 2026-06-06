@@ -3,7 +3,7 @@
 import { onboardTenant } from '@/modules/tenants';
 import { createServiceRoleClient } from '@/lib/supabase/server';
 import { BadRequestError } from '@/lib/middleware/errors';
-import { sendConfirmationEmail } from '@/lib/email/resend';
+import { sendConfirmationEmail, sendWelcomeTenantEmail } from '@/lib/email/resend';
 import { translateAuthError } from '@/lib/utils/supabase-errors';
 
 /**
@@ -102,6 +102,9 @@ export async function setupTenantAction(input: {
     if (metaError) {
       return { error: `Cuenta creada pero hubo un problema al guardar tus datos: ${metaError.message}` };
     }
+
+    // Fire-and-forget — welcome email must never block account creation
+    void sendWelcomeTenantEmail(input.email, input.businessName);
 
     return { tenantId: tenant.id };
   } catch (err) {
