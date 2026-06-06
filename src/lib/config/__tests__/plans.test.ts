@@ -80,8 +80,8 @@ describe('FREE plan', () => {
 describe('STARTER plan', () => {
   const limits = PLAN_CONFIG.starter;
 
-  it('maxCustomers = 500', () => {
-    assert.equal(limits.maxCustomers, 500);
+  it('maxCustomers = 300', () => {
+    assert.equal(limits.maxCustomers, 300);
   });
 
   it('maxPrograms = 3', () => {

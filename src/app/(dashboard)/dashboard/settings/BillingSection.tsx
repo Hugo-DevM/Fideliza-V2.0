@@ -326,7 +326,7 @@ export default function BillingSection({
                   $29 <span className="text-sm font-normal text-gray-400 dark:text-gray-500">/mes</span>
                 </p>
                 <ul className="mt-2 space-y-1 text-xs text-gray-500 dark:text-gray-400">
-                  <li>✓ Hasta 500 clientes</li>
+                  <li>✓ Hasta 300 clientes</li>
                   <li>✓ 3 programas</li>
                   <li>✓ Catálogo de recompensas</li>
                   <li>✓ Puntos, sellos y visitas</li>
@@ -356,6 +356,7 @@ export default function BillingSection({
                   <li>✓ Clientes ilimitados</li>
                   <li>✓ Programas ilimitados</li>
                   <li>✓ Todos los tipos de programa</li>
+                  <li>✓ Analíticas</li>
                   <li>✓ Exportación CSV</li>
                   <li>✓ Soporte prioritario</li>
                 </ul>

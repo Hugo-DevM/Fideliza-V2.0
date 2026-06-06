@@ -31,7 +31,7 @@ export const PLAN_CONFIG: Record<string, PlanLimits> = {
     prioritySupport:        false,
   },
   starter: {
-    maxCustomers:           500,
+    maxCustomers:           300,
     maxPrograms:            3,
     maxRewardsPerProgram:   3,
     allowedProgramTypes:    ['points', 'stamp', 'visit'],
