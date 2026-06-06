@@ -4,15 +4,18 @@ import { useState, useEffect } from 'react';
 import { usePathname } from 'next/navigation';
 import Link from 'next/link';
 import Sidebar from './Sidebar';
+import AlertsBell from './AlertsBell';
 import {
   DashboardI18nProvider,
   useDashboardI18n,
 } from '@/lib/i18n/dashboard-context';
+import type { AlertItem } from '@/lib/alerts/get-alerts';
 
 interface DashboardShellProps {
   tenantName: string;
   tenantPlan?: string;
   timezone: string;
+  alerts?: AlertItem[];
   children: React.ReactNode;
 }
 
@@ -24,7 +27,7 @@ export default function DashboardShell(props: DashboardShellProps) {
   );
 }
 
-function DashboardShellContent({ tenantName, tenantPlan, children }: DashboardShellProps) {
+function DashboardShellContent({ tenantName, tenantPlan, alerts = [], children }: DashboardShellProps) {
   const { t } = useDashboardI18n();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [isDark, setIsDark] = useState(false);
@@ -128,9 +131,7 @@ function DashboardShellContent({ tenantName, tenantPlan, children }: DashboardSh
 
           {/* Right: bell + theme toggle */}
           <div className="flex items-center gap-2">
-            <button className="flex h-8 w-8 items-center justify-center rounded-xl border border-gray-200 dark:border-[#2a3147] bg-white dark:bg-[#161b2e] text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-[#1e2438] transition">
-              <BellIcon className="h-4 w-4" />
-            </button>
+            <AlertsBell initialAlerts={alerts} />
 
             <button
               onClick={toggleTheme}
@@ -164,14 +165,6 @@ function ChevronIcon({ className }: { className?: string }) {
   return (
     <svg className={className} fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
       <path strokeLinecap="round" strokeLinejoin="round" d="m9 18 6-6-6-6" />
-    </svg>
-  );
-}
-
-function BellIcon({ className }: { className?: string }) {
-  return (
-    <svg className={className} fill="none" stroke="currentColor" strokeWidth={1.8} viewBox="0 0 24 24">
-      <path strokeLinecap="round" strokeLinejoin="round" d="M14.857 17.082a23.848 23.848 0 0 0 5.454-1.31A8.967 8.967 0 0 1 18 9.75V9A6 6 0 0 0 6 9v.75a8.967 8.967 0 0 1-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 0 1-5.714 0m5.714 0a3 3 0 1 1-5.714 0" />
     </svg>
   );
 }

@@ -31,6 +31,9 @@ export default function SettingsForm({
   const [phonePrefix,    setPhonePrefix]    = useState(settings.phone_prefix ?? '');
   const [tz,             setTz]             = useState(settings.timezone ?? 'America/Mexico_City');
   const [currency,       setCurrency]       = useState(settings.currency ?? 'MXN');
+  const [notifyNewCustomer,  setNotifyNewCustomer]  = useState(settings.notify_new_customer  ?? true);
+  const [notifyRedemption,   setNotifyRedemption]   = useState(settings.notify_redemption    ?? true);
+  const [notifyWeeklyDigest, setNotifyWeeklyDigest] = useState(settings.notify_weekly_digest ?? true);
   const [saved, setSaved] = useState({
     primary_color:   settings.primary_color,
     secondary_color: settings.secondary_color,
@@ -38,7 +41,10 @@ export default function SettingsForm({
     program_label:   settings.program_label,
     phone_prefix:    settings.phone_prefix ?? '',
     timezone:        settings.timezone ?? 'America/Mexico_City',
-    currency:        settings.currency ?? 'MXN',
+    currency:             settings.currency ?? 'MXN',
+    notifyNewCustomer:    settings.notify_new_customer  ?? true,
+    notifyRedemption:     settings.notify_redemption    ?? true,
+    notifyWeeklyDigest:   settings.notify_weekly_digest ?? true,
   });
   const [copied, setCopied] = useState(false);
 
@@ -49,7 +55,10 @@ export default function SettingsForm({
     programLabel   !== saved.program_label   ||
     phonePrefix    !== saved.phone_prefix    ||
     tz             !== saved.timezone        ||
-    currency       !== saved.currency;
+    currency            !== saved.currency             ||
+    notifyNewCustomer   !== saved.notifyNewCustomer    ||
+    notifyRedemption    !== saved.notifyRedemption     ||
+    notifyWeeklyDigest  !== saved.notifyWeeklyDigest;
 
   function handleProgramLabelChange(e: React.ChangeEvent<HTMLInputElement>) {
     const raw = e.target.value;
@@ -80,6 +89,9 @@ export default function SettingsForm({
           phone_prefix:    phonePrefix,
           timezone:        tz,
           currency,
+          notifyNewCustomer,
+          notifyRedemption,
+          notifyWeeklyDigest,
         });
         setSuccess(s.saved);
         router.refresh();
@@ -384,6 +396,38 @@ export default function SettingsForm({
         </div>
       </div>
 
+      {/* ── Notificaciones card ─────────────────────────────────────────────── */}
+      <input type="hidden" name="notify_new_customer"  value={notifyNewCustomer  ? 'true' : 'false'} />
+      <input type="hidden" name="notify_redemption"    value={notifyRedemption   ? 'true' : 'false'} />
+      <input type="hidden" name="notify_weekly_digest" value={notifyWeeklyDigest ? 'true' : 'false'} />
+      <div className="rounded-2xl border border-gray-100 dark:border-[#1e2438] bg-white dark:bg-[#161b2e] shadow-sm p-5 space-y-4">
+        <div>
+          <h2 className="text-sm font-semibold text-gray-800 dark:text-white">{s.notifications.title}</h2>
+          <p className="mt-0.5 text-xs text-gray-400 dark:text-gray-500">{s.notifications.subtitle}</p>
+        </div>
+
+        <div className="space-y-3">
+          <NotifToggle
+            label={s.notifications.newCustomer}
+            hint={s.notifications.newCustomerHint}
+            checked={notifyNewCustomer}
+            onChange={setNotifyNewCustomer}
+          />
+          <NotifToggle
+            label={s.notifications.redemption}
+            hint={s.notifications.redemptionHint}
+            checked={notifyRedemption}
+            onChange={setNotifyRedemption}
+          />
+          <NotifToggle
+            label={s.notifications.weeklyDigest}
+            hint={s.notifications.weeklyDigestHint}
+            checked={notifyWeeklyDigest}
+            onChange={setNotifyWeeklyDigest}
+          />
+        </div>
+      </div>
+
     </form>
   );
 }
@@ -408,6 +452,46 @@ export type CurrencyCode = typeof CURRENCIES[number]['code'];
 
 export function getCurrencySymbol(code: string): string {
   return CURRENCIES.find((c) => c.code === code)?.symbol ?? code;
+}
+
+// ── Notification toggle row ───────────────────────────────────────────────────
+
+function NotifToggle({
+  label,
+  hint,
+  checked,
+  onChange,
+}: {
+  label: string;
+  hint: string;
+  checked: boolean;
+  onChange: (v: boolean) => void;
+}) {
+  return (
+    <div className="flex items-center justify-between gap-4 rounded-xl border border-gray-100 dark:border-[#1e2438] bg-gray-50 dark:bg-[#1a1f35] px-4 py-3">
+      <div className="min-w-0">
+        <p className="text-sm font-medium text-gray-800 dark:text-gray-100">{label}</p>
+        <p className="text-xs text-gray-400 dark:text-gray-500 mt-0.5">{hint}</p>
+      </div>
+      <button
+        type="button"
+        role="switch"
+        aria-checked={checked}
+        onClick={() => onChange(!checked)}
+        className={[
+          'relative shrink-0 h-6 w-11 rounded-full transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-indigo-400/30',
+          checked ? 'bg-indigo-600' : 'bg-gray-200 dark:bg-[#2a3050]',
+        ].join(' ')}
+      >
+        <span
+          className={[
+            'absolute top-0.5 left-0.5 h-5 w-5 rounded-full bg-white shadow transition-transform duration-200',
+            checked ? 'translate-x-5' : 'translate-x-0',
+          ].join(' ')}
+        />
+      </button>
+    </div>
+  );
 }
 
 function CurrencySelect({ value, onChange }: { value: string; onChange: (v: string) => void }) {

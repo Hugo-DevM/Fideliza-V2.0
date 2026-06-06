@@ -86,6 +86,9 @@ export async function updateTenantSettings(
     timezone?: string;
     logo_padding?: number;
     currency?: string;
+    notify_new_customer?: boolean;
+    notify_redemption?: boolean;
+    notify_weekly_digest?: boolean;
   }
 ): Promise<TenantSettings> {
   const db = await createServerClient();

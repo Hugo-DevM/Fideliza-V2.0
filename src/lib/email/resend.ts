@@ -14,6 +14,9 @@
 import { Resend } from 'resend';
 import { passwordResetTemplate }    from './templates/password-reset';
 import { emailConfirmationTemplate } from './templates/email-confirmation';
+import { newCustomerTemplate }       from './templates/new-customer';
+import { redemptionAlertTemplate }   from './templates/redemption-alert';
+import { weeklyDigestTemplate, type WeeklyDigestStats } from './templates/weekly-digest';
 
 function getResendClient(): Resend {
   const key = process.env.RESEND_API_KEY;
@@ -29,10 +32,6 @@ function getFromAddress(): string {
 
 /**
  * Sends an email-confirmation link to a newly registered user.
- *
- * @param to         Recipient email address
- * @param confirmUrl The action_link returned by admin.generateLink()
- * @param fullName   Optional full name for personalizing the greeting
  */
 export async function sendConfirmationEmail(
   to: string,
@@ -51,9 +50,6 @@ export async function sendConfirmationEmail(
 
 /**
  * Sends a password-reset email with a one-time link.
- *
- * @param to       Recipient email address
- * @param token    The 64-char hex reset token
  */
 export async function sendPasswordResetEmail(to: string, token: string): Promise<void> {
   const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000';
@@ -69,3 +65,66 @@ export async function sendPasswordResetEmail(to: string, token: string): Promise
 
   if (error) throw new Error(`Resend: ${error.message}`);
 }
+
+/**
+ * Notifies the tenant owner when a new customer is created.
+ * Non-blocking — call with void, failures are silent.
+ */
+export async function sendNewCustomerNotification(
+  to: string,
+  tenantName: string,
+  customerName: string,
+): Promise<void> {
+  try {
+    const resend = getResendClient();
+    await resend.emails.send({
+      from:    getFromAddress(),
+      to,
+      subject: `Nuevo cliente — ${tenantName}`,
+      html:    newCustomerTemplate(tenantName, customerName),
+    });
+  } catch { /* best-effort — never blocks core operations */ }
+}
+
+/**
+ * Notifies the tenant owner when a customer redeems a reward.
+ * Non-blocking — call with void.
+ */
+export async function sendRedemptionNotification(
+  to: string,
+  tenantName: string,
+  customerName: string,
+  rewardName: string,
+  redemptionCode: string,
+): Promise<void> {
+  try {
+    const resend = getResendClient();
+    await resend.emails.send({
+      from:    getFromAddress(),
+      to,
+      subject: `Recompensa canjeada — ${tenantName}`,
+      html:    redemptionAlertTemplate(tenantName, customerName, rewardName, redemptionCode),
+    });
+  } catch { /* best-effort */ }
+}
+
+/**
+ * Sends the weekly activity digest to a tenant owner.
+ */
+export async function sendWeeklyDigest(
+  to: string,
+  tenantName: string,
+  stats: WeeklyDigestStats,
+): Promise<void> {
+  try {
+    const resend = getResendClient();
+    await resend.emails.send({
+      from:    getFromAddress(),
+      to,
+      subject: `Tu resumen semanal — ${tenantName}`,
+      html:    weeklyDigestTemplate(tenantName, stats),
+    });
+  } catch { /* best-effort */ }
+}
+
+export type { WeeklyDigestStats };

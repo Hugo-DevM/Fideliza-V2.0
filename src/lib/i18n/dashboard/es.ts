@@ -103,6 +103,16 @@ export const dashboardEs = {
       es:       'Español',
       en:       'English',
     },
+    notifications: {
+      title:               'Notificaciones',
+      subtitle:            'Recibe correos cuando ocurren eventos importantes en tu negocio.',
+      newCustomer:         'Nuevo cliente',
+      newCustomerHint:     'Cuando alguien se registre en tu programa de lealtad.',
+      redemption:          'Canje de recompensa',
+      redemptionHint:      'Cuando un cliente canjee una recompensa.',
+      weeklyDigest:        'Resumen semanal',
+      weeklyDigestHint:    'Un correo cada lunes con el resumen de actividad de la semana.',
+    },
   },
 };
 

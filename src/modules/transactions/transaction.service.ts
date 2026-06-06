@@ -11,6 +11,8 @@ import { createServiceRoleClient } from '@/lib/supabase/server';
 import { BadRequestError, NotFoundError } from '@/lib/middleware/errors';
 import { getTransactionHistoryLimit } from '@/lib/middleware/plan-limits';
 import { logger } from '@/lib/utils/logger';
+import { getNotificationPrefs } from '@/lib/email/notification-prefs';
+import { sendRedemptionNotification } from '@/lib/email/resend';
 import type {
   Transaction,
   CustomerRewardRedemption,
@@ -140,7 +142,30 @@ export async function redeemReward(
     throw new Error(`Error al canjear: ${error.message}`);
   }
 
-  return data as unknown as CustomerRewardRedemption;
+  const redemption = data as unknown as CustomerRewardRedemption;
+
+  // Fire-and-forget notification — fetch names and notify owner
+  void (async () => {
+    try {
+      const db2 = createServiceRoleClient();
+      const [prefs, customerRes, rewardRes] = await Promise.all([
+        getNotificationPrefs(tenantId),
+        db2.from('customers').select('name').eq('id', input.customer_id).single(),
+        db2.from('rewards').select('name').eq('id', input.reward_id).single(),
+      ]);
+      if (prefs?.notifyRedemption) {
+        void sendRedemptionNotification(
+          prefs.email,
+          prefs.tenantName,
+          (customerRes.data as { name: string } | null)?.name ?? 'Cliente',
+          (rewardRes.data as { name: string } | null)?.name ?? 'Recompensa',
+          redemption.redemption_code,
+        );
+      }
+    } catch { /* best-effort */ }
+  })();
+
+  return redemption;
 }
 
 /**

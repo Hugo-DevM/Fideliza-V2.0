@@ -55,6 +55,9 @@ export interface TenantSettings {
   timezone: string;
   logo_padding: number;
   currency: string;
+  notify_new_customer: boolean;
+  notify_redemption: boolean;
+  notify_weekly_digest: boolean;
   created_at: string;
   updated_at: string;
 }

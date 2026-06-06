@@ -17,6 +17,9 @@ export async function updateSettingsAction(formData: FormData) {
   const phone_prefix = phone_prefix_raw === '' ? null : (phone_prefix_raw ?? null);
   const timezone = (formData.get('timezone') as string | null)?.trim() || 'America/Mexico_City';
   const currency = (formData.get('currency') as string | null)?.trim() || 'MXN';
+  const notify_new_customer  = formData.get('notify_new_customer')  === 'true';
+  const notify_redemption    = formData.get('notify_redemption')    === 'true';
+  const notify_weekly_digest = formData.get('notify_weekly_digest') === 'true';
 
   // Validate hex color format
   const hexRe = /^#[0-9A-Fa-f]{6}$/;
@@ -48,6 +51,9 @@ export async function updateSettingsAction(formData: FormData) {
       phone_prefix,
       timezone,
       currency,
+      notify_new_customer,
+      notify_redemption,
+      notify_weekly_digest,
     });
     revalidatePath('/dashboard/settings');
     revalidatePath('/dashboard');

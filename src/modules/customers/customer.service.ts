@@ -11,6 +11,8 @@ import {
 import { BadRequestError, NotFoundError } from '@/lib/middleware/errors';
 import { enforceCustomerLimit } from '@/lib/middleware/plan-limits';
 import { generateAccessCode } from '@/lib/utils/crypto';
+import { getNotificationPrefs } from '@/lib/email/notification-prefs';
+import { sendNewCustomerNotification } from '@/lib/email/resend';
 import type { Customer, CustomerProgramEnrollment, UUID } from '@/lib/types';
 import type { CreateCustomerInput } from '@/lib/validation/customer.schema';
 
@@ -78,7 +80,16 @@ export async function createCustomer(
     throw new Error(`Error al crear el cliente: ${error?.message}`);
   }
 
-  return data as Customer;
+  const customer = data as Customer;
+
+  // Fire-and-forget notification — never block customer creation
+  void getNotificationPrefs(tenantId).then((prefs) => {
+    if (prefs?.notifyNewCustomer) {
+      void sendNewCustomerNotification(prefs.email, prefs.tenantName, customer.name);
+    }
+  });
+
+  return customer;
 }
 
 /**

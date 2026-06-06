@@ -105,5 +105,15 @@ export const dashboardEn: DashboardDictionary = {
       es:       'Español',
       en:       'English',
     },
+    notifications: {
+      title:               'Notifications',
+      subtitle:            'Receive emails when important events happen in your business.',
+      newCustomer:         'New customer',
+      newCustomerHint:     'When someone joins your loyalty program.',
+      redemption:          'Reward redemption',
+      redemptionHint:      'When a customer redeems a reward.',
+      weeklyDigest:        'Weekly digest',
+      weeklyDigestHint:    'An email every Monday with a summary of the week\'s activity.',
+    },
   },
 };
