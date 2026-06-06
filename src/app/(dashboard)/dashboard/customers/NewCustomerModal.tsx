@@ -73,6 +73,15 @@ export default function NewCustomerModal({ phonePrefix }: Props) {
     });
   }
 
+  function handleClose() {
+    setName("");
+    setPhone("");
+    setNotesLen(0);
+    setError("");
+    formRef.current?.reset();
+    setOpen(false);
+  }
+
   return (
     <>
       <button
@@ -91,7 +100,7 @@ export default function NewCustomerModal({ phonePrefix }: Props) {
                 Agregar cliente
               </h2>
               <button
-                onClick={() => setOpen(false)}
+                onClick={handleClose}
                 className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 text-xl leading-none transition"
               >
                 ×
@@ -123,6 +132,20 @@ export default function NewCustomerModal({ phonePrefix }: Props) {
                 />
               </div>
 
+              {!phonePrefix && (
+                <div className="flex items-start gap-3 rounded-xl border border-amber-200 dark:border-amber-500/30 bg-amber-50 dark:bg-amber-500/10 px-3 py-2.5">
+                  <svg className="h-4 w-4 shrink-0 mt-0.5 text-amber-500" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z" />
+                  </svg>
+                  <p className="text-xs text-amber-700 dark:text-amber-400 leading-relaxed">
+                    No tienes un prefijo telefónico configurado. Los teléfonos se guardarán sin prefijo de país.{' '}
+                    <a href="/dashboard/settings" className="font-semibold underline hover:text-amber-900 dark:hover:text-amber-300 transition">
+                      Configurar en Ajustes →
+                    </a>
+                  </p>
+                </div>
+              )}
+
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
                   Teléfono *
@@ -137,14 +160,16 @@ export default function NewCustomerModal({ phonePrefix }: Props) {
                   <input type="hidden" name="phone" value={fullPhone} />
                   <input
                     type="tel"
-                    placeholder={phonePrefix ? "8134529076" : "+521234567890"}
+                    placeholder={phonePrefix ? "8134529076" : "Configura un prefijo primero"}
                     required
+                    disabled={!phonePrefix}
                     value={phone}
                     onChange={handlePhoneChange}
                     maxLength={localMax}
                     className={[
                       inputCls,
                       phonePrefix ? "rounded-l-none" : "",
+                      !phonePrefix ? "opacity-50 cursor-not-allowed bg-gray-100 dark:bg-[#1a1f35]" : "",
                       phone.length > 0 && phone.length < localMin
                         ? "border-amber-400 focus:border-amber-400 dark:focus:border-amber-500 focus:ring-amber-100 dark:focus:ring-amber-500/20"
                         : "",
@@ -191,18 +216,18 @@ export default function NewCustomerModal({ phonePrefix }: Props) {
                 </div>
                 <textarea
                   name="notes"
-                  rows={2}
+                  rows={5}
                   maxLength={NOTES_MAX}
                   placeholder="Notas internas (no visibles al cliente)"
                   onChange={(e) => setNotesLen(e.target.value.length)}
-                  className={inputCls}
+                  className={`${inputCls} resize-none`}
                 />
               </div>
 
               <div className="flex justify-end gap-3 pt-1">
                 <button
                   type="button"
-                  onClick={() => setOpen(false)}
+                  onClick={handleClose}
                   className="rounded-xl border border-gray-200 dark:border-[#2a3147] px-4 py-2 text-sm font-medium text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-[#1e2438] transition"
                 >
                   Cancelar

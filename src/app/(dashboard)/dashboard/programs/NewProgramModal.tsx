@@ -63,22 +63,22 @@ export default function NewProgramModal({
       </button>
 
       {open && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
-          <div className="w-full max-w-lg rounded-2xl bg-white dark:bg-[#161b2e] p-6 shadow-2xl">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 sm:p-6">
+          <div className="w-full max-w-lg rounded-2xl bg-white dark:bg-[#161b2e] p-6 shadow-2xl overflow-y-auto max-h-[90vh] [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-gray-300 dark:[&::-webkit-scrollbar-thumb]:bg-[#2a3147]">
             <div className="mb-5 flex items-center justify-between">
               <h2 className="text-base font-bold text-gray-900 dark:text-white">Crear programa</h2>
               <button onClick={() => setOpen(false)} className="text-xl leading-none text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition">×</button>
             </div>
 
             <form ref={formRef} onSubmit={handleSubmit} className="space-y-4">
-              {error && <p className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-600">{error}</p>}
+              {error && <p className="rounded-lg bg-red-50 dark:bg-red-950/30 border border-red-100 dark:border-red-900/30 px-3 py-2 text-sm text-red-600 dark:text-red-400">{error}</p>}
 
               <NameField charCount={nameLen} onCharCount={setNameLen} />
               <DescField charCount={descLen} onCharCount={setDescLen} />
 
               {/* Type selector */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Tipo de programa *</label>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Tipo de programa *</label>
                 <div className="grid grid-cols-2 gap-2">
                   {ALL_PROGRAM_TYPES.map((t) => {
                     const allowed = allowedTypes.includes(t.value);
@@ -86,7 +86,9 @@ export default function NewProgramModal({
                       <label
                         key={t.value}
                         className={`flex cursor-pointer flex-col rounded-lg border p-3 transition ${
-                          type === t.value ? 'border-indigo-400 bg-indigo-50' : 'border-gray-200 hover:border-gray-300'
+                          type === t.value
+                            ? 'border-indigo-400 bg-indigo-50 dark:border-indigo-500 dark:bg-indigo-500/15'
+                            : 'border-gray-200 dark:border-[#2a3147] hover:border-gray-300 dark:hover:border-[#3a4157]'
                         }`}
                       >
                         <input
@@ -97,19 +99,19 @@ export default function NewProgramModal({
                           onChange={() => setType(t.value)}
                           className="sr-only"
                         />
-                        <span className="text-sm font-medium text-gray-800">{t.label}</span>
-                        <span className="text-xs text-gray-400 mt-0.5">{t.hint}</span>
+                        <span className="text-sm font-medium text-gray-800 dark:text-white">{t.label}</span>
+                        <span className="text-xs text-gray-400 dark:text-gray-500 mt-0.5">{t.hint}</span>
                       </label>
                     ) : (
                       <div
                         key={t.value}
-                        className="relative flex flex-col rounded-lg border border-gray-100 bg-gray-50 p-3 opacity-60 cursor-not-allowed"
+                        className="relative flex flex-col rounded-lg border border-gray-100 dark:border-[#2a3147] bg-gray-50 dark:bg-[#1a1f35] p-3 opacity-60 cursor-not-allowed"
                       >
-                        <span className="absolute top-2 right-2 rounded-full bg-amber-100 px-1.5 py-0.5 text-[10px] font-semibold text-amber-700">
+                        <span className="absolute top-2 right-2 rounded-full bg-amber-100 dark:bg-amber-500/20 px-1.5 py-0.5 text-[10px] font-semibold text-amber-700 dark:text-amber-400">
                           Pro
                         </span>
-                        <span className="text-sm font-medium text-gray-500">{t.label}</span>
-                        <span className="text-xs text-gray-400 mt-0.5">{t.hint}</span>
+                        <span className="text-sm font-medium text-gray-500 dark:text-gray-400">{t.label}</span>
+                        <span className="text-xs text-gray-400 dark:text-gray-500 mt-0.5">{t.hint}</span>
                       </div>
                     );
                   })}
@@ -148,7 +150,7 @@ export default function NewProgramModal({
 
               <div className="flex justify-end gap-3 pt-1">
                 <button type="button" onClick={() => setOpen(false)}
-                  className="rounded-lg border px-4 py-2 text-sm font-medium text-gray-600 hover:bg-gray-50"
+                  className="rounded-lg border border-gray-200 dark:border-[#2a3147] px-4 py-2 text-sm font-medium text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-[#1e2438] transition"
                 >Cancelar</button>
                 <button type="submit" disabled={isPending}
                   className="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-700 disabled:opacity-50"
@@ -164,7 +166,7 @@ export default function NewProgramModal({
   );
 }
 
-const inputCls = 'w-full rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-900 placeholder-gray-400 outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100';
+const inputCls = 'w-full rounded-xl border border-gray-200 dark:border-[#2a3147] bg-white dark:bg-[#0d0f17] px-3 py-2.5 text-sm text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-600 outline-none transition focus:border-indigo-400 dark:focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 dark:focus:ring-indigo-500/20';
 
 function NameField({ charCount, onCharCount }: { charCount: number; onCharCount: (n: number) => void }) {
   const MAX = 60;
@@ -231,7 +233,7 @@ function NumField({ label, name, defaultValue, step, min, hint }: {
 
   return (
     <div>
-      <label className="block text-sm font-medium text-gray-700 mb-1">{label}</label>
+      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{label}</label>
       <input
         name={name}
         type="number"

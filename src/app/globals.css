@@ -325,6 +325,39 @@ a[role="button"],
   transform: translateY(0);
 }
 
+/* ── Global scrollbar ───────────────────────────────────────────── */
+
+:root {
+  --sb-thumb: #d1d5db;
+  --sb-thumb-hover: #9ca3af;
+}
+.dark {
+  --sb-thumb: #2a3147;
+  --sb-thumb-hover: #3d4a6b;
+}
+
+/* Chromium / Safari */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  border-radius: 9999px;
+  background: var(--sb-thumb);
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--sb-thumb-hover);
+}
+
+/* Firefox */
+html {
+  scrollbar-width: thin;
+  scrollbar-color: var(--sb-thumb) transparent;
+}
+
 /* ── prefers-reduced-motion ─────────────────────────────────────── */
 
 @media (prefers-reduced-motion: reduce) {
