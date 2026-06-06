@@ -95,8 +95,7 @@ export async function updateTenantSettings(
 
   const { data, error } = await db
     .from('tenant_settings')
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    .update({ ...input, updated_at: new Date().toISOString() } as any)
+    .update({ ...input, updated_at: new Date().toISOString() })
     .eq('tenant_id', tenantId)
     .select('*')
     .single();
