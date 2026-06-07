@@ -10,6 +10,14 @@ interface Props {
   primaryColor: string;
 }
 
+// Always display as XXXX-XXX-XXX regardless of how it's stored
+function formatDisplayCode(code: string): string {
+  const raw = code.replace(/-/g, '');
+  if (raw.length <= 4) return raw;
+  if (raw.length <= 7) return `${raw.slice(0, 4)}-${raw.slice(4)}`;
+  return `${raw.slice(0, 4)}-${raw.slice(4, 7)}-${raw.slice(7)}`;
+}
+
 type View = 'code' | 'qr' | 'barcode';
 
 export default function VoucherCard({ voucher: v, primaryColor }: Props) {
@@ -83,7 +91,7 @@ export default function VoucherCard({ voucher: v, primaryColor }: Props) {
         style={{ borderColor: primaryColor }}
       >
         <p className="font-mono text-lg font-bold tracking-normal text-gray-900 dark:text-white">
-          {v.redemption_code}
+          {formatDisplayCode(v.redemption_code)}
         </p>
         <p className="mt-0.5 text-xs text-gray-400 dark:text-gray-500">Muéstralo al personal</p>
       </div>
@@ -129,7 +137,7 @@ export default function VoucherCard({ voucher: v, primaryColor }: Props) {
         <div className="mt-3 flex flex-col items-center rounded-xl bg-white p-4 shadow-inner">
           <canvas ref={qrCanvasRef} className="rounded-lg" />
           <p className="mt-2 text-[10px] text-gray-400 font-mono tracking-wider">
-            {v.redemption_code}
+            {formatDisplayCode(v.redemption_code)}
           </p>
         </div>
       )}

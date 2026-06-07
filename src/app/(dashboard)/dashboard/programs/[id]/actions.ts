@@ -113,7 +113,9 @@ export async function deleteRewardAction(programId: string, rewardId: string) {
 
 export async function verifyVoucherAction(redemptionCode: string) {
   const { tenantId } = await getAuthenticatedTenant();
-  const normalizedCode = redemptionCode.toUpperCase().trim();
+  // Normalize: strip hyphens, uppercase, then reformat as XXXX-XXXXXX (DB format)
+  const raw = redemptionCode.toUpperCase().trim().replace(/-/g, '');
+  const normalizedCode = raw.length > 4 ? `${raw.slice(0, 4)}-${raw.slice(4)}` : raw;
 
   try {
     const redemption = await markRedemptionUsed(tenantId, normalizedCode);

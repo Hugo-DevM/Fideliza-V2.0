@@ -20,12 +20,11 @@ interface RedemptionInfo {
   usedAt: string;
 }
 
-// Format raw chars as XXXX-XXX-XXX (always uppercase, auto-hyphens)
+// Format raw chars as XXXX-XXXXXX (always uppercase, auto-hyphen after 4 chars)
 function formatCode(raw: string): string {
   const chars = raw.replace(/[^A-Z0-9]/gi, '').toUpperCase().slice(0, 10);
   if (chars.length <= 4) return chars;
-  if (chars.length <= 7) return `${chars.slice(0, 4)}-${chars.slice(4)}`;
-  return `${chars.slice(0, 4)}-${chars.slice(4, 7)}-${chars.slice(7)}`;
+  return `${chars.slice(0, 4)}-${chars.slice(4)}`;
 }
 
 export default function VerifyVoucherForm() {
@@ -159,7 +158,7 @@ export default function VerifyVoucherForm() {
             onChange={handleChange}
             placeholder="P. EJ. BREW-XK3-72F"
             className="w-full rounded-xl border border-gray-200 dark:border-[#2a3147] bg-gray-50 dark:bg-[#0d0f17] pl-9 pr-3 py-2.5 font-mono text-sm uppercase text-gray-900 dark:text-white placeholder-gray-300 dark:placeholder-gray-600 outline-none transition focus:border-indigo-400 dark:focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 dark:focus:ring-indigo-500/20"
-            maxLength={12}
+            maxLength={11}
             autoComplete="off"
             spellCheck={false}
           />
