@@ -400,7 +400,10 @@ export const en = {
 
   waitlistForm: {
     emailPlaceholder: "your@email.com",
+    phonePlaceholder: "Phone number",
     submitButton: "Join waitlist",
+    optional: "optional",
+    required: "required",
     optionalToggle: "+ Add your name and business (optional)",
     namePlaceholder: "Your name",
     businessPlaceholder: "Business name",
@@ -409,8 +412,10 @@ export const en = {
     successMessage: "We'll notify you when Fideliza launches.",
     alreadyOnList: "You're already on the list! We'll be in touch soon.",
     errors: {
+      nameRequired: "Please enter your name.",
       emailInvalid: "Please enter a valid email address.",
       emailTooLong: "Email address is too long.",
+      phoneInvalid: "Please enter a valid phone number.",
       nameInvalid: "Name can only contain letters and spaces.",
       nameTooLong: "Name is too long (max 60 characters).",
       businessTooLong: "Business name is too long (max 100 characters).",

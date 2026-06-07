@@ -24,6 +24,12 @@ const WaitlistSchema = z.object({
     .toLowerCase()
     .trim()
     .max(320),
+  phone: z
+    .string()
+    .trim()
+    .min(7)
+    .max(20)
+    .regex(/^\+?[\d\s\-().]+$/),
   name: z
     .string()
     .trim()
@@ -76,6 +82,7 @@ export const POST = withPublicContext<{ message: string }>(
 
     const { error } = await db.from('waitlist').insert({
       email:         parsed.data.email,
+      phone:         parsed.data.phone,
       name:          parsed.data.name ?? null,
       business_name: parsed.data.business_name ?? null,
       source:        parsed.data.source,

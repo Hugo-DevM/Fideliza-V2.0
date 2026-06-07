@@ -14,19 +14,22 @@ const VALID_NAME_RE = /^[a-zA-ZÀ-ÖØ-öø-ÿÑñ\s]*$/;
 
 export function WaitlistForm({ variant = 'hero', t }: WaitlistFormProps) {
   const [email,    setEmail]    = useState('');
+  const [phone,    setPhone]    = useState('');
   const [name,     setName]     = useState('');
   const [business, setBusiness] = useState('');
   const [status,   setStatus]   = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
   const [message,  setMessage]  = useState('');
-  const [showExtra, setShowExtra] = useState(false);
 
   // ── Client-side validation ────────────────────────────────────────────────
   function validate(): string | null {
+    if (!name.trim()) return t.errors.nameRequired;
+    if (!VALID_NAME_RE.test(name)) return t.errors.nameInvalid;
+    if (name.trim().length > 60) return t.errors.nameTooLong;
     if (!email) return t.errors.emailInvalid;
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return t.errors.emailInvalid;
     if (email.length > 320) return t.errors.emailTooLong;
-    if (name && !VALID_NAME_RE.test(name)) return t.errors.nameInvalid;
-    if (name && name.trim().length > 60) return t.errors.nameTooLong;
+    if (!phone.trim()) return t.errors.phoneInvalid;
+    if (!/^\+?[\d\s\-().]+$/.test(phone.trim()) || phone.trim().replace(/\D/g, '').length < 7) return t.errors.phoneInvalid;
     if (business && business.trim().length > 100) return t.errors.businessTooLong;
     return null;
   }
@@ -50,6 +53,7 @@ export function WaitlistForm({ variant = 'hero', t }: WaitlistFormProps) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           email,
+          phone:         phone.trim(),
           name:          name     || undefined,
           business_name: business || undefined,
           source: variant,
@@ -93,8 +97,36 @@ export function WaitlistForm({ variant = 'hero', t }: WaitlistFormProps) {
 
   return (
     <form onSubmit={handleSubmit} className="w-full max-w-md mx-auto space-y-3" noValidate>
-      {/* Email row */}
-      <div className="flex gap-2">
+      {/* 1. Nombre */}
+      <div className="relative">
+        <input
+          type="text"
+          value={name}
+          onChange={(e) => {
+            const val = e.target.value
+              .replace(/[^a-zA-ZÀ-ÖØ-öø-ÿÑñ\s]/g, '')
+              .replace(/(?:^|\s)\S/g, (c) => c.toUpperCase());
+            if (val.length <= 60) setName(val);
+          }}
+          placeholder={t.namePlaceholder}
+          required
+          autoComplete="name"
+          maxLength={60}
+          className={[
+            'w-full rounded-lg px-4 py-2.5 text-sm border transition-colors',
+            'focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500',
+            variant === 'cta'
+              ? 'bg-white/15 border-white/20 text-white placeholder-indigo-300 focus:bg-white/20'
+              : 'bg-white border-gray-300 text-gray-900 placeholder-gray-400',
+          ].join(' ')}
+        />
+        <span className={`absolute top-1 right-2 text-[10px] font-medium ${
+          variant === 'cta' ? 'text-indigo-300/70' : 'text-gray-400'
+        }`}>{t.required}</span>
+      </div>
+
+      {/* 2. Correo */}
+      <div className="relative">
         <input
           type="email"
           value={email}
@@ -104,57 +136,42 @@ export function WaitlistForm({ variant = 'hero', t }: WaitlistFormProps) {
           maxLength={320}
           autoComplete="email"
           className={[
-            'flex-1 min-w-0 rounded-lg px-4 py-2.5 text-sm border transition-colors',
+            'w-full rounded-lg px-4 py-2.5 text-sm border transition-colors',
             'focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500',
             variant === 'cta'
               ? 'bg-white/15 border-white/20 text-white placeholder-indigo-300 focus:bg-white/20'
               : 'bg-white border-gray-300 text-gray-900 placeholder-gray-400',
           ].join(' ')}
         />
-        <Button
-          type="submit"
-          loading={status === 'loading'}
-          size="md"
-          variant={variant === 'cta' ? 'secondary' : 'primary'}
-          className="flex-shrink-0"
-        >
-          {t.submitButton}
-        </Button>
+        <span className={`absolute top-1 right-2 text-[10px] font-medium ${
+          variant === 'cta' ? 'text-indigo-300/70' : 'text-gray-400'
+        }`}>{t.required}</span>
       </div>
 
-      {/* Optional fields toggle */}
-      {!showExtra ? (
-        <button
-          type="button"
-          onClick={() => setShowExtra(true)}
-          className={`text-xs underline underline-offset-2 ${
-            variant === 'cta' ? 'text-indigo-300 hover:text-indigo-100' : 'text-gray-400 hover:text-gray-600'
-          }`}
-        >
-          {t.optionalToggle}
-        </button>
-      ) : (
-        <div className="grid grid-cols-2 gap-2">
+      {/* 3. Teléfono + nombre del negocio */}
+      <div className="grid grid-cols-2 gap-2">
+        <div className="relative">
           <input
-            type="text"
-            value={name}
-            onChange={(e) => {
-              const val = e.target.value
-                .replace(/[^a-zA-ZÀ-ÖØ-öø-ÿÑñ\s]/g, '')
-                .replace(/(?:^|\s)\S/g, (c) => c.toUpperCase());
-              if (val.length <= 60) setName(val);
-            }}
-            placeholder={t.namePlaceholder}
-            autoComplete="name"
-            maxLength={60}
+            type="tel"
+            value={phone}
+            onChange={(e) => setPhone(e.target.value)}
+            placeholder={t.phonePlaceholder}
+            required
+            maxLength={20}
+            autoComplete="tel"
             className={[
-              'rounded-lg px-3 py-2.5 text-sm border transition-colors',
+              'w-full rounded-lg px-3 py-2.5 text-sm border transition-colors',
               'focus:outline-none focus:ring-2 focus:ring-indigo-500',
               variant === 'cta'
                 ? 'bg-white/15 border-white/20 text-white placeholder-indigo-300'
                 : 'bg-white border-gray-300 text-gray-900 placeholder-gray-400',
             ].join(' ')}
           />
+          <span className={`absolute top-1 right-2 text-[10px] font-medium ${
+            variant === 'cta' ? 'text-indigo-300/70' : 'text-gray-400'
+          }`}>{t.required}</span>
+        </div>
+        <div className="relative">
           <input
             type="text"
             value={business}
@@ -164,20 +181,35 @@ export function WaitlistForm({ variant = 'hero', t }: WaitlistFormProps) {
             placeholder={t.businessPlaceholder}
             maxLength={100}
             className={[
-              'rounded-lg px-3 py-2.5 text-sm border transition-colors',
+              'w-full rounded-lg px-3 py-2.5 text-sm border transition-colors',
               'focus:outline-none focus:ring-2 focus:ring-indigo-500',
               variant === 'cta'
                 ? 'bg-white/15 border-white/20 text-white placeholder-indigo-300'
                 : 'bg-white border-gray-300 text-gray-900 placeholder-gray-400',
             ].join(' ')}
           />
+          <span className={`absolute top-1 right-2 text-[10px] font-medium ${
+            variant === 'cta' ? 'text-indigo-300/70' : 'text-gray-400'
+          }`}>
+            {t.optional}
+          </span>
         </div>
-      )}
+      </div>
 
       {/* Error message */}
       {status === 'error' && (
         <p className="text-xs text-red-400">{message}</p>
       )}
+
+      <Button
+        type="submit"
+        loading={status === 'loading'}
+        size="md"
+        variant={variant === 'cta' ? 'secondary' : 'primary'}
+        className="w-full"
+      >
+        {t.submitButton}
+      </Button>
 
       <p className={`text-xs ${variant === 'cta' ? 'text-indigo-400' : 'text-gray-400'}`}>
         {t.disclaimer}

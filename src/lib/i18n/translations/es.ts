@@ -402,7 +402,10 @@ export const es: Dictionary = {
 
   waitlistForm: {
     emailPlaceholder: "tu@email.com",
+    phonePlaceholder: "Número de teléfono",
     submitButton: "Unirse a la lista",
+    optional: "opcional",
+    required: "obligatorio",
     optionalToggle: "+ Agrega tu nombre y negocio (opcional)",
     namePlaceholder: "Tu nombre",
     businessPlaceholder: "Nombre del negocio",
@@ -411,8 +414,10 @@ export const es: Dictionary = {
     successMessage: "Te avisaremos cuando Fideliza lance oficialmente.",
     alreadyOnList: "¡Ya estás en la lista! Pronto estaremos en contacto.",
     errors: {
+      nameRequired: "Ingresa tu nombre.",
       emailInvalid: "Ingresa un correo electrónico válido.",
       emailTooLong: "El correo electrónico es demasiado largo.",
+      phoneInvalid: "Ingresa un número de teléfono válido.",
       nameInvalid: "El nombre solo puede contener letras y espacios.",
       nameTooLong: "El nombre es demasiado largo (máx. 60 caracteres).",
       businessTooLong: "El nombre del negocio es demasiado largo (máx. 100 caracteres).",
