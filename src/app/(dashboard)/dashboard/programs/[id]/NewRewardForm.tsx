@@ -102,6 +102,9 @@ export default function NewRewardForm({ programId, programType, programConfig, c
         visitThreshold={visitThreshold}
         error={error}
         errorStyle={errorStyle}
+        mounted={mounted}
+        displayText={displayText}
+        wrapperStyle={wrapperStyle}
         isPending={isPending}
         onCancel={() => { setOpen(false); setError(''); }}
       />
