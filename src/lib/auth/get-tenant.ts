@@ -34,13 +34,24 @@ export async function getAuthenticatedTenant(): Promise<AuthenticatedContext> {
   // without a tenant_id would bounce login→dashboard→login infinitely.
   if (!tenantId) redirect('/auth/register');
 
-  const [tenant, settings] = await Promise.all([
-    getTenantById(tenantId),
-    getTenantSettings(tenantId),
-  ]);
+  let tenant: Tenant;
+  let settings: TenantSettings;
 
-  const effectivePlan = getEffectivePlanFromTenant(tenant);
+  try {
+    [tenant, settings] = await Promise.all([
+      getTenantById(tenantId),
+      getTenantSettings(tenantId),
+    ]);
+  } catch {
+    // Tenant not found or inactive (e.g. deleted account, stale session).
+    // Sign the user out silently so stale cookies don't cause a loop, then
+    // redirect to login with a clear message.
+    await supabase.auth.signOut();
+    redirect('/auth/login?reason=account_not_found');
+  }
+
+  const effectivePlan = getEffectivePlanFromTenant(tenant!);
   const planLimits    = getPlanLimits(effectivePlan);
 
-  return { tenantId, tenant, settings, planLimits, effectivePlan };
+  return { tenantId, tenant: tenant!, settings: settings!, planLimits, effectivePlan };
 }
