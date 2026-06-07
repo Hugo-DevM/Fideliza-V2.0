@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useTransition, useRef, useEffect } from 'react';
+import { useAutoError } from '@/hooks/useAutoError';
 import { useRouter } from 'next/navigation';
 import { updateSettingsAction } from './actions';
 import type { TenantSettings } from '@/lib/types';
@@ -66,7 +67,7 @@ export default function SettingsForm({
     setProgramLabel(raw.replace(/(?:^|\s)\S/g, (c) => c.toUpperCase()));
   }
 
-  const [error,   setError]   = useState('');
+  const { error, setError, mounted, displayText, wrapperStyle, errorStyle } = useAutoError();
   const [success, setSuccess] = useState('');
   const [isPending, startTransition] = useTransition();
   const router = useRouter();
@@ -133,7 +134,11 @@ export default function SettingsForm({
         </button>
       </div>
 
-      {error   && <p className="rounded-xl bg-red-50 dark:bg-red-500/10 px-4 py-3 text-sm text-red-600 dark:text-red-400">{error}</p>}
+      {mounted && (
+        <div style={wrapperStyle}><div style={{ overflow: 'hidden' }}>
+          <p style={errorStyle} className="rounded-xl bg-red-50 dark:bg-red-500/10 px-4 py-3 text-sm text-red-600 dark:text-red-400">{displayText}</p>
+        </div></div>
+      )}
       {success && <p className="rounded-xl bg-green-50 dark:bg-green-500/10 px-4 py-3 text-sm text-green-700 dark:text-green-400">{success} ✓</p>}
 
       {/* ── Cuenta card ─────────────────────────────────────────────────────── */}
@@ -734,7 +739,7 @@ function LogoCard({
   const [url,     setUrl]     = useState<string | null>(initialUrl);
   const [padding, setPadding] = useState(initialPadding);
   const [status,  setStatus]  = useState<'idle' | 'uploading' | 'removing' | 'saving-padding'>('idle');
-  const [error,   setError]   = useState('');
+  const { error: logoError, setError: setLogoError, mounted: logoMounted, displayText: logoDisplayText, wrapperStyle: logoWrapperStyle, errorStyle: logoErrorStyle } = useAutoError();
   const fileRef = useRef<HTMLInputElement>(null);
   const router  = useRouter();
 
@@ -742,7 +747,7 @@ function LogoCard({
     const file = e.target.files?.[0];
     if (!file) return;
     e.target.value = '';
-    setError('');
+    setLogoError('');
     setStatus('uploading');
 
     const form = new FormData();
@@ -752,7 +757,7 @@ function LogoCard({
     const json = await res.json();
 
     if (!res.ok) {
-      setError(json.error ?? 'Error al subir el logo.');
+      setLogoError(json.error ?? 'Error al subir el logo.');
       setStatus('idle');
       return;
     }
@@ -763,12 +768,12 @@ function LogoCard({
   }
 
   async function handleRemove() {
-    setError('');
+    setLogoError('');
     setStatus('removing');
     const res = await fetch('/api/tenants/logo', { method: 'DELETE' });
     if (!res.ok) {
       const json = await res.json();
-      setError(json.error ?? 'Error al eliminar el logo.');
+      setLogoError(json.error ?? 'Error al eliminar el logo.');
     } else {
       setUrl(null);
     }
@@ -871,10 +876,12 @@ function LogoCard({
         </div>
       </div>
 
-      {error && (
-        <p className="rounded-xl bg-red-50 dark:bg-red-500/10 px-3 py-2 text-xs text-red-600 dark:text-red-400">
-          {error}
-        </p>
+      {logoMounted && (
+        <div style={logoWrapperStyle}><div style={{ overflow: 'hidden' }}>
+          <p style={logoErrorStyle} className="rounded-xl bg-red-50 dark:bg-red-500/10 px-3 py-2 text-xs text-red-600 dark:text-red-400">
+            {logoDisplayText}
+          </p>
+        </div></div>
       )}
     </div>
   );

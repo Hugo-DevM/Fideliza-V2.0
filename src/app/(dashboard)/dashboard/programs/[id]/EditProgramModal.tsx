@@ -3,6 +3,8 @@
 import { useState, useTransition, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { updateProgramInfoAction } from './actions';
+import { useAutoError } from '@/hooks/useAutoError';
+import { useModalTransition } from '@/hooks/useModalTransition';
 
 export default function EditProgramModal({
   programId,
@@ -14,7 +16,8 @@ export default function EditProgramModal({
   currentDescription: string | null;
 }) {
   const [open, setOpen] = useState(false);
-  const [error, setError] = useState('');
+  const { mounted: modalMounted, visible: modalVisible } = useModalTransition(open);
+  const { error, setError, mounted, displayText, wrapperStyle, errorStyle } = useAutoError();
   const [nameLen, setNameLen] = useState(currentName.length);
   const [descLen, setDescLen] = useState(currentDescription?.length ?? 0);
   const NAME_MAX = 60;
@@ -47,9 +50,15 @@ export default function EditProgramModal({
         Editar
       </button>
 
-      {open && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
-          <div className="w-full max-w-md rounded-2xl bg-white dark:bg-[#161b2e] p-6 shadow-2xl">
+      {modalMounted && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-4"
+          style={{ backgroundColor: modalVisible ? 'rgba(0,0,0,0.6)' : 'rgba(0,0,0,0)', transition: 'background-color 220ms ease' }}
+        >
+          <div
+            className="w-full max-w-md rounded-2xl bg-white dark:bg-[#161b2e] p-6 shadow-2xl"
+            style={{ opacity: modalVisible ? 1 : 0, transform: modalVisible ? 'translateY(0) scale(1)' : 'translateY(12px) scale(0.97)', transition: 'opacity 220ms ease, transform 220ms ease' }}
+          >
             <div className="mb-5 flex items-center justify-between">
               <h2 className="text-base font-bold text-gray-900 dark:text-white">Editar programa</h2>
               <button
@@ -59,7 +68,11 @@ export default function EditProgramModal({
             </div>
 
             <form ref={formRef} onSubmit={handleSubmit} className="space-y-4">
-              {error && <p className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-600">{error}</p>}
+              {mounted && (
+                <div style={wrapperStyle}><div style={{ overflow: 'hidden' }}>
+                  <p style={errorStyle} className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-600">{displayText}</p>
+                </div></div>
+              )}
 
               <div>
                 <div className="flex items-center justify-between mb-1">

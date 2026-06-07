@@ -3,6 +3,7 @@
 import { useState, useTransition, useRef, useEffect } from 'react';
 import { lookupCustomerAction, quickTransactionAction } from './actions';
 import type { QuickCustomer, QuickProgram } from './actions';
+import { useAutoError } from '@/hooks/useAutoError';
 
 interface Props {
   programLabel: string;
@@ -21,14 +22,14 @@ const TAB_META: Record<ActionTab, { label: string; buttonLabel: string }> = {
 export default function QuickRegister({ programLabel, currency }: Props) {
   const [query, setQuery]             = useState('');
   const [customer, setCustomer]       = useState<QuickCustomer | null>(null);
-  const [lookupError, setLookupError] = useState('');
-  const [isLooking, startLookup]      = useTransition();
+  const { error: lookupError, setError: setLookupError, mounted: lookupMounted, displayText: lookupDisplayText, wrapperStyle: lookupWrapperStyle, errorStyle: lookupErrorStyle } = useAutoError();
+  const [isLooking, startLookup]              = useTransition();
 
   const [selectedProgramId, setSelectedProgramId] = useState('');
   const [activeTab, setActiveTab]     = useState<ActionTab>('points');
   const [deltaStr, setDeltaStr]       = useState('1');
   const [purchaseStr, setPurchaseStr] = useState('');
-  const [txError, setTxError]         = useState('');
+  const { error: txError, setError: setTxError, mounted: txMounted, displayText: txDisplayText, wrapperStyle: txWrapperStyle, errorStyle: txErrorStyle } = useAutoError();
   const [lastSuccess, setLastSuccess] = useState<{ name: string; delta: number; unit: string } | null>(null);
   const [isSubmitting, startSubmit]   = useTransition();
 
@@ -231,10 +232,12 @@ export default function QuickRegister({ programLabel, currency }: Props) {
             {isLooking ? '…' : 'Buscar'}
           </button>
         </form>
-        {lookupError && (
-          <p className="mt-2.5 rounded-xl bg-red-50 dark:bg-red-950/30 border border-red-100 dark:border-red-900/30 px-3 py-2 text-sm text-red-600 dark:text-red-400">
-            {lookupError}
-          </p>
+        {lookupMounted && (
+          <div className="mt-2.5" style={lookupWrapperStyle}><div style={{ overflow: 'hidden' }}>
+            <p style={lookupErrorStyle} className="rounded-xl bg-red-50 dark:bg-red-950/30 border border-red-100 dark:border-red-900/30 px-3 py-2 text-sm text-red-600 dark:text-red-400">
+              {lookupDisplayText}
+            </p>
+          </div></div>
         )}
       </div>
 
@@ -330,10 +333,12 @@ export default function QuickRegister({ programLabel, currency }: Props) {
               <strong>Límite alcanzado ({visitCurrent}/{visitMax}).</strong> El cliente debe canjear primero.
             </div>
           )}
-          {txError && (
-            <p className="rounded-xl bg-red-50 dark:bg-red-950/30 border border-red-100 dark:border-red-900/30 px-3 py-2 text-sm text-red-600 dark:text-red-400">
-              {txError}
-            </p>
+          {txMounted && (
+            <div style={txWrapperStyle}><div style={{ overflow: 'hidden' }}>
+              <p style={txErrorStyle} className="rounded-xl bg-red-50 dark:bg-red-950/30 border border-red-100 dark:border-red-900/30 px-3 py-2 text-sm text-red-600 dark:text-red-400">
+                {txDisplayText}
+              </p>
+            </div></div>
           )}
 
           {/* ── STAMP ── */}

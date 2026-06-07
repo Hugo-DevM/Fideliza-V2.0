@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { assignPointsAction } from './actions';
 import { computeEarnDelta } from '@/lib/utils/points-calculator';
 import type { CustomerProgramEnrollment, RewardProgram } from '@/lib/types';
+import { useAutoError } from '@/hooks/useAutoError';
 
 interface Props {
   customerId: string;
@@ -17,7 +18,7 @@ export default function AssignPointsForm({ customerId, enrollments, programLabel
   const [amountStr, setAmountStr] = useState('');
   const [manualDelta, setManualDelta] = useState('');
   const [note, setNote] = useState('');
-  const [error, setError] = useState('');
+  const { error, setError, mounted, displayText, wrapperStyle, errorStyle } = useAutoError();
   const [success, setSuccess] = useState('');
   const [isPending, startTransition] = useTransition();
   const router = useRouter();
@@ -79,7 +80,11 @@ export default function AssignPointsForm({ customerId, enrollments, programLabel
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
-      {error   && <p className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-600">{error}</p>}
+      {mounted && (
+        <div style={wrapperStyle}><div style={{ overflow: 'hidden' }}>
+          <p style={errorStyle} className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-600">{displayText}</p>
+        </div></div>
+      )}
       {success && <p className="rounded-lg bg-green-50 px-3 py-2 text-sm text-green-700">{success}</p>}
 
       {/* Program selector */}

@@ -111,6 +111,21 @@ export async function deleteRewardAction(programId: string, rewardId: string) {
   }
 }
 
+function translateVoucherError(msg: string): string {
+  const m = msg.toLowerCase();
+  if (m.includes('not found') || m.includes('no encontrado') || m.includes('código de canje'))
+    return 'Código no encontrado. Verifica que esté bien escrito.';
+  if (m.includes('already used') || m.includes('ya usado') || m.includes('already been used'))
+    return 'Este voucher ya fue canjeado anteriormente.';
+  if (m.includes('expired') || m.includes('expirado'))
+    return 'Este voucher ha expirado y ya no es válido.';
+  if (m.includes('cancelled') || m.includes('cancelado'))
+    return 'Este voucher fue cancelado.';
+  if (m.includes('tenant') || m.includes('permission'))
+    return 'No tienes permiso para canjear este voucher.';
+  return 'No se pudo verificar el voucher. Intenta de nuevo.';
+}
+
 export async function verifyVoucherAction(redemptionCode: string) {
   const { tenantId } = await getAuthenticatedTenant();
   // Normalize: strip hyphens, uppercase, then reformat as XXXX-XXXXXX (DB format)
@@ -152,6 +167,8 @@ export async function verifyVoucherAction(redemptionCode: string) {
       metadata: { redemption_code: normalizedCode, error: err instanceof Error ? err.message : String(err) },
     });
 
-    return { error: err instanceof Error ? err.message : 'No se pudo verificar el voucher.' };
+    const msg = err instanceof Error ? err.message : '';
+    const translated = translateVoucherError(msg);
+    return { error: translated };
   }
 }

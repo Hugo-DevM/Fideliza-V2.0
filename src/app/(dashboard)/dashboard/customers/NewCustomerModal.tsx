@@ -4,6 +4,8 @@ import { useState, useTransition, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { createCustomerAction } from "./actions";
 import { getLocalLimits } from "@/lib/constants/phone-limits";
+import { useAutoError } from "@/hooks/useAutoError";
+import { useModalTransition } from "@/hooks/useModalTransition";
 
 const NAME_ALLOWED = /^[a-zA-ZáéíóúÁÉÍÓÚàèìòùÀÈÌÒÙäëïöüÄËÏÖÜñÑçÇ ]*$/;
 const NAME_MAX = 50;
@@ -18,7 +20,8 @@ interface Props {
 
 export default function NewCustomerModal({ phonePrefix }: Props) {
   const [open, setOpen] = useState(false);
-  const [error, setError] = useState("");
+  const { mounted: modalMounted, visible: modalVisible } = useModalTransition(open);
+  const { error, setError, mounted, displayText, wrapperStyle, errorStyle } = useAutoError();
   const [isPending, startTransition] = useTransition();
   const [name, setName]   = useState("");
   const [phone, setPhone] = useState("");
@@ -92,9 +95,15 @@ export default function NewCustomerModal({ phonePrefix }: Props) {
         Nuevo cliente
       </button>
 
-      {open && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
-          <div className="w-full max-w-md rounded-2xl bg-white dark:bg-[#161b2e] p-6 shadow-2xl">
+      {modalMounted && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-4"
+          style={{ backgroundColor: modalVisible ? 'rgba(0,0,0,0.6)' : 'rgba(0,0,0,0)', transition: 'background-color 220ms ease' }}
+        >
+          <div
+            className="w-full max-w-md rounded-2xl bg-white dark:bg-[#161b2e] p-6 shadow-2xl"
+            style={{ opacity: modalVisible ? 1 : 0, transform: modalVisible ? 'translateY(0) scale(1)' : 'translateY(12px) scale(0.97)', transition: 'opacity 220ms ease, transform 220ms ease' }}
+          >
             <div className="mb-5 flex items-center justify-between">
               <h2 className="text-base font-bold text-gray-900 dark:text-white">
                 Agregar cliente
@@ -108,10 +117,14 @@ export default function NewCustomerModal({ phonePrefix }: Props) {
             </div>
 
             <form ref={formRef} onSubmit={handleSubmit} className="space-y-4">
-              {error && (
-                <p className="rounded-xl bg-red-50 dark:bg-red-950/30 border border-red-100 dark:border-red-900/30 px-3 py-2 text-sm text-red-600 dark:text-red-400">
-                  {error}
-                </p>
+              {mounted && (
+                <div style={wrapperStyle}>
+                  <div style={{ overflow: 'hidden' }}>
+                    <p style={errorStyle} className="rounded-xl bg-red-50 dark:bg-red-950/30 border border-red-100 dark:border-red-900/30 px-3 py-2 text-sm text-red-600 dark:text-red-400">
+                      {displayText}
+                    </p>
+                  </div>
+                </div>
               )}
 
               <div>

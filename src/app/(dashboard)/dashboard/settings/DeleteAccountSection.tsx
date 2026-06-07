@@ -2,12 +2,15 @@
 
 import { useState, useTransition } from 'react';
 import { deleteAccountAction } from './actions';
+import { useAutoError } from '@/hooks/useAutoError';
+import { useModalTransition } from '@/hooks/useModalTransition';
 
 export default function DeleteAccountSection({ subdomain }: { subdomain: string }) {
   const [open, setOpen]                 = useState(false);
   const [confirmation, setConfirmation] = useState('');
   const [reason, setReason]             = useState('');
-  const [error, setError]               = useState('');
+  const { error, setError, mounted, displayText, wrapperStyle, errorStyle } = useAutoError();
+  const { mounted: modalMounted, visible: modalVisible } = useModalTransition(open);
   const [isPending, startTransition]    = useTransition();
 
   const confirmed = confirmation === subdomain;
@@ -59,9 +62,15 @@ export default function DeleteAccountSection({ subdomain }: { subdomain: string 
       </section>
 
       {/* ── Confirmation modal ── */}
-      {open && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm">
-          <div className="w-full max-w-md rounded-2xl bg-white dark:bg-[#161b2e] shadow-2xl overflow-hidden">
+      {modalMounted && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-4"
+          style={{ backgroundColor: modalVisible ? 'rgba(0,0,0,0.6)' : 'rgba(0,0,0,0)', backdropFilter: modalVisible ? 'blur(4px)' : 'blur(0px)', transition: 'background-color 220ms ease, backdrop-filter 220ms ease' }}
+        >
+          <div
+            className="w-full max-w-md rounded-2xl bg-white dark:bg-[#161b2e] shadow-2xl overflow-hidden"
+            style={{ opacity: modalVisible ? 1 : 0, transform: modalVisible ? 'translateY(0) scale(1)' : 'translateY(12px) scale(0.97)', transition: 'opacity 220ms ease, transform 220ms ease' }}
+          >
 
             {/* Modal header */}
             <div className="bg-red-600 px-6 py-5">
@@ -157,8 +166,10 @@ export default function DeleteAccountSection({ subdomain }: { subdomain: string 
                   </div>
                 </div>
 
-                {error && (
-                  <p className="rounded-lg bg-red-50 dark:bg-red-500/10 border border-red-100 dark:border-red-500/20 px-3 py-2 text-xs text-red-600 dark:text-red-400">{error}</p>
+                {mounted && (
+                  <div style={wrapperStyle}><div style={{ overflow: 'hidden' }}>
+                    <p style={errorStyle} className="rounded-lg bg-red-50 dark:bg-red-500/10 border border-red-100 dark:border-red-500/20 px-3 py-2 text-xs text-red-600 dark:text-red-400">{displayText}</p>
+                  </div></div>
                 )}
 
                 <div className="flex gap-3 pt-1">

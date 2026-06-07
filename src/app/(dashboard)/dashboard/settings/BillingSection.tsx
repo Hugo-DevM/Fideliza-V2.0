@@ -2,6 +2,8 @@
 
 import { useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
+import { useAutoError } from '@/hooks/useAutoError';
+import { useModalTransition } from '@/hooks/useModalTransition';
 
 interface PlanUsage {
   customers: { used: number; max: number };
@@ -89,12 +91,13 @@ export default function BillingSection({
 }: Props) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
-  const [error, setError]   = useState('');
+  const { error, setError, mounted, displayText, wrapperStyle, errorStyle } = useAutoError();
 
   const [upgradeModal, setUpgradeModal]     = useState(false);
+  const { mounted: modalMounted, visible: modalVisible } = useModalTransition(upgradeModal);
   const [preview, setPreview]               = useState<UpgradePreview | null>(null);
   const [previewLoading, setPreviewLoading] = useState(false);
-  const [previewError, setPreviewError]     = useState('');
+  const { error: previewError, setError: setPreviewError, mounted: previewMounted, displayText: previewDisplayText, wrapperStyle: previewWrapperStyle, errorStyle: previewErrorStyle } = useAutoError();
   const [confirming, setConfirming]         = useState(false);
 
   async function openUpgradeModal(plan: 'starter' | 'pro') {
@@ -182,9 +185,15 @@ export default function BillingSection({
   return (
     <>
       {/* ── Upgrade confirmation modal ─────────────────────────────────────── */}
-      {upgradeModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
-          <div className="w-full max-w-sm rounded-2xl bg-white dark:bg-[#161b2e] p-6 shadow-xl space-y-4">
+      {modalMounted && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-4"
+          style={{ backgroundColor: modalVisible ? 'rgba(0,0,0,0.4)' : 'rgba(0,0,0,0)', transition: 'background-color 220ms ease' }}
+        >
+          <div
+            className="w-full max-w-sm rounded-2xl bg-white dark:bg-[#161b2e] p-6 shadow-xl space-y-4"
+            style={{ opacity: modalVisible ? 1 : 0, transform: modalVisible ? 'translateY(0) scale(1)' : 'translateY(12px) scale(0.97)', transition: 'opacity 220ms ease, transform 220ms ease' }}
+          >
             <div>
               <h3 className="text-lg font-bold text-gray-900 dark:text-white">Actualizar a Pro</h3>
               <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
@@ -222,10 +231,12 @@ export default function BillingSection({
               </div>
             )}
 
-            {previewError && (
-              <p className="rounded-xl bg-red-50 dark:bg-red-500/10 px-3 py-2 text-sm text-red-600 dark:text-red-400">
-                {previewError}
-              </p>
+            {previewMounted && (
+              <div style={previewWrapperStyle}><div style={{ overflow: 'hidden' }}>
+                <p style={previewErrorStyle} className="rounded-xl bg-red-50 dark:bg-red-500/10 px-3 py-2 text-sm text-red-600 dark:text-red-400">
+                  {previewDisplayText}
+                </p>
+              </div></div>
             )}
 
             <div className="flex gap-3 pt-1">
@@ -290,8 +301,10 @@ export default function BillingSection({
             </p>
           </div>
         )}
-        {error && (
-          <p className="rounded-xl bg-red-50 dark:bg-red-500/10 px-3 py-2 text-sm text-red-600 dark:text-red-400">{error}</p>
+        {mounted && (
+          <div style={wrapperStyle}><div style={{ overflow: 'hidden' }}>
+            <p style={errorStyle} className="rounded-xl bg-red-50 dark:bg-red-500/10 px-3 py-2 text-sm text-red-600 dark:text-red-400">{displayText}</p>
+          </div></div>
         )}
 
         {/* Current plan + status */}

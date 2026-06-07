@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useTransition, useRef, useEffect, useCallback } from 'react';
+import { useModalTransition } from '@/hooks/useModalTransition';
 
 // BarcodeDetector is a browser API not yet in TypeScript's lib
 declare class BarcodeDetector {
@@ -20,11 +21,12 @@ interface RedemptionInfo {
   usedAt: string;
 }
 
-// Format raw chars as XXXX-XXXXXX (always uppercase, auto-hyphen after 4 chars)
+// Format raw chars as XXXX-XXX-XXX (always uppercase, auto-hyphens at pos 4 and 7)
 function formatCode(raw: string): string {
   const chars = raw.replace(/[^A-Z0-9]/gi, '').toUpperCase().slice(0, 10);
   if (chars.length <= 4) return chars;
-  return `${chars.slice(0, 4)}-${chars.slice(4)}`;
+  if (chars.length <= 7) return `${chars.slice(0, 4)}-${chars.slice(4)}`;
+  return `${chars.slice(0, 4)}-${chars.slice(4, 7)}-${chars.slice(7)}`;
 }
 
 export default function VerifyVoucherForm() {
@@ -32,8 +34,18 @@ export default function VerifyVoucherForm() {
   const [code, setCode]              = useState('');
   const [error, setError]            = useState('');
   const [info, setInfo]              = useState<RedemptionInfo | null>(null);
+  // Keep last info content visible during modal exit animation
+  const displayInfoRef               = useRef<RedemptionInfo | null>(null);
+  if (info) displayInfoRef.current   = info;
   const [isPending, startTransition] = useTransition();
   const [scanning, setScanning]      = useState(false);
+  const { mounted: scanMounted, visible: scanVisible } = useModalTransition(scanning);
+  const { mounted: infoMounted, visible: infoVisible } = useModalTransition(!!info);
+  const [errorVisible,   setErrorVisible]   = useState(false);
+  const [errorMounted,   setErrorMounted]   = useState(false);
+  const [errorDisplayText, setErrorDisplayText] = useState('');
+  const errorTimerRef                = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const unmountTimerRef              = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [scanError, setScanError]    = useState('');
   const inputRef                     = useRef<HTMLInputElement>(null);
   const videoRef                     = useRef<HTMLVideoElement>(null);
@@ -109,6 +121,29 @@ export default function VerifyVoucherForm() {
   // Cleanup on unmount
   useEffect(() => () => stopCamera(), [stopCamera]);
 
+  // Animate in/out and auto-clear errors after 3 seconds
+  useEffect(() => {
+    if (!error && !scanError) {
+      setErrorVisible(false);
+      if (unmountTimerRef.current) clearTimeout(unmountTimerRef.current);
+      unmountTimerRef.current = setTimeout(() => {
+        setErrorMounted(false);
+        setErrorDisplayText('');
+      }, 400);
+      return;
+    }
+    if (unmountTimerRef.current) clearTimeout(unmountTimerRef.current);
+    setErrorDisplayText(error || scanError);
+    setErrorMounted(true);
+    requestAnimationFrame(() => setErrorVisible(true));
+    if (errorTimerRef.current) clearTimeout(errorTimerRef.current);
+    errorTimerRef.current = setTimeout(() => {
+      setErrorVisible(false);
+      setTimeout(() => { setError(''); setScanError(''); }, 350);
+    }, 3000);
+    return () => { if (errorTimerRef.current) clearTimeout(errorTimerRef.current); };
+  }, [error, scanError]);
+
   function handleChange(e: React.ChangeEvent<HTMLInputElement>) {
     setCode(formatCode(e.target.value));
   }
@@ -141,7 +176,8 @@ export default function VerifyVoucherForm() {
     setTimeout(() => inputRef.current?.focus(), 50);
   }
 
-  const usedTime = info ? formatTimeOnly(info.usedAt, timezone, locale) : '';
+  const displayInfo = displayInfoRef.current;
+  const usedTime = displayInfo ? formatTimeOnly(displayInfo.usedAt, timezone, locale) : '';
 
   return (
     <div className="rounded-2xl border border-gray-100 dark:border-[#1e2438] bg-white dark:bg-[#161b2e] shadow-sm p-5">
@@ -158,7 +194,7 @@ export default function VerifyVoucherForm() {
             onChange={handleChange}
             placeholder="P. EJ. BREW-XK3-72F"
             className="w-full rounded-xl border border-gray-200 dark:border-[#2a3147] bg-gray-50 dark:bg-[#0d0f17] pl-9 pr-3 py-2.5 font-mono text-sm uppercase text-gray-900 dark:text-white placeholder-gray-300 dark:placeholder-gray-600 outline-none transition focus:border-indigo-400 dark:focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 dark:focus:ring-indigo-500/20"
-            maxLength={11}
+            maxLength={12}
             autoComplete="off"
             spellCheck={false}
           />
@@ -186,16 +222,37 @@ export default function VerifyVoucherForm() {
         </button>
       </form>
 
-      {(error || scanError) && (
-        <p className="mt-2.5 rounded-xl bg-red-50 dark:bg-red-950/30 border border-red-100 dark:border-red-900/30 px-3 py-2 text-sm text-red-600 dark:text-red-400">
-          {error || scanError}
-        </p>
+      {errorMounted && (
+        <div className="mt-2.5" style={{
+          display: 'grid',
+          gridTemplateRows: errorVisible ? '1fr' : '0fr',
+          transition: 'grid-template-rows 350ms ease',
+        }}>
+          <div style={{ overflow: 'hidden' }}>
+            <p
+              className="rounded-xl bg-red-50 dark:bg-red-950/30 border border-red-100 dark:border-red-900/30 px-3 py-2 text-sm text-red-600 dark:text-red-400"
+              style={{
+                opacity: errorVisible ? 1 : 0,
+                transform: errorVisible ? 'translateY(0)' : 'translateY(-4px)',
+                transition: 'opacity 280ms ease, transform 280ms ease',
+              }}
+            >
+              {errorDisplayText}
+            </p>
+          </div>
+        </div>
       )}
 
       {/* QR Scanner modal */}
-      {scanning && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 px-4">
-          <div className="w-full max-w-sm overflow-hidden rounded-3xl bg-white dark:bg-[#161b2e] shadow-2xl">
+      {scanMounted && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center px-4"
+          style={{ backgroundColor: scanVisible ? 'rgba(0,0,0,0.8)' : 'rgba(0,0,0,0)', transition: 'background-color 220ms ease' }}
+        >
+          <div
+            className="w-full max-w-sm overflow-hidden rounded-3xl bg-white dark:bg-[#161b2e] shadow-2xl"
+            style={{ opacity: scanVisible ? 1 : 0, transform: scanVisible ? 'translateY(0) scale(1)' : 'translateY(12px) scale(0.97)', transition: 'opacity 220ms ease, transform 220ms ease' }}
+          >
             <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100 dark:border-[#1e2438]">
               <div className="flex items-center gap-2">
                 <CameraIcon className="h-4 w-4 text-indigo-500" />
@@ -239,9 +296,15 @@ export default function VerifyVoucherForm() {
       )}
 
       {/* Success modal */}
-      {info && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 px-4">
-          <div className="w-full max-w-sm rounded-3xl bg-white dark:bg-[#161b2e] shadow-2xl overflow-hidden">
+      {infoMounted && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center px-4"
+          style={{ backgroundColor: infoVisible ? 'rgba(0,0,0,0.6)' : 'rgba(0,0,0,0)', transition: 'background-color 220ms ease' }}
+        >
+          <div
+            className="w-full max-w-sm rounded-3xl bg-white dark:bg-[#161b2e] shadow-2xl overflow-hidden"
+            style={{ opacity: infoVisible ? 1 : 0, transform: infoVisible ? 'translateY(0) scale(1)' : 'translateY(12px) scale(0.97)', transition: 'opacity 220ms ease, transform 220ms ease' }}
+          >
 
             {/* Green header */}
             <div className="bg-emerald-500 px-6 pt-7 pb-5 text-center text-white">
@@ -261,7 +324,7 @@ export default function VerifyVoucherForm() {
                 <div>
                   <p className="text-[10px] font-semibold uppercase tracking-widest text-gray-400 dark:text-gray-500">Cliente</p>
                   <p className="text-sm font-semibold text-gray-900 dark:text-white">
-                    {info.customerName ?? 'Desconocido'}
+                    {displayInfo?.customerName ?? 'Desconocido'}
                   </p>
                 </div>
               </div>
@@ -273,10 +336,10 @@ export default function VerifyVoucherForm() {
                 <div>
                   <p className="text-[10px] font-semibold uppercase tracking-widest text-gray-400 dark:text-gray-500">Recompensa entregada</p>
                   <p className="text-sm font-semibold text-gray-900 dark:text-white">
-                    {info.rewardName ?? 'Premio'}
+                    {displayInfo?.rewardName ?? 'Premio'}
                   </p>
-                  {info.rewardDesc && (
-                    <p className="text-xs text-gray-400 dark:text-gray-500 mt-0.5">{info.rewardDesc}</p>
+                  {displayInfo?.rewardDesc && (
+                    <p className="text-xs text-gray-400 dark:text-gray-500 mt-0.5">{displayInfo.rewardDesc}</p>
                   )}
                 </div>
               </div>
@@ -284,7 +347,7 @@ export default function VerifyVoucherForm() {
               <div className="rounded-2xl bg-gray-50 dark:bg-[#0d0f17] border border-gray-100 dark:border-[#2a3147] px-4 py-3 text-center">
                 <p className="text-[10px] font-semibold uppercase tracking-widest text-gray-400 dark:text-gray-500 mb-1">Código</p>
                 <p className="font-mono text-sm font-bold tracking-widest text-gray-700 dark:text-gray-200">
-                  {info.redemptionCode}
+                  {displayInfo?.redemptionCode}
                 </p>
               </div>
 

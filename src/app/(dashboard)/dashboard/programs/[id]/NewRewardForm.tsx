@@ -3,6 +3,8 @@
 import { useState, useTransition, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { createRewardAction } from './actions';
+import { useAutoError } from '@/hooks/useAutoError';
+import { useModalTransition } from '@/hooks/useModalTransition';
 
 type ProgramType = 'points' | 'stamp' | 'visit' | 'cashback';
 
@@ -15,7 +17,8 @@ interface Props {
 
 export default function NewRewardForm({ programId, programType, programConfig, compact }: Props) {
   const [open, setOpen]   = useState(false);
-  const [error, setError] = useState('');
+  const { mounted: modalMounted, visible: modalVisible } = useModalTransition(open);
+  const { error, setError, mounted, displayText, wrapperStyle, errorStyle } = useAutoError();
   const [isPending, startTransition] = useTransition();
   const formRef = useRef<HTMLFormElement>(null);
   const router  = useRouter();
@@ -51,9 +54,15 @@ export default function NewRewardForm({ programId, programType, programConfig, c
           Agregar
         </button>
 
-        {open && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
-            <div className="w-full max-w-md rounded-2xl bg-white dark:bg-[#161b2e] p-6 shadow-2xl">
+        {modalMounted && (
+          <div
+            className="fixed inset-0 z-50 flex items-center justify-center p-4"
+            style={{ backgroundColor: modalVisible ? 'rgba(0,0,0,0.6)' : 'rgba(0,0,0,0)', transition: 'background-color 220ms ease' }}
+          >
+            <div
+              className="w-full max-w-md rounded-2xl bg-white dark:bg-[#161b2e] p-6 shadow-2xl"
+              style={{ opacity: modalVisible ? 1 : 0, transform: modalVisible ? 'translateY(0) scale(1)' : 'translateY(12px) scale(0.97)', transition: 'opacity 220ms ease, transform 220ms ease' }}
+            >
               <div className="mb-5 flex items-center justify-between">
                 <h2 className="text-base font-bold text-gray-900 dark:text-white">Nueva recompensa</h2>
                 <button onClick={() => { setOpen(false); setError(''); }} className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 text-xl leading-none transition">×</button>
@@ -65,6 +74,10 @@ export default function NewRewardForm({ programId, programType, programConfig, c
                 stampThreshold={stampThreshold}
                 visitThreshold={visitThreshold}
                 error={error}
+                errorStyle={errorStyle}
+                mounted={mounted}
+                displayText={displayText}
+                wrapperStyle={wrapperStyle}
                 isPending={isPending}
                 onCancel={() => { setOpen(false); setError(''); }}
               />
@@ -88,6 +101,7 @@ export default function NewRewardForm({ programId, programType, programConfig, c
         stampThreshold={stampThreshold}
         visitThreshold={visitThreshold}
         error={error}
+        errorStyle={errorStyle}
         isPending={isPending}
         onCancel={() => { setOpen(false); setError(''); }}
       />
@@ -98,7 +112,7 @@ export default function NewRewardForm({ programId, programType, programConfig, c
 // ── Shared form body ──────────────────────────────────────────────
 
 function RewardFormBody({
-  formRef, onSubmit, programType, stampThreshold, visitThreshold, error, isPending, onCancel,
+  formRef, onSubmit, programType, stampThreshold, visitThreshold, error, errorStyle, mounted, displayText, wrapperStyle, isPending, onCancel,
 }: {
   formRef: React.RefObject<HTMLFormElement | null>;
   onSubmit: (e: React.FormEvent<HTMLFormElement>) => void;
@@ -106,15 +120,21 @@ function RewardFormBody({
   stampThreshold: number | null;
   visitThreshold: number | null;
   error: string;
+  errorStyle: React.CSSProperties;
+  mounted: boolean;
+  displayText: string;
+  wrapperStyle: React.CSSProperties;
   isPending: boolean;
   onCancel: () => void;
 }) {
   return (
     <form ref={formRef} onSubmit={onSubmit} className="space-y-3">
-      {error && (
-        <p className="rounded-xl bg-red-50 dark:bg-red-950/30 border border-red-100 dark:border-red-900/30 px-3 py-2 text-sm text-red-600 dark:text-red-400">
-          {error}
-        </p>
+      {mounted && (
+        <div style={wrapperStyle}><div style={{ overflow: 'hidden' }}>
+          <p style={errorStyle} className="rounded-xl bg-red-50 dark:bg-red-950/30 border border-red-100 dark:border-red-900/30 px-3 py-2 text-sm text-red-600 dark:text-red-400">
+            {displayText}
+          </p>
+        </div></div>
       )}
 
       <div className="grid grid-cols-2 gap-3">
