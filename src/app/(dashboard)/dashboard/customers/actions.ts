@@ -18,6 +18,7 @@ export async function createCustomerAction(formData: FormData) {
     const customer = await createCustomer(tenantId, { name, phone, notes });
     revalidateTag('customers', 'max');
     revalidatePath('/dashboard/customers');
+    revalidatePath('/dashboard');
     return { success: true, customerId: customer.id };
   } catch (err) {
     return { error: err instanceof Error ? err.message : 'No se pudo crear el cliente.' };

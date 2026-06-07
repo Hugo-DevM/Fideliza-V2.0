@@ -141,6 +141,10 @@ export default async function DashboardPage() {
   ];
 
   return (
+    <>
+      {/* Floating onboarding checklist */}
+      <OnboardingChecklist tenantId={tenantId} steps={onboardingSteps} />
+
     <div className="space-y-6">
       {/* Banners */}
       {isPastDue && (
@@ -169,9 +173,6 @@ export default async function DashboardPage() {
           </a>
         </div>
       )}
-
-      {/* Onboarding checklist */}
-      <OnboardingChecklist tenantId={tenantId} steps={onboardingSteps} />
 
       {/* Header */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
@@ -340,6 +341,7 @@ export default async function DashboardPage() {
         </div>
       </div>
     </div>
+    </>
   );
 }
 

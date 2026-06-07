@@ -36,6 +36,7 @@ export async function createProgramAction(formData: FormData) {
     const program = await createProgram(tenantId, { name, description, type, config });
     revalidateTag('programs', 'max');
     revalidatePath('/dashboard/programs');
+    revalidatePath('/dashboard');
     return { success: true, programId: program.id };
   } catch (err) {
     return { error: err instanceof Error ? err.message : 'No se pudo crear el programa.' };

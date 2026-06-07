@@ -12,6 +12,7 @@ import CodeEntryForm from './CodeEntryForm';
 import RedeemButton from './RedeemButton';
 import AutoRefresh from './AutoRefresh';
 import ThemeToggle from './ThemeToggle';
+import VoucherCard from './VoucherCard';
 import AuthThemeToggle from '@/app/(auth)/ThemeToggle';
 import { getPortalData, getTenantBySubdomainPublic } from '@/modules/portal';
 import { NotFoundError, TenantNotFoundError } from '@/lib/middleware/errors';
@@ -891,47 +892,7 @@ function PointsDisplay({
 }
 
 // ── Voucher card ──────────────────────────────────────────────────────
-
-function VoucherCard({
-  voucher: v,
-  primaryColor,
-}: {
-  voucher: PortalVoucher;
-  primaryColor: string;
-}) {
-  const expiresAt = v.expires_at ? new Date(v.expires_at) : null;
-  const daysLeft  = expiresAt ? Math.ceil((expiresAt.getTime() - Date.now()) / 86_400_000) : null;
-
-  return (
-    <div
-      className="rounded-2xl border-2 p-4 shadow-sm"
-      style={{ borderColor: primaryColor, backgroundColor: `${primaryColor}08` }}
-    >
-      <div className="flex items-start justify-between gap-3">
-        <div>
-          <p className="text-[10px] font-bold uppercase tracking-widest" style={{ color: primaryColor }}>
-            Voucher · Listo para usar
-          </p>
-          <p className="mt-0.5 font-bold text-gray-900 dark:text-white">{v.reward_name}</p>
-          {daysLeft !== null && (
-            <p className={`mt-0.5 text-xs ${daysLeft <= 3 ? 'text-red-500 font-medium' : 'text-gray-400 dark:text-gray-500'}`}>
-              {daysLeft > 0 ? `Vence en ${daysLeft} día${daysLeft !== 1 ? 's' : ''}` : 'Vence hoy'}
-            </p>
-          )}
-        </div>
-      </div>
-      <div
-        className="mt-3 rounded-xl bg-white dark:bg-[#0f1222] border border-dashed px-4 py-2.5 text-center"
-        style={{ borderColor: primaryColor }}
-      >
-        <p className="font-mono text-lg font-bold tracking-widest text-gray-900 dark:text-white">
-          {v.redemption_code}
-        </p>
-        <p className="mt-0.5 text-xs text-gray-400 dark:text-gray-500">Muéstralo al personal</p>
-      </div>
-    </div>
-  );
-}
+// Implemented as a client component in VoucherCard.tsx (QR + barcode support)
 
 // ── Transaction row ───────────────────────────────────────────────────
 

@@ -108,6 +108,16 @@ a[role="button"],
   transform: translateY(-1px) scale(0.99);
 }
 
+/* ── QR scanner line animation ──────────────────────────────────── */
+@keyframes scan-line {
+  0%   { top: 8px;   opacity: 1; }
+  50%  { top: calc(100% - 8px); opacity: 1; }
+  100% { top: 8px;   opacity: 1; }
+}
+.animate-scan-line {
+  animation: scan-line 2s ease-in-out infinite;
+}
+
 /* ── Hero load animations ───────────────────────────────────────── */
 
 @keyframes fadeInUp {
