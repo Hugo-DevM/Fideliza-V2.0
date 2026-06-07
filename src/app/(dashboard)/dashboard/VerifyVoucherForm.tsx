@@ -1,6 +1,13 @@
 'use client';
 
 import { useState, useTransition, useRef, useEffect, useCallback } from 'react';
+
+// BarcodeDetector is a browser API not yet in TypeScript's lib
+declare class BarcodeDetector {
+  constructor(options?: { formats: string[] });
+  detect(source: HTMLVideoElement | HTMLImageElement | HTMLCanvasElement | ImageBitmap): Promise<Array<{ rawValue: string; format: string }>>;
+  static getSupportedFormats(): Promise<string[]>;
+}
 import { verifyVoucherAction } from './programs/[id]/actions';
 import { useDashboardI18n } from '@/lib/i18n/dashboard-context';
 import { formatTimeOnly } from '@/lib/utils/date';
