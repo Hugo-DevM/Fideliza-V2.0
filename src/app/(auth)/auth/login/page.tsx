@@ -1,4 +1,5 @@
 import LoginForm from './LoginForm';
+import LoginNotice from './LoginNotice';
 
 export const metadata = { title: 'Iniciar sesión — Fideliza+' };
 
@@ -27,15 +28,17 @@ export default async function LoginPage({
           </h1>
 
           {error === 'auth_failed' && (
-            <div className="mb-5 rounded-xl bg-red-50 dark:bg-red-500/10 border border-red-100 dark:border-red-500/20 px-4 py-3 text-sm text-red-600 dark:text-red-400 leading-snug">
-              El enlace de acceso expiró o ya fue usado. Solicita uno nuevo.
-            </div>
+            <LoginNotice
+              message="El enlace de acceso expiró o ya fue usado. Solicita uno nuevo."
+              variant="error"
+            />
           )}
 
           {reason === 'account_not_found' && (
-            <div className="mb-5 rounded-xl bg-amber-50 dark:bg-amber-500/10 border border-amber-100 dark:border-amber-500/20 px-4 py-3 text-sm text-amber-700 dark:text-amber-400 leading-snug">
-              Esta cuenta ya no existe o fue eliminada. Si crees que es un error, contáctanos.
-            </div>
+            <LoginNotice
+              message="Esta cuenta ya no existe o fue eliminada. Si crees que es un error, contáctanos."
+              variant="warning"
+            />
           )}
 
           <LoginForm />

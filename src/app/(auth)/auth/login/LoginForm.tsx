@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { createBrowserClient } from '@supabase/ssr';
 import { translateAuthError } from '@/lib/utils/supabase-errors';
+import { useAutoError } from '@/hooks/useAutoError';
 
 export default function LoginForm() {
   const router = useRouter();
@@ -12,7 +13,7 @@ export default function LoginForm() {
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [status, setStatus] = useState<'idle' | 'loading' | 'error'>('idle');
-  const [errorMsg, setErrorMsg] = useState('');
+  const { setError, mounted, displayText, wrapperStyle, errorStyle } = useAutoError();
 
   const supabase = createBrowserClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -24,12 +25,12 @@ export default function LoginForm() {
     if (!email || !password) return;
 
     setStatus('loading');
-    setErrorMsg('');
+    setError('');
 
     const { error } = await supabase.auth.signInWithPassword({ email, password });
 
     if (error) {
-      setErrorMsg(translateAuthError(error.message));
+      setError(translateAuthError(error.message));
       setStatus('error');
     } else {
       router.push('/dashboard');
@@ -38,10 +39,12 @@ export default function LoginForm() {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
-      {status === 'error' && (
-        <p className="rounded-xl bg-red-50 dark:bg-red-500/10 border border-red-100 dark:border-red-500/20 px-4 py-3 text-sm text-red-600 dark:text-red-400">
-          {errorMsg}
-        </p>
+      {mounted && (
+        <div style={wrapperStyle}><div style={{ overflow: 'hidden' }}>
+          <p style={errorStyle} className="rounded-xl bg-red-50 dark:bg-red-500/10 border border-red-100 dark:border-red-500/20 px-4 py-3 text-sm text-red-600 dark:text-red-400">
+            {displayText}
+          </p>
+        </div></div>
       )}
 
       <div>
