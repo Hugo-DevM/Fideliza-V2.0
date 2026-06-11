@@ -135,14 +135,11 @@ export async function checkRateLimit(
   key: string,
   max: number,
   windowMs: number
-): Promise<RateLimitResult & { _backend?: string }> {
-  const backend = isRedisConfigured() ? 'redis' : 'memory';
-  console.log(`[rate-limit] backend=${backend} key=${key}`);
-  if (backend === 'redis') {
-    const result = await checkRedis(key, max, windowMs);
-    return { ...result, _backend: 'redis' };
+): Promise<RateLimitResult> {
+  if (isRedisConfigured()) {
+    return checkRedis(key, max, windowMs);
   }
-  return { ...checkMemory(key, max, windowMs), _backend: 'memory' };
+  return checkMemory(key, max, windowMs);
 }
 
 /**

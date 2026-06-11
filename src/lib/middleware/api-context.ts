@@ -220,9 +220,6 @@ export function withTenantContext<T>(
       Object.entries(corsHeaders(request)).forEach(([k, v]) => response.headers.set(k, v));
       if (rateLimitResult) {
         applyRateLimitHeaders(response, rateLimitResult);
-        // Temporary debug header — remove after confirming Redis is active
-        const rl = rateLimitResult as RateLimitResult & { _backend?: string };
-        if (rl._backend) response.headers.set('X-RateLimit-Backend', rl._backend);
       }
 
       reqLogger.logRequest(response.status, { requestId, tenantId });
