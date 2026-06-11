@@ -124,14 +124,16 @@ export const POST = withPublicContext<{ message: string }>(
       const msg = updateError.message?.toLowerCase() ?? '';
       let userFacingError = 'No se pudo actualizar la contraseña. Intenta de nuevo.';
 
+      // Map internal error codes to safe user-facing messages.
+      // Do NOT forward raw error messages — they expose password policy details.
       if (msg.includes('same password') || msg.includes('different from'))
         userFacingError = 'La nueva contraseña no puede ser igual a la anterior.';
       else if (msg.includes('too weak') || msg.includes('pwned') || msg.includes('breach'))
-        userFacingError = 'Esta contraseña es demasiado común o fue filtrada. Elige una diferente.';
+        userFacingError = 'Elige una contraseña más segura.';
       else if (msg.includes('at least'))
-        userFacingError = 'La contraseña no cumple los requisitos mínimos de Supabase.';
+        userFacingError = 'La contraseña no cumple los requisitos mínimos de seguridad.';
       else if (msg.includes('not found'))
-        userFacingError = 'No se encontró la cuenta asociada. Contacta soporte.';
+        userFacingError = 'No se pudo completar la operación. Contacta soporte.';
 
       return NextResponse.json<ApiResponse<null>>(
         { data: null, error: userFacingError },

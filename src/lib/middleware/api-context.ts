@@ -35,6 +35,27 @@ import {
 } from '@/lib/utils/logger';
 import type { TenantContext, ApiResponse } from '@/lib/types';
 
+// ── CORS ─────────────────────────────────────────────────────────────────────
+//
+// Allow requests originating from any *.fideliza.app subdomain, the root
+// domain itself, or no origin (server-to-server / same-origin requests).
+// Rejects cross-origin requests from unrelated domains.
+
+const ROOT_DOMAIN = process.env.NEXT_PUBLIC_ROOT_DOMAIN ?? 'fideliza.app';
+const ORIGIN_RE   = new RegExp(`^https?://(?:[^.]+\\.)?${ROOT_DOMAIN.replace('.', '\\.')}$`);
+
+export function isAllowedOrigin(request: Request): boolean {
+  const origin = request.headers.get('origin');
+  if (!origin) return true; // Same-origin or server-to-server — always allow
+  return ORIGIN_RE.test(origin);
+}
+
+export function corsHeaders(request: Request): Record<string, string> {
+  const origin = request.headers.get('origin');
+  if (!origin || !ORIGIN_RE.test(origin)) return {};
+  return { 'Access-Control-Allow-Origin': origin };
+}
+
 // ── In-process tenant cache ───────────────────────────────────────────
 interface CacheEntry {
   tenantId: string;
@@ -181,12 +202,22 @@ export function withTenantContext<T>(
         }
       }
 
-      // ── 3. Call handler ────────────────────────────────────────────
+      // ── 3. CORS check ──────────────────────────────────────────────
+      if (!isAllowedOrigin(request)) {
+        reqLogger.logRequest(403, { requestId, tenantId });
+        return NextResponse.json<ApiResponse<null>>(
+          { data: null, error: 'Forbidden' },
+          { status: 403 }
+        );
+      }
+
+      // ── 4. Call handler ────────────────────────────────────────────
       const tenant: TenantContext = { tenantId, subdomain };
       const response = await handler(request, ctx, tenant);
 
-      // Attach tracing headers
+      // Attach tracing + CORS headers
       response.headers.set('X-Request-Id', requestId);
+      Object.entries(corsHeaders(request)).forEach(([k, v]) => response.headers.set(k, v));
       if (rateLimitResult) {
         applyRateLimitHeaders(response, rateLimitResult);
       }
@@ -233,8 +264,17 @@ export function withPublicContext<T>(
         }
       }
 
+      if (!isAllowedOrigin(request)) {
+        reqLogger.logRequest(403, { requestId });
+        return NextResponse.json<ApiResponse<null>>(
+          { data: null, error: 'Forbidden' },
+          { status: 403 }
+        );
+      }
+
       const response = await handler(request, ctx);
       response.headers.set('X-Request-Id', requestId);
+      Object.entries(corsHeaders(request)).forEach(([k, v]) => response.headers.set(k, v));
       reqLogger.logRequest(response.status, { requestId });
       return response;
 

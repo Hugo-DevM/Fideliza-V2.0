@@ -5,6 +5,7 @@
  * across requests. The cookies() call ties the client to the current request's
  * auth session, preventing token bleed between tenants.
  */
+import 'server-only';
 import { createServerClient as createSupabaseServerClient } from '@supabase/ssr';
 import { cookies } from 'next/headers';
 import type { Database } from './database.types';

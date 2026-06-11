@@ -34,14 +34,17 @@ function bytesToString(bytes: Uint8Array, charset: string): string {
 
 /**
  * Generates a customer access code.
- * Format: XXXX-XXXX (8 chars, no ambiguous characters)
- * Example: "BRTK-7PMQ"
+ * Format: XXXXX-XXXXX (10 chars, no ambiguous characters)
+ * Example: "BRTK7-PMQ4N"
+ *
+ * 10 chars × log₂(32) = 50 bits of entropy.
+ * Previous format was 8 chars (40 bits) — increased to raise brute-force cost.
  *
  * Used once per customer, stored in DB, shown on their QR card.
  */
 export function generateAccessCode(): string {
-  const raw = bytesToString(randomBytes(16), CHARSET);
-  return `${raw.slice(0, 4)}-${raw.slice(4, 8)}`;
+  const raw = bytesToString(randomBytes(20), CHARSET);
+  return `${raw.slice(0, 5)}-${raw.slice(5, 10)}`;
 }
 
 /**
