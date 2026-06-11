@@ -64,9 +64,11 @@ function checkMemory(key: string, max: number, windowMs: number): RateLimitResul
 
 // ── Upstash Redis store (production / serverless) ────────────────────────
 
-const USE_REDIS = Boolean(
-  process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN
-);
+function isRedisConfigured(): boolean {
+  return Boolean(
+    process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN
+  );
+}
 
 // Lazily initialized per (max, windowMs) pair so each limiter config
 // gets its own Ratelimit instance without re-creating it on every request.
@@ -129,7 +131,7 @@ export async function checkRateLimit(
   max: number,
   windowMs: number
 ): Promise<RateLimitResult> {
-  if (USE_REDIS) return checkRedis(key, max, windowMs);
+  if (isRedisConfigured()) return checkRedis(key, max, windowMs);
   return checkMemory(key, max, windowMs);
 }
 
