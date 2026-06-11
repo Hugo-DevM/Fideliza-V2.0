@@ -8,7 +8,9 @@ import type { Tenant, TenantSettings, UUID } from '@/lib/types';
 import { NotFoundError, TenantNotFoundError } from '@/lib/middleware/errors';
 
 export async function getTenantBySubdomain(subdomain: string): Promise<Tenant> {
-  const db = await createServerClient();
+  // Use service-role client: RLS blocks anon SELECT on tenants, and this lookup
+  // is called from public API routes (withTenantContext) that have no auth session.
+  const db = createServiceRoleClient();
 
   const { data, error } = await db
     .from('tenants')
