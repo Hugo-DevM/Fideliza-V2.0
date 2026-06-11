@@ -16,8 +16,12 @@ if (!process.env.STRIPE_SECRET_KEY) {
   throw new Error('STRIPE_SECRET_KEY is not set. Add it to .env.local');
 }
 
-// Prevent accidental use of Stripe test keys in production
+// Prevent accidental use of Stripe test keys in production.
+// NEXT_PHASE is 'phase-production-build' during `next build` — skip the check
+// then so the build succeeds. The check fires on every real request at runtime.
+const isBuildPhase = process.env.NEXT_PHASE === 'phase-production-build';
 if (
+  !isBuildPhase &&
   process.env.NODE_ENV === 'production' &&
   process.env.STRIPE_SECRET_KEY.startsWith('sk_test_')
 ) {
