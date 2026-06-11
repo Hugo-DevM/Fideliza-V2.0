@@ -173,7 +173,7 @@ export function withTenantContext<T>(
       if (options.limiter) {
         const endpoint = options.endpoint ?? url.pathname;
         const key = rateLimitKey.byTenantAndIp(tenantId, ip, endpoint);
-        rateLimitResult = rateLimiters[options.limiter](key);
+        rateLimitResult = await rateLimiters[options.limiter](key);
 
         if (!rateLimitResult.allowed) {
           reqLogger.logRequest(429, { requestId, tenantId });
@@ -225,7 +225,7 @@ export function withPublicContext<T>(
       if (options.limiter) {
         const endpoint = options.endpoint ?? url.pathname;
         const key = rateLimitKey.byIp(ip, endpoint);
-        const result = rateLimiters[options.limiter](key);
+        const result = await rateLimiters[options.limiter](key);
 
         if (!result.allowed) {
           reqLogger.logRequest(429, { requestId });

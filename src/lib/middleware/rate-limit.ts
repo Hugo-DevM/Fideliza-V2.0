@@ -1,39 +1,17 @@
 /**
- * In-memory rate limiter.
+ * Rate limiter — dual-mode implementation.
  *
- * Architecture notes:
- * - Uses a sliding window counter approach
- * - Store is a plain Map — works in a single-instance Node.js process
- * - For multi-instance / serverless: swap the store implementation for Redis
- *   without changing any call sites (the RateLimiter interface is stable)
- * - Stale entries are cleaned up lazily on read; a periodic cleanup
- *   prevents unbounded memory growth in long-running servers
+ * - Development / single-instance:  in-memory fixed window (Map)
+ * - Production / serverless:        Upstash Redis fixed window
  *
- * Rate limit keys are composed at the call site (e.g. tenantId + endpoint)
- * so limits can be applied at different granularities.
+ * Switch: set UPSTASH_REDIS_REST_URL + UPSTASH_REDIS_REST_TOKEN.
+ * When those env vars are absent the in-memory store is used automatically.
+ *
+ * Call sites are identical in both modes — all limiter functions are async.
  */
 
 import { NextResponse } from 'next/server';
 import type { ApiResponse } from '@/lib/types';
-
-interface Window {
-  count: number;
-  resetAt: number;
-}
-
-const store = new Map<string, Window>();
-
-// Periodic cleanup — prevents unbounded growth on long-running instances.
-// Runs every 5 minutes.
-const CLEANUP_INTERVAL_MS = 5 * 60 * 1000;
-if (typeof setInterval !== 'undefined') {
-  setInterval(() => {
-    const now = Date.now();
-    for (const [key, window] of store.entries()) {
-      if (now > window.resetAt) store.delete(key);
-    }
-  }, CLEANUP_INTERVAL_MS).unref?.(); // .unref() prevents blocking process exit
-}
 
 export interface RateLimitResult {
   allowed: boolean;
@@ -42,24 +20,32 @@ export interface RateLimitResult {
   limit: number;
 }
 
-/**
- * Core rate limit check. Returns result — caller decides what to do.
- *
- * @param key       Unique key for this limit (e.g. `tenant:${id}:transactions`)
- * @param max       Maximum requests allowed per window
- * @param windowMs  Window duration in milliseconds
- */
-export function checkRateLimit(
-  key: string,
-  max: number,
-  windowMs: number
-): RateLimitResult {
+// ── In-memory store (dev / single-instance) ───────────────────────────────
+
+interface MemWindow {
+  count: number;
+  resetAt: number;
+}
+
+const memStore = new Map<string, MemWindow>();
+
+// Prevent unbounded memory growth on long-running processes.
+const CLEANUP_INTERVAL_MS = 5 * 60 * 1000;
+if (typeof setInterval !== 'undefined') {
+  setInterval(() => {
+    const now = Date.now();
+    for (const [key, w] of memStore.entries()) {
+      if (now > w.resetAt) memStore.delete(key);
+    }
+  }, CLEANUP_INTERVAL_MS).unref?.();
+}
+
+function checkMemory(key: string, max: number, windowMs: number): RateLimitResult {
   const now = Date.now();
-  const existing = store.get(key);
+  const existing = memStore.get(key);
 
   if (!existing || now > existing.resetAt) {
-    // First request in a new window
-    store.set(key, { count: 1, resetAt: now + windowMs });
+    memStore.set(key, { count: 1, resetAt: now + windowMs });
     return { allowed: true, remaining: max - 1, resetAt: now + windowMs, limit: max };
   }
 
@@ -76,32 +62,104 @@ export function checkRateLimit(
   };
 }
 
+// ── Upstash Redis store (production / serverless) ────────────────────────
+
+const USE_REDIS = Boolean(
+  process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN
+);
+
+// Lazily initialized per (max, windowMs) pair so each limiter config
+// gets its own Ratelimit instance without re-creating it on every request.
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+let redisLimiters: Map<string, any> | null = null;
+
+function msToUpstashDuration(ms: number): string {
+  if (ms % 86_400_000 === 0) return `${ms / 86_400_000} d`;
+  if (ms % 3_600_000  === 0) return `${ms / 3_600_000} h`;
+  if (ms % 60_000     === 0) return `${ms / 60_000} m`;
+  if (ms % 1_000      === 0) return `${ms / 1_000} s`;
+  return `${ms} ms`;
+}
+
+async function checkRedis(key: string, max: number, windowMs: number): Promise<RateLimitResult> {
+  const { Ratelimit } = await import('@upstash/ratelimit');
+  const { Redis }     = await import('@upstash/redis');
+
+  if (!redisLimiters) redisLimiters = new Map();
+
+  const limiterKey = `${max}:${windowMs}`;
+  if (!redisLimiters.has(limiterKey)) {
+    const redis = new Redis({
+      url:   process.env.UPSTASH_REDIS_REST_URL!,
+      token: process.env.UPSTASH_REDIS_REST_TOKEN!,
+    });
+    redisLimiters.set(
+      limiterKey,
+      new Ratelimit({
+        redis,
+        limiter:   Ratelimit.fixedWindow(max, msToUpstashDuration(windowMs) as Parameters<typeof Ratelimit.fixedWindow>[1]),
+        analytics: false,
+      })
+    );
+  }
+
+  const result = await redisLimiters.get(limiterKey)!.limit(key);
+
+  return {
+    allowed:   result.success,
+    remaining: result.remaining,
+    resetAt:   result.reset,   // Upstash returns Unix ms timestamp
+    limit:     result.limit,
+  };
+}
+
+// ── Public API ────────────────────────────────────────────────────────────
+
+/**
+ * Core rate limit check. Returns result — caller decides what to do.
+ *
+ * Uses Redis when UPSTASH_REDIS_REST_URL/TOKEN are set; in-memory otherwise.
+ *
+ * @param key       Unique key for this limit (e.g. `tenant:${id}:transactions`)
+ * @param max       Maximum requests allowed per window
+ * @param windowMs  Window duration in milliseconds
+ */
+export async function checkRateLimit(
+  key: string,
+  max: number,
+  windowMs: number
+): Promise<RateLimitResult> {
+  if (USE_REDIS) return checkRedis(key, max, windowMs);
+  return checkMemory(key, max, windowMs);
+}
+
 /**
  * Pre-configured limiters for common scenarios.
+ * All return Promise<RateLimitResult>.
  *
  * Tune these values based on observed traffic patterns.
  */
 export const rateLimiters = {
   /** Public read endpoints — relatively generous */
-  publicRead: (key: string) => checkRateLimit(key, 120, 60_000),        // 120/min
+  publicRead:           (key: string) => checkRateLimit(key, 120, 60_000),
 
   /** Mutation endpoints on authenticated tenants */
-  tenantMutation: (key: string) => checkRateLimit(key, 60, 60_000),     // 60/min
+  tenantMutation:       (key: string) => checkRateLimit(key, 60, 60_000),
 
   /** Transaction creation — tighter limit, high business impact */
-  transaction: (key: string) => checkRateLimit(key, 30, 60_000),        // 30/min
+  transaction:          (key: string) => checkRateLimit(key, 30, 60_000),
 
   /** Tenant onboarding (POST /tenants) — very tight */
-  onboarding: (key: string) => checkRateLimit(key, 5, 60_000),          // 5/min per IP
+  onboarding:           (key: string) => checkRateLimit(key, 5, 60_000),
 
   /** Customer access code lookup — prevent brute force */
-  accessCodeLookup: (key: string) => checkRateLimit(key, 20, 60_000),   // 20/min per tenant
+  accessCodeLookup:     (key: string) => checkRateLimit(key, 20, 60_000),
 
   /** Password reset request — prevent email flooding */
-  passwordResetRequest: (key: string) => checkRateLimit(key, 5, 60 * 60_000),  // 5/hr per IP
+  passwordResetRequest: (key: string) => checkRateLimit(key, 5, 60 * 60_000),
 
   /** Password reset confirm — secondary brute-force guard */
-  passwordResetConfirm: (key: string) => checkRateLimit(key, 10, 15 * 60_000), // 10/15min per IP
+  passwordResetConfirm: (key: string) => checkRateLimit(key, 10, 15 * 60_000),
 };
 
 /**
@@ -111,9 +169,9 @@ export function applyRateLimitHeaders(
   response: NextResponse,
   result: RateLimitResult
 ): NextResponse {
-  response.headers.set('X-RateLimit-Limit', String(result.limit));
+  response.headers.set('X-RateLimit-Limit',     String(result.limit));
   response.headers.set('X-RateLimit-Remaining', String(result.remaining));
-  response.headers.set('X-RateLimit-Reset', String(Math.ceil(result.resetAt / 1000)));
+  response.headers.set('X-RateLimit-Reset',     String(Math.ceil(result.resetAt / 1000)));
   return response;
 }
 
@@ -128,10 +186,10 @@ export function rateLimitExceededResponse(result: RateLimitResult): NextResponse
     { status: 429 }
   );
 
-  response.headers.set('Retry-After', String(retryAfterSec));
-  response.headers.set('X-RateLimit-Limit', String(result.limit));
+  response.headers.set('Retry-After',           String(retryAfterSec));
+  response.headers.set('X-RateLimit-Limit',     String(result.limit));
   response.headers.set('X-RateLimit-Remaining', '0');
-  response.headers.set('X-RateLimit-Reset', String(Math.ceil(result.resetAt / 1000)));
+  response.headers.set('X-RateLimit-Reset',     String(Math.ceil(result.resetAt / 1000)));
 
   return response;
 }

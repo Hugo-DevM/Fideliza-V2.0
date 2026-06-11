@@ -54,7 +54,7 @@ export const POST = withPublicContext<{ message: string }>(
     const ip = getClientIp(request);
 
     // Rate limit: 10 requests per 15 min per IP
-    const rl = checkRateLimit(`pw-reset-confirm:${ip}`, 10, 15 * 60 * 1000);
+    const rl = await checkRateLimit(`pw-reset-confirm:${ip}`, 10, 15 * 60 * 1000);
     if (!rl.allowed) return rateLimitExceededResponse(rl);
 
     // Parse & validate body

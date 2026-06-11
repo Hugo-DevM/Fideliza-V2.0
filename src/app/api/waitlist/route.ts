@@ -61,7 +61,7 @@ export const POST = withPublicContext<{ message: string }>(
     const ip = getClientIp(request);
 
     // Tight rate limit for this endpoint — 10 per hour per IP
-    const rl = checkRateLimit(`waitlist:${ip}`, 10, 60 * 60 * 1000);
+    const rl = await checkRateLimit(`waitlist:${ip}`, 10, 60 * 60 * 1000);
     if (!rl.allowed) return rateLimitExceededResponse(rl);
 
     const { body, error: bodyError } = await parseBody(request);

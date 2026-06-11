@@ -63,7 +63,7 @@ export const POST = withPublicContext<{ message: string }>(
     const ip = getClientIp(request);
 
     // Rate limit: 5 requests per hour per IP
-    const rl = checkRateLimit(`pw-reset-request:${ip}`, 5, 60 * 60 * 1000);
+    const rl = await checkRateLimit(`pw-reset-request:${ip}`, 5, 60 * 60 * 1000);
     if (!rl.allowed) return rateLimitExceededResponse(rl);
 
     // Parse & validate body
