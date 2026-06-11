@@ -84,6 +84,7 @@ function msToUpstashDuration(ms: number): string {
 }
 
 async function checkRedis(key: string, max: number, windowMs: number): Promise<RateLimitResult> {
+  try {
   const { Ratelimit } = await import('@upstash/ratelimit');
   const { Redis }     = await import('@upstash/redis');
 
@@ -113,6 +114,10 @@ async function checkRedis(key: string, max: number, windowMs: number): Promise<R
     resetAt:   result.reset,   // Upstash returns Unix ms timestamp
     limit:     result.limit,
   };
+  } catch (err) {
+    console.error('[rate-limit] Redis error, falling back to in-memory:', err);
+    return checkMemory(key, max, windowMs);
+  }
 }
 
 // ── Public API ────────────────────────────────────────────────────────────
@@ -130,9 +135,14 @@ export async function checkRateLimit(
   key: string,
   max: number,
   windowMs: number
-): Promise<RateLimitResult> {
-  if (isRedisConfigured()) return checkRedis(key, max, windowMs);
-  return checkMemory(key, max, windowMs);
+): Promise<RateLimitResult & { _backend?: string }> {
+  const backend = isRedisConfigured() ? 'redis' : 'memory';
+  console.log(`[rate-limit] backend=${backend} key=${key}`);
+  if (backend === 'redis') {
+    const result = await checkRedis(key, max, windowMs);
+    return { ...result, _backend: 'redis' };
+  }
+  return { ...checkMemory(key, max, windowMs), _backend: 'memory' };
 }
 
 /**
