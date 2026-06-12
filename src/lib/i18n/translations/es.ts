@@ -287,11 +287,11 @@ export const es: Dictionary = {
       },
       {
         name: "Enterprise",
-        price: "$99",
+        price: "$1,699",
         originalPrice: null,
-        annualPrice: "$990",
+        annualPrice: "$16,990",
         originalAnnualPrice: null,
-        annualMonthly: "$82/mes",
+        annualMonthly: "$1,416/mes",
         period: "/mes",
         description:
           "Para cadenas y franquicias que necesitan gestionar múltiples ubicaciones desde un solo panel.",
