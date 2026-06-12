@@ -27,17 +27,22 @@ export async function POST(request: Request) {
     }
 
     // ── 2. Parse target plan ──────────────────────────────────────────────
-    const body = await request.json().catch(() => ({}));
-    const targetPlan = (body as { plan?: string }).plan;
+    const body       = await request.json().catch(() => ({}));
+    const targetPlan = (body as { plan?: string; billing?: string }).plan;
+    const billing    = (body as { billing?: string }).billing ?? 'monthly';
 
     if (!targetPlan || !['starter', 'pro'].includes(targetPlan)) {
       return NextResponse.json({ data: null, error: 'Plan inválido.' }, { status: 400 });
     }
+    if (!['monthly', 'annual'].includes(billing)) {
+      return NextResponse.json({ data: null, error: 'Ciclo inválido.' }, { status: 400 });
+    }
 
-    const newPriceId = STRIPE_PRICE_IDS[targetPlan];
+    const priceKey   = billing === 'annual' ? `${targetPlan}_annual` : targetPlan;
+    const newPriceId = STRIPE_PRICE_IDS[priceKey];
     if (!newPriceId) {
       return NextResponse.json(
-        { data: null, error: `STRIPE_PRICE_${targetPlan.toUpperCase()} no está configurado.` },
+        { data: null, error: `STRIPE_PRICE_${priceKey.toUpperCase()} no está configurado.` },
         { status: 500 }
       );
     }

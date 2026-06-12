@@ -24,9 +24,11 @@ export async function POST(request: Request) {
       return NextResponse.json({ data: null, error: 'Tenant no encontrado' }, { status: 401 });
     }
 
-    const body = await request.json().catch(() => ({}));
-    const targetPlan = (body as { plan?: string }).plan;
-    const newPriceId = targetPlan ? STRIPE_PRICE_IDS[targetPlan] : undefined;
+    const body       = await request.json().catch(() => ({}));
+    const targetPlan = (body as { plan?: string; billing?: string }).plan;
+    const billing    = (body as { billing?: string }).billing ?? 'monthly';
+    const priceKey   = targetPlan ? (billing === 'annual' ? `${targetPlan}_annual` : targetPlan) : undefined;
+    const newPriceId = priceKey ? STRIPE_PRICE_IDS[priceKey] : undefined;
 
     if (!newPriceId) {
       return NextResponse.json({ data: null, error: 'Plan inválido.' }, { status: 400 });

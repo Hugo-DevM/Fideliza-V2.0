@@ -93,6 +93,7 @@ export default function BillingSection({
   const [isPending, startTransition] = useTransition();
   const { error, setError, mounted, displayText, wrapperStyle, errorStyle } = useAutoError();
 
+  const [billing, setBilling]               = useState<'monthly' | 'annual'>('monthly');
   const [upgradeModal, setUpgradeModal]     = useState(false);
   const { mounted: modalMounted, visible: modalVisible } = useModalTransition(upgradeModal);
   const [preview, setPreview]               = useState<UpgradePreview | null>(null);
@@ -109,7 +110,7 @@ export default function BillingSection({
       const res  = await fetch('/api/stripe/upgrade-preview', {
         method:  'POST',
         headers: { 'Content-Type': 'application/json' },
-        body:    JSON.stringify({ plan }),
+        body:    JSON.stringify({ plan, billing }),
       });
       const json = await res.json() as { data: UpgradePreview | null; error: string | null };
       if (!res.ok || json.error || !json.data) {
@@ -131,7 +132,7 @@ export default function BillingSection({
       const res  = await fetch('/api/stripe/upgrade', {
         method:  'POST',
         headers: { 'Content-Type': 'application/json' },
-        body:    JSON.stringify({ plan: 'pro' }),
+        body:    JSON.stringify({ plan: 'pro', billing }),
       });
       const json = await res.json() as { data: { plan: string } | null; error: string | null };
       if (!res.ok || json.error) {
@@ -154,7 +155,7 @@ export default function BillingSection({
         const res  = await fetch('/api/stripe/checkout', {
           method:  'POST',
           headers: { 'Content-Type': 'application/json' },
-          body:    JSON.stringify({ plan }),
+          body:    JSON.stringify({ plan, billing }),
         });
         const json = await res.json() as { data: { url: string } | null; error: string | null };
         if (!res.ok || json.error) { setError(json.error ?? 'Error al iniciar pago'); return; }
@@ -374,13 +375,45 @@ export default function BillingSection({
 
         {/* Free → Starter / Pro */}
         {effectivePlan === 'free' && (
+          <>
+          {/* Billing period toggle */}
+          <div className="flex items-center justify-center gap-2">
+            <button
+              onClick={() => setBilling('monthly')}
+              className={`rounded-full px-4 py-1.5 text-xs font-semibold transition ${billing === 'monthly' ? 'bg-indigo-600 text-white' : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200'}`}
+            >
+              Mensual
+            </button>
+            <button
+              onClick={() => setBilling('annual')}
+              className={`rounded-full px-4 py-1.5 text-xs font-semibold transition ${billing === 'annual' ? 'bg-indigo-600 text-white' : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200'}`}
+            >
+              Anual <span className="ml-1 text-green-500 font-bold">−20%</span>
+            </button>
+          </div>
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+            {/* Starter */}
             <div className="rounded-xl border border-gray-200 dark:border-[#1e2438] p-4 space-y-3">
               <div>
-                <p className="font-semibold text-gray-900 dark:text-white">Starter</p>
-                <p className="text-2xl font-bold text-gray-900 dark:text-white mt-0.5">
-                  $29 <span className="text-sm font-normal text-gray-400 dark:text-gray-500">/mes</span>
-                </p>
+                <div className="flex items-center gap-2 mb-1">
+                  <p className="font-semibold text-gray-900 dark:text-white">Starter</p>
+                  <span className="rounded-full bg-amber-100 dark:bg-amber-500/20 px-2 py-0.5 text-[10px] font-bold text-amber-700 dark:text-amber-400 uppercase tracking-wide">
+                    🔥 Lanzamiento
+                  </span>
+                </div>
+                <div className="flex items-baseline gap-2">
+                  <p className="text-2xl font-bold text-gray-900 dark:text-white">
+                    {billing === 'annual' ? '$15' : '$19'}
+                    <span className="text-sm font-normal text-gray-400 dark:text-gray-500">/mes</span>
+                  </p>
+                  <p className="text-sm text-gray-400 dark:text-gray-500 line-through">
+                    {billing === 'annual' ? '$23' : '$29'}
+                  </p>
+                </div>
+                {billing === 'annual'
+                  ? <p className="text-xs text-green-600 dark:text-green-400 font-medium">$182/año · 2 meses gratis</p>
+                  : <p className="text-xs text-amber-600 dark:text-amber-400 font-medium">Precio de lanzamiento · tiempo limitado</p>
+                }
                 <ul className="mt-2 space-y-1 text-xs text-gray-500 dark:text-gray-400">
                   <li>✓ Hasta 300 clientes</li>
                   <li>✓ 3 programas</li>
@@ -397,17 +430,31 @@ export default function BillingSection({
               </button>
             </div>
 
+            {/* Pro */}
             <div className="rounded-xl border-2 border-indigo-400 dark:border-indigo-500/60 p-4 space-y-3">
               <div>
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 mb-1">
                   <p className="font-semibold text-gray-900 dark:text-white">Pro</p>
                   <span className="rounded-full bg-indigo-100 dark:bg-indigo-500/20 px-2 py-0.5 text-[10px] font-semibold text-indigo-700 dark:text-indigo-400">
                     MÁS POTENTE
                   </span>
+                  <span className="rounded-full bg-amber-100 dark:bg-amber-500/20 px-2 py-0.5 text-[10px] font-bold text-amber-700 dark:text-amber-400 uppercase tracking-wide">
+                    🔥 Lanzamiento
+                  </span>
                 </div>
-                <p className="text-2xl font-bold text-gray-900 dark:text-white mt-0.5">
-                  $59 <span className="text-sm font-normal text-gray-400 dark:text-gray-500">/mes</span>
-                </p>
+                <div className="flex items-baseline gap-2">
+                  <p className="text-2xl font-bold text-gray-900 dark:text-white">
+                    {billing === 'annual' ? '$31' : '$39'}
+                    <span className="text-sm font-normal text-gray-400 dark:text-gray-500">/mes</span>
+                  </p>
+                  <p className="text-sm text-gray-400 dark:text-gray-500 line-through">
+                    {billing === 'annual' ? '$47' : '$59'}
+                  </p>
+                </div>
+                {billing === 'annual'
+                  ? <p className="text-xs text-green-600 dark:text-green-400 font-medium">$374/año · 2 meses gratis</p>
+                  : <p className="text-xs text-amber-600 dark:text-amber-400 font-medium">Precio de lanzamiento · tiempo limitado</p>
+                }
                 <ul className="mt-2 space-y-1 text-xs text-gray-500 dark:text-gray-400">
                   <li>✓ Clientes ilimitados</li>
                   <li>✓ Programas ilimitados</li>
@@ -426,6 +473,7 @@ export default function BillingSection({
               </button>
             </div>
           </div>
+          </>
         )}
 
         {/* Starter → Pro */}
@@ -437,9 +485,14 @@ export default function BillingSection({
                 MÁS POTENTE
               </span>
             </div>
-            <p className="text-2xl font-bold text-gray-900 dark:text-white">
-              $59 <span className="text-sm font-normal text-gray-400 dark:text-gray-500">/mes</span>
-            </p>
+            <div className="flex items-baseline gap-2">
+              <p className="text-2xl font-bold text-gray-900 dark:text-white">
+                $39 <span className="text-sm font-normal text-gray-400 dark:text-gray-500">/mes</span>
+              </p>
+              <p className="text-sm text-gray-400 dark:text-gray-500 line-through">$59</p>
+              <span className="rounded-full bg-amber-100 dark:bg-amber-500/20 px-2 py-0.5 text-[10px] font-bold text-amber-700 dark:text-amber-400">🔥 Lanzamiento</span>
+            </div>
+            <p className="text-xs text-gray-400 dark:text-gray-500">El ciclo de facturación se mantiene igual. Puedes cambiar a anual desde el portal de facturación.</p>
             <ul className="space-y-1 text-xs text-gray-500 dark:text-gray-400">
               <li>✓ Clientes ilimitados</li>
               <li>✓ Programas ilimitados</li>

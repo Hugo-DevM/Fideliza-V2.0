@@ -38,17 +38,22 @@ export async function POST(request: Request) {
     }
 
     // ── 3. Parse & validate plan ──────────────────────────────────────
-    const body = await request.json().catch(() => ({}));
-    const plan = (body as { plan?: string }).plan;
+    const body    = await request.json().catch(() => ({}));
+    const plan    = (body as { plan?: string; billing?: string }).plan;
+    const billing = (body as { billing?: string }).billing ?? 'monthly';
 
     if (!plan || !['starter', 'pro'].includes(plan)) {
       return NextResponse.json({ data: null, error: 'Plan inválido. Debe ser "starter" o "pro".' }, { status: 400 });
     }
+    if (!['monthly', 'annual'].includes(billing)) {
+      return NextResponse.json({ data: null, error: 'Ciclo inválido. Debe ser "monthly" o "annual".' }, { status: 400 });
+    }
 
-    const priceId = STRIPE_PRICE_IDS[plan];
+    const priceKey = billing === 'annual' ? `${plan}_annual` : plan;
+    const priceId  = STRIPE_PRICE_IDS[priceKey];
     if (!priceId) {
       return NextResponse.json(
-        { data: null, error: `STRIPE_PRICE_${plan.toUpperCase()} no está configurado en las variables de entorno.` },
+        { data: null, error: `STRIPE_PRICE_${priceKey.toUpperCase()} no está configurado en las variables de entorno.` },
         { status: 500 }
       );
     }
@@ -105,7 +110,7 @@ export async function POST(request: Request) {
       subscription_data: {
         metadata: { tenant_id: tenantId },   // fallback for webhook resolution
       },
-      metadata: { tenant_id: tenantId, plan },
+      metadata: { tenant_id: tenantId, plan, billing },
     });
 
     return NextResponse.json({ data: { url: session.url }, error: null });

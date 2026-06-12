@@ -40,8 +40,10 @@ export const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
 // Use test mode Price IDs during development (price_test_...).
 
 export const STRIPE_PRICE_IDS: Record<string, string | undefined> = {
-  starter: process.env.STRIPE_PRICE_STARTER,
-  pro:     process.env.STRIPE_PRICE_PRO,
+  starter:        process.env.STRIPE_PRICE_STARTER,
+  pro:            process.env.STRIPE_PRICE_PRO,
+  starter_annual: process.env.STRIPE_PRICE_STARTER_ANNUAL,
+  pro_annual:     process.env.STRIPE_PRICE_PRO_ANNUAL,
 };
 
 /** Returns the internal plan name for a given Stripe Price ID, or null if not found. */
