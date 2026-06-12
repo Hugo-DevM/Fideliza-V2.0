@@ -150,7 +150,7 @@ export default function BillingSection({
     }
   }
 
-  async function handleCheckout(plan: 'starter' | 'pro' | 'test') {
+  async function handleCheckout(plan: 'starter' | 'pro') {
     setError('');
     startTransition(async () => {
       try {
@@ -375,19 +375,6 @@ export default function BillingSection({
           </div>
         )}
 
-        {/* Test plan — only visible when NEXT_PUBLIC_SHOW_TEST_PLAN=true */}
-        {effectivePlan === 'free' && process.env.NEXT_PUBLIC_SHOW_TEST_PLAN === 'true' && (
-          <div className="rounded-xl border border-dashed border-yellow-400 dark:border-yellow-500/50 bg-yellow-50 dark:bg-yellow-500/5 p-4 space-y-2">
-            <p className="text-xs font-bold text-yellow-700 dark:text-yellow-400 uppercase tracking-wider">⚙️ Test — solo visible en modo prueba</p>
-            <button
-              onClick={() => handleCheckout('test')}
-              disabled={isPending}
-              className="w-full rounded-xl border border-yellow-400 px-4 py-2 text-sm font-semibold text-yellow-700 dark:text-yellow-400 hover:bg-yellow-100 dark:hover:bg-yellow-500/10 disabled:opacity-50 transition"
-            >
-              {isPending ? 'Redirigiendo…' : 'Suscripción de prueba — $1 MXN'}
-            </button>
-          </div>
-        )}
 
         {/* Free → Starter / Pro */}
         {effectivePlan === 'free' && (
