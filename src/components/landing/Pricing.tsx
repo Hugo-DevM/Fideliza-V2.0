@@ -165,7 +165,7 @@ export function Pricing({ t }: PricingProps) {
                     )}
 
                     {/* Per-month equivalent when annual */}
-                    <div className="h-4 mb-2">
+                    <div className="min-h-4 mb-2">
                       <AnimatePresence initial={false}>
                         {showAnnual && plan.annualMonthly && (
                           <motion.p
