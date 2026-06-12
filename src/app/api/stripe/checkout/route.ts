@@ -42,14 +42,14 @@ export async function POST(request: Request) {
     const plan    = (body as { plan?: string; billing?: string }).plan;
     const billing = (body as { billing?: string }).billing ?? 'monthly';
 
-    if (!plan || !['starter', 'pro'].includes(plan)) {
+    if (!plan || !['starter', 'pro', 'test'].includes(plan)) {
       return NextResponse.json({ data: null, error: 'Plan inválido. Debe ser "starter" o "pro".' }, { status: 400 });
     }
     if (!['monthly', 'annual'].includes(billing)) {
       return NextResponse.json({ data: null, error: 'Ciclo inválido. Debe ser "monthly" o "annual".' }, { status: 400 });
     }
 
-    const priceKey = billing === 'annual' ? `${plan}_annual` : plan;
+    const priceKey = plan === 'test' ? 'test' : billing === 'annual' ? `${plan}_annual` : plan;
     const priceId  = STRIPE_PRICE_IDS[priceKey];
     if (!priceId) {
       return NextResponse.json(

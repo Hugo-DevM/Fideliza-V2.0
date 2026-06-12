@@ -44,6 +44,7 @@ export const STRIPE_PRICE_IDS: Record<string, string | undefined> = {
   pro:            process.env.STRIPE_PRICE_PRO,
   starter_annual: process.env.STRIPE_PRICE_STARTER_ANNUAL,
   pro_annual:     process.env.STRIPE_PRICE_PRO_ANNUAL,
+  test:           process.env.STRIPE_PRICE_TEST,
 };
 
 /** Returns the internal plan name for a given Stripe Price ID, or null if not found. */
