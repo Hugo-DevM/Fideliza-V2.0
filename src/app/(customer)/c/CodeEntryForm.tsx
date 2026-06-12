@@ -3,7 +3,7 @@
 /**
  * CodeEntryForm — client component for manual access code entry.
  *
- * Auto-formats input as XXXX-XXXX (uppercase, inserts hyphen after 4 chars).
+ * Auto-formats input as XXXXX-XXXXX (uppercase, inserts hyphen after 5 chars).
  * On submit, navigates to ?code=INPUT so the server component re-fetches data.
  */
 
@@ -27,12 +27,12 @@ export default function CodeEntryForm({ error, primaryColor = '#6366F1' }: CodeE
     // Strip everything that isn't alphanumeric, uppercase it
     const raw = e.target.value.replace(/[^A-Z0-9]/gi, '').toUpperCase();
 
-    // Max 8 meaningful chars
-    const trimmed = raw.slice(0, 8);
+    // Max 10 meaningful chars
+    const trimmed = raw.slice(0, 10);
 
-    // Insert hyphen after position 4
-    const formatted = trimmed.length > 4
-      ? `${trimmed.slice(0, 4)}-${trimmed.slice(4)}`
+    // Insert hyphen after position 5
+    const formatted = trimmed.length > 5
+      ? `${trimmed.slice(0, 5)}-${trimmed.slice(5)}`
       : trimmed;
 
     setCode(formatted);
@@ -77,11 +77,11 @@ export default function CodeEntryForm({ error, primaryColor = '#6366F1' }: CodeE
           autoComplete="off"
           autoCorrect="off"
           spellCheck={false}
-          placeholder="XXXX - XXXX"
+          placeholder="XXXXX - XXXXX"
           value={code}
           onChange={handleChange}
           onKeyDown={handleKeyDown}
-          maxLength={9}
+          maxLength={11}
           className="w-full rounded-xl border border-gray-200 dark:border-[#2a3147] bg-white dark:bg-[#0f1222] px-4 py-3.5 text-center text-xl font-mono font-semibold tracking-widest text-gray-900 dark:text-gray-100 placeholder-gray-300 dark:placeholder-gray-600 outline-none transition focus:border-indigo-400 focus:ring-2 focus:ring-indigo-400/20"
           aria-describedby={error ? 'code-error' : undefined}
         />
@@ -92,7 +92,7 @@ export default function CodeEntryForm({ error, primaryColor = '#6366F1' }: CodeE
 
       <button
         type="submit"
-        disabled={loading || code.replace(/-/g, '').length < 4}
+        disabled={loading || code.replace(/-/g, '').length < 5}
         style={{ backgroundColor: primaryColor }}
         className="w-full flex items-center justify-center gap-2 rounded-xl px-4 py-3 text-sm font-semibold text-white shadow-sm transition hover:opacity-90 active:scale-95 disabled:cursor-not-allowed disabled:opacity-50"
       >

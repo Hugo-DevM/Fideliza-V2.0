@@ -195,9 +195,9 @@ export default function QuickRegister({ programLabel, currency }: Props) {
                 const hasLetters = /[A-Za-z]/.test(val);
 
                 if (hasLetters) {
-                  // Access code mode: uppercase, strip non-alphanumeric, auto-dash at pos 4
-                  const raw = val.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 8);
-                  val = raw.length > 4 ? `${raw.slice(0, 4)}-${raw.slice(4)}` : raw;
+                  // Access code mode: uppercase, strip non-alphanumeric, auto-dash at pos 5
+                  const raw = val.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 10);
+                  val = raw.length > 5 ? `${raw.slice(0, 5)}-${raw.slice(5)}` : raw;
                 } else {
                   // Phone mode: digits only, + allowed only at position 0
                   if (val.startsWith('+')) {
@@ -218,7 +218,7 @@ export default function QuickRegister({ programLabel, currency }: Props) {
                   setPurchaseStr('');
                 }
               }}
-              placeholder="Código (XXXX-XXXX) o teléfono…"
+              placeholder="Código (XXXXX-XXXXX) o teléfono…"
               autoFocus
               className="w-full rounded-xl border border-gray-200 dark:border-[#2a3147] bg-gray-50 dark:bg-[#0d0f17] pl-9 pr-3 py-2.5 text-sm text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-600 outline-none transition focus:border-indigo-400 dark:focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 dark:focus:ring-indigo-500/20"
             />
