@@ -320,7 +320,6 @@ export const es: Dictionary = {
     heading: "Lanza tu programa de fidelización esta semana",
     body: "Únete a la lista de espera y sé uno de los primeros negocios en usar Fideliza. Los miembros de acceso anticipado bloquean el precio fundador — 1 mes de Starter, gratis.",
     bullets: [
-      "Sin tarjeta de crédito",
       "Configuración en menos de 5 minutos",
       "Cancela cuando quieras",
     ],
@@ -417,7 +416,7 @@ export const es: Dictionary = {
     optionalToggle: "+ Agrega tu nombre y negocio (opcional)",
     namePlaceholder: "Tu nombre",
     businessPlaceholder: "Nombre del negocio",
-    disclaimer: "Sin tarjeta de crédito. Sin spam. Cancela cuando quieras.",
+    disclaimer: "Sin spam. Cancela cuando quieras.",
     successTitle: "¡Estás en la lista!",
     successMessage: "Te avisaremos cuando Fideliza lance oficialmente.",
     alreadyOnList: "¡Ya estás en la lista! Pronto estaremos en contacto.",
