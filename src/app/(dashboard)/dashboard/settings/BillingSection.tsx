@@ -148,7 +148,7 @@ export default function BillingSection({
     }
   }
 
-  async function handleCheckout(plan: 'starter' | 'pro') {
+  async function handleCheckout(plan: 'starter' | 'pro' | 'test') {
     setError('');
     startTransition(async () => {
       try {
