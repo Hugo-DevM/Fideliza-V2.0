@@ -201,7 +201,9 @@ export const en = {
       {
         name: "Free",
         price: "$0",
+        originalPrice: null,
         annualPrice: "$0",
+        originalAnnualPrice: null,
         annualMonthly: null,
         period: "forever",
         description:
@@ -228,9 +230,11 @@ export const en = {
       },
       {
         name: "Starter",
-        price: "$29",
-        annualPrice: "$290",
-        annualMonthly: "$24/mo",
+        price: "$19",
+        originalPrice: "$29",
+        annualPrice: "$182",
+        originalAnnualPrice: "$290",
+        annualMonthly: "$15/mo",
         period: "/month",
         description:
           "For growing businesses ready to turn regulars into loyal customers.",
@@ -252,9 +256,11 @@ export const en = {
       },
       {
         name: "Pro",
-        price: "$59",
-        annualPrice: "$590",
-        annualMonthly: "$49/mo",
+        price: "$39",
+        originalPrice: "$59",
+        annualPrice: "$374",
+        originalAnnualPrice: "$590",
+        annualMonthly: "$31/mo",
         period: "/month",
         description:
           "For established businesses with a serious loyalty strategy.",
@@ -280,7 +286,9 @@ export const en = {
       {
         name: "Enterprise",
         price: "$99",
+        originalPrice: null,
         annualPrice: "$990",
+        originalAnnualPrice: null,
         annualMonthly: "$82/mo",
         period: "/month",
         description:

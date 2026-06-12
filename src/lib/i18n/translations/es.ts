@@ -203,7 +203,9 @@ export const es: Dictionary = {
       {
         name: "Gratis",
         price: "$0",
+        originalPrice: null,
         annualPrice: "$0",
+        originalAnnualPrice: null,
         annualMonthly: null,
         period: "siempre",
         description:
@@ -230,9 +232,11 @@ export const es: Dictionary = {
       },
       {
         name: "Starter",
-        price: "$29",
-        annualPrice: "$290",
-        annualMonthly: "$24/mes",
+        price: "$19",
+        originalPrice: "$29",
+        annualPrice: "$182",
+        originalAnnualPrice: "$290",
+        annualMonthly: "$15/mes",
         period: "/mes",
         description:
           "Para negocios en crecimiento listos para convertir habituales en clientes leales.",
@@ -254,9 +258,11 @@ export const es: Dictionary = {
       },
       {
         name: "Pro",
-        price: "$59",
-        annualPrice: "$590",
-        annualMonthly: "$49/mes",
+        price: "$39",
+        originalPrice: "$59",
+        annualPrice: "$374",
+        originalAnnualPrice: "$590",
+        annualMonthly: "$31/mes",
         period: "/mes",
         description:
           "Para negocios consolidados con una estrategia de fidelización seria.",
@@ -282,7 +288,9 @@ export const es: Dictionary = {
       {
         name: "Enterprise",
         price: "$99",
+        originalPrice: null,
         annualPrice: "$990",
+        originalAnnualPrice: null,
         annualMonthly: "$82/mes",
         period: "/mes",
         description:

@@ -118,9 +118,11 @@ export function Pricing({ t }: PricingProps) {
 
         <RevealGroup className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6" stagger={0.12}>
           {t.plans.map((plan) => {
-            const showAnnual = annual && plan.annualPrice !== '$0';
+            const showAnnual    = annual && plan.annualPrice !== '$0';
             const displayPrice  = showAnnual ? plan.annualPrice : plan.price;
+            const originalPrice = showAnnual ? plan.originalAnnualPrice : plan.originalPrice;
             const displayPeriod = showAnnual ? `/${t.billingAnnual.toLowerCase()}` : plan.period;
+            const isLaunch      = Boolean(originalPrice);
 
             return (
               <RevealItem key={plan.name} direction="scale" className="h-full">
@@ -138,9 +140,16 @@ export function Pricing({ t }: PricingProps) {
                       <span className={`text-sm font-semibold ${plan.highlight ? 'text-indigo-200' : plan.comingSoon ? 'text-gray-400' : 'text-gray-500'}`}>
                         {plan.name}
                       </span>
-                      {plan.badge ? (
-                        <Badge color={plan.comingSoon ? 'gray' : 'green'} className="text-[11px]">{plan.badge}</Badge>
-                      ) : null}
+                      <div className="flex items-center gap-1.5">
+                        {isLaunch && (
+                          <span className="rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-bold text-amber-700 uppercase tracking-wide">
+                            🔥 Lanzamiento
+                          </span>
+                        )}
+                        {plan.badge ? (
+                          <Badge color={plan.comingSoon ? 'gray' : 'green'} className="text-[11px]">{plan.badge}</Badge>
+                        ) : null}
+                      </div>
                     </div>
 
                     <div className="flex items-end gap-1 mb-1 overflow-hidden">
@@ -148,6 +157,11 @@ export function Pricing({ t }: PricingProps) {
                       <span className={`overflow-hidden ${plan.highlight ? 'text-indigo-300' : plan.comingSoon ? 'text-gray-300' : 'text-gray-400'}`}>
                         <AnimatedPeriod>{displayPeriod}</AnimatedPeriod>
                       </span>
+                      {originalPrice && (
+                        <span className={`ml-1 text-sm line-through pb-1 ${plan.highlight ? 'text-indigo-300' : 'text-gray-400'}`}>
+                          {originalPrice}
+                        </span>
+                      )}
                     </div>
 
                     {/* Per-month equivalent when annual */}
