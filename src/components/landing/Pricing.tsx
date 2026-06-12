@@ -145,13 +145,15 @@ export function Pricing({ t }: PricingProps) {
                       ) : null}
                     </div>
 
-                    <div className="flex items-end gap-1 mb-1 overflow-hidden">
-                      <AnimatedPrice value={displayPrice} highlight={plan.highlight} />
+                    <div className="flex flex-wrap items-end gap-x-1 gap-y-0.5 mb-1">
+                      <span className="overflow-hidden">
+                        <AnimatedPrice value={displayPrice} highlight={plan.highlight} />
+                      </span>
                       <span className={`overflow-hidden ${plan.highlight ? 'text-indigo-300' : plan.comingSoon ? 'text-gray-300' : 'text-gray-400'}`}>
                         <AnimatedPeriod>{displayPeriod}</AnimatedPeriod>
                       </span>
                       {originalPrice && (
-                        <span className={`ml-1 text-sm line-through pb-1 ${plan.highlight ? 'text-indigo-300' : 'text-gray-400'}`}>
+                        <span className={`text-sm line-through pb-1 whitespace-nowrap ${plan.highlight ? 'text-indigo-300' : 'text-gray-400'}`}>
                           {originalPrice}
                         </span>
                       )}
