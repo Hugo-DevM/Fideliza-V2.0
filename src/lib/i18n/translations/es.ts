@@ -232,11 +232,11 @@ export const es: Dictionary = {
       },
       {
         name: "Starter",
-        price: "$19",
-        originalPrice: "$29",
-        annualPrice: "$182",
-        originalAnnualPrice: "$290",
-        annualMonthly: "$15/mes",
+        price: "MX$349",
+        originalPrice: "MX$549",
+        annualPrice: "MX$3,490",
+        originalAnnualPrice: "MX$5,490",
+        annualMonthly: "MX$291/mes",
         period: "/mes",
         description:
           "Para negocios en crecimiento listos para convertir habituales en clientes leales.",
@@ -258,11 +258,11 @@ export const es: Dictionary = {
       },
       {
         name: "Pro",
-        price: "$39",
-        originalPrice: "$59",
-        annualPrice: "$374",
-        originalAnnualPrice: "$590",
-        annualMonthly: "$31/mes",
+        price: "MX$699",
+        originalPrice: "MX$1,099",
+        annualPrice: "MX$6,990",
+        originalAnnualPrice: "MX$10,990",
+        annualMonthly: "MX$582/mes",
         period: "/mes",
         description:
           "Para negocios consolidados con una estrategia de fidelización seria.",

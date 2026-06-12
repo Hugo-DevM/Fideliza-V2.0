@@ -227,7 +227,7 @@ export default function BillingSection({
                   })}
                 </p>
                 <p className="text-xs text-indigo-400 dark:text-indigo-400/70">
-                  A partir del próximo ciclo: $59/mes
+                  A partir del próximo ciclo: MX$699/mes
                 </p>
               </div>
             )}
@@ -417,15 +417,15 @@ export default function BillingSection({
                 </div>
                 <div className="flex items-baseline gap-2">
                   <p className="text-2xl font-bold text-gray-900 dark:text-white">
-                    {billing === 'annual' ? '$15' : '$19'}
+                    {billing === 'annual' ? 'MX$291' : 'MX$349'}
                     <span className="text-sm font-normal text-gray-400 dark:text-gray-500">/mes</span>
                   </p>
                   <p className="text-sm text-gray-400 dark:text-gray-500 line-through">
-                    {billing === 'annual' ? '$23' : '$29'}
+                    {billing === 'annual' ? 'MX$458' : 'MX$549'}
                   </p>
                 </div>
                 {billing === 'annual'
-                  ? <p className="text-xs text-green-600 dark:text-green-400 font-medium">$182/año · 2 meses gratis</p>
+                  ? <p className="text-xs text-green-600 dark:text-green-400 font-medium">MX$3,490/año · 2 meses gratis</p>
                   : <p className="text-xs text-amber-600 dark:text-amber-400 font-medium">Precio de lanzamiento · tiempo limitado</p>
                 }
                 <ul className="mt-2 space-y-1 text-xs text-gray-500 dark:text-gray-400">
@@ -458,15 +458,15 @@ export default function BillingSection({
                 </div>
                 <div className="flex items-baseline gap-2">
                   <p className="text-2xl font-bold text-gray-900 dark:text-white">
-                    {billing === 'annual' ? '$31' : '$39'}
+                    {billing === 'annual' ? 'MX$582' : 'MX$699'}
                     <span className="text-sm font-normal text-gray-400 dark:text-gray-500">/mes</span>
                   </p>
                   <p className="text-sm text-gray-400 dark:text-gray-500 line-through">
-                    {billing === 'annual' ? '$47' : '$59'}
+                    {billing === 'annual' ? 'MX$916' : 'MX$1,099'}
                   </p>
                 </div>
                 {billing === 'annual'
-                  ? <p className="text-xs text-green-600 dark:text-green-400 font-medium">$374/año · 2 meses gratis</p>
+                  ? <p className="text-xs text-green-600 dark:text-green-400 font-medium">MX$6,990/año · 2 meses gratis</p>
                   : <p className="text-xs text-amber-600 dark:text-amber-400 font-medium">Precio de lanzamiento · tiempo limitado</p>
                 }
                 <ul className="mt-2 space-y-1 text-xs text-gray-500 dark:text-gray-400">
@@ -501,9 +501,9 @@ export default function BillingSection({
             </div>
             <div className="flex items-baseline gap-2">
               <p className="text-2xl font-bold text-gray-900 dark:text-white">
-                $39 <span className="text-sm font-normal text-gray-400 dark:text-gray-500">/mes</span>
+                MX$699 <span className="text-sm font-normal text-gray-400 dark:text-gray-500">/mes</span>
               </p>
-              <p className="text-sm text-gray-400 dark:text-gray-500 line-through">$59</p>
+              <p className="text-sm text-gray-400 dark:text-gray-500 line-through">MX$1,099</p>
               <span className="rounded-full bg-amber-100 dark:bg-amber-500/20 px-2 py-0.5 text-[10px] font-bold text-amber-700 dark:text-amber-400">🔥 Lanzamiento</span>
             </div>
             <p className="text-xs text-gray-400 dark:text-gray-500">El ciclo de facturación se mantiene igual. Puedes cambiar a anual desde el portal de facturación.</p>
