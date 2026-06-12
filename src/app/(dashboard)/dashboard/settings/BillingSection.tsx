@@ -19,6 +19,7 @@ interface Props {
   checkoutSuccess:    boolean;
   checkoutCanceled:   boolean;
   planUsage?:         PlanUsage | null;
+  trialDays?:         number;
 }
 
 interface UpgradePreview {
@@ -88,6 +89,7 @@ export default function BillingSection({
   checkoutSuccess,
   checkoutCanceled,
   planUsage,
+  trialDays = 0,
 }: Props) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
@@ -390,6 +392,16 @@ export default function BillingSection({
         {/* Free → Starter / Pro */}
         {effectivePlan === 'free' && (
           <>
+          {/* Trial banner */}
+          {trialDays > 0 && (
+            <div className="rounded-xl bg-green-50 dark:bg-green-500/10 border border-green-200 dark:border-green-500/20 px-4 py-3 flex items-start gap-3">
+              <span className="text-lg">🎁</span>
+              <div>
+                <p className="text-sm font-semibold text-green-800 dark:text-green-400">{trialDays} días gratis — sin cargos hasta que termine el período</p>
+                <p className="text-xs text-green-700 dark:text-green-400/80 mt-0.5">Ingresa tu tarjeta hoy y empieza a usar Fideliza+ sin costo. Cancela cuando quieras antes de que termine el período.</p>
+              </div>
+            </div>
+          )}
           {/* Billing period toggle */}
           <div className="flex items-center justify-center gap-2">
             <button

@@ -99,17 +99,25 @@ export async function POST(request: Request) {
     // ── 6. Create Checkout Session ────────────────────────────────────
     const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000';
 
+    // Trial period: set STRIPE_TRIAL_DAYS=30 in Vercel to give new users a free trial.
+    // Remove the env var when the promotion ends — existing trials are unaffected.
+    const trialDays = process.env.STRIPE_TRIAL_DAYS ? parseInt(process.env.STRIPE_TRIAL_DAYS, 10) : 0;
+
     const session = await stripe.checkout.sessions.create({
       customer:             customerId,
-      client_reference_id:  tenantId,        // used in webhook to find the tenant
+      client_reference_id:  tenantId,
       mode:                 'subscription',
       payment_method_types: ['card'],
       line_items: [{ price: priceId, quantity: 1 }],
       success_url: `${appUrl}/dashboard/settings?checkout=success`,
       cancel_url:  `${appUrl}/dashboard/settings?checkout=canceled`,
       subscription_data: {
-        metadata: { tenant_id: tenantId },   // fallback for webhook resolution
+        metadata:          { tenant_id: tenantId },
+        ...(trialDays > 0 && { trial_period_days: trialDays }),
       },
+      // When trial is active, allow checkout without immediate payment
+      ...(trialDays > 0 && { payment_method_collection: 'always' }),
+      allow_promotion_codes: true,
       metadata: { tenant_id: tenantId, plan, billing },
     });
 

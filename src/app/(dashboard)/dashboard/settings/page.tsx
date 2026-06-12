@@ -47,6 +47,7 @@ export default async function SettingsPage({
         checkoutSuccess={checkout === 'success'}
         checkoutCanceled={checkout === 'canceled'}
         planUsage={planUsage}
+        trialDays={parseInt(process.env.STRIPE_TRIAL_DAYS ?? '0', 10)}
       />
 
       <DeleteAccountSection subdomain={tenant.subdomain} />
