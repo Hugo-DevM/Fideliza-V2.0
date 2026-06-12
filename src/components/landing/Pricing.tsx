@@ -140,16 +140,9 @@ export function Pricing({ t }: PricingProps) {
                       <span className={`text-sm font-semibold ${plan.highlight ? 'text-indigo-200' : plan.comingSoon ? 'text-gray-400' : 'text-gray-500'}`}>
                         {plan.name}
                       </span>
-                      <div className="flex items-center gap-1.5">
-                        {isLaunch && (
-                          <span className="rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-bold text-amber-700 uppercase tracking-wide">
-                            🔥 Lanzamiento
-                          </span>
-                        )}
-                        {plan.badge ? (
-                          <Badge color={plan.comingSoon ? 'gray' : 'green'} className="text-[11px]">{plan.badge}</Badge>
-                        ) : null}
-                      </div>
+                      {plan.badge ? (
+                        <Badge color={plan.comingSoon ? 'gray' : 'green'} className="text-[11px]">{plan.badge}</Badge>
+                      ) : null}
                     </div>
 
                     <div className="flex items-end gap-1 mb-1 overflow-hidden">
@@ -163,6 +156,11 @@ export function Pricing({ t }: PricingProps) {
                         </span>
                       )}
                     </div>
+                    {isLaunch && (
+                      <p className={`text-xs font-medium mb-1 ${plan.highlight ? 'text-amber-300' : 'text-amber-600'}`}>
+                        🔥 Precio de lanzamiento · tiempo limitado
+                      </p>
+                    )}
 
                     {/* Per-month equivalent when annual */}
                     <div className="h-4 mb-2">
