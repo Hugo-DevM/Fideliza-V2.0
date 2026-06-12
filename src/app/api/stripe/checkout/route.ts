@@ -115,8 +115,8 @@ export async function POST(request: Request) {
         metadata:          { tenant_id: tenantId },
         ...(trialDays > 0 && { trial_period_days: trialDays }),
       },
-      // When trial is active, allow checkout without immediate payment
-      ...(trialDays > 0 && { payment_method_collection: 'always' }),
+      // When trial is active, collect payment method but don't charge until trial ends
+      ...(trialDays > 0 && { payment_method_collection: 'if_required' }),
       allow_promotion_codes: true,
       metadata: { tenant_id: tenantId, plan, billing },
     });

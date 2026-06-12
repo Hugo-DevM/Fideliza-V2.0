@@ -48,10 +48,10 @@ export const STRIPE_PRICE_IDS: Record<string, string | undefined> = {
 };
 
 /** Returns the internal plan name for a given Stripe Price ID, or null if not found. */
-export function planFromPriceId(priceId: string): 'starter' | 'pro' | null {
-  for (const [plan, id] of Object.entries(STRIPE_PRICE_IDS)) {
-    if (id && id === priceId) return plan as 'starter' | 'pro';
-  }
+export function planFromPriceId(priceId: string): 'starter' | 'pro' | 'test' | null {
+  if (priceId === process.env.STRIPE_PRICE_STARTER || priceId === process.env.STRIPE_PRICE_STARTER_ANNUAL) return 'starter';
+  if (priceId === process.env.STRIPE_PRICE_PRO || priceId === process.env.STRIPE_PRICE_PRO_ANNUAL) return 'pro';
+  if (priceId === process.env.STRIPE_PRICE_TEST) return 'test';
   return null;
 }
 
