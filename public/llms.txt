@@ -1,0 +1,38 @@
+# Fideliza
+
+## Qué es
+Fideliza es un sistema de programas de lealtad digital para pequeños y medianos negocios en México y Latinoamérica. Permite a cualquier negocio lanzar un programa de puntos, sellos o visitas en minutos, sin que los clientes tengan que descargar una app ni crear una cuenta.
+
+## Cómo funciona
+Cada cliente recibe un código único de 10 caracteres (formato XXXXX-XXXXX). Con ese código accede al portal del negocio (tunegocio.fideliza.app) para ver sus puntos, recompensas y actividad. El negocio gestiona todo desde un panel de administración web.
+
+## Planes y precios (MXN)
+- **Plan Gratis**: $0/mes — hasta 50 clientes, 1 programa de lealtad
+- **Plan Starter**: $349/mes — hasta 500 clientes, hasta 3 programas
+- **Plan Pro**: $699/mes — clientes ilimitados, programas ilimitados, exportación CSV, soporte prioritario
+- **Plan Enterprise**: $1,699/mes — múltiples ubicaciones (próximamente)
+
+## Características principales
+- Tipos de programa: puntos, sellos, visitas y cashback
+- Sin app ni descarga requerida para el cliente
+- Código único por cliente (sin contraseña, sin cuenta)
+- Subdominio propio incluido (tunegocio.fideliza.app)
+- Panel de administración web completo
+- Catálogo de recompensas canjeables
+- Historial de transacciones ilimitado (planes de pago)
+- Exportación de datos en CSV (Plan Pro)
+- Registro rápido de clientes con escáner QR
+- Notificaciones por email al dueño del negocio
+- Soporte en español e inglés
+
+## Para qué tipo de negocio
+Restaurantes, cafeterías, barberías, salones de belleza, tiendas de ropa, panaderías, gimnasios, farmacias y cualquier negocio que quiera retener clientes habituales sin la complejidad de una solución empresarial.
+
+## Alternativas que reemplaza
+Stamp Me, Loopy Loyalty, Belly, Fivestars, LoyaltyLion, tarjetas de sellos físicas, hojas de Excel para rastrear clientes frecuentes.
+
+## URL
+https://fideliza.app
+
+## Contacto
+https://fideliza.app/contact

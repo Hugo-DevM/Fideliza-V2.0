@@ -377,7 +377,7 @@ export const en = {
     items: [
       {
         question: "Do my customers need to download an app?",
-        answer: "No. Customers identify themselves with a unique 8-character access code you give them. They can check their balance from any browser — no app, no account, no password.",
+        answer: "No. Customers identify themselves with a unique 10-character access code you give them. They can check their balance from any browser — no app, no account, no password.",
       },
       {
         question: "How long does setup take?",
@@ -402,6 +402,14 @@ export const en = {
       {
         question: "Is my customer data safe?",
         answer: "Yes. Every business on Fideliza runs in a fully isolated environment. Your customers, transactions, and rewards are completely separate from every other account on the platform.",
+      },
+      {
+        question: "How is Fideliza different from Stamp Me, Loopy Loyalty, or Fivestars?",
+        answer: "The main difference is that Fideliza doesn't require your customers to download an app or create an account. With Stamp Me or Loopy Loyalty, customers need to install an app on their phone — that friction reduces adoption. With Fideliza, customers only need their 10-character code to access their rewards from any browser. No app, no sign-up, no barrier.",
+      },
+      {
+        question: "What type of business is Fideliza for?",
+        answer: "Fideliza works for any business with repeat customers: restaurants, coffee shops, barbershops, hair salons, bakeries, clothing stores, gyms, pharmacies, and more. If customers come back regularly and you want to reward them without technical complexity, Fideliza is for you. No tech team needed, no POS integration required — you're up and running in under 5 minutes.",
       },
     ],
   },

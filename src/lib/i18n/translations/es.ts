@@ -378,7 +378,7 @@ export const es: Dictionary = {
     items: [
       {
         question: "¿Mis clientes necesitan descargar una app?",
-        answer: "No. Los clientes se identifican con un código de acceso único de 8 caracteres que tú les das. Pueden ver su saldo desde cualquier navegador — sin app, sin cuenta, sin contraseña.",
+        answer: "No. Los clientes se identifican con un código de acceso único de 10 caracteres que tú les das. Pueden ver su saldo desde cualquier navegador — sin app, sin cuenta, sin contraseña.",
       },
       {
         question: "¿Cuánto tiempo tarda la configuración?",
@@ -403,6 +403,14 @@ export const es: Dictionary = {
       {
         question: "¿Los datos de mis clientes están seguros?",
         answer: "Sí. Cada negocio en Fideliza opera en un entorno completamente aislado. Tus clientes, transacciones y premios están totalmente separados de cualquier otra cuenta en la plataforma.",
+      },
+      {
+        question: "¿En qué se diferencia Fideliza de Stamp Me, Loopy Loyalty o Fivestars?",
+        answer: "La diferencia principal es que Fideliza no requiere que tus clientes descarguen una app ni creen una cuenta. Con Stamp Me o Loopy Loyalty, el cliente necesita instalar una aplicación en su teléfono — eso genera fricción y reduce la adopción. En Fideliza, el cliente solo necesita su código de 10 caracteres para acceder desde cualquier navegador. Además, Fideliza está diseñado para negocios en México y Latinoamérica, con precios en pesos mexicanos y soporte en español.",
+      },
+      {
+        question: "¿Para qué tipo de negocio funciona Fideliza?",
+        answer: "Fideliza funciona para cualquier negocio que quiera retener clientes habituales: restaurantes, cafeterías, barberías, salones de belleza, panaderías, tiendas de ropa, gimnasios, farmacias y más. Si tienes clientes que regresan regularmente y quieres recompensarlos sin complicaciones técnicas, Fideliza es para ti. No necesitas un equipo de tecnología ni una integración con tu sistema de cobro — funciona de forma independiente en menos de 5 minutos.",
       },
     ],
   },

@@ -80,6 +80,62 @@ export default async function RootLayout({
             __html: `try{var t=localStorage.getItem('theme');if(t==='dark'||(t==null&&window.matchMedia('(prefers-color-scheme:dark)').matches)){document.documentElement.classList.add('dark')}}catch(e){}`,
           }}
         />
+        {/* Schema markup — helps AI and search engines understand what Fideliza is */}
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              "@context": "https://schema.org",
+              "@type": "SoftwareApplication",
+              "name": "Fideliza",
+              "url": "https://fideliza.app",
+              "logo": "https://fideliza.app/icon.svg",
+              "applicationCategory": "BusinessApplication",
+              "operatingSystem": "Web",
+              "inLanguage": ["es", "en"],
+              "description": "Sistema de programas de lealtad digital para pequeños y medianos negocios en México y Latinoamérica. Sin app, sin descargas — los clientes usan un código único. Incluye programas de puntos, sellos y visitas, panel de administración, subdominio propio y exportación de datos.",
+              "keywords": "programa de lealtad, fidelización de clientes, puntos de lealtad, tarjeta de sellos digital, loyalty program Mexico, retención de clientes, programa de puntos para negocios",
+              "offers": [
+                {
+                  "@type": "Offer",
+                  "name": "Plan Gratis",
+                  "price": "0",
+                  "priceCurrency": "MXN",
+                  "description": "Hasta 50 clientes, 1 programa de lealtad"
+                },
+                {
+                  "@type": "Offer",
+                  "name": "Plan Starter",
+                  "price": "349",
+                  "priceCurrency": "MXN",
+                  "description": "Hasta 500 clientes, hasta 3 programas de lealtad"
+                },
+                {
+                  "@type": "Offer",
+                  "name": "Plan Pro",
+                  "price": "699",
+                  "priceCurrency": "MXN",
+                  "description": "Clientes ilimitados, programas ilimitados, exportación CSV"
+                }
+              ],
+              "featureList": [
+                "Programas de puntos, sellos y visitas",
+                "Sin app ni descarga para el cliente",
+                "Código único por cliente",
+                "Subdominio propio (tunegocio.fideliza.app)",
+                "Panel de administración completo",
+                "Exportación de datos CSV",
+                "Historial de transacciones",
+                "Catálogo de recompensas"
+              ],
+              "provider": {
+                "@type": "Organization",
+                "name": "Fideliza",
+                "url": "https://fideliza.app"
+              }
+            })
+          }}
+        />
       </head>
       <body className="min-h-full flex flex-col">
         {children}
