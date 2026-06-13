@@ -2,13 +2,7 @@
 
 import { useState, useTransition, useRef, useEffect, useCallback } from 'react';
 import { useModalTransition } from '@/hooks/useModalTransition';
-
-// BarcodeDetector is a browser API not yet in TypeScript's lib
-declare class BarcodeDetector {
-  constructor(options?: { formats: string[] });
-  detect(source: HTMLVideoElement | HTMLImageElement | HTMLCanvasElement | ImageBitmap): Promise<Array<{ rawValue: string; format: string }>>;
-  static getSupportedFormats(): Promise<string[]>;
-}
+import jsQR from 'jsqr';
 import { verifyVoucherAction } from './programs/[id]/actions';
 import { useDashboardI18n } from '@/lib/i18n/dashboard-context';
 import { formatTimeOnly } from '@/lib/utils/date';
@@ -49,18 +43,9 @@ export default function VerifyVoucherForm() {
   const [scanError, setScanError]    = useState('');
   const inputRef                     = useRef<HTMLInputElement>(null);
   const videoRef                     = useRef<HTMLVideoElement>(null);
+  const canvasRef                    = useRef<HTMLCanvasElement>(null);
   const streamRef                    = useRef<MediaStream | null>(null);
   const rafRef                       = useRef<number>(0);
-  const detectorRef                  = useRef<BarcodeDetector | null>(null);
-
-  // Initialise BarcodeDetector once
-  useEffect(() => {
-    if (typeof window !== 'undefined' && 'BarcodeDetector' in window) {
-      detectorRef.current = new BarcodeDetector({
-        formats: ['qr_code', 'code_128', 'code_39', 'code_93', 'ean_13', 'ean_8'],
-      });
-    }
-  }, []);
 
   // Stop camera when scanning modal closes
   const stopCamera = useCallback(() => {
@@ -71,8 +56,8 @@ export default function VerifyVoucherForm() {
 
   async function openScanner() {
     setScanError('');
-    if (!detectorRef.current) {
-      setScanError('Tu navegador no soporta el escáner. Usa Chrome o Edge.');
+    if (!navigator.mediaDevices?.getUserMedia) {
+      setScanError('Tu navegador no soporta el acceso a la cámara.');
       return;
     }
     try {
@@ -94,24 +79,28 @@ export default function VerifyVoucherForm() {
     video.play();
 
     function scanFrame() {
-      if (!detectorRef.current || !video || video.readyState < 2) {
+      if (!video || video.readyState < 2) {
         rafRef.current = requestAnimationFrame(scanFrame);
         return;
       }
-      detectorRef.current.detect(video).then((barcodes) => {
-        if (barcodes.length > 0) {
-          const raw = barcodes[0].rawValue;
-          const formatted = formatCode(raw);
-          setCode(formatted);
-          setScanning(false);
-          stopCamera();
-          setTimeout(() => inputRef.current?.focus(), 50);
-        } else {
-          rafRef.current = requestAnimationFrame(scanFrame);
-        }
-      }).catch(() => {
+      const canvas = canvasRef.current;
+      if (!canvas) { rafRef.current = requestAnimationFrame(scanFrame); return; }
+      canvas.width  = video.videoWidth;
+      canvas.height = video.videoHeight;
+      const ctx = canvas.getContext('2d');
+      if (!ctx) { rafRef.current = requestAnimationFrame(scanFrame); return; }
+      ctx.drawImage(video, 0, 0);
+      const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+      const result = jsQR(imageData.data, imageData.width, imageData.height, { inversionAttempts: 'dontInvert' });
+      if (result?.data) {
+        const formatted = formatCode(result.data);
+        setCode(formatted);
+        setScanning(false);
+        stopCamera();
+        setTimeout(() => inputRef.current?.focus(), 50);
+      } else {
         rafRef.current = requestAnimationFrame(scanFrame);
-      });
+      }
     }
 
     rafRef.current = requestAnimationFrame(scanFrame);
@@ -274,6 +263,7 @@ export default function VerifyVoucherForm() {
                 playsInline
                 className="h-full w-full object-cover"
               />
+              <canvas ref={canvasRef} className="hidden" />
               {/* Targeting overlay */}
               <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
                 <div className="relative h-52 w-52">

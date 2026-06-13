@@ -4,6 +4,7 @@ import { createServiceRoleClient } from '@/lib/supabase/server';
 import { listCustomers } from '@/modules/customers';
 import NewCustomerModal from './NewCustomerModal';
 import CustomerSearchInput from './CustomerSearchInput';
+import CopyCodeButton from './CopyCodeButton';
 
 export const metadata = { title: 'Clientes — Fideliza+' };
 
@@ -123,7 +124,7 @@ export default async function CustomersPage({
                 </div>
                 {/* Row 2: code + phone + date */}
                 <div className="mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-1">
-                  <span className="font-mono text-xs text-gray-500 dark:text-gray-400 bg-gray-50 dark:bg-[#0d0f17] border border-gray-200 dark:border-[#2a3147] rounded px-1.5 py-0.5">{c.access_code}</span>
+                  <CopyCodeButton code={c.access_code} />
                   {c.phone && <span className="text-xs text-gray-500 dark:text-gray-400">{formatPhone(c.phone)}</span>}
                   <span className="text-xs text-gray-400 dark:text-gray-500 ml-auto">
                     {new Date(c.created_at).toLocaleDateString('es', { day: '2-digit', month: 'short', year: 'numeric' })}
@@ -164,9 +165,7 @@ export default async function CustomersPage({
                         </div>
                       </td>
                       <td className="px-5 py-3.5">
-                        <span className="inline-block rounded-lg border border-gray-200 dark:border-[#2a3147] bg-gray-50 dark:bg-[#0d0f17] px-2.5 py-1 font-mono text-xs text-gray-600 dark:text-gray-300">
-                          {c.access_code}
-                        </span>
+                        <CopyCodeButton code={c.access_code} />
                       </td>
                       <td className="px-5 py-3.5 text-gray-500 dark:text-gray-400">
                         {c.phone ? formatPhone(c.phone) : <span className="text-gray-300 dark:text-gray-600">—</span>}
