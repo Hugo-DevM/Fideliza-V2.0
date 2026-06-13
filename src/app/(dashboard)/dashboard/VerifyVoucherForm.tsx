@@ -57,17 +57,32 @@ export default function VerifyVoucherForm() {
   async function openScanner() {
     setScanError('');
     if (!navigator.mediaDevices?.getUserMedia) {
-      setScanError('Tu navegador no soporta el acceso a la cámara.');
+      setScanError('Tu navegador no soporta el acceso a la cámara. Usa Chrome o Safari.');
       return;
     }
     try {
+      // Check permission state before requesting (Chrome/Edge/Firefox)
+      if (navigator.permissions) {
+        const perm = await navigator.permissions.query({ name: 'camera' as PermissionName });
+        if (perm.state === 'denied') {
+          setScanError('PERMISSION_DENIED');
+          return;
+        }
+      }
       const stream = await navigator.mediaDevices.getUserMedia({
         video: { facingMode: 'environment', width: { ideal: 1280 }, height: { ideal: 720 } },
       });
       streamRef.current = stream;
       setScanning(true);
-    } catch {
-      setScanError('No se pudo acceder a la cámara. Verifica los permisos.');
+    } catch (err) {
+      const name = (err as { name?: string }).name;
+      if (name === 'NotAllowedError' || name === 'PermissionDeniedError') {
+        setScanError('PERMISSION_DENIED');
+      } else if (name === 'NotFoundError') {
+        setScanError('No se encontró ninguna cámara en este dispositivo.');
+      } else {
+        setScanError('No se pudo acceder a la cámara. Verifica los permisos.');
+      }
     }
   }
 
@@ -76,15 +91,13 @@ export default function VerifyVoucherForm() {
     if (!scanning || !videoRef.current || !streamRef.current) return;
     const video = videoRef.current;
     video.srcObject = streamRef.current;
-    video.play();
 
     function scanFrame() {
-      if (!video || video.readyState < 2) {
+      const canvas = canvasRef.current;
+      if (!canvas || !video.videoWidth) {
         rafRef.current = requestAnimationFrame(scanFrame);
         return;
       }
-      const canvas = canvasRef.current;
-      if (!canvas) { rafRef.current = requestAnimationFrame(scanFrame); return; }
       canvas.width  = video.videoWidth;
       canvas.height = video.videoHeight;
       const ctx = canvas.getContext('2d');
@@ -103,16 +116,27 @@ export default function VerifyVoucherForm() {
       }
     }
 
-    rafRef.current = requestAnimationFrame(scanFrame);
-    return () => cancelAnimationFrame(rafRef.current);
+    function onCanPlay() {
+      video.play().catch(() => {});
+      rafRef.current = requestAnimationFrame(scanFrame);
+    }
+
+    video.addEventListener('canplay', onCanPlay, { once: true });
+    video.load();
+
+    return () => {
+      video.removeEventListener('canplay', onCanPlay);
+      cancelAnimationFrame(rafRef.current);
+    };
   }, [scanning, stopCamera]);
 
   // Cleanup on unmount
   useEffect(() => () => stopCamera(), [stopCamera]);
 
-  // Animate in/out and auto-clear errors after 3 seconds
+  // Animate in/out and auto-clear errors after 3 seconds (except permission errors)
   useEffect(() => {
-    if (!error && !scanError) {
+    const active = error || scanError;
+    if (!active) {
       setErrorVisible(false);
       if (unmountTimerRef.current) clearTimeout(unmountTimerRef.current);
       unmountTimerRef.current = setTimeout(() => {
@@ -122,14 +146,16 @@ export default function VerifyVoucherForm() {
       return;
     }
     if (unmountTimerRef.current) clearTimeout(unmountTimerRef.current);
-    setErrorDisplayText(error || scanError);
+    setErrorDisplayText(active);
     setErrorMounted(true);
     requestAnimationFrame(() => setErrorVisible(true));
+    // Don't auto-dismiss permission errors — user needs to read the instructions
+    if (active === 'PERMISSION_DENIED') return;
     if (errorTimerRef.current) clearTimeout(errorTimerRef.current);
     errorTimerRef.current = setTimeout(() => {
       setErrorVisible(false);
       setTimeout(() => { setError(''); setScanError(''); }, 350);
-    }, 3000);
+    }, 4000);
     return () => { if (errorTimerRef.current) clearTimeout(errorTimerRef.current); };
   }, [error, scanError]);
 
@@ -218,16 +244,39 @@ export default function VerifyVoucherForm() {
           transition: 'grid-template-rows 350ms ease',
         }}>
           <div style={{ overflow: 'hidden' }}>
-            <p
-              className="rounded-xl bg-red-50 dark:bg-red-950/30 border border-red-100 dark:border-red-900/30 px-3 py-2 text-sm text-red-600 dark:text-red-400"
-              style={{
-                opacity: errorVisible ? 1 : 0,
-                transform: errorVisible ? 'translateY(0)' : 'translateY(-4px)',
-                transition: 'opacity 280ms ease, transform 280ms ease',
-              }}
-            >
-              {errorDisplayText}
-            </p>
+            {errorDisplayText === 'PERMISSION_DENIED' ? (
+              <div
+                className="rounded-xl bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800/40 px-3 py-3 space-y-1.5"
+                style={{
+                  opacity: errorVisible ? 1 : 0,
+                  transform: errorVisible ? 'translateY(0)' : 'translateY(-4px)',
+                  transition: 'opacity 280ms ease, transform 280ms ease',
+                }}
+              >
+                <p className="text-sm font-semibold text-amber-800 dark:text-amber-300">Cámara bloqueada</p>
+                <p className="text-xs text-amber-700 dark:text-amber-400 leading-relaxed">
+                  Para permitir el acceso: haz clic en el ícono de <strong>cámara 🎥</strong> o <strong>candado 🔒</strong> en la barra de direcciones de tu navegador → selecciona <strong>"Permitir"</strong> → recarga la página.
+                </p>
+                <button
+                  type="button"
+                  onClick={() => { setScanError(''); }}
+                  className="text-xs font-medium text-amber-600 dark:text-amber-400 underline hover:no-underline"
+                >
+                  Entendido
+                </button>
+              </div>
+            ) : (
+              <p
+                className="rounded-xl bg-red-50 dark:bg-red-950/30 border border-red-100 dark:border-red-900/30 px-3 py-2 text-sm text-red-600 dark:text-red-400"
+                style={{
+                  opacity: errorVisible ? 1 : 0,
+                  transform: errorVisible ? 'translateY(0)' : 'translateY(-4px)',
+                  transition: 'opacity 280ms ease, transform 280ms ease',
+                }}
+              >
+                {errorDisplayText}
+              </p>
+            )}
           </div>
         </div>
       )}
@@ -257,9 +306,11 @@ export default function VerifyVoucherForm() {
 
             {/* Camera viewfinder */}
             <div className="relative bg-black aspect-square overflow-hidden">
+              {/* eslint-disable-next-line jsx-a11y/media-has-caption */}
               <video
                 ref={videoRef}
                 muted
+                autoPlay
                 playsInline
                 className="h-full w-full object-cover"
               />
