@@ -12,7 +12,7 @@ import { BadRequestError, NotFoundError } from '@/lib/middleware/errors';
 import { enforceCustomerLimit } from '@/lib/middleware/plan-limits';
 import { generateAccessCode } from '@/lib/utils/crypto';
 import { getNotificationPrefs } from '@/lib/email/notification-prefs';
-import { sendNewCustomerNotification } from '@/lib/email/resend';
+import { sendMilestoneNotification } from '@/lib/email/resend';
 import type { Customer, CustomerProgramEnrollment, UUID } from '@/lib/types';
 import type { CreateCustomerInput } from '@/lib/validation/customer.schema';
 
@@ -82,12 +82,22 @@ export async function createCustomer(
 
   const customer = data as Customer;
 
-  // Fire-and-forget notification — never block customer creation
-  void getNotificationPrefs(tenantId).then((prefs) => {
-    if (prefs?.notifyNewCustomer) {
-      void sendNewCustomerNotification(prefs.email, prefs.tenantName, customer.name);
-    }
-  });
+  // Fire-and-forget milestone notification — only at 1, 50 and 300 customers
+  void (async () => {
+    const MILESTONES = [1, 50, 300];
+    const { count } = await db
+      .from('customers')
+      .select('id', { count: 'exact', head: true })
+      .eq('tenant_id', tenantId);
+
+    const total = count ?? 0;
+    if (!MILESTONES.includes(total)) return;
+
+    const prefs = await getNotificationPrefs(tenantId);
+    if (!prefs?.notifyNewCustomer) return;
+
+    void sendMilestoneNotification(prefs.email, prefs.tenantName, total);
+  })();
 
   return customer;
 }

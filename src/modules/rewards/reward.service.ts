@@ -11,6 +11,8 @@ import {
 } from './reward.repository';
 import { BadRequestError } from '@/lib/middleware/errors';
 import { enforceProgramLimit, enforceProgramTypeAllowed, enforceRewardCatalog } from '@/lib/middleware/plan-limits';
+import { getNotificationPrefs } from '@/lib/email/notification-prefs';
+import { sendProgramMilestoneNotification } from '@/lib/email/resend';
 import type { Reward, RewardProgram, UUID } from '@/lib/types';
 import type {
   CreateRewardProgramInput,
@@ -93,7 +95,26 @@ export async function createProgram(
     throw new Error(`Error al crear el programa: ${error?.message}`);
   }
 
-  return data as unknown as RewardProgram;
+  const program = data as unknown as RewardProgram;
+
+  // Fire-and-forget milestone notification — only at 1st and 3rd program
+  void (async () => {
+    const MILESTONES = [1, 3];
+    const { count } = await db
+      .from('reward_programs')
+      .select('id', { count: 'exact', head: true })
+      .eq('tenant_id', tenantId);
+
+    const total = count ?? 0;
+    if (!MILESTONES.includes(total)) return;
+
+    const prefs = await getNotificationPrefs(tenantId);
+    if (!prefs?.notifyNewCustomer) return;
+
+    void sendProgramMilestoneNotification(prefs.email, prefs.tenantName, total, program.name);
+  })();
+
+  return program;
 }
 
 export async function updateProgram(
