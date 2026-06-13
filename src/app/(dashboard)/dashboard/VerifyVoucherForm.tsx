@@ -2,7 +2,7 @@
 
 import { useState, useTransition, useRef, useEffect, useCallback } from 'react';
 import { useModalTransition } from '@/hooks/useModalTransition';
-import jsQR from 'jsqr';
+import { BrowserQRCodeReader, IScannerControls } from '@zxing/browser';
 import { verifyVoucherAction } from './programs/[id]/actions';
 import { useDashboardI18n } from '@/lib/i18n/dashboard-context';
 import { formatTimeOnly } from '@/lib/utils/date';
@@ -43,89 +43,76 @@ export default function VerifyVoucherForm() {
   const [scanError, setScanError]    = useState('');
   const inputRef                     = useRef<HTMLInputElement>(null);
   const videoRef                     = useRef<HTMLVideoElement>(null);
-  const canvasRef                    = useRef<HTMLCanvasElement>(null);
-  const streamRef                    = useRef<MediaStream | null>(null);
-  const rafRef                       = useRef<number>(0);
+  const controlsRef                  = useRef<IScannerControls | null>(null);
 
-  // Stop camera when scanning modal closes
   const stopCamera = useCallback(() => {
-    cancelAnimationFrame(rafRef.current);
-    streamRef.current?.getTracks().forEach((t) => t.stop());
-    streamRef.current = null;
+    controlsRef.current?.stop();
+    controlsRef.current = null;
   }, []);
 
   async function openScanner() {
     setScanError('');
-
-    // mediaDevices is only available on HTTPS or localhost
-    if (!navigator.mediaDevices?.getUserMedia) {
-      setScanError('La cámara requiere conexión segura (HTTPS). Contacta al soporte.');
+    if (!window.isSecureContext) {
+      setScanError('INSECURE');
       return;
     }
+    if (!navigator.mediaDevices?.getUserMedia) {
+      setScanError('La cámara requiere conexión segura (HTTPS).');
+      return;
+    }
+    setScanning(true);
+  }
 
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({
-        video: { facingMode: 'environment', width: { ideal: 1280 }, height: { ideal: 720 } },
-      });
-      streamRef.current = stream;
-      setScanning(true);
-    } catch (err) {
+  // Start ZXing scanner once the modal + video element are mounted
+  useEffect(() => {
+    if (!scanning || !videoRef.current) return;
+
+    const reader = new BrowserQRCodeReader();
+    let cancelled = false;
+
+    reader.decodeFromConstraints(
+      { video: { facingMode: 'environment' } },
+      videoRef.current,
+      (result, err, controls) => {
+        if (cancelled) return;
+        controlsRef.current = controls;
+        if (result) {
+          const formatted = formatCode(result.getText());
+          setCode(formatted);
+          setScanning(false);
+          controls.stop();
+          setTimeout(() => inputRef.current?.focus(), 50);
+        }
+        if (err && !(err instanceof Error && err.name === 'NotFoundException')) {
+          const name = (err as { name?: string }).name;
+          if (name === 'NotAllowedError' || name === 'PermissionDeniedError') {
+            setScanError('PERMISSION_DENIED');
+          } else if (name === 'NotFoundError') {
+            setScanError('No se encontró ninguna cámara.');
+          } else if (name === 'NotReadableError') {
+            setScanError('La cámara está siendo usada por otra aplicación.');
+          }
+          controls.stop();
+          setScanning(false);
+        }
+      },
+    ).catch((err) => {
+      if (cancelled) return;
       const name = (err as { name?: string }).name;
       if (name === 'NotAllowedError' || name === 'PermissionDeniedError') {
         setScanError('PERMISSION_DENIED');
-      } else if (name === 'NotFoundError') {
-        setScanError('No se encontró ninguna cámara en este dispositivo.');
-      } else if (name === 'NotReadableError' || name === 'AbortError') {
-        setScanError('La cámara está siendo usada por otra aplicación.');
       } else {
-        setScanError('No se pudo acceder a la cámara. Verifica los permisos del sitio.');
+        setScanError('No se pudo acceder a la cámara. Verifica los permisos.');
       }
-    }
-  }
-
-  // Attach stream to video element once modal is open
-  useEffect(() => {
-    if (!scanning || !videoRef.current || !streamRef.current) return;
-    const video = videoRef.current;
-    video.srcObject = streamRef.current;
-
-    function scanFrame() {
-      const canvas = canvasRef.current;
-      if (!canvas || !video.videoWidth) {
-        rafRef.current = requestAnimationFrame(scanFrame);
-        return;
-      }
-      canvas.width  = video.videoWidth;
-      canvas.height = video.videoHeight;
-      const ctx = canvas.getContext('2d');
-      if (!ctx) { rafRef.current = requestAnimationFrame(scanFrame); return; }
-      ctx.drawImage(video, 0, 0);
-      const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-      const result = jsQR(imageData.data, imageData.width, imageData.height, { inversionAttempts: 'dontInvert' });
-      if (result?.data) {
-        const formatted = formatCode(result.data);
-        setCode(formatted);
-        setScanning(false);
-        stopCamera();
-        setTimeout(() => inputRef.current?.focus(), 50);
-      } else {
-        rafRef.current = requestAnimationFrame(scanFrame);
-      }
-    }
-
-    function onCanPlay() {
-      video.play().catch(() => {});
-      rafRef.current = requestAnimationFrame(scanFrame);
-    }
-
-    video.addEventListener('canplay', onCanPlay, { once: true });
-    video.load();
+      setScanning(false);
+    });
 
     return () => {
-      video.removeEventListener('canplay', onCanPlay);
-      cancelAnimationFrame(rafRef.current);
+      cancelled = true;
+      controlsRef.current?.stop();
+      controlsRef.current = null;
     };
-  }, [scanning, stopCamera]);
+  }, [scanning]);
 
   // Cleanup on unmount
   useEffect(() => () => stopCamera(), [stopCamera]);
@@ -241,7 +228,22 @@ export default function VerifyVoucherForm() {
           transition: 'grid-template-rows 350ms ease',
         }}>
           <div style={{ overflow: 'hidden' }}>
-            {errorDisplayText === 'PERMISSION_DENIED' ? (
+            {errorDisplayText === 'INSECURE' ? (
+              <div
+                className="rounded-xl bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-800/40 px-3 py-3 space-y-1"
+                style={{
+                  opacity: errorVisible ? 1 : 0,
+                  transform: errorVisible ? 'translateY(0)' : 'translateY(-4px)',
+                  transition: 'opacity 280ms ease, transform 280ms ease',
+                }}
+              >
+                <p className="text-sm font-semibold text-red-800 dark:text-red-300">Conexión no segura (HTTP)</p>
+                <p className="text-xs text-red-700 dark:text-red-400 leading-relaxed">
+                  Los navegadores bloquean la cámara en sitios HTTP. Accede al dashboard usando <strong>HTTPS</strong> para poder escanear.
+                </p>
+                <button type="button" onClick={() => setScanError('')} className="text-xs font-medium text-red-600 dark:text-red-400 underline hover:no-underline">Entendido</button>
+              </div>
+            ) : errorDisplayText === 'PERMISSION_DENIED' ? (
               <div
                 className="rounded-xl bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800/40 px-3 py-3 space-y-2"
                 style={{
@@ -313,7 +315,6 @@ export default function VerifyVoucherForm() {
                 playsInline
                 className="h-full w-full object-cover"
               />
-              <canvas ref={canvasRef} className="hidden" />
               {/* Targeting overlay */}
               <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
                 <div className="relative h-52 w-52">
