@@ -334,7 +334,7 @@ export default async function AnalyticsPage({
               <p className="text-xs text-gray-400 dark:text-gray-500 mt-0.5">Por puntos de por vida</p>
             </div>
             <Link href="/dashboard/customers" className="text-xs font-medium text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 transition">
-              Ver todos →
+              Ver todos
             </Link>
           </div>
           {topCustomers.length === 0 ? (

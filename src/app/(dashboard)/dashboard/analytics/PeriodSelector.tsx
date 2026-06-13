@@ -13,16 +13,16 @@ export default function PeriodSelector({ current }: { current: string }) {
   const pathname = usePathname();
 
   return (
-    <div className="flex items-center gap-1 rounded-xl border border-gray-200 dark:border-[#1e2438] bg-white dark:bg-[#161b2e] p-1 shadow-sm shrink-0">
+    <div className="flex items-center rounded-xl border border-gray-200 dark:border-[#1e2438] bg-gray-100 dark:bg-[#0d0f17] p-1 shrink-0">
       {OPTIONS.map((o) => {
         const active = current === o.value;
         return (
           <button
             key={o.value}
             onClick={() => router.push(`${pathname}?period=${o.value}`)}
-            className={`rounded-lg px-3 py-1.5 text-sm font-medium transition ${
+            className={`rounded-lg px-3.5 py-1.5 text-sm font-medium transition-all ${
               active
-                ? 'bg-indigo-600 text-white shadow-sm'
+                ? 'bg-white dark:bg-[#1e2438] text-gray-900 dark:text-white shadow-sm border border-gray-200 dark:border-[#2a3147]'
                 : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200'
             }`}
           >
