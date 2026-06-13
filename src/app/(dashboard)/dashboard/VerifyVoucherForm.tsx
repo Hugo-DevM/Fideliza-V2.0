@@ -2,7 +2,7 @@
 
 import { useState, useTransition, useRef, useEffect, useCallback } from 'react';
 import { useModalTransition } from '@/hooks/useModalTransition';
-import { BrowserQRCodeReader, IScannerControls } from '@zxing/browser';
+import jsQR from 'jsqr';
 import { verifyVoucherAction } from './programs/[id]/actions';
 import { useDashboardI18n } from '@/lib/i18n/dashboard-context';
 import { formatTimeOnly } from '@/lib/utils/date';
@@ -43,11 +43,14 @@ export default function VerifyVoucherForm() {
   const [scanError, setScanError]    = useState('');
   const inputRef                     = useRef<HTMLInputElement>(null);
   const videoRef                     = useRef<HTMLVideoElement>(null);
-  const controlsRef                  = useRef<IScannerControls | null>(null);
+  const canvasRef                    = useRef<HTMLCanvasElement>(null);
+  const streamRef                    = useRef<MediaStream | null>(null);
+  const rafRef                       = useRef<number>(0);
 
   const stopCamera = useCallback(() => {
-    controlsRef.current?.stop();
-    controlsRef.current = null;
+    cancelAnimationFrame(rafRef.current);
+    streamRef.current?.getTracks().forEach((t) => t.stop());
+    streamRef.current = null;
   }, []);
 
   async function openScanner() {
@@ -60,59 +63,65 @@ export default function VerifyVoucherForm() {
       setScanError('La cámara requiere conexión segura (HTTPS).');
       return;
     }
-    setScanning(true);
-  }
-
-  // Start ZXing scanner once the modal + video element are mounted
-  useEffect(() => {
-    if (!scanning || !videoRef.current) return;
-
-    const reader = new BrowserQRCodeReader();
-    let cancelled = false;
-
-    reader.decodeFromConstraints(
-      { video: { facingMode: 'environment' } },
-      videoRef.current,
-      (result, err, controls) => {
-        if (cancelled) return;
-        controlsRef.current = controls;
-        if (result) {
-          const formatted = formatCode(result.getText());
-          setCode(formatted);
-          setScanning(false);
-          controls.stop();
-          setTimeout(() => inputRef.current?.focus(), 50);
-        }
-        if (err && !(err instanceof Error && err.name === 'NotFoundException')) {
-          const name = (err as { name?: string }).name;
-          if (name === 'NotAllowedError' || name === 'PermissionDeniedError') {
-            setScanError('PERMISSION_DENIED');
-          } else if (name === 'NotFoundError') {
-            setScanError('No se encontró ninguna cámara.');
-          } else if (name === 'NotReadableError') {
-            setScanError('La cámara está siendo usada por otra aplicación.');
-          }
-          controls.stop();
-          setScanning(false);
-        }
-      },
-    ).catch((err) => {
-      if (cancelled) return;
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode: 'environment' },
+        audio: false,
+      });
+      streamRef.current = stream;
+      setScanning(true);
+    } catch (err) {
       const name = (err as { name?: string }).name;
       if (name === 'NotAllowedError' || name === 'PermissionDeniedError') {
         setScanError('PERMISSION_DENIED');
+      } else if (name === 'NotFoundError') {
+        setScanError('No se encontró ninguna cámara en este dispositivo.');
+      } else if (name === 'NotReadableError' || name === 'AbortError') {
+        setScanError('La cámara está siendo usada por otra aplicación.');
       } else {
-        setScanError('No se pudo acceder a la cámara. Verifica los permisos.');
+        setScanError('No se pudo acceder a la cámara. Verifica los permisos del sitio.');
       }
-      setScanning(false);
+    }
+  }
+
+  // Attach stream once the modal video element is in the DOM
+  useEffect(() => {
+    if (!scanning || !videoRef.current || !streamRef.current) return;
+    const video = videoRef.current;
+    video.srcObject = streamRef.current;
+
+    function tick() {
+      if (!video || video.readyState < 2 || !video.videoWidth) {
+        rafRef.current = requestAnimationFrame(tick);
+        return;
+      }
+      const canvas = canvasRef.current;
+      if (!canvas) { rafRef.current = requestAnimationFrame(tick); return; }
+      canvas.width  = video.videoWidth;
+      canvas.height = video.videoHeight;
+      const ctx = canvas.getContext('2d');
+      if (!ctx) { rafRef.current = requestAnimationFrame(tick); return; }
+      ctx.drawImage(video, 0, 0);
+      const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+      const result = jsQR(imageData.data, imageData.width, imageData.height);
+      if (result?.data) {
+        setCode(formatCode(result.data));
+        setScanning(false);
+        stopCamera();
+        setTimeout(() => inputRef.current?.focus(), 50);
+      } else {
+        rafRef.current = requestAnimationFrame(tick);
+      }
+    }
+
+    video.play().then(() => {
+      rafRef.current = requestAnimationFrame(tick);
+    }).catch(() => {
+      rafRef.current = requestAnimationFrame(tick);
     });
 
-    return () => {
-      cancelled = true;
-      controlsRef.current?.stop();
-      controlsRef.current = null;
-    };
-  }, [scanning]);
+    return () => cancelAnimationFrame(rafRef.current);
+  }, [scanning, stopCamera]);
 
   // Cleanup on unmount
   useEffect(() => () => stopCamera(), [stopCamera]);
@@ -308,6 +317,7 @@ export default function VerifyVoucherForm() {
             {/* Camera viewfinder */}
             <div className="relative bg-black aspect-square overflow-hidden">
               {/* eslint-disable-next-line jsx-a11y/media-has-caption */}
+              {/* eslint-disable-next-line jsx-a11y/media-has-caption */}
               <video
                 ref={videoRef}
                 muted
@@ -315,6 +325,7 @@ export default function VerifyVoucherForm() {
                 playsInline
                 className="h-full w-full object-cover"
               />
+              <canvas ref={canvasRef} className="hidden" />
               {/* Targeting overlay */}
               <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
                 <div className="relative h-52 w-52">
