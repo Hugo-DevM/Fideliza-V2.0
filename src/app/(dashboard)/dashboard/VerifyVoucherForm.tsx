@@ -93,7 +93,7 @@ export default function VerifyVoucherForm() {
     setScanError('');
     setCameraLoading(true);
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
+      const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: { ideal: 'environment' } }, audio: false });
       streamRef.current = stream;
       setScanning(true);
     } catch (err) {
