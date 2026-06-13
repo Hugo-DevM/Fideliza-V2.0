@@ -112,7 +112,7 @@ export default function SettingsForm({
     <form onSubmit={handleSubmit} className="space-y-6">
 
       {/* ── Page header ─────────────────────────────────────────────────────── */}
-      <div className="flex items-start justify-between gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
         <div className="space-y-1">
           <p className="text-xs font-semibold uppercase tracking-widest text-gray-400 dark:text-gray-500">
             {s.breadcrumb}
@@ -128,7 +128,7 @@ export default function SettingsForm({
         <button
           type="submit"
           disabled={isPending || !isDirty}
-          className="shrink-0 rounded-xl bg-indigo-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-indigo-700 disabled:opacity-50 transition"
+          className="w-full sm:w-auto shrink-0 rounded-xl bg-indigo-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-indigo-700 disabled:opacity-50 transition"
         >
           {isPending ? s.saving : s.save}
         </button>
@@ -158,28 +158,32 @@ export default function SettingsForm({
 
         <div>
           <p className="text-xs text-gray-400 dark:text-gray-500 mb-2">{s.account.portalUrl}</p>
-          <div className="flex items-center gap-2 rounded-xl border border-gray-100 dark:border-[#1e2438] bg-gray-50 dark:bg-[#1a1f35] px-3 py-2.5">
-            <svg className="h-4 w-4 shrink-0 text-indigo-400" fill="none" stroke="currentColor" strokeWidth={1.8} viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 6H5.25A2.25 2.25 0 003 8.25v10.5A2.25 2.25 0 005.25 21h10.5A2.25 2.25 0 0018 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25" />
-            </svg>
-            <span className="flex-1 font-mono text-xs text-indigo-600 dark:text-indigo-400 truncate min-w-0">
-              {portalUrl}
-            </span>
-            <button
-              type="button"
-              onClick={copyPortalUrl}
-              className="shrink-0 rounded-lg border border-gray-200 dark:border-[#1e2438] bg-white dark:bg-[#161b2e] px-2.5 py-1 text-xs font-medium text-gray-600 dark:text-gray-300 hover:text-indigo-600 dark:hover:text-indigo-400 transition"
-            >
-              {copied ? s.account.copied : s.account.copy}
-            </button>
-            <a
-              href={portalUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="shrink-0 rounded-lg border border-gray-200 dark:border-[#1e2438] bg-white dark:bg-[#161b2e] px-2.5 py-1 text-xs font-medium text-gray-600 dark:text-gray-300 hover:text-indigo-600 dark:hover:text-indigo-400 transition"
-            >
-              {s.account.open}
-            </a>
+          <div className="rounded-xl border border-gray-100 dark:border-[#1e2438] bg-gray-50 dark:bg-[#1a1f35] px-3 py-2.5 space-y-2">
+            <div className="flex items-center gap-2 min-w-0">
+              <svg className="h-4 w-4 shrink-0 text-indigo-400" fill="none" stroke="currentColor" strokeWidth={1.8} viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 6H5.25A2.25 2.25 0 003 8.25v10.5A2.25 2.25 0 005.25 21h10.5A2.25 2.25 0 0018 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25" />
+              </svg>
+              <span className="font-mono text-xs text-indigo-600 dark:text-indigo-400 break-all">
+                {portalUrl}
+              </span>
+            </div>
+            <div className="flex gap-2">
+              <button
+                type="button"
+                onClick={copyPortalUrl}
+                className="flex-1 inline-flex items-center justify-center rounded-lg border border-gray-200 dark:border-[#1e2438] bg-white dark:bg-[#161b2e] px-2.5 py-1.5 text-xs font-medium text-gray-600 dark:text-gray-300 hover:text-indigo-600 dark:hover:text-indigo-400 transition"
+              >
+                {copied ? s.account.copied : s.account.copy}
+              </button>
+              <a
+                href={portalUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex-1 inline-flex items-center justify-center rounded-lg border border-gray-200 dark:border-[#1e2438] bg-white dark:bg-[#161b2e] px-2.5 py-1.5 text-xs font-medium text-gray-600 dark:text-gray-300 hover:text-indigo-600 dark:hover:text-indigo-400 transition"
+              >
+                {s.account.open}
+              </a>
+            </div>
           </div>
         </div>
       </div>
@@ -189,7 +193,7 @@ export default function SettingsForm({
 
       {/* ── Apariencia card ──────────────────────────────────────────────────── */}
       <div className="rounded-2xl border border-gray-100 dark:border-[#1e2438] bg-white dark:bg-[#161b2e] shadow-sm p-5 space-y-4">
-        <div className="flex items-center justify-between">
+        <div className="flex items-start justify-between gap-3">
           <div>
             <h2 className="text-sm font-semibold text-gray-800 dark:text-white">{s.appearance.title}</h2>
             <p className="mt-0.5 text-xs text-gray-400 dark:text-gray-500">{s.appearance.subtitle}</p>
@@ -198,7 +202,7 @@ export default function SettingsForm({
             href={portalUrl}
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex items-center gap-1.5 text-xs font-medium text-indigo-600 dark:text-indigo-400 hover:underline"
+            className="shrink-0 inline-flex items-center gap-1 text-xs font-medium text-indigo-600 dark:text-indigo-400 hover:underline"
           >
             {s.appearance.portalLink}
             <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
@@ -293,13 +297,15 @@ export default function SettingsForm({
           </p>
         </div>
 
-        <div className="flex items-center gap-2 rounded-xl border border-gray-100 dark:border-[#1e2438] bg-gray-50 dark:bg-[#1a1f35] px-3 py-2.5">
-          <svg className="h-4 w-4 shrink-0 text-indigo-400" fill="none" stroke="currentColor" strokeWidth={1.8} viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 6H5.25A2.25 2.25 0 003 8.25v10.5A2.25 2.25 0 005.25 21h10.5A2.25 2.25 0 0018 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25" />
-          </svg>
-          <span className="flex-1 font-mono text-xs text-indigo-600 dark:text-indigo-400 truncate min-w-0">
-            {portalUrl}
-          </span>
+        <div className="rounded-xl border border-gray-100 dark:border-[#1e2438] bg-gray-50 dark:bg-[#1a1f35] px-3 py-2.5 space-y-2">
+          <div className="flex items-center gap-2">
+            <svg className="h-4 w-4 shrink-0 text-indigo-400" fill="none" stroke="currentColor" strokeWidth={1.8} viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 6H5.25A2.25 2.25 0 003 8.25v10.5A2.25 2.25 0 005.25 21h10.5A2.25 2.25 0 0018 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25" />
+            </svg>
+            <span className="font-mono text-xs text-indigo-600 dark:text-indigo-400 break-all">
+              {portalUrl}
+            </span>
+          </div>
         </div>
 
         <div>
@@ -313,7 +319,7 @@ export default function SettingsForm({
             value={welcomeMessage}
             onChange={(e) => setWelcomeMessage(e.target.value)}
             placeholder={s.portal.welcomePlaceholder}
-            className={inputCls}
+            className={`${inputCls} resize-none`}
           />
           <div className="mt-1 flex items-center justify-between">
             <p className="text-xs text-gray-400 dark:text-gray-500">{s.portal.welcomeHint}</p>
@@ -340,25 +346,25 @@ export default function SettingsForm({
             {s.portal.currencyHint}
           </p>
 
-          <div className="mt-3 rounded-xl border border-dashed border-gray-200 dark:border-[#1e2438] bg-gray-50 dark:bg-[#1a1f35] p-4 space-y-3">
-            <p className="text-xs font-semibold uppercase tracking-widest text-gray-400 dark:text-gray-500">
+          <div className="mt-3 rounded-xl border border-dashed border-gray-200 dark:border-[#1e2438] bg-gray-50 dark:bg-[#1a1f35] p-4 space-y-4">
+            <p className="text-xs font-semibold uppercase tracking-widest text-gray-400 dark:text-gray-500 text-center">
               {s.portal.previewLabel}
             </p>
-            <div className="flex items-center gap-4">
-              <div className="text-center">
-                <p className="text-2xl font-bold text-gray-900 dark:text-white">150</p>
-                <p className="text-xs text-gray-500 dark:text-gray-400">{programLabel || 'Points'}</p>
+            <div className="flex flex-col items-center gap-3">
+              <div className="flex items-baseline gap-2">
+                <span className="text-4xl font-bold text-gray-900 dark:text-white tabular-nums">150</span>
+                <span className="text-base font-semibold text-indigo-600 dark:text-indigo-400">{programLabel || 'Points'}</span>
               </div>
-              <div className="h-10 w-px bg-gray-200 dark:bg-[#1e2438]" />
-              <div className="space-y-1.5">
-                <p className="text-xs text-gray-500 dark:text-gray-400">{s.portal.examplesLabel}</p>
-                <div className="flex flex-wrap gap-1.5">
+              <div className="w-full h-px bg-gray-200 dark:bg-[#1e2438]" />
+              <div className="w-full space-y-2">
+                <p className="text-xs text-gray-400 dark:text-gray-500 text-center">{s.portal.examplesLabel}</p>
+                <div className="flex flex-wrap justify-center gap-1.5">
                   {['Beans', 'Slices', 'Stars', 'Granos', 'Sellos'].map((ex) => (
                     <button
                       key={ex}
                       type="button"
                       onClick={() => setProgramLabel(ex)}
-                      className="rounded-full border border-gray-200 dark:border-[#1e2438] bg-white dark:bg-[#161b2e] px-2.5 py-0.5 text-xs text-gray-600 dark:text-gray-300 hover:border-indigo-300 dark:hover:border-indigo-500/50 hover:text-indigo-600 dark:hover:text-indigo-400 transition"
+                      className="rounded-full border border-gray-200 dark:border-[#1e2438] bg-white dark:bg-[#161b2e] px-3 py-1 text-xs font-medium text-gray-600 dark:text-gray-300 hover:border-indigo-300 dark:hover:border-indigo-500/50 hover:text-indigo-600 dark:hover:text-indigo-400 transition"
                     >
                       {ex}
                     </button>
@@ -377,7 +383,7 @@ export default function SettingsForm({
           <p className="mt-0.5 text-xs text-gray-400 dark:text-gray-500">{s.language.subtitle}</p>
         </div>
 
-        <div className="flex gap-3">
+        <div className="grid grid-cols-2 gap-3">
           {(['es', 'en'] as Locale[]).map((lang) => {
             const isSelected = locale === lang;
             return (
@@ -386,7 +392,7 @@ export default function SettingsForm({
                 type="button"
                 onClick={() => setLocale(lang)}
                 className={[
-                  'flex items-center gap-2.5 rounded-xl border px-4 py-2.5 text-sm font-medium transition',
+                  'inline-flex items-center justify-center gap-2.5 rounded-xl border px-4 py-2.5 text-sm font-medium transition',
                   isSelected
                     ? 'border-indigo-500 bg-indigo-50 dark:bg-indigo-500/10 text-indigo-600 dark:text-indigo-400'
                     : 'border-gray-200 dark:border-[#1e2438] bg-white dark:bg-[#1a1f35] text-gray-600 dark:text-gray-400 hover:border-gray-300 dark:hover:border-gray-600',
@@ -533,13 +539,13 @@ function CurrencySelect({ value, onChange }: { value: string; onChange: (v: stri
         onClick={() => setOpen((o) => !o)}
         className="w-full flex items-center justify-between gap-2 rounded-xl border border-gray-200 dark:border-[#1e2438] bg-white dark:bg-[#1a1f35] px-3 py-2.5 text-sm text-gray-800 dark:text-gray-200 outline-none transition hover:border-indigo-400 dark:hover:border-indigo-500 focus:border-indigo-400 dark:focus:border-indigo-500 focus:ring-2 focus:ring-indigo-400/20"
       >
-        <span className="flex items-center gap-2.5">
-          <span className="w-6 text-center font-mono text-xs font-bold text-indigo-600 dark:text-indigo-400">
+        <span className="flex items-center gap-2.5 min-w-0">
+          <span className="shrink-0 w-6 text-center font-mono text-xs font-bold text-indigo-600 dark:text-indigo-400">
             {selected.symbol}
           </span>
-          <span>{selected.code}</span>
-          <span className="text-gray-400 dark:text-gray-500">·</span>
-          <span className="text-gray-500 dark:text-gray-400">{selected.name}</span>
+          <span className="shrink-0">{selected.code}</span>
+          <span className="shrink-0 text-gray-400 dark:text-gray-500">·</span>
+          <span className="truncate text-gray-500 dark:text-gray-400">{selected.name}</span>
         </span>
         <ChevronDownIcon className={`h-4 w-4 shrink-0 text-gray-400 transition-transform ${open ? 'rotate-180' : ''}`} />
       </button>

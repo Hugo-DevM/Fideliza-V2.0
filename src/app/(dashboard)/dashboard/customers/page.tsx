@@ -77,26 +77,67 @@ export default async function CustomersPage({
             {total} registrados · {activeCount ?? 0} activos · {planLabel} ({limitLabel})
           </p>
         </div>
-        {!atCustomerLimit && <NewCustomerModal phonePrefix={settings.phone_prefix ?? null} />}
+        {!atCustomerLimit && <div className="sm:shrink-0"><NewCustomerModal phonePrefix={settings.phone_prefix ?? null} /></div>}
       </div>
 
       {/* Search + filter */}
       <CustomerSearchInput defaultValue={q} defaultStatus={statusFilter} />
 
-      {/* Table */}
-      <div className="rounded-2xl border border-gray-100 dark:border-[#1e2438] bg-white dark:bg-[#161b2e] shadow-sm overflow-hidden">
-        {!filtered.length ? (
-          <div className="px-6 py-14 text-center">
-            <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-gray-100 dark:bg-[#1e2438] mx-auto mb-3">
-              <UsersSmallIcon className="h-5 w-5 text-gray-400 dark:text-gray-500" />
-            </div>
-            <p className="text-sm font-medium text-gray-500 dark:text-gray-400">
-              {q || statusFilter !== 'all'
-                ? 'Sin clientes que coincidan con el filtro.'
-                : 'Sin clientes aún. ¡Agrega el primero!'}
-            </p>
+      {/* Empty state */}
+      {!filtered.length && (
+        <div className="rounded-2xl border border-gray-100 dark:border-[#1e2438] bg-white dark:bg-[#161b2e] shadow-sm px-6 py-14 text-center">
+          <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-gray-100 dark:bg-[#1e2438] mx-auto mb-3">
+            <UsersSmallIcon className="h-5 w-5 text-gray-400 dark:text-gray-500" />
           </div>
-        ) : (
+          <p className="text-sm font-medium text-gray-500 dark:text-gray-400">
+            {q || statusFilter !== 'all'
+              ? 'Sin clientes que coincidan con el filtro.'
+              : 'Sin clientes aún. ¡Agrega el primero!'}
+          </p>
+        </div>
+      )}
+
+      {/* Mobile cards */}
+      {!!filtered.length && (
+        <div className="sm:hidden space-y-2">
+          {filtered.map((c) => {
+            const initials = c.name.split(' ').slice(0, 2).map((w: string) => w[0]).join('').toUpperCase();
+            const color = AVATAR_COLORS[initials.charCodeAt(0) % AVATAR_COLORS.length];
+            return (
+              <Link
+                key={c.id}
+                href={`/dashboard/customers/${c.id}`}
+                className="rounded-2xl border border-gray-100 dark:border-[#1e2438] bg-white dark:bg-[#161b2e] px-4 py-3 shadow-sm active:bg-gray-50 dark:active:bg-[#1a1f35] transition block"
+              >
+                {/* Row 1: name + status */}
+                <div className="flex items-center gap-3">
+                  <p className="flex-1 font-semibold text-gray-900 dark:text-white leading-snug">{c.name}</p>
+                  <span className={`shrink-0 inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-semibold ${
+                    c.is_active
+                      ? 'bg-emerald-50 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-400'
+                      : 'bg-gray-100 dark:bg-[#1e2438] text-gray-500 dark:text-gray-400'
+                  }`}>
+                    <span className={`h-1.5 w-1.5 rounded-full ${c.is_active ? 'bg-emerald-500' : 'bg-gray-400'}`} />
+                    {c.is_active ? 'Activo' : 'Inactivo'}
+                  </span>
+                </div>
+                {/* Row 2: code + phone + date */}
+                <div className="mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-1">
+                  <span className="font-mono text-xs text-gray-500 dark:text-gray-400 bg-gray-50 dark:bg-[#0d0f17] border border-gray-200 dark:border-[#2a3147] rounded px-1.5 py-0.5">{c.access_code}</span>
+                  {c.phone && <span className="text-xs text-gray-500 dark:text-gray-400">{formatPhone(c.phone)}</span>}
+                  <span className="text-xs text-gray-400 dark:text-gray-500 ml-auto">
+                    {new Date(c.created_at).toLocaleDateString('es', { day: '2-digit', month: 'short', year: 'numeric' })}
+                  </span>
+                </div>
+              </Link>
+            );
+          })}
+        </div>
+      )}
+
+      {/* Desktop table */}
+      {!!filtered.length && (
+        <div className="hidden sm:block rounded-2xl border border-gray-100 dark:border-[#1e2438] bg-white dark:bg-[#161b2e] shadow-sm overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
@@ -114,7 +155,6 @@ export default async function CustomersPage({
                   const color = AVATAR_COLORS[initials.charCodeAt(0) % AVATAR_COLORS.length];
                   return (
                     <tr key={c.id} className="group hover:bg-gray-50 dark:hover:bg-[#1a1f35] transition">
-                      {/* Customer */}
                       <td className="px-5 py-3.5">
                         <div className="flex items-center gap-3">
                           <div className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-xl text-xs font-bold text-white ${color}`}>
@@ -123,19 +163,14 @@ export default async function CustomersPage({
                           <span className="font-semibold text-gray-900 dark:text-white">{c.name}</span>
                         </div>
                       </td>
-                      {/* Code */}
                       <td className="px-5 py-3.5">
                         <span className="inline-block rounded-lg border border-gray-200 dark:border-[#2a3147] bg-gray-50 dark:bg-[#0d0f17] px-2.5 py-1 font-mono text-xs text-gray-600 dark:text-gray-300">
                           {c.access_code}
                         </span>
                       </td>
-                      {/* Phone */}
                       <td className="px-5 py-3.5 text-gray-500 dark:text-gray-400">
-                        {c.phone
-                          ? formatPhone(c.phone)
-                          : <span className="text-gray-300 dark:text-gray-600">—</span>}
+                        {c.phone ? formatPhone(c.phone) : <span className="text-gray-300 dark:text-gray-600">—</span>}
                       </td>
-                      {/* Status */}
                       <td className="px-5 py-3.5">
                         <span className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-semibold ${
                           c.is_active
@@ -146,11 +181,9 @@ export default async function CustomersPage({
                           {c.is_active ? 'Activo' : 'Inactivo'}
                         </span>
                       </td>
-                      {/* Date */}
                       <td className="px-5 py-3.5 text-gray-400 dark:text-gray-500 text-xs">
                         {new Date(c.created_at).toLocaleDateString('es', { day: '2-digit', month: 'short', year: 'numeric' })}
                       </td>
-                      {/* Action */}
                       <td className="px-5 py-3.5">
                         <Link
                           href={`/dashboard/customers/${c.id}`}
@@ -165,8 +198,8 @@ export default async function CustomersPage({
               </tbody>
             </table>
           </div>
-        )}
-      </div>
+        </div>
+      )}
 
       {/* Pagination */}
       {totalPages > 1 && (

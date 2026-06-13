@@ -48,7 +48,7 @@ export default function NewRewardForm({ programId, programType, programConfig, c
       <>
         <button
           onClick={() => setOpen(true)}
-          className="inline-flex items-center gap-1.5 rounded-xl bg-indigo-50 dark:bg-indigo-500/15 px-3 py-1.5 text-sm font-semibold text-indigo-600 dark:text-indigo-400 hover:bg-indigo-100 dark:hover:bg-indigo-500/25 transition"
+          className="inline-flex items-center justify-center gap-1.5 rounded-xl bg-indigo-50 dark:bg-indigo-500/15 px-3 py-1.5 text-sm font-semibold text-indigo-600 dark:text-indigo-400 hover:bg-indigo-100 dark:hover:bg-indigo-500/25 transition"
         >
           <PlusIcon className="h-3.5 w-3.5" />
           Agregar

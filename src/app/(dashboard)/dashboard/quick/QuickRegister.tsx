@@ -226,7 +226,7 @@ export default function QuickRegister({ programLabel, currency }: Props) {
           <button
             type="submit"
             disabled={isLooking || !query.trim()}
-            className="inline-flex items-center gap-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 px-4 py-2.5 text-sm font-semibold text-white transition"
+            className="inline-flex items-center justify-center gap-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 px-4 py-2.5 text-sm font-semibold text-white transition"
           >
             <SearchIcon className="h-4 w-4" />
             {isLooking ? '…' : 'Buscar'}

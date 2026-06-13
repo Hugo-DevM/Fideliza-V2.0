@@ -63,44 +63,53 @@ export default async function CustomerDetailPage({
     return (
       <div className="space-y-5">
 
+        {/* Back button */}
+        <Link href="/dashboard/customers" className="inline-flex items-center gap-1.5 text-sm text-gray-500 dark:text-gray-400 hover:text-indigo-600 dark:hover:text-indigo-400 transition">
+          <svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5" />
+          </svg>
+          Clientes
+        </Link>
+
         {/* Customer hero card */}
         <div className="rounded-2xl border border-gray-100 dark:border-[#1e2438] bg-white dark:bg-[#161b2e] shadow-sm p-5">
-          <div className="flex items-start justify-between gap-4 flex-wrap">
-            <div className="flex items-start gap-4">
-              <div className={`flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl text-base font-bold text-white ${avatarColor}`}>
-                {initials}
-              </div>
-              <div>
-                <div className="flex flex-wrap items-center gap-2">
-                  <h1 className="text-xl font-bold text-gray-900 dark:text-white">{customer.name}</h1>
-                  <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 dark:bg-emerald-500/10 px-2.5 py-0.5 text-xs font-semibold text-emerald-700 dark:text-emerald-400">
-                    <span className={`h-1.5 w-1.5 rounded-full ${customer.is_active ? 'bg-emerald-500' : 'bg-gray-400'}`} />
-                    {customer.is_active ? 'Activo' : 'Inactivo'}
-                  </span>
-                </div>
-                <div className="mt-2 flex flex-wrap items-center gap-3">
-                  <span className="inline-block rounded-lg border border-gray-200 dark:border-[#2a3147] bg-gray-50 dark:bg-[#0d0f17] px-2.5 py-1 font-mono text-xs text-gray-600 dark:text-gray-300">
-                    {customer.access_code}
-                  </span>
-                  {customer.phone && (
-                    <span className="flex items-center gap-1.5 text-sm text-gray-500 dark:text-gray-400">
-                      <PhoneIcon className="h-3.5 w-3.5" />
-                      {formatPhone(customer.phone)}
-                    </span>
-                  )}
-                  <span className="flex items-center gap-1.5 text-sm text-gray-500 dark:text-gray-400">
-                    <CalendarIcon className="h-3.5 w-3.5" />
-                    Miembro desde {new Date(customer.created_at).toLocaleDateString('es', { day: 'numeric', month: 'short', year: 'numeric' })}
-                  </span>
-                </div>
-                {customer.notes && (
-                  <p className="mt-2.5 rounded-xl bg-amber-50 dark:bg-amber-950/30 border border-amber-100 dark:border-amber-900/30 px-3 py-2 text-xs text-amber-700 dark:text-amber-400">
-                    {customer.notes}
-                  </p>
-                )}
-              </div>
+          <div className="flex items-start gap-4">
+            <div className={`flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl text-base font-bold text-white ${avatarColor}`}>
+              {initials}
             </div>
-            <div className="flex items-center gap-2 shrink-0">
+            <div className="flex-1 min-w-0">
+              <div className="flex flex-wrap items-center gap-2">
+                <h1 className="text-xl font-bold text-gray-900 dark:text-white">{customer.name}</h1>
+                <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 dark:bg-emerald-500/10 px-2.5 py-0.5 text-xs font-semibold text-emerald-700 dark:text-emerald-400">
+                  <span className={`h-1.5 w-1.5 rounded-full ${customer.is_active ? 'bg-emerald-500' : 'bg-gray-400'}`} />
+                  {customer.is_active ? 'Activo' : 'Inactivo'}
+                </span>
+              </div>
+              <div className="mt-2 flex flex-wrap items-center gap-3">
+                <span className="inline-block rounded-lg border border-gray-200 dark:border-[#2a3147] bg-gray-50 dark:bg-[#0d0f17] px-2.5 py-1 font-mono text-xs text-gray-600 dark:text-gray-300">
+                  {customer.access_code}
+                </span>
+                {customer.phone && (
+                  <span className="flex items-center gap-1.5 text-sm text-gray-500 dark:text-gray-400">
+                    <PhoneIcon className="h-3.5 w-3.5" />
+                    {formatPhone(customer.phone)}
+                  </span>
+                )}
+                <span className="flex items-center gap-1.5 text-sm text-gray-500 dark:text-gray-400">
+                  <CalendarIcon className="h-3.5 w-3.5" />
+                  Miembro desde {new Date(customer.created_at).toLocaleDateString('es', { day: 'numeric', month: 'short', year: 'numeric' })}
+                </span>
+              </div>
+              {customer.notes && (
+                <p className="mt-2.5 rounded-xl bg-amber-50 dark:bg-amber-950/30 border border-amber-100 dark:border-amber-900/30 px-3 py-2 text-xs text-amber-700 dark:text-amber-400">
+                  {customer.notes}
+                </p>
+              )}
+            </div>
+          </div>
+          {/* Actions — full width row on mobile */}
+          <div className="mt-4 flex gap-2">
+            <div className="flex-1">
               <EditCustomerModal
                 customerId={customer.id}
                 initialName={customer.name}
@@ -108,13 +117,15 @@ export default async function CustomerDetailPage({
                 initialNotes={customer.notes ?? null}
                 phonePrefix={settings.phone_prefix ?? null}
               />
+            </div>
+            <div className="flex-1">
               <ToggleStatusButton customerId={customer.id} isActive={customer.is_active} />
             </div>
           </div>
         </div>
 
         {/* Stat cards */}
-        <div className="grid grid-cols-3 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
           {[
             { icon: <PointsIcon className="h-4 w-4" />, iconBg: 'bg-indigo-100 dark:bg-indigo-500/20', iconColor: 'text-indigo-600 dark:text-indigo-400', label: 'Saldo de puntos', value: totalPoints, sub: settings.program_label },
             { icon: <VisitIcon className="h-4 w-4" />,  iconBg: 'bg-emerald-100 dark:bg-emerald-500/20', iconColor: 'text-emerald-600 dark:text-emerald-400', label: 'Visitas totales', value: totalVisits, sub: 'registradas' },
@@ -196,7 +207,7 @@ export default async function CustomerDetailPage({
 
                       {/* Stamp grid */}
                       {isStamp && (
-                        <div className="flex flex-wrap gap-1.5">
+                        <div className="flex flex-wrap justify-center gap-1.5">
                           {Array.from({ length: stampsNeeded }).map((_, i) => (
                             <div key={i} className={[
                               'flex h-8 w-8 items-center justify-center rounded-full transition',
@@ -286,7 +297,7 @@ export default async function CustomerDetailPage({
                       href={`/dashboard/customers/${id}/transactions`}
                       className="text-sm font-medium text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300 transition"
                     >
-                      Ver todas las transacciones →
+                      Ver todas las transacciones
                     </Link>
                   </div>
                 )}

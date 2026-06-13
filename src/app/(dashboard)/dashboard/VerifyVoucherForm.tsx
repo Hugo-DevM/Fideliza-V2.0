@@ -215,7 +215,7 @@ export default function VerifyVoucherForm() {
         <button
           type="submit"
           disabled={isPending || !code.trim()}
-          className="inline-flex items-center gap-2 rounded-xl border border-gray-200 dark:border-[#2a3147] bg-white dark:bg-[#1e2438] hover:bg-gray-50 dark:hover:bg-[#252f4a] disabled:opacity-50 px-4 py-2.5 text-sm font-semibold text-gray-700 dark:text-gray-200 transition"
+          className="inline-flex items-center justify-center gap-2 rounded-xl border border-gray-200 dark:border-[#2a3147] bg-white dark:bg-[#1e2438] hover:bg-gray-50 dark:hover:bg-[#252f4a] disabled:opacity-50 px-4 py-2.5 text-sm font-semibold text-gray-700 dark:text-gray-200 transition"
         >
           <ScanIcon className="h-4 w-4" />
           {isPending ? '…' : 'Verificar'}

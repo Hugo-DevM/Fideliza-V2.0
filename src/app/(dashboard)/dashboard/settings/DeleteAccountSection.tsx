@@ -44,17 +44,17 @@ export default function DeleteAccountSection({ subdomain }: { subdomain: string 
           <h2 className="text-xs font-semibold uppercase tracking-widest text-red-600 dark:text-red-400">Zona de peligro</h2>
         </div>
 
-        <div className="flex items-center justify-between gap-6 px-5 py-4">
+        <div className="flex flex-col gap-3 px-5 py-4 sm:flex-row sm:items-center sm:justify-between sm:gap-6">
           <div>
             <p className="text-sm font-semibold text-gray-800 dark:text-gray-100">Eliminar esta cuenta</p>
-            <p className="mt-0.5 text-xs text-gray-500 dark:text-gray-400 leading-relaxed max-w-sm">
+            <p className="mt-0.5 text-xs text-gray-500 dark:text-gray-400 leading-relaxed">
               Una vez eliminada, tu cuenta y todos sus datos quedarán permanentemente inaccesibles. Esta acción no se puede deshacer.
             </p>
           </div>
           <button
             type="button"
             onClick={() => setOpen(true)}
-            className="shrink-0 rounded-xl bg-red-600 px-4 py-2 text-sm font-semibold text-white hover:bg-red-700 active:scale-95 transition-all"
+            className="inline-flex items-center justify-center shrink-0 rounded-xl bg-red-600 px-4 py-2 text-sm font-semibold text-white hover:bg-red-700 active:scale-95 transition-all self-start sm:self-auto"
           >
             Eliminar cuenta
           </button>

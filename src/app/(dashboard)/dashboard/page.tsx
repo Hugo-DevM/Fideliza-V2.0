@@ -175,11 +175,11 @@ export default async function DashboardPage() {
           </p>
         </div>
         <div className="flex items-center gap-2.5 shrink-0">
-          <Link href="/dashboard/analytics" className="inline-flex items-center gap-2 rounded-xl border border-gray-200 dark:border-[#2a3147] bg-white dark:bg-[#161b2e] px-4 py-2 text-sm font-semibold text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-[#1e2438] transition">
+          <Link href="/dashboard/analytics" className="inline-flex items-center justify-center gap-2 rounded-xl border border-gray-200 dark:border-[#2a3147] bg-white dark:bg-[#161b2e] px-4 py-2 text-sm font-semibold text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-[#1e2438] transition">
             <BarIcon className="h-4 w-4" />
             Analíticas
           </Link>
-          <Link href="/dashboard/quick" className="inline-flex items-center gap-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 px-4 py-2 text-sm font-semibold text-white transition">
+          <Link href="/dashboard/quick" className="inline-flex items-center justify-center gap-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 px-4 py-2 text-sm font-semibold text-white transition">
             <BoltSmallIcon className="h-4 w-4" />
             Registro rápido
           </Link>
@@ -262,8 +262,8 @@ export default async function DashboardPage() {
                 const ago      = formatAgo(date);
                 const isPositive = delta > 0;
                 return (
-                  <li key={tx['id'] as string} className="flex items-center gap-3 px-5 py-3.5">
-                    <div className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-xl text-xs font-bold ${
+                  <li key={tx['id'] as string} className="flex items-start gap-3 px-5 py-3.5">
+                    <div className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-xl text-xs font-bold mt-0.5 ${
                       isPositive
                         ? 'bg-emerald-100 dark:bg-emerald-500/15 text-emerald-600 dark:text-emerald-400'
                         : 'bg-violet-100 dark:bg-violet-500/15 text-violet-600 dark:text-violet-400'
@@ -271,13 +271,8 @@ export default async function DashboardPage() {
                       {isPositive ? '+' : '↩'}
                     </div>
                     <div className="min-w-0 flex-1">
-                      <p className="truncate text-sm text-gray-800 dark:text-gray-100">
-                        <span className="font-semibold">{cust?.name ?? '—'}</span>
-                        {' '}
-                        <span className="text-gray-500 dark:text-gray-400 font-normal">
-                          {describeTransaction(tx)}
-                        </span>
-                      </p>
+                      <p className="truncate text-sm font-semibold text-gray-800 dark:text-gray-100">{cust?.name ?? '—'}</p>
+                      <p className="text-xs text-gray-500 dark:text-gray-400">{describeTransaction(tx)}</p>
                       <p className="text-xs text-gray-400 dark:text-gray-500">{ago} · {prog?.name ?? '—'}</p>
                     </div>
                     <span className={`shrink-0 text-sm font-semibold ${isPositive ? 'text-emerald-500' : 'text-gray-400 dark:text-gray-500'}`}>
