@@ -41,17 +41,52 @@ export default function VerifyVoucherForm() {
   const errorTimerRef                = useRef<ReturnType<typeof setTimeout> | null>(null);
   const unmountTimerRef              = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [scanError, setScanError]    = useState('');
-  const inputRef                     = useRef<HTMLInputElement>(null);
-  const videoRef                     = useRef<HTMLVideoElement>(null);
-  const canvasRef                    = useRef<HTMLCanvasElement>(null);
-  const streamRef                    = useRef<MediaStream | null>(null);
-  const rafRef                       = useRef<number>(0);
+  const inputRef    = useRef<HTMLInputElement>(null);
+  const canvasRef   = useRef<HTMLCanvasElement>(null);
+  const streamRef   = useRef<MediaStream | null>(null);
+  const rafRef      = useRef<number>(0);
 
   const stopCamera = useCallback(() => {
     cancelAnimationFrame(rafRef.current);
     streamRef.current?.getTracks().forEach((t) => t.stop());
     streamRef.current = null;
   }, []);
+
+  // Callback ref: fires the instant the <video> node enters the DOM
+  const videoCallbackRef = useCallback((node: HTMLVideoElement | null) => {
+    if (!node || !streamRef.current) return;
+    node.srcObject = streamRef.current;
+
+    function tick() {
+      if (!node || node.readyState < 2 || !node.videoWidth) {
+        rafRef.current = requestAnimationFrame(tick);
+        return;
+      }
+      const canvas = canvasRef.current;
+      if (!canvas) { rafRef.current = requestAnimationFrame(tick); return; }
+      canvas.width  = node.videoWidth;
+      canvas.height = node.videoHeight;
+      const ctx = canvas.getContext('2d');
+      if (!ctx) { rafRef.current = requestAnimationFrame(tick); return; }
+      ctx.drawImage(node, 0, 0);
+      const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+      const result = jsQR(imageData.data, imageData.width, imageData.height);
+      if (result?.data) {
+        setCode(formatCode(result.data));
+        setScanning(false);
+        stopCamera();
+        setTimeout(() => inputRef.current?.focus(), 50);
+      } else {
+        rafRef.current = requestAnimationFrame(tick);
+      }
+    }
+
+    node.play().then(() => {
+      rafRef.current = requestAnimationFrame(tick);
+    }).catch(() => {
+      rafRef.current = requestAnimationFrame(tick);
+    });
+  }, [stopCamera]);
 
   async function openScanner() {
     setScanError('');
@@ -83,45 +118,6 @@ export default function VerifyVoucherForm() {
       }
     }
   }
-
-  // Attach stream once the modal video element is in the DOM
-  useEffect(() => {
-    if (!scanning || !videoRef.current || !streamRef.current) return;
-    const video = videoRef.current;
-    video.srcObject = streamRef.current;
-
-    function tick() {
-      if (!video || video.readyState < 2 || !video.videoWidth) {
-        rafRef.current = requestAnimationFrame(tick);
-        return;
-      }
-      const canvas = canvasRef.current;
-      if (!canvas) { rafRef.current = requestAnimationFrame(tick); return; }
-      canvas.width  = video.videoWidth;
-      canvas.height = video.videoHeight;
-      const ctx = canvas.getContext('2d');
-      if (!ctx) { rafRef.current = requestAnimationFrame(tick); return; }
-      ctx.drawImage(video, 0, 0);
-      const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-      const result = jsQR(imageData.data, imageData.width, imageData.height);
-      if (result?.data) {
-        setCode(formatCode(result.data));
-        setScanning(false);
-        stopCamera();
-        setTimeout(() => inputRef.current?.focus(), 50);
-      } else {
-        rafRef.current = requestAnimationFrame(tick);
-      }
-    }
-
-    video.play().then(() => {
-      rafRef.current = requestAnimationFrame(tick);
-    }).catch(() => {
-      rafRef.current = requestAnimationFrame(tick);
-    });
-
-    return () => cancelAnimationFrame(rafRef.current);
-  }, [scanning, stopCamera]);
 
   // Cleanup on unmount
   useEffect(() => () => stopCamera(), [stopCamera]);
@@ -319,7 +315,7 @@ export default function VerifyVoucherForm() {
               {/* eslint-disable-next-line jsx-a11y/media-has-caption */}
               {/* eslint-disable-next-line jsx-a11y/media-has-caption */}
               <video
-                ref={videoRef}
+                ref={videoCallbackRef}
                 muted
                 autoPlay
                 playsInline
