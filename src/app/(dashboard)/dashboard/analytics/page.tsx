@@ -228,7 +228,7 @@ export default async function AnalyticsPage({
     <div className="space-y-6">
 
       {/* Header */}
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
         <div>
           <p className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-widest text-indigo-500 mb-2">
             <ChartBarIcon className="h-3.5 w-3.5" />
@@ -240,8 +240,13 @@ export default async function AnalyticsPage({
           <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
             Exporta tus datos y revisa cómo se comporta tu base de clientes.
           </p>
+          <div className="mt-3 sm:hidden">
+            <PeriodSelector current={period} />
+          </div>
         </div>
-        <PeriodSelector current={period} />
+        <div className="hidden sm:block">
+          <PeriodSelector current={period} />
+        </div>
       </div>
 
       {/* Export panel */}
