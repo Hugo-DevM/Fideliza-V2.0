@@ -33,6 +33,7 @@ export default function VerifyVoucherForm() {
   if (info) displayInfoRef.current   = info;
   const [isPending, startTransition] = useTransition();
   const [scanning, setScanning]      = useState(false);
+  const [cameraLoading, setCameraLoading] = useState(false);
   const { mounted: scanMounted, visible: scanVisible } = useModalTransition(scanning);
   const { mounted: infoMounted, visible: infoVisible } = useModalTransition(!!info);
   const [errorVisible,   setErrorVisible]   = useState(false);
@@ -90,19 +91,9 @@ export default function VerifyVoucherForm() {
 
   async function openScanner() {
     setScanError('');
-    if (!window.isSecureContext) {
-      setScanError('INSECURE');
-      return;
-    }
-    if (!navigator.mediaDevices?.getUserMedia) {
-      setScanError('La cámara requiere conexión segura (HTTPS).');
-      return;
-    }
+    setCameraLoading(true);
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({
-        video: { facingMode: 'environment' },
-        audio: false,
-      });
+      const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
       streamRef.current = stream;
       setScanning(true);
     } catch (err) {
@@ -113,9 +104,13 @@ export default function VerifyVoucherForm() {
         setScanError('No se encontró ninguna cámara en este dispositivo.');
       } else if (name === 'NotReadableError' || name === 'AbortError') {
         setScanError('La cámara está siendo usada por otra aplicación.');
+      } else if (!navigator.mediaDevices) {
+        setScanError('INSECURE');
       } else {
-        setScanError('No se pudo acceder a la cámara. Verifica los permisos del sitio.');
+        setScanError(`Error: ${name ?? 'desconocido'}`);
       }
+    } finally {
+      setCameraLoading(false);
     }
   }
 
@@ -208,11 +203,15 @@ export default function VerifyVoucherForm() {
         <button
           type="button"
           onClick={openScanner}
+          disabled={cameraLoading}
           title="Escanear QR"
-          className="inline-flex items-center justify-center gap-1.5 rounded-xl border border-gray-200 dark:border-[#2a3147] bg-white dark:bg-[#1e2438] hover:bg-gray-50 dark:hover:bg-[#252f4a] px-3 py-2.5 text-sm font-semibold text-gray-700 dark:text-gray-200 transition"
+          className="inline-flex items-center justify-center gap-1.5 rounded-xl border border-gray-200 dark:border-[#2a3247] bg-white dark:bg-[#1e2438] hover:bg-gray-50 dark:hover:bg-[#252f4a] disabled:opacity-60 px-3 py-2.5 text-sm font-semibold text-gray-700 dark:text-gray-200 transition"
         >
-          <CameraIcon className="h-4 w-4" />
-          <span className="hidden sm:inline">Escanear</span>
+          {cameraLoading
+            ? <svg className="h-4 w-4 animate-spin" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/></svg>
+            : <CameraIcon className="h-4 w-4" />
+          }
+          <span className="hidden sm:inline">{cameraLoading ? 'Esperando…' : 'Escanear'}</span>
         </button>
 
         {/* Verify button */}
