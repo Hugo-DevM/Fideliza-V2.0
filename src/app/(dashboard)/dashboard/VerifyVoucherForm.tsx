@@ -56,19 +56,14 @@ export default function VerifyVoucherForm() {
 
   async function openScanner() {
     setScanError('');
+
+    // mediaDevices is only available on HTTPS or localhost
     if (!navigator.mediaDevices?.getUserMedia) {
-      setScanError('Tu navegador no soporta el acceso a la cámara. Usa Chrome o Safari.');
+      setScanError('La cámara requiere conexión segura (HTTPS). Contacta al soporte.');
       return;
     }
+
     try {
-      // Check permission state before requesting (Chrome/Edge/Firefox)
-      if (navigator.permissions) {
-        const perm = await navigator.permissions.query({ name: 'camera' as PermissionName });
-        if (perm.state === 'denied') {
-          setScanError('PERMISSION_DENIED');
-          return;
-        }
-      }
       const stream = await navigator.mediaDevices.getUserMedia({
         video: { facingMode: 'environment', width: { ideal: 1280 }, height: { ideal: 720 } },
       });
@@ -80,8 +75,10 @@ export default function VerifyVoucherForm() {
         setScanError('PERMISSION_DENIED');
       } else if (name === 'NotFoundError') {
         setScanError('No se encontró ninguna cámara en este dispositivo.');
+      } else if (name === 'NotReadableError' || name === 'AbortError') {
+        setScanError('La cámara está siendo usada por otra aplicación.');
       } else {
-        setScanError('No se pudo acceder a la cámara. Verifica los permisos.');
+        setScanError('No se pudo acceder a la cámara. Verifica los permisos del sitio.');
       }
     }
   }
@@ -246,7 +243,7 @@ export default function VerifyVoucherForm() {
           <div style={{ overflow: 'hidden' }}>
             {errorDisplayText === 'PERMISSION_DENIED' ? (
               <div
-                className="rounded-xl bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800/40 px-3 py-3 space-y-1.5"
+                className="rounded-xl bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800/40 px-3 py-3 space-y-2"
                 style={{
                   opacity: errorVisible ? 1 : 0,
                   transform: errorVisible ? 'translateY(0)' : 'translateY(-4px)',
@@ -254,9 +251,11 @@ export default function VerifyVoucherForm() {
                 }}
               >
                 <p className="text-sm font-semibold text-amber-800 dark:text-amber-300">Cámara bloqueada</p>
-                <p className="text-xs text-amber-700 dark:text-amber-400 leading-relaxed">
-                  Para permitir el acceso: haz clic en el ícono de <strong>cámara 🎥</strong> o <strong>candado 🔒</strong> en la barra de direcciones de tu navegador → selecciona <strong>"Permitir"</strong> → recarga la página.
-                </p>
+                <div className="text-xs text-amber-700 dark:text-amber-400 leading-relaxed space-y-1">
+                  <p><strong>Chrome / Edge:</strong> Haz clic en el ícono 🔒 en la barra de direcciones → Cámara → Permitir → Recarga.</p>
+                  <p><strong>Brave:</strong> Haz clic en el ícono del León 🦁 en la barra de direcciones → baja los escudos para este sitio → Recarga.</p>
+                  <p><strong>Firefox:</strong> Haz clic en el ícono de cámara 🎥 a la izquierda de la URL → Eliminar bloqueo → Recarga.</p>
+                </div>
                 <button
                   type="button"
                   onClick={() => { setScanError(''); }}
