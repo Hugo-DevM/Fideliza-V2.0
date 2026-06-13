@@ -102,7 +102,7 @@ export default async function AnalyticsPage({
         </p>
         <Link href="/dashboard/settings"
           className="rounded-xl bg-indigo-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-indigo-700 transition">
-          Actualizar a Pro →
+          Actualizar a Pro
         </Link>
       </div>
     );

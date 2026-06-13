@@ -58,7 +58,7 @@ export default async function CustomersPage({
           </div>
           <a href="/dashboard/settings"
             className="shrink-0 rounded-xl bg-amber-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-amber-700 transition">
-            Actualizar plan →
+            Actualizar plan
           </a>
         </div>
       )}
@@ -156,7 +156,7 @@ export default async function CustomersPage({
                           href={`/dashboard/customers/${c.id}`}
                           className="text-xs font-semibold text-indigo-500 hover:text-indigo-600 dark:hover:text-indigo-400 transition opacity-0 group-hover:opacity-100"
                         >
-                          Ver →
+                          Ver
                         </Link>
                       </td>
                     </tr>
@@ -188,7 +188,7 @@ export default async function CustomersPage({
                 href={`?page=${page + 1}${q ? `&q=${q}` : ''}${statusFilter !== 'all' ? `&status=${statusFilter}` : ''}`}
                 className="rounded-xl border border-gray-200 dark:border-[#2a3147] bg-white dark:bg-[#161b2e] px-4 py-2 text-sm font-medium text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-[#1e2438] transition"
               >
-                Siguiente →
+                Siguiente
               </Link>
             )}
           </div>

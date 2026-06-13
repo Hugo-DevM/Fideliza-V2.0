@@ -406,8 +406,8 @@ export default function BillingSection({
           </div>
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
             {/* Starter */}
-            <div className="rounded-xl border border-gray-200 dark:border-[#1e2438] p-4 space-y-3">
-              <div>
+            <div className="rounded-xl border border-gray-200 dark:border-[#1e2438] p-4 flex flex-col gap-3">
+              <div className="flex-1">
                 <div className="flex items-center gap-2 mb-1">
                   <p className="font-semibold text-gray-900 dark:text-white">Starter</p>
                   <span className="rounded-full bg-amber-100 dark:bg-amber-500/20 px-2 py-0.5 text-[10px] font-bold text-amber-700 dark:text-amber-400 uppercase tracking-wide">
@@ -444,8 +444,8 @@ export default function BillingSection({
             </div>
 
             {/* Pro */}
-            <div className="rounded-xl border-2 border-indigo-400 dark:border-indigo-500/60 p-4 space-y-3">
-              <div>
+            <div className="rounded-xl border-2 border-indigo-400 dark:border-indigo-500/60 p-4 flex flex-col gap-3">
+              <div className="flex-1">
                 <div className="flex items-center gap-2 mb-1">
                   <p className="font-semibold text-gray-900 dark:text-white">Pro</p>
                   <span className="rounded-full bg-indigo-100 dark:bg-indigo-500/20 px-2 py-0.5 text-[10px] font-semibold text-indigo-700 dark:text-indigo-400">

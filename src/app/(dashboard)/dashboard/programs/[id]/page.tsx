@@ -205,7 +205,7 @@ export default async function ProgramDetailPage({
               <div className="mx-5 mb-5 mt-3 rounded-xl border border-dashed border-amber-300 dark:border-amber-700/50 bg-amber-50 dark:bg-amber-950/30 p-4 text-center">
                 <p className="text-xs font-medium text-amber-800 dark:text-amber-300">El catálogo de recompensas requiere el plan Starter o Pro</p>
                 <a href="/dashboard/settings" className="mt-1 inline-block text-xs text-amber-700 dark:text-amber-400 underline hover:text-amber-900">
-                  Actualizar plan →
+                  Actualizar plan
                 </a>
               </div>
             )}
@@ -261,7 +261,7 @@ export default async function ProgramDetailPage({
                       href={`/dashboard/programs/${id}/transactions`}
                       className="text-sm font-medium text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300 transition"
                     >
-                      Ver todas las transacciones →
+                      Ver todas las transacciones
                     </Link>
                   </div>
                 )}

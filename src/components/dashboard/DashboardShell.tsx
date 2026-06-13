@@ -96,7 +96,7 @@ function DashboardShellContent({ tenantName, tenantPlan, alerts = [], children }
 
       <div className="flex min-w-0 flex-1 flex-col overflow-hidden">
         {/* Top header */}
-        <header className="flex h-14 shrink-0 items-center justify-between gap-3 border-b border-gray-100 dark:border-[#1e2438] bg-white dark:bg-[#111520] px-4 md:px-6">
+        <header className="flex h-16 shrink-0 items-center justify-between gap-3 border-b border-gray-100 dark:border-[#1e2438] bg-white dark:bg-[#111520] px-4 md:px-6">
           {/* Left: hamburger (mobile) + breadcrumb */}
           <div className="flex items-center gap-3">
             <button

@@ -145,7 +145,7 @@ export default function OnboardingChecklist({ tenantId, steps }: Props) {
                       href={step.href}
                       className="shrink-0 text-xs font-semibold text-indigo-500 hover:text-indigo-700 dark:hover:text-indigo-300 transition-colors"
                     >
-                      Ir →
+                      Ir
                     </Link>
                   )}
                 </li>

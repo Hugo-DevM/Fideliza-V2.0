@@ -147,7 +147,7 @@ export default async function ProgramsPage() {
           </div>
           <a href="/dashboard/settings"
             className="shrink-0 rounded-xl bg-amber-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-amber-700 transition">
-            Actualizar →
+            Actualizar
           </a>
         </div>
       )}

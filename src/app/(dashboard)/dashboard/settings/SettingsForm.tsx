@@ -309,14 +309,18 @@ export default function SettingsForm({
           <textarea
             name="welcome_message"
             rows={3}
+            maxLength={150}
             value={welcomeMessage}
             onChange={(e) => setWelcomeMessage(e.target.value)}
             placeholder={s.portal.welcomePlaceholder}
             className={inputCls}
           />
-          <p className="mt-1 text-xs text-gray-400 dark:text-gray-500">
-            {s.portal.welcomeHint}
-          </p>
+          <div className="mt-1 flex items-center justify-between">
+            <p className="text-xs text-gray-400 dark:text-gray-500">{s.portal.welcomeHint}</p>
+            <p className={`text-xs tabular-nums ${welcomeMessage.length >= 140 ? 'text-amber-500' : 'text-gray-400 dark:text-gray-500'}`}>
+              {welcomeMessage.length}/150
+            </p>
+          </div>
         </div>
 
         <div>

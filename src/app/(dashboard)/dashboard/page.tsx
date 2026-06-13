@@ -3,7 +3,6 @@ import { getAuthenticatedTenant } from '@/lib/auth/get-tenant';
 import { createServiceRoleClient } from '@/lib/supabase/server';
 import { listActivePrograms } from '@/modules/rewards';
 import PortalCard from '@/components/dashboard/PortalCard';
-import OnboardingChecklist from '@/components/dashboard/OnboardingChecklist';
 
 export const metadata = { title: 'Resumen — Fideliza+' };
 
@@ -33,7 +32,6 @@ export default async function DashboardPage() {
     { count: redemptionsThisWeek },
     { count: redemptionsLastWeek },
     { count: newProgramsThisMonth },
-    { count: everHadTransaction },
   ] = await Promise.all([
     db.from('customers').select('id', { count: 'exact', head: true }).eq('tenant_id', tenantId).eq('is_active', true),
     listActivePrograms(tenantId),
@@ -51,8 +49,6 @@ export default async function DashboardPage() {
     db.from('customer_reward_redemptions').select('id', { count: 'exact', head: true }).eq('tenant_id', tenantId).gte('created_at', startOfLastWeek).lt('created_at', startOfThisWeek),
     // New programs this month
     db.from('reward_programs').select('id', { count: 'exact', head: true }).eq('tenant_id', tenantId).gte('created_at', startOfThisMonth),
-    // Ever had a transaction (for onboarding checklist)
-    db.from('transactions').select('id', { count: 'exact', head: true }).eq('tenant_id', tenantId).limit(1),
   ]);
 
   const { data: recentTx } = await db
@@ -65,13 +61,6 @@ export default async function DashboardPage() {
   const isPastDue    = tenant.subscription_status === 'past_due' || tenant.subscription_status === 'unpaid';
   const isDowngraded = tenant.plan !== 'free' && effectivePlan === 'free';
   const shortName    = tenant.name.split(' ')[0];
-
-  const onboardingSteps = [
-    { label: 'Cuenta creada',                        done: true },
-    { label: 'Crea tu primer programa de fidelización', done: programs.length > 0,          href: '/dashboard/programs' },
-    { label: 'Agrega tu primer cliente',              done: (customerCount ?? 0) > 0,       href: '/dashboard/customers' },
-    { label: 'Registra tu primera transacción',       done: (everHadTransaction ?? 0) > 0,  href: '/dashboard/quick' },
-  ];
 
   // ── Trend helpers ────────────────────────────────────────────────
   function pctChange(current: number, previous: number): number | null {
@@ -142,9 +131,6 @@ export default async function DashboardPage() {
 
   return (
     <>
-      {/* Floating onboarding checklist */}
-      <OnboardingChecklist tenantId={tenantId} steps={onboardingSteps} />
-
     <div className="space-y-6">
       {/* Banners */}
       {isPastDue && (
@@ -156,7 +142,7 @@ export default async function DashboardPage() {
             </p>
           </div>
           <a href="/dashboard/settings" className="shrink-0 rounded-xl bg-red-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-red-700 transition">
-            Resolver →
+            Resolver
           </a>
         </div>
       )}
@@ -169,7 +155,7 @@ export default async function DashboardPage() {
             </p>
           </div>
           <a href="/dashboard/settings" className="shrink-0 rounded-xl bg-amber-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-amber-700 transition">
-            Ver facturación →
+            Ver facturación
           </a>
         </div>
       )}
@@ -261,7 +247,7 @@ export default async function DashboardPage() {
           <div className="flex items-center justify-between border-b border-gray-100 dark:border-[#1e2438] px-5 py-4">
             <h2 className="text-sm font-semibold text-gray-800 dark:text-white">Actividad reciente</h2>
             <Link href="/dashboard/customers" className="text-xs font-semibold text-indigo-500 hover:text-indigo-600 dark:hover:text-indigo-400 transition">
-              Ver clientes →
+              Ver clientes
             </Link>
           </div>
           {!recentTx?.length ? (
@@ -311,13 +297,13 @@ export default async function DashboardPage() {
             <div className="flex items-center justify-between border-b border-gray-100 dark:border-[#1e2438] px-5 py-4">
               <h2 className="text-sm font-semibold text-gray-800 dark:text-white">Programas</h2>
               <Link href="/dashboard/programs" className="text-xs font-semibold text-indigo-500 hover:text-indigo-600 dark:hover:text-indigo-400 transition">
-                Gestionar →
+                Gestionar
               </Link>
             </div>
             {!programs.length ? (
               <div className="px-5 py-8 text-center">
                 <p className="text-sm text-gray-400 dark:text-gray-500">Sin programas activos.</p>
-                <Link href="/dashboard/programs" className="mt-1 inline-block text-sm text-indigo-500 hover:underline">Crear uno →</Link>
+                <Link href="/dashboard/programs" className="mt-1 inline-block text-sm text-indigo-500 hover:underline">Crear uno</Link>
               </div>
             ) : (
               <ul className="divide-y divide-gray-50 dark:divide-[#1e2438]">
