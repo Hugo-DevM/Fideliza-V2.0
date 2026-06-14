@@ -336,6 +336,7 @@ export const es: Dictionary = {
         { label: "Cómo funciona", href: "#how-it-works" },
         { label: "Precios", href: "#pricing" },
         { label: "Acceso anticipado", href: "#waitlist" },
+        { label: "Soporte", href: "/support" },
       ],
       legal: [
         { label: "Política de privacidad", href: "/privacy" },

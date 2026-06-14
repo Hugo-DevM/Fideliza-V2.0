@@ -335,6 +335,7 @@ export const en = {
         { label: "How it works", href: "#how-it-works" },
         { label: "Pricing", href: "#pricing" },
         { label: "Early access", href: "#waitlist" },
+        { label: "Support", href: "/support" },
       ],
       legal: [
         { label: "Privacy policy", href: "/privacy" },

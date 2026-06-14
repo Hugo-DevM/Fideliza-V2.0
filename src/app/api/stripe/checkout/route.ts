@@ -117,7 +117,7 @@ export async function POST(request: Request) {
       },
       // When trial is active, collect payment method but don't charge until trial ends
       ...(trialDays > 0 && { payment_method_collection: 'if_required' }),
-      locale: 'es',
+      locale: 'es-419',
       allow_promotion_codes: true,
       metadata: { tenant_id: tenantId, plan, billing },
     });
