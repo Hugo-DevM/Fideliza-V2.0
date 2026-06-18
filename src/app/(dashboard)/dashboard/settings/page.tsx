@@ -36,6 +36,7 @@ export default async function SettingsPage({
         subdomain={tenant.subdomain}
         logoUrl={tenant.logo_url}
         year={year}
+        plan={effectivePlan}
       />
 
       <BillingSection

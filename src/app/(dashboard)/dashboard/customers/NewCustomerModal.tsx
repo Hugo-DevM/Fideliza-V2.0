@@ -16,9 +16,10 @@ function capitalizeWords(value: string) {
 
 interface Props {
   phonePrefix: string | null;
+  plan: string;
 }
 
-export default function NewCustomerModal({ phonePrefix }: Props) {
+export default function NewCustomerModal({ phonePrefix, plan }: Props) {
   const [open, setOpen] = useState(false);
   const { mounted: modalMounted, visible: modalVisible } = useModalTransition(open);
   const { error, setError, mounted, displayText, wrapperStyle, errorStyle } = useAutoError();
@@ -275,6 +276,14 @@ export default function NewCustomerModal({ phonePrefix }: Props) {
                 </span>
                 <WhatsAppIcon className="h-5 w-5 shrink-0 text-green-500" />
               </button>
+              {plan === 'free' && (
+                <p className="text-xs text-gray-400 dark:text-gray-500 -mt-2 px-1">
+                  El consentimiento se guarda ahora.{' '}
+                  <a href="/dashboard/settings" className="text-indigo-500 hover:underline">
+                    Activa las notificaciones con Plan Starter →
+                  </a>
+                </p>
+              )}
 
               <div className="flex justify-end gap-3 pt-1">
                 <button

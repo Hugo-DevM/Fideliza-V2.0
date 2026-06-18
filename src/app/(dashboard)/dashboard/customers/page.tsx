@@ -78,7 +78,7 @@ export default async function CustomersPage({
             {total} registrados · {activeCount ?? 0} activos · {planLabel} ({limitLabel})
           </p>
         </div>
-        {!atCustomerLimit && <div className="sm:shrink-0"><NewCustomerModal phonePrefix={settings.phone_prefix ?? null} /></div>}
+        {!atCustomerLimit && <div className="sm:shrink-0"><NewCustomerModal phonePrefix={settings.phone_prefix ?? null} plan={effectivePlan} /></div>}
       </div>
 
       {/* Search + filter */}

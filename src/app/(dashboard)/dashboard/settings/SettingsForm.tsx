@@ -15,12 +15,14 @@ export default function SettingsForm({
   subdomain,
   logoUrl,
   year,
+  plan,
 }: {
   settings: TenantSettings;
   tenantName: string;
   subdomain: string;
   logoUrl: string | null;
   year: number;
+  plan: string;
 }) {
   const { t, locale, setLocale, timezone } = useDashboardI18n();
   const s = t.settings;
@@ -475,15 +477,36 @@ export default function SettingsForm({
       <input type="hidden" name="wa_notify_streak_at_risk"   value={waNotifyStreakAtRisk    ? 'true' : 'false'} />
       <input type="hidden" name="wa_notify_promotion"        value={waNotifyPromotion       ? 'true' : 'false'} />
       <div className="rounded-2xl border border-gray-100 dark:border-[#1e2438] bg-white dark:bg-[#161b2e] shadow-sm p-5 space-y-4">
-        <div className="flex items-center gap-2">
-          <WhatsAppIcon className="h-4 w-4 text-green-500 shrink-0" />
-          <div>
-            <h2 className="text-sm font-semibold text-gray-800 dark:text-white">Notificaciones por WhatsApp</h2>
-            <p className="mt-0.5 text-xs text-gray-400 dark:text-gray-500">
-              Mensajes automáticos enviados a tus clientes vía WhatsApp Business API.
+        <div className="flex items-center justify-between gap-2">
+          <div className="flex items-center gap-2">
+            <WhatsAppIcon className="h-4 w-4 text-green-500 shrink-0" />
+            <div>
+              <h2 className="text-sm font-semibold text-gray-800 dark:text-white">Notificaciones por WhatsApp</h2>
+              <p className="mt-0.5 text-xs text-gray-400 dark:text-gray-500">
+                Mensajes automáticos enviados a tus clientes vía WhatsApp Business API.
+              </p>
+            </div>
+          </div>
+          {plan === 'free' && (
+            <a
+              href="/dashboard/settings#billing"
+              className="shrink-0 rounded-lg bg-indigo-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-indigo-700 transition"
+            >
+              Actualizar plan
+            </a>
+          )}
+        </div>
+
+        {plan === 'free' && (
+          <div className="flex items-start gap-2.5 rounded-xl border border-indigo-200 dark:border-indigo-500/30 bg-indigo-50 dark:bg-indigo-500/10 px-3.5 py-3">
+            <svg className="h-4 w-4 shrink-0 mt-0.5 text-indigo-500" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 1 0-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 0 0 2.25-2.25v-6.75a2.25 2.25 0 0 0-2.25-2.25H6.75a2.25 2.25 0 0 0-2.25 2.25v6.75a2.25 2.25 0 0 0 2.25 2.25Z" />
+            </svg>
+            <p className="text-xs text-indigo-700 dark:text-indigo-300 leading-relaxed">
+              Las notificaciones por WhatsApp están disponibles en el <span className="font-semibold">Plan Starter</span> y superiores. Actualiza tu plan para activarlas.
             </p>
           </div>
-        </div>
+        )}
 
         <div className="space-y-3">
           <NotifToggle
@@ -491,36 +514,42 @@ export default function SettingsForm({
             hint="Mensaje de bienvenida cuando un cliente se une al programa."
             checked={waNotifyWelcome}
             onChange={setWaNotifyWelcome}
+            disabled={plan === 'free'}
           />
           <NotifToggle
             label="Recordatorio de voucher por vencer"
             hint="Aviso 3 días antes de que un voucher expire sin ser canjeado."
             checked={waNotifyVoucherExpiry}
             onChange={setWaNotifyVoucherExpiry}
+            disabled={plan === 'free'}
           />
           <NotifToggle
             label="Recordatorio de saldo acumulado"
             hint="Recuerda a clientes inactivos que tienen puntos/sellos disponibles."
             checked={waNotifyBalanceReminder}
             onChange={setWaNotifyBalanceReminder}
+            disabled={plan === 'free'}
           />
           <NotifToggle
             label="Reactivación de clientes inactivos"
             hint="Mensaje semanal para clientes sin visitas en los últimos 21 días."
             checked={waNotifyReactivation}
             onChange={setWaNotifyReactivation}
+            disabled={plan === 'free'}
           />
           <NotifToggle
             label="Racha en riesgo"
             hint="Alerta cuando un cliente está a punto de perder su racha de visitas."
             checked={waNotifyStreakAtRisk}
             onChange={setWaNotifyStreakAtRisk}
+            disabled={plan === 'free'}
           />
           <NotifToggle
             label="Mensajes promocionales"
             hint="Envía promociones y ofertas especiales a tus clientes (costo más alto)."
             checked={waNotifyPromotion}
             onChange={setWaNotifyPromotion}
+            disabled={plan === 'free'}
           />
         </div>
       </div>
@@ -558,14 +587,21 @@ function NotifToggle({
   hint,
   checked,
   onChange,
+  disabled = false,
 }: {
   label: string;
   hint: string;
   checked: boolean;
   onChange: (v: boolean) => void;
+  disabled?: boolean;
 }) {
   return (
-    <div className="flex items-center justify-between gap-4 rounded-xl border border-gray-100 dark:border-[#1e2438] bg-gray-50 dark:bg-[#1a1f35] px-4 py-3">
+    <div className={[
+      'flex items-center justify-between gap-4 rounded-xl border px-4 py-3',
+      disabled
+        ? 'border-gray-100 dark:border-[#1e2438] bg-gray-50/50 dark:bg-[#1a1f35]/50 opacity-50'
+        : 'border-gray-100 dark:border-[#1e2438] bg-gray-50 dark:bg-[#1a1f35]',
+    ].join(' ')}>
       <div className="min-w-0">
         <p className="text-sm font-medium text-gray-800 dark:text-gray-100">{label}</p>
         <p className="text-xs text-gray-400 dark:text-gray-500 mt-0.5">{hint}</p>
@@ -574,16 +610,18 @@ function NotifToggle({
         type="button"
         role="switch"
         aria-checked={checked}
-        onClick={() => onChange(!checked)}
+        disabled={disabled}
+        onClick={() => !disabled && onChange(!checked)}
         className={[
           'relative shrink-0 h-6 w-11 rounded-full transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-indigo-400/30',
-          checked ? 'bg-indigo-600' : 'bg-gray-200 dark:bg-[#2a3050]',
+          disabled ? 'cursor-not-allowed' : '',
+          checked && !disabled ? 'bg-indigo-600' : 'bg-gray-200 dark:bg-[#2a3050]',
         ].join(' ')}
       >
         <span
           className={[
             'absolute top-0.5 left-0.5 h-5 w-5 rounded-full bg-white shadow transition-transform duration-200',
-            checked ? 'translate-x-5' : 'translate-x-0',
+            checked && !disabled ? 'translate-x-5' : 'translate-x-0',
           ].join(' ')}
         />
       </button>
