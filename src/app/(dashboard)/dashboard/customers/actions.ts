@@ -7,15 +7,16 @@ import { createCustomer, updateCustomer } from '@/modules/customers';
 export async function createCustomerAction(formData: FormData) {
   const { tenantId } = await getAuthenticatedTenant();
 
-  const name  = (formData.get('name')  as string | null)?.trim() ?? '';
-  const phone = (formData.get('phone') as string | null)?.trim() || null;
-  const notes = (formData.get('notes') as string | null)?.trim() || null;
+  const name             = (formData.get('name')  as string | null)?.trim() ?? '';
+  const phone            = (formData.get('phone') as string | null)?.trim() || null;
+  const notes            = (formData.get('notes') as string | null)?.trim() || null;
+  const whatsapp_opt_in  = formData.get('whatsapp_opt_in') === 'true';
 
   if (!name)  return { error: 'El nombre es obligatorio.' };
   if (!phone) return { error: 'El teléfono es obligatorio.' };
 
   try {
-    const customer = await createCustomer(tenantId, { name, phone, notes });
+    const customer = await createCustomer(tenantId, { name, phone, notes, whatsapp_opt_in });
     revalidateTag('customers', 'max');
     revalidatePath('/dashboard/customers');
     revalidatePath('/dashboard');

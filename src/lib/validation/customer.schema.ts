@@ -18,6 +18,7 @@ export const CreateCustomerSchema = z.object({
     .optional(),
 
   notes: z.string().max(1000).nullable().optional(),
+  whatsapp_opt_in: z.boolean().optional().default(false),
 });
 
 export const UpdateCustomerSchema = z.object({

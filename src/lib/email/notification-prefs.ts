@@ -15,6 +15,12 @@ export interface NotificationPrefs {
   notifyNewCustomer: boolean;
   notifyRedemption: boolean;
   notifyWeeklyDigest: boolean;
+  waNotifyWelcome:        boolean;
+  waNotifyVoucherExpiry:  boolean;
+  waNotifyBalanceReminder: boolean;
+  waNotifyReactivation:   boolean;
+  waNotifyStreakAtRisk:   boolean;
+  waNotifyPromotion:      boolean;
 }
 
 export async function getNotificationPrefs(tenantId: UUID): Promise<NotificationPrefs | null> {
@@ -22,7 +28,11 @@ export async function getNotificationPrefs(tenantId: UUID): Promise<Notification
 
   const { data } = await db
     .from('tenants')
-    .select('email, name, tenant_settings(notify_new_customer, notify_redemption, notify_weekly_digest)')
+    .select(`email, name, tenant_settings(
+      notify_new_customer, notify_redemption, notify_weekly_digest,
+      wa_notify_welcome, wa_notify_voucher_expiry, wa_notify_balance_reminder,
+      wa_notify_reactivation, wa_notify_streak_at_risk, wa_notify_promotion
+    )`)
     .eq('id', tenantId)
     .eq('is_active', true)
     .single();
@@ -36,6 +46,12 @@ export async function getNotificationPrefs(tenantId: UUID): Promise<Notification
       notify_new_customer: boolean;
       notify_redemption: boolean;
       notify_weekly_digest: boolean;
+      wa_notify_welcome: boolean;
+      wa_notify_voucher_expiry: boolean;
+      wa_notify_balance_reminder: boolean;
+      wa_notify_reactivation: boolean;
+      wa_notify_streak_at_risk: boolean;
+      wa_notify_promotion: boolean;
     }> | null;
   };
 
@@ -48,5 +64,11 @@ export async function getNotificationPrefs(tenantId: UUID): Promise<Notification
     notifyNewCustomer:  s?.notify_new_customer  ?? true,
     notifyRedemption:   s?.notify_redemption    ?? true,
     notifyWeeklyDigest: s?.notify_weekly_digest ?? true,
+    waNotifyWelcome:         s?.wa_notify_welcome          ?? true,
+    waNotifyVoucherExpiry:   s?.wa_notify_voucher_expiry   ?? true,
+    waNotifyBalanceReminder: s?.wa_notify_balance_reminder ?? false,
+    waNotifyReactivation:    s?.wa_notify_reactivation     ?? false,
+    waNotifyStreakAtRisk:    s?.wa_notify_streak_at_risk   ?? false,
+    waNotifyPromotion:       s?.wa_notify_promotion        ?? false,
   };
 }

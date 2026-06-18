@@ -35,6 +35,12 @@ export default function SettingsForm({
   const [notifyNewCustomer,  setNotifyNewCustomer]  = useState(settings.notify_new_customer  ?? true);
   const [notifyRedemption,   setNotifyRedemption]   = useState(settings.notify_redemption    ?? true);
   const [notifyWeeklyDigest, setNotifyWeeklyDigest] = useState(settings.notify_weekly_digest ?? true);
+  const [waNotifyWelcome,        setWaNotifyWelcome]        = useState(settings.wa_notify_welcome        ?? true);
+  const [waNotifyVoucherExpiry,  setWaNotifyVoucherExpiry]  = useState(settings.wa_notify_voucher_expiry ?? true);
+  const [waNotifyBalanceReminder,setWaNotifyBalanceReminder]= useState(settings.wa_notify_balance_reminder ?? false);
+  const [waNotifyReactivation,   setWaNotifyReactivation]   = useState(settings.wa_notify_reactivation   ?? true);
+  const [waNotifyStreakAtRisk,   setWaNotifyStreakAtRisk]   = useState(settings.wa_notify_streak_at_risk  ?? false);
+  const [waNotifyPromotion,      setWaNotifyPromotion]      = useState(settings.wa_notify_promotion       ?? false);
   const [saved, setSaved] = useState({
     primary_color:   settings.primary_color,
     secondary_color: settings.secondary_color,
@@ -42,10 +48,16 @@ export default function SettingsForm({
     program_label:   settings.program_label,
     phone_prefix:    settings.phone_prefix ?? '',
     timezone:        settings.timezone ?? 'America/Mexico_City',
-    currency:             settings.currency ?? 'MXN',
-    notifyNewCustomer:    settings.notify_new_customer  ?? true,
-    notifyRedemption:     settings.notify_redemption    ?? true,
-    notifyWeeklyDigest:   settings.notify_weekly_digest ?? true,
+    currency:                  settings.currency ?? 'MXN',
+    notifyNewCustomer:         settings.notify_new_customer  ?? true,
+    notifyRedemption:          settings.notify_redemption    ?? true,
+    notifyWeeklyDigest:        settings.notify_weekly_digest ?? true,
+    waNotifyWelcome:           settings.wa_notify_welcome        ?? true,
+    waNotifyVoucherExpiry:     settings.wa_notify_voucher_expiry ?? true,
+    waNotifyBalanceReminder:   settings.wa_notify_balance_reminder ?? false,
+    waNotifyReactivation:      settings.wa_notify_reactivation   ?? true,
+    waNotifyStreakAtRisk:      settings.wa_notify_streak_at_risk  ?? false,
+    waNotifyPromotion:         settings.wa_notify_promotion       ?? false,
   });
   const [copied, setCopied] = useState(false);
 
@@ -56,10 +68,16 @@ export default function SettingsForm({
     programLabel   !== saved.program_label   ||
     phonePrefix    !== saved.phone_prefix    ||
     tz             !== saved.timezone        ||
-    currency            !== saved.currency             ||
-    notifyNewCustomer   !== saved.notifyNewCustomer    ||
-    notifyRedemption    !== saved.notifyRedemption     ||
-    notifyWeeklyDigest  !== saved.notifyWeeklyDigest;
+    currency                   !== saved.currency                  ||
+    notifyNewCustomer          !== saved.notifyNewCustomer         ||
+    notifyRedemption           !== saved.notifyRedemption          ||
+    notifyWeeklyDigest         !== saved.notifyWeeklyDigest        ||
+    waNotifyWelcome            !== saved.waNotifyWelcome           ||
+    waNotifyVoucherExpiry      !== saved.waNotifyVoucherExpiry     ||
+    waNotifyBalanceReminder    !== saved.waNotifyBalanceReminder   ||
+    waNotifyReactivation       !== saved.waNotifyReactivation      ||
+    waNotifyStreakAtRisk       !== saved.waNotifyStreakAtRisk      ||
+    waNotifyPromotion          !== saved.waNotifyPromotion;
 
   function handleProgramLabelChange(e: React.ChangeEvent<HTMLInputElement>) {
     const raw = e.target.value;
@@ -93,6 +111,12 @@ export default function SettingsForm({
           notifyNewCustomer,
           notifyRedemption,
           notifyWeeklyDigest,
+          waNotifyWelcome,
+          waNotifyVoucherExpiry,
+          waNotifyBalanceReminder,
+          waNotifyReactivation,
+          waNotifyStreakAtRisk,
+          waNotifyPromotion,
         });
         setSuccess(s.saved);
         router.refresh();
@@ -439,6 +463,64 @@ export default function SettingsForm({
             hint={s.notifications.weeklyDigestHint}
             checked={notifyWeeklyDigest}
             onChange={setNotifyWeeklyDigest}
+          />
+        </div>
+      </div>
+
+      {/* ── WhatsApp notifications card ──────────────────────────────────────── */}
+      <input type="hidden" name="wa_notify_welcome"          value={waNotifyWelcome         ? 'true' : 'false'} />
+      <input type="hidden" name="wa_notify_voucher_expiry"   value={waNotifyVoucherExpiry   ? 'true' : 'false'} />
+      <input type="hidden" name="wa_notify_balance_reminder" value={waNotifyBalanceReminder ? 'true' : 'false'} />
+      <input type="hidden" name="wa_notify_reactivation"     value={waNotifyReactivation    ? 'true' : 'false'} />
+      <input type="hidden" name="wa_notify_streak_at_risk"   value={waNotifyStreakAtRisk    ? 'true' : 'false'} />
+      <input type="hidden" name="wa_notify_promotion"        value={waNotifyPromotion       ? 'true' : 'false'} />
+      <div className="rounded-2xl border border-gray-100 dark:border-[#1e2438] bg-white dark:bg-[#161b2e] shadow-sm p-5 space-y-4">
+        <div className="flex items-center gap-2">
+          <WhatsAppIcon className="h-4 w-4 text-green-500 shrink-0" />
+          <div>
+            <h2 className="text-sm font-semibold text-gray-800 dark:text-white">Notificaciones por WhatsApp</h2>
+            <p className="mt-0.5 text-xs text-gray-400 dark:text-gray-500">
+              Mensajes automáticos enviados a tus clientes vía WhatsApp Business API.
+            </p>
+          </div>
+        </div>
+
+        <div className="space-y-3">
+          <NotifToggle
+            label="Bienvenida al registrarse"
+            hint="Mensaje de bienvenida cuando un cliente se une al programa."
+            checked={waNotifyWelcome}
+            onChange={setWaNotifyWelcome}
+          />
+          <NotifToggle
+            label="Recordatorio de voucher por vencer"
+            hint="Aviso 3 días antes de que un voucher expire sin ser canjeado."
+            checked={waNotifyVoucherExpiry}
+            onChange={setWaNotifyVoucherExpiry}
+          />
+          <NotifToggle
+            label="Recordatorio de saldo acumulado"
+            hint="Recuerda a clientes inactivos que tienen puntos/sellos disponibles."
+            checked={waNotifyBalanceReminder}
+            onChange={setWaNotifyBalanceReminder}
+          />
+          <NotifToggle
+            label="Reactivación de clientes inactivos"
+            hint="Mensaje semanal para clientes sin visitas en los últimos 21 días."
+            checked={waNotifyReactivation}
+            onChange={setWaNotifyReactivation}
+          />
+          <NotifToggle
+            label="Racha en riesgo"
+            hint="Alerta cuando un cliente está a punto de perder su racha de visitas."
+            checked={waNotifyStreakAtRisk}
+            onChange={setWaNotifyStreakAtRisk}
+          />
+          <NotifToggle
+            label="Mensajes promocionales"
+            hint="Envía promociones y ofertas especiales a tus clientes (costo más alto)."
+            checked={waNotifyPromotion}
+            onChange={setWaNotifyPromotion}
           />
         </div>
       </div>
@@ -1090,3 +1172,11 @@ function ColorField({
 }
 
 const inputCls = 'w-full rounded-xl border border-gray-200 dark:border-[#1e2438] bg-white dark:bg-[#1a1f35] px-3 py-2.5 text-sm text-gray-800 dark:text-gray-200 placeholder-gray-400 dark:placeholder-gray-500 outline-none transition focus:border-indigo-400 focus:ring-2 focus:ring-indigo-400/20';
+
+function WhatsAppIcon({ className }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="currentColor">
+      <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
+    </svg>
+  );
+}
