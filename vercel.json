@@ -4,11 +4,7 @@
       "path": "/api/cron/weekly-digest",
       "schedule": "0 8 * * 1"
     },
-    {
-      "path": "/api/cron/whatsapp-send",
-      "schedule": "*/5 * * * *"
-    },
-    {
+{
       "path": "/api/cron/voucher-expiry",
       "schedule": "0 10 * * *"
     },
