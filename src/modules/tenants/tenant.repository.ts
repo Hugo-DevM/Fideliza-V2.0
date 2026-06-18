@@ -103,7 +103,7 @@ export async function updateTenantSettings(
 
   const { data, error } = await db
     .from('tenant_settings')
-    .update({ ...input, updated_at: new Date().toISOString() })
+    .update({ ...input, updated_at: new Date().toISOString() } as never)
     .eq('tenant_id', tenantId)
     .select('*')
     .single();
