@@ -33,6 +33,17 @@ interface EnqueueParams {
 }
 
 async function enqueueMessage(p: EnqueueParams): Promise<void> {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const db = createServiceRoleClient() as any;
+
+  // 0. Plan gate — WhatsApp notifications are Starter and Pro only
+  const { data: tenant } = await db
+    .from('tenants')
+    .select('plan')
+    .eq('id', p.tenantId)
+    .single();
+  if (!tenant || tenant.plan === 'free') return;
+
   // 1. Quality gate — stop here if the number is in a bad state
   const allowed = await isSendingAllowed(p.category);
   if (!allowed) return;
@@ -42,8 +53,6 @@ async function enqueueMessage(p: EnqueueParams): Promise<void> {
   if (!underCap) return;
 
   // 3. Insert into the queue
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const db = createServiceRoleClient() as any;
   await db.from('whatsapp_message_queue').insert({
     tenant_id:         p.tenantId,
     customer_id:       p.customerId,
