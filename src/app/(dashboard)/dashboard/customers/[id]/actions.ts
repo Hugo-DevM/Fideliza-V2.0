@@ -90,12 +90,12 @@ export async function sendBalanceReminderAction(customerId: string, programId: s
   const db = createServiceRoleClient();
 
   // Get customer
-  const { data: customer } = await db
+  const { data: customer } = await (db
     .from('customers')
     .select('name, phone, whatsapp_opt_in')
     .eq('id', customerId)
     .eq('tenant_id', tenantId)
-    .single();
+    .single() as unknown as Promise<{ data: { name: string; phone: string | null; whatsapp_opt_in: boolean } | null }>);
 
   if (!customer) return { error: 'Cliente no encontrado.' };
   if (!customer.whatsapp_opt_in) return { error: 'El cliente no tiene WhatsApp activado.' };
