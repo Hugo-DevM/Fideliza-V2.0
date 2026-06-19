@@ -115,6 +115,11 @@ export async function GET(request: Request) {
       const canRetry   = msg.retry_count < msg.max_retries;
       const backoffSec = Math.pow(2, msg.retry_count) * 60; // 1m, 2m, 4m
 
+      // Sanitize error — store only code and category, not full message
+      const safeError = isWaError
+        ? `meta_error:${(err as WhatsAppApiError).metaCode}`
+        : 'send_failed';
+
       if (canRetry && (!isWaError || isTransientWaError(err as WhatsAppApiError))) {
         const retryAt = new Date(Date.now() + backoffSec * 1000).toISOString();
         await db
@@ -123,7 +128,7 @@ export async function GET(request: Request) {
             status:        'pending',
             retry_count:   msg.retry_count + 1,
             scheduled_at:  retryAt,
-            error_message: String(err),
+            error_message: safeError,
           })
           .eq('id', msg.id);
       } else {
@@ -131,7 +136,7 @@ export async function GET(request: Request) {
           .from('whatsapp_message_queue')
           .update({
             status:        'failed',
-            error_message: String(err),
+            error_message: safeError,
           })
           .eq('id', msg.id);
         failed++;

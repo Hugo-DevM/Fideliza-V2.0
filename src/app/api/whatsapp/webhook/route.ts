@@ -13,9 +13,10 @@
  */
 
 import { NextResponse }           from 'next/server';
-import { createHmac }             from 'crypto';
+import { createHmac, timingSafeEqual } from 'crypto';
 import { createServiceRoleClient } from '@/lib/supabase/server';
 import { updateQualityState, invalidateQualityCache } from '@/lib/whatsapp/quality-gate';
+import { checkRateLimit } from '@/lib/middleware/rate-limit';
 
 export const dynamic = 'force-dynamic';
 
@@ -38,17 +39,33 @@ export async function GET(request: Request) {
 
 // ── POST — receive events ────────────────────────────────────────────────────
 export async function POST(request: Request) {
+  // Rate limit: 100 requests per minute per IP (Meta sends at most a few per second)
+  const ip = request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ?? 'unknown';
+  const rl = await checkRateLimit(`webhook:${ip}`, 100, 60_000);
+  if (!rl.allowed) {
+    return NextResponse.json({ error: 'Too many requests' }, { status: 429 });
+  }
+
   const rawBody = await request.text();
 
   // 1. Verify HMAC-SHA256 signature — reject anything not from Meta
   const appSecret = process.env.META_APP_SECRET;
-  if (appSecret) {
-    const signature = request.headers.get('x-hub-signature-256') ?? '';
-    const expected  = 'sha256=' + createHmac('sha256', appSecret).update(rawBody).digest('hex');
+  if (!appSecret) {
+    console.error('[webhook] META_APP_SECRET is not configured');
+    return NextResponse.json({ error: 'Server misconfiguration' }, { status: 500 });
+  }
 
-    if (signature !== expected) {
+  const signature = request.headers.get('x-hub-signature-256') ?? '';
+  const expected  = 'sha256=' + createHmac('sha256', appSecret).update(rawBody).digest('hex');
+
+  try {
+    const sigBuf = Buffer.from(signature);
+    const expBuf = Buffer.from(expected);
+    if (sigBuf.length !== expBuf.length || !timingSafeEqual(sigBuf, expBuf)) {
       return NextResponse.json({ error: 'Invalid signature' }, { status: 401 });
     }
+  } catch {
+    return NextResponse.json({ error: 'Invalid signature' }, { status: 401 });
   }
 
   // 2. Parse payload
@@ -145,31 +162,28 @@ async function handleMessagesChange(value: MetaMessagesValue): Promise<void> {
     if (!OPT_OUT_KEYWORDS.includes(body)) continue;
 
     // Phone from Meta is E.164 without the + (e.g. "521234567890")
-    // Our DB stores with + prefix — try both formats
-    const phoneWithPlus    = `+${msg.from}`;
-    const phoneWithoutPlus = msg.from;
+    // Our DB stores with + prefix — normalize to both formats
+    const phoneWithPlus    = msg.from.startsWith('+') ? msg.from : `+${msg.from}`;
+    const phoneWithoutPlus = msg.from.startsWith('+') ? msg.from.slice(1) : msg.from;
 
+    // Validate E.164 format before touching the DB
+    if (!/^\+?[1-9]\d{6,14}$/.test(phoneWithPlus)) continue;
+
+    // Use .in() with array — safe parameterized query
     await db
       .from('customers')
       .update({ whatsapp_opt_in: false })
-      .or(`phone.eq.${phoneWithPlus},phone.eq.${phoneWithoutPlus}`);
+      .in('phone', [phoneWithPlus, phoneWithoutPlus]);
 
     // Cancel their pending queued messages
     await db
       .from('whatsapp_message_queue')
       .update({ status: 'cancelled' })
-      .eq('phone_number', phoneWithPlus)
+      .in('phone_number', [phoneWithPlus, phoneWithoutPlus])
       .eq('status', 'pending');
 
-    await db
-      .from('whatsapp_message_queue')
-      .update({ status: 'cancelled' })
-      .eq('phone_number', phoneWithoutPlus)
-      .eq('status', 'pending');
+    invalidateQualityCache();
   }
-
-  // Suppress unused variable warning — invalidateQualityCache is used in quality-gate.ts
-  void invalidateQualityCache;
 }
 
 // ── Meta payload type definitions ────────────────────────────────────────────
