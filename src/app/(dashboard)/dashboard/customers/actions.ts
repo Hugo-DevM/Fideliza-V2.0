@@ -53,13 +53,13 @@ export async function sendPromotionBlastAction() {
   const { tenantId, settings } = await getAuthenticatedTenant();
   const db = createServiceRoleClient();
 
-  const { data: customers } = await db
+  const { data: customers } = await (db as any)
     .from('customers')
     .select('id, name, phone')
     .eq('tenant_id', tenantId)
     .eq('is_active', true)
     .eq('whatsapp_opt_in', true)
-    .not('phone', 'is', null) as never as { data: { id: string; name: string; phone: string }[] };
+    .not('phone', 'is', null) as { data: { id: string; name: string; phone: string }[] | null };
 
   if (!customers?.length) return { queued: 0 };
 
