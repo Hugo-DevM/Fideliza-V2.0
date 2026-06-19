@@ -161,6 +161,24 @@ export default function NewProgramModal({
                 </div>
               )}
 
+              {/* Head Start — bonus points on first earn */}
+              <div className="rounded-xl border border-amber-200 dark:border-amber-700/40 bg-amber-50 dark:bg-amber-950/20 p-4 space-y-1.5">
+                <div className="flex items-center gap-2">
+                  <span className="text-sm font-semibold text-amber-800 dark:text-amber-300">Head Start (opcional)</span>
+                  <span className="rounded-full bg-amber-200 dark:bg-amber-700/40 px-1.5 py-0.5 text-[10px] font-bold text-amber-800 dark:text-amber-300">NUEVO</span>
+                </div>
+                <p className="text-xs text-amber-700 dark:text-amber-400">
+                  Puntos extra al inscribirse. <strong>2/10 sellos convierte mejor que 0/10</strong> — el cliente siente que ya tiene progreso que perder.
+                </p>
+                <NumField
+                  label="Puntos de bienvenida"
+                  name="initial_bonus"
+                  defaultValue="0"
+                  min="0"
+                  hint="0 = sin bonus. Ej: 2 en programa de 10 sellos"
+                />
+              </div>
+
               <div className="flex justify-end gap-3 pt-1">
                 <button type="button" onClick={() => setOpen(false)}
                   className="rounded-lg border border-gray-200 dark:border-[#2a3147] px-4 py-2 text-sm font-medium text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-[#1e2438] transition"

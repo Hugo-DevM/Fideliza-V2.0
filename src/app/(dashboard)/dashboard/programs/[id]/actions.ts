@@ -9,6 +9,42 @@ import { createServiceRoleClient } from '@/lib/supabase/server';
 import { auditLog, AuditEvent } from '@/lib/utils/audit';
 import type { ProgramStatus } from '@/lib/types';
 
+export async function updateFlashOfferAction(
+  programId: string,
+  flash: {
+    flash_enabled:    boolean;
+    flash_multiplier: number;
+    flash_start_hour: number;
+    flash_end_hour:   number;
+    flash_days:       number[];
+  },
+) {
+  const { tenantId, effectivePlan } = await getAuthenticatedTenant();
+  if (effectivePlan === 'free') return { error: 'Flash Offers requiere plan Starter o Pro.' };
+
+  const db = createServiceRoleClient();
+
+  // Merge flash fields into existing config (preserve other config keys)
+  const { data: program } = await db
+    .from('reward_programs')
+    .select('config')
+    .eq('id', programId)
+    .eq('tenant_id', tenantId)
+    .single();
+
+  if (!program) return { error: 'Programa no encontrado.' };
+
+  const newConfig = { ...(program.config as Record<string, unknown>), ...flash };
+
+  try {
+    await updateProgram(tenantId, programId, { config: newConfig });
+    revalidatePath(`/dashboard/programs/${programId}`);
+    return { success: true };
+  } catch (err) {
+    return { error: err instanceof Error ? err.message : 'No se pudo guardar el Flash Offer.' };
+  }
+}
+
 export async function updateProgramInfoAction(programId: string, formData: FormData) {
   const { tenantId } = await getAuthenticatedTenant();
   const name        = (formData.get('name') as string).trim();

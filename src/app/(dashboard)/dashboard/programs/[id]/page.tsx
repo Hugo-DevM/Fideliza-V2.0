@@ -7,6 +7,7 @@ import NewRewardForm from './NewRewardForm';
 import ProgramStatusButtons from './ProgramStatusButtons';
 import EditProgramModal from './EditProgramModal';
 import DeleteRewardButton from './DeleteRewardButton';
+import FlashOfferCard from './FlashOfferCard';
 import { NotFoundError } from '@/lib/middleware/errors';
 import type { ProgramStatus } from '@/lib/types';
 
@@ -145,6 +146,13 @@ export default async function ProgramDetailPage({
             </div>
           ))}
         </div>
+
+        {/* Flash Offer card */}
+        <FlashOfferCard
+          programId={program.id}
+          plan={effectivePlan}
+          config={config}
+        />
 
         {/* Content grid */}
         <div className="grid gap-4 lg:grid-cols-2 lg:items-start">

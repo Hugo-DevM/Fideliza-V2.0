@@ -32,12 +32,53 @@ export async function processTransaction(
   const db = createServiceRoleClient();
 
   if (input.type === 'earn') {
+    // ── Flash Offer + Head Start modifiers ───────────────────────────────────
+    let effectiveDelta = input.points_delta;
+    let effectiveNote  = input.note ?? undefined;
+
+    const { data: program } = await db
+      .from('reward_programs')
+      .select('config')
+      .eq('id', input.program_id)
+      .eq('tenant_id', tenantId)
+      .single();
+
+    const cfg = (program?.config ?? {}) as Record<string, unknown>;
+
+    // Flash Offer: multiply points if active window matches current time
+    if (cfg.flash_enabled && isFlashOfferActive(cfg)) {
+      const mult = Number(cfg.flash_multiplier ?? 2);
+      effectiveDelta = Math.round(effectiveDelta * mult);
+      effectiveNote  = effectiveNote
+        ? `${effectiveNote} · Flash ${mult}x`
+        : `Flash ${mult}x`;
+    }
+
+    // Head Start: bonus points on a customer's very first earn in this program
+    const initialBonus = Number(cfg.initial_bonus ?? 0);
+    if (initialBonus > 0) {
+      const { data: existingEnrollment } = await db
+        .from('customer_program_enrollments')
+        .select('lifetime_points')
+        .eq('customer_id', input.customer_id)
+        .eq('program_id', input.program_id)
+        .maybeSingle();
+
+      if (!existingEnrollment || (existingEnrollment as { lifetime_points: number }).lifetime_points === 0) {
+        effectiveDelta += initialBonus;
+        effectiveNote   = effectiveNote
+          ? `${effectiveNote} · +${initialBonus} bienvenida`
+          : `+${initialBonus} bienvenida`;
+      }
+    }
+    // ────────────────────────────────────────────────────────────────────────
+
     const { data, error } = await db.rpc('rpc_earn_points', {
       p_tenant_id:    tenantId,
       p_customer_id:  input.customer_id,
       p_program_id:   input.program_id,
-      p_points_delta: input.points_delta,
-      p_note:         input.note ?? undefined,
+      p_points_delta: effectiveDelta,
+      p_note:         effectiveNote,
       p_staff_id:     input.staff_id ?? undefined,
     });
 
@@ -232,4 +273,29 @@ export async function getCustomerTransactionHistory(
   }
 
   return { transactions: (data ?? []) as Transaction[], total: count ?? 0 };
+}
+
+// ── Flash Offer helper ───────────────────────────────────────────────────────
+
+/**
+ * Returns true if the current Mexico City time falls within the configured
+ * flash offer window. Uses a fixed UTC-6 offset (CST) — accurate within 1h
+ * during CDT. Good enough for a promotional time window.
+ */
+function isFlashOfferActive(config: Record<string, unknown>): boolean {
+  const startHour = Number(config.flash_start_hour ?? -1);
+  const endHour   = Number(config.flash_end_hour   ?? -1);
+  if (startHour < 0 || endHour < 0 || startHour >= endHour) return false;
+
+  // Mexico City: UTC-6 (CST). Approximate — ignores DST.
+  const nowUtc         = new Date();
+  const offsetMs       = 6 * 60 * 60 * 1000;
+  const mexicoNow      = new Date(nowUtc.getTime() - offsetMs);
+  const mexicoHour     = mexicoNow.getUTCHours();
+  const mexicoDay      = mexicoNow.getUTCDay(); // 0 = Sunday
+
+  const days = config.flash_days as number[] | undefined;
+  if (days && days.length > 0 && !days.includes(mexicoDay)) return false;
+
+  return mexicoHour >= startHour && mexicoHour < endHour;
 }
