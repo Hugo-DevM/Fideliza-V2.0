@@ -111,20 +111,21 @@ export async function sendBalanceReminderAction(customerId: string, programId: s
 
   if (!enrollment) return { error: 'El cliente no está inscrito en este programa.' };
 
+  const typedEnrollment = enrollment as unknown as { current_points: number };
+
   // Get cheapest unreached reward for this program
-  const { data: reward } = await db
+  const { data: reward } = await (db
     .from('rewards')
     .select('name, points_required')
     .eq('program_id', programId)
     .eq('is_active', true)
-    .gt('points_required', enrollment.current_points)
+    .gt('points_required', typedEnrollment.current_points)
     .order('points_required', { ascending: true })
     .limit(1)
-    .single();
+    .single() as unknown as Promise<{ data: { name: string; points_required: number } | null }>);
 
   if (!reward) return { error: 'No hay recompensas disponibles para recordar.' };
-
-  const pointsNeeded = reward.points_required - enrollment.current_points;
+  const pointsNeeded = reward.points_required - typedEnrollment.current_points;
 
   void sendBalanceReminder(
     customerId,
@@ -132,7 +133,7 @@ export async function sendBalanceReminderAction(customerId: string, programId: s
     customer.name,
     settings.program_label ?? 'Fideliza',
     customer.phone,
-    enrollment.current_points,
+    typedEnrollment.current_points,
     pointsNeeded,
     reward.name,
   );
