@@ -46,7 +46,7 @@ function TermsEs() {
   return (
     <>
       <P>
-        <Highlight>Fecha de entrada en vigor: 5 de mayo de 2026.</Highlight>{' '}
+        <Highlight>Fecha de entrada en vigor: 19 de junio de 2026.</Highlight>{' '}
         Estos Términos de Servicio (en adelante, "los Términos") regulan el acceso y uso
         de la plataforma <Brand /> operada por <Brand /> ("<Brand />",
         "nosotros" o "nuestro"). Al registrarte o usar el servicio, aceptas estos Términos
@@ -65,6 +65,7 @@ function TermsEs() {
         'Tipos de programas: puntos, sellos, visitas y cashback (disponibilidad según plan)',
         'Gestión de transacciones, vouchers y canjes',
         'Integración con Stripe para gestión de suscripciones y pagos',
+        'Notificaciones por WhatsApp a clientes finales que han dado su consentimiento explícito (opt-in), disponible en planes Starter y Pro',
       ]} />
       <P>
         <Brand /> se reserva el derecho de modificar, suspender o descontinuar cualquier
@@ -147,6 +148,7 @@ function TermsEs() {
         'Usar cuentas múltiples para eludir los límites del plan',
         'Revender, sublicenciar o comercializar el acceso al servicio a terceros sin autorización expresa',
         'Almacenar o procesar datos especialmente sensibles (datos de salud, documentos de identidad, datos financieros más allá de lo que el servicio permite explícitamente)',
+        'Habilitar o enviar notificaciones de WhatsApp a clientes finales que no han otorgado su consentimiento explícito (opt-in) previo',
       ]} />
       <P>
         <Brand /> se reserva el derecho de suspender o eliminar cuentas que infrinjan estas
@@ -163,6 +165,7 @@ function TermsEs() {
         'Debes informar a tus clientes sobre el uso de sus datos de acuerdo con tu propia política de privacidad',
         'Fideliza actúa exclusivamente como encargado del tratamiento bajo tus instrucciones',
         'No debes registrar datos de menores de 16 años sin el consentimiento de sus tutores legales',
+        'Si habilitas las notificaciones de WhatsApp, eres responsable de obtener el consentimiento explícito (opt-in) de tus clientes finales antes de enviarles mensajes, y de mantener un mecanismo para que puedan revocar dicho consentimiento en cualquier momento',
       ]} />
       <Warning>
         El historial de transacciones es <strong>inmutable por diseño del sistema</strong>.
@@ -285,7 +288,7 @@ function TermsEn() {
   return (
     <>
       <P>
-        <Highlight>Effective date: May 5, 2026.</Highlight>{' '}
+        <Highlight>Effective date: June 19, 2026.</Highlight>{' '}
         These Terms of Service ("Terms") govern access to and use of the <Brand /> platform
         operated by <Brand /> ("<Brand />", "we", "us" or "our").
         By registering or using the service, you agree to these Terms in full. If you
@@ -304,6 +307,7 @@ function TermsEn() {
         'Program types: points, stamps, visits and cashback (availability depends on plan)',
         'Transaction, voucher and redemption management',
         'Stripe integration for subscription and payment management',
+        'WhatsApp notifications to end customers who have given explicit consent (opt-in), available on Starter and Pro plans',
       ]} />
       <P>
         <Brand /> reserves the right to modify, suspend or discontinue any feature of the
@@ -385,6 +389,7 @@ function TermsEn() {
         'Using multiple accounts to circumvent plan limits',
         'Reselling, sublicensing or commercializing access to the service to third parties without express authorization',
         'Storing or processing specially sensitive data (health records, identity documents, financial data beyond what the service explicitly supports)',
+        'Enabling or sending WhatsApp notifications to end customers who have not given prior explicit consent (opt-in)',
       ]} />
       <P>
         <Brand /> reserves the right to suspend or delete accounts that violate these rules
@@ -401,6 +406,7 @@ function TermsEn() {
         'You must inform your customers about the use of their data in accordance with your own privacy policy',
         'Fideliza acts solely as data processor under your instructions',
         'You must not register data of children under 16 without the consent of their legal guardians',
+        'If you enable WhatsApp notifications, you are responsible for obtaining explicit consent (opt-in) from your end customers before sending them messages, and for maintaining a mechanism that allows them to revoke that consent at any time',
       ]} />
       <Warning>
         The transaction history is <strong>immutable by system design</strong>. This means
@@ -537,7 +543,7 @@ export default function TermsPage() {
 
   const isEs = lang === 'es';
   const title = isEs ? 'Términos de Servicio' : 'Terms of Service';
-  const updated = isEs ? 'Última actualización: 5 de mayo de 2026' : 'Last updated: May 5, 2026';
+  const updated = isEs ? 'Última actualización: 19 de junio de 2026' : 'Last updated: June 19, 2026';
   const backLabel = isEs ? 'Volver al inicio' : 'Back to home';
 
   return (

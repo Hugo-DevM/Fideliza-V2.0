@@ -39,7 +39,7 @@ function PrivacyEs() {
   return (
     <>
       <P>
-        <Highlight>Fecha de entrada en vigor: 30 de mayo de 2026.</Highlight>{' '}
+        <Highlight>Fecha de entrada en vigor: 19 de junio de 2026.</Highlight>{' '}
         Esta Política de Privacidad describe cómo <Brand /> ("<Brand />",
         "nosotros" o "nuestro") recopila, usa, almacena y protege la información personal
         de quienes usan nuestra plataforma. Al acceder o usar los servicios de <Brand />,
@@ -86,6 +86,7 @@ function PrivacyEs() {
       <UL items={[
         'Nombre del cliente final',
         'Número de teléfono (opcional)',
+        'Preferencia de opt-in para notificaciones de WhatsApp (cuando el negocio habilita esta función)',
         'Notas internas sobre el cliente (opcional, visibles solo para el negocio)',
         'Código de acceso único generado automáticamente (alfanumérico, sin relación con datos personales)',
         'Balance de puntos, sellos y visitas por programa',
@@ -130,6 +131,7 @@ function PrivacyEs() {
         'Supabase (supabase.com) — base de datos PostgreSQL, autenticación y almacenamiento. Actúa como subencargado bajo un Acuerdo de Procesamiento de Datos (DPA). Los datos pueden almacenarse en servidores en la UE o EE.UU. según la configuración de la instancia.',
         'Stripe (stripe.com) — procesamiento de pagos y gestión de suscripciones. Stripe es responsable independiente respecto a los datos de pago bajo su propia política de privacidad. No almacenamos datos de tarjetas de crédito.',
         'Meta Platforms Ireland Ltd. (facebook.com) — utilizamos el Meta Pixel para medir el rendimiento de nuestras campañas publicitarias. El Pixel puede establecer cookies de seguimiento (_fbp, _fbc) en tu navegador para identificar visitas y conversiones. Este tratamiento solo se realiza si has otorgado tu consentimiento a través del aviso de cookies. Meta actúa como responsable independiente para sus propias finalidades publicitarias conforme a su Política de datos.',
+        'Meta Platforms Ireland Ltd. (WhatsApp Business API) — cuando el negocio tiene habilitadas las notificaciones de WhatsApp, utilizamos la API de WhatsApp Business para enviar mensajes a los clientes finales que han dado su consentimiento explícito (opt-in). Los mensajes pueden incluir bienvenida, saldo de puntos, alertas de racha y promociones del negocio. El cliente puede revocar su consentimiento en cualquier momento solicitándolo al negocio. Meta procesa el número de teléfono y el contenido del mensaje conforme a su Política de Privacidad y sus Políticas de Uso de WhatsApp Business.',
         'Proveedores de infraestructura de hosting — para alojar la aplicación web. Los datos se transmiten cifrados (TLS 1.2+).',
       ]} />
 
@@ -262,7 +264,7 @@ function PrivacyEn() {
   return (
     <>
       <P>
-        <Highlight>Effective date: May 30, 2026.</Highlight>{' '}
+        <Highlight>Effective date: June 19, 2026.</Highlight>{' '}
         This Privacy Policy describes how <Brand /> ("<Brand />",
         "we", "us" or "our") collects, uses, stores and protects personal information of
         those who use our platform. By accessing or using <Brand /> services, you agree to
@@ -307,6 +309,7 @@ function PrivacyEn() {
       <UL items={[
         'Customer name',
         'Phone number (optional)',
+        'WhatsApp notification opt-in preference (when the business enables this feature)',
         'Internal notes about the customer (optional, visible to the business only)',
         'Automatically generated unique access code (alphanumeric, unrelated to personal data)',
         'Points, stamps and visits balance per program',
@@ -350,6 +353,7 @@ function PrivacyEn() {
         'Supabase (supabase.com) — PostgreSQL database, authentication and storage. Acts as sub-processor under a Data Processing Agreement (DPA). Data may be stored on EU or US servers depending on the instance configuration.',
         'Stripe (stripe.com) — payment processing and subscription management. Stripe is an independent controller for payment data under its own privacy policy. We do not store credit card data.',
         'Meta Platforms Ireland Ltd. (facebook.com) — we use the Meta Pixel to measure the performance of our advertising campaigns. The Pixel may set tracking cookies (_fbp, _fbc) in your browser to identify visits and conversions. This processing only occurs if you have given your consent via the cookie notice. Meta acts as an independent controller for its own advertising purposes under its Data Policy.',
+        'Meta Platforms Ireland Ltd. (WhatsApp Business API) — when a business enables WhatsApp notifications, we use the WhatsApp Business API to send messages to end customers who have given explicit consent (opt-in). Messages may include welcome, points balance, streak alerts and business promotions. Customers may revoke consent at any time by requesting it from the business. Meta processes the phone number and message content in accordance with its Privacy Policy and WhatsApp Business Terms.',
         'Hosting infrastructure providers — to host the web application. Data is transmitted encrypted (TLS 1.2+).',
       ]} />
 
@@ -496,7 +500,7 @@ export default function PrivacyPage() {
 
   const isEs = lang === 'es';
   const title = isEs ? 'Política de Privacidad' : 'Privacy Policy';
-  const updated = isEs ? 'Última actualización: 30 de mayo de 2026' : 'Last updated: May 30, 2026';
+  const updated = isEs ? 'Última actualización: 19 de junio de 2026' : 'Last updated: June 19, 2026';
   const backLabel = isEs ? 'Volver al inicio' : 'Back to home';
 
   return (
