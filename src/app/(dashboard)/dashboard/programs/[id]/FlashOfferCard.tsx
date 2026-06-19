@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useTransition } from 'react';
+import { useState, useTransition, useRef, useEffect } from 'react';
 import { updateFlashOfferAction } from './actions';
 
 const DAYS = [
@@ -64,8 +64,6 @@ export default function FlashOfferCard({ programId, plan, config }: FlashOfferCa
       }
     });
   }
-
-  const hours = Array.from({ length: 24 }, (_, i) => i);
 
   return (
     <div className="rounded-2xl border border-gray-100 dark:border-[#1e2438] bg-white dark:bg-[#161b2e] shadow-sm">
@@ -142,27 +140,11 @@ export default function FlashOfferCard({ programId, plan, config }: FlashOfferCa
           <div className="grid grid-cols-2 gap-3">
             <div>
               <label className="mb-1.5 block text-xs font-medium text-gray-600 dark:text-gray-400">Desde (hora)</label>
-              <select
-                value={startHour}
-                onChange={(e) => setStartHour(Number(e.target.value))}
-                className="w-full rounded-xl border border-gray-200 dark:border-[#2a3147] bg-white dark:bg-[#0d0f17] px-3 py-2 text-sm text-gray-900 dark:text-white outline-none focus:border-amber-400 focus:ring-2 focus:ring-amber-100 dark:focus:ring-amber-500/20"
-              >
-                {hours.map((h) => (
-                  <option key={h} value={h}>{String(h).padStart(2, '0')}:00</option>
-                ))}
-              </select>
+              <HourPicker value={startHour} onChange={setStartHour} />
             </div>
             <div>
               <label className="mb-1.5 block text-xs font-medium text-gray-600 dark:text-gray-400">Hasta (hora)</label>
-              <select
-                value={endHour}
-                onChange={(e) => setEndHour(Number(e.target.value))}
-                className="w-full rounded-xl border border-gray-200 dark:border-[#2a3147] bg-white dark:bg-[#0d0f17] px-3 py-2 text-sm text-gray-900 dark:text-white outline-none focus:border-amber-400 focus:ring-2 focus:ring-amber-100 dark:focus:ring-amber-500/20"
-              >
-                {hours.map((h) => (
-                  <option key={h} value={h}>{String(h).padStart(2, '0')}:00</option>
-                ))}
-              </select>
+              <HourPicker value={endHour} onChange={setEndHour} />
             </div>
           </div>
 
@@ -214,6 +196,93 @@ export default function FlashOfferCard({ programId, plan, config }: FlashOfferCa
         </div>
       )}
     </div>
+  );
+}
+
+// ── Custom hour picker ───────────────────────────────────────────────────────
+
+function HourPicker({ value, onChange }: { value: number; onChange: (h: number) => void }) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    function handleClick(e: MouseEvent) {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+    }
+    document.addEventListener('mousedown', handleClick);
+    return () => document.removeEventListener('mousedown', handleClick);
+  }, []);
+
+  const hours = Array.from({ length: 24 }, (_, i) => i);
+  const label = `${String(value).padStart(2, '0')}:00`;
+
+  return (
+    <div ref={ref} className="relative">
+      <button
+        type="button"
+        onClick={() => setOpen((v) => !v)}
+        className={`flex w-full items-center justify-between rounded-xl border px-3 py-2.5 text-sm font-medium transition ${
+          open
+            ? 'border-amber-400 bg-white dark:bg-[#0d0f17] text-gray-900 dark:text-white ring-2 ring-amber-100 dark:ring-amber-500/20'
+            : 'border-gray-200 dark:border-[#2a3147] bg-white dark:bg-[#0d0f17] text-gray-900 dark:text-white hover:border-amber-300 dark:hover:border-amber-600'
+        }`}
+      >
+        <span className="flex items-center gap-2">
+          <ClockIcon className="h-4 w-4 text-amber-500" />
+          {label}
+        </span>
+        <ChevronIcon className={`h-4 w-4 text-gray-400 transition-transform ${open ? 'rotate-180' : ''}`} />
+      </button>
+
+      {open && (
+        <div className="absolute z-20 mt-1.5 w-full overflow-hidden rounded-xl border border-gray-100 dark:border-[#2a3147] bg-white dark:bg-[#161b2e] shadow-xl">
+          <div className="max-h-52 overflow-y-auto py-1 [&::-webkit-scrollbar]:w-1 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-gray-200 dark:[&::-webkit-scrollbar-thumb]:bg-[#2a3147]">
+            {hours.map((h) => {
+              const isSelected = h === value;
+              return (
+                <button
+                  key={h}
+                  type="button"
+                  onClick={() => { onChange(h); setOpen(false); }}
+                  className={`flex w-full items-center justify-between px-3 py-2 text-sm transition ${
+                    isSelected
+                      ? 'bg-amber-50 dark:bg-amber-500/10 font-semibold text-amber-700 dark:text-amber-400'
+                      : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-[#1e2438]'
+                  }`}
+                >
+                  <span>{String(h).padStart(2, '0')}:00</span>
+                  {isSelected && <CheckIcon className="h-3.5 w-3.5 text-amber-500" />}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function ClockIcon({ className }: { className?: string }) {
+  return (
+    <svg className={className} fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+      <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+    </svg>
+  );
+}
+
+function ChevronIcon({ className }: { className?: string }) {
+  return (
+    <svg className={className} fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+      <path strokeLinecap="round" strokeLinejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
+    </svg>
+  );
+}
+
+function CheckIcon({ className }: { className?: string }) {
+  return (
+    <svg className={className} fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
+      <path strokeLinecap="round" strokeLinejoin="round" d="m4.5 12.75 6 6 9-13.5" />
+    </svg>
   );
 }
 
