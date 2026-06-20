@@ -13,6 +13,7 @@ import { enforceCustomerLimit } from '@/lib/middleware/plan-limits';
 import { generateAccessCode } from '@/lib/utils/crypto';
 import { getNotificationPrefs } from '@/lib/email/notification-prefs';
 import { sendMilestoneNotification } from '@/lib/email/resend';
+import { sendWelcomeMessage } from '@/modules/whatsapp/whatsapp.service';
 import type { Customer, CustomerProgramEnrollment, UUID } from '@/lib/types';
 import type { CreateCustomerInput } from '@/lib/validation/customer.schema';
 
@@ -63,8 +64,10 @@ export async function createCustomer(
     throw new Error('No se pudo generar un código de acceso único tras 5 intentos');
   }
 
-  const { data, error } = await db
-    .from('customers')
+  const optIn = input.whatsapp_opt_in ?? false;
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { data, error } = await (db.from('customers') as any)
     .insert({
       tenant_id: tenantId,
       name: input.name,
@@ -72,6 +75,8 @@ export async function createCustomer(
       access_code: accessCode,
       notes: input.notes ?? null,
       is_active: true,
+      whatsapp_opt_in: optIn,
+      whatsapp_opted_in_at: optIn ? new Date().toISOString() : null,
     })
     .select('*')
     .single();
@@ -82,21 +87,38 @@ export async function createCustomer(
 
   const customer = data as Customer;
 
-  // Fire-and-forget milestone notification — only at 1, 50 and 300 customers
+  // Fire-and-forget: milestone email + WhatsApp welcome (run concurrently)
   void (async () => {
-    const MILESTONES = [1, 50, 300];
-    const { count } = await db
-      .from('customers')
-      .select('id', { count: 'exact', head: true })
-      .eq('tenant_id', tenantId);
-
-    const total = count ?? 0;
-    if (!MILESTONES.includes(total)) return;
-
     const prefs = await getNotificationPrefs(tenantId);
-    if (!prefs?.notifyNewCustomer) return;
 
-    void sendMilestoneNotification(prefs.email, prefs.tenantName, total);
+    // Milestone email notification (at 1, 50, 300 customers)
+    void (async () => {
+      const MILESTONES = [1, 50, 300];
+      const { count } = await db
+        .from('customers')
+        .select('id', { count: 'exact', head: true })
+        .eq('tenant_id', tenantId);
+
+      const total = count ?? 0;
+      if (!MILESTONES.includes(total)) return;
+      if (!prefs?.notifyNewCustomer) return;
+      void sendMilestoneNotification(prefs.email, prefs.tenantName, total);
+    })();
+
+    // WhatsApp welcome message
+    void (async () => {
+      if (!customer.whatsapp_opt_in) return;
+      if (!customer.phone)           return;
+      if (!prefs?.waNotifyWelcome)   return;
+      await sendWelcomeMessage(
+        customer.id,
+        tenantId,
+        customer.name,
+        prefs.tenantName,
+        customer.phone,
+        0,
+      );
+    })();
   })();
 
   return customer;
@@ -197,7 +219,7 @@ export async function updateCustomer(
     .single();
 
   if (error || !data) throw new Error(`Error al actualizar el cliente: ${error?.message}`);
-  return data as Customer;
+  return data as unknown as Customer;
 }
 
 export { getCustomerById, listCustomers };

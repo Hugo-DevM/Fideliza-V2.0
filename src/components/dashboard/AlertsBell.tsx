@@ -13,6 +13,7 @@ const TYPE_CONFIG = {
   program_expiring: { color: 'text-amber-500 dark:text-amber-400',  bg: 'bg-amber-50  dark:bg-amber-500/10',  dot: 'bg-amber-500'  },
   vouchers_expired: { color: 'text-orange-500 dark:text-orange-400',bg: 'bg-orange-50 dark:bg-orange-500/10', dot: 'bg-orange-500' },
   milestone:        { color: 'text-indigo-500 dark:text-indigo-400',bg: 'bg-indigo-50 dark:bg-indigo-500/10', dot: 'bg-indigo-500' },
+  whatsapp_quality: { color: 'text-red-600   dark:text-red-400',    bg: 'bg-red-50    dark:bg-red-500/10',    dot: 'bg-red-600'    },
 } as const;
 
 const DISMISS_KEY = 'dismissed-alerts';

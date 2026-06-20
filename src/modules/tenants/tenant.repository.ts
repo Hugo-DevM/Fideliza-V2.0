@@ -91,13 +91,19 @@ export async function updateTenantSettings(
     notify_new_customer?: boolean;
     notify_redemption?: boolean;
     notify_weekly_digest?: boolean;
+    wa_notify_welcome?: boolean;
+    wa_notify_voucher_expiry?: boolean;
+    wa_notify_balance_reminder?: boolean;
+    wa_notify_reactivation?: boolean;
+    wa_notify_streak_at_risk?: boolean;
+    wa_notify_promotion?: boolean;
   }
 ): Promise<TenantSettings> {
   const db = await createServerClient();
 
   const { data, error } = await db
     .from('tenant_settings')
-    .update({ ...input, updated_at: new Date().toISOString() })
+    .update({ ...input, updated_at: new Date().toISOString() } as never)
     .eq('tenant_id', tenantId)
     .select('*')
     .single();

@@ -20,6 +20,12 @@ export async function updateSettingsAction(formData: FormData) {
   const notify_new_customer  = formData.get('notify_new_customer')  === 'true';
   const notify_redemption    = formData.get('notify_redemption')    === 'true';
   const notify_weekly_digest = formData.get('notify_weekly_digest') === 'true';
+  const wa_notify_welcome          = formData.get('wa_notify_welcome')          === 'true';
+  const wa_notify_voucher_expiry   = formData.get('wa_notify_voucher_expiry')   === 'true';
+  const wa_notify_balance_reminder = formData.get('wa_notify_balance_reminder') === 'true';
+  const wa_notify_reactivation     = formData.get('wa_notify_reactivation')     === 'true';
+  const wa_notify_streak_at_risk   = formData.get('wa_notify_streak_at_risk')   === 'true';
+  const wa_notify_promotion        = formData.get('wa_notify_promotion')        === 'true';
 
   // Validate hex color format
   const hexRe = /^#[0-9A-Fa-f]{6}$/;
@@ -54,6 +60,12 @@ export async function updateSettingsAction(formData: FormData) {
       notify_new_customer,
       notify_redemption,
       notify_weekly_digest,
+      wa_notify_welcome,
+      wa_notify_voucher_expiry,
+      wa_notify_balance_reminder,
+      wa_notify_reactivation,
+      wa_notify_streak_at_risk,
+      wa_notify_promotion,
     });
     revalidatePath('/dashboard/settings');
     revalidatePath('/dashboard');

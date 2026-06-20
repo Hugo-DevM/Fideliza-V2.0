@@ -27,7 +27,7 @@ export async function getCustomerByAccessCode(
     throw new NotFoundError('Cliente');
   }
 
-  return data as Customer;
+  return data as unknown as Customer;
 }
 
 export async function getCustomerById(tenantId: UUID, customerId: UUID): Promise<Customer> {
@@ -44,7 +44,7 @@ export async function getCustomerById(tenantId: UUID, customerId: UUID): Promise
     throw new NotFoundError('Cliente');
   }
 
-  return data as Customer;
+  return data as unknown as Customer;
 }
 
 export const listCustomers = unstable_cache(
@@ -79,7 +79,7 @@ export const listCustomers = unstable_cache(
       throw new Error(`Error al listar clientes: ${error.message}`);
     }
 
-    return { customers: (data ?? []) as Customer[], total: count ?? 0 };
+    return { customers: (data ?? []) as unknown as Customer[], total: count ?? 0 };
   },
   ['list-customers'],
   { revalidate: 15, tags: ['customers'] }

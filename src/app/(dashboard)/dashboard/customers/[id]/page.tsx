@@ -6,6 +6,8 @@ import { getCustomerTransactionHistory } from '@/modules/transactions';
 import { createServiceRoleClient } from '@/lib/supabase/server';
 import ToggleStatusButton from './ToggleStatusButton';
 import EditCustomerModal from './EditCustomerModal';
+import WhatsAppOptInToggle from './WhatsAppOptInToggle';
+import BalanceReminderButton from './BalanceReminderButton';
 import { NotFoundError } from '@/lib/middleware/errors';
 import type { ProgramConfig } from '@/lib/types';
 
@@ -108,8 +110,8 @@ export default async function CustomerDetailPage({
             </div>
           </div>
           {/* Actions — full width row on mobile */}
-          <div className="mt-4 flex gap-2">
-            <div className="flex-1">
+          <div className="mt-4 flex flex-wrap gap-2">
+            <div className="flex-1 min-w-[120px]">
               <EditCustomerModal
                 customerId={customer.id}
                 initialName={customer.name}
@@ -118,9 +120,14 @@ export default async function CustomerDetailPage({
                 phonePrefix={settings.phone_prefix ?? null}
               />
             </div>
-            <div className="flex-1">
+            <div className="flex-1 min-w-[120px]">
               <ToggleStatusButton customerId={customer.id} isActive={customer.is_active} />
             </div>
+            {customer.phone && (
+              <div className="flex-1 min-w-[120px]">
+                <WhatsAppOptInToggle customerId={customer.id} initialOptIn={customer.whatsapp_opt_in ?? false} />
+              </div>
+            )}
           </div>
         </div>
 
@@ -199,9 +206,14 @@ export default async function CustomerDetailPage({
                           <div className="h-1.5 w-full rounded-full bg-gray-100 dark:bg-[#2a3147] overflow-hidden">
                             <div className="h-full rounded-full bg-indigo-500 transition-all" style={{ width: `${progressPct}%` }} />
                           </div>
-                          <p className="text-xs text-gray-400 dark:text-gray-500">
-                            {Math.max(0, minRedeem - e.current_points)} pts para el próximo premio
-                          </p>
+                          <div className="flex items-center justify-between gap-2">
+                            <p className="text-xs text-gray-400 dark:text-gray-500">
+                              {Math.max(0, minRedeem - e.current_points)} pts para el próximo premio
+                            </p>
+                            {customer.whatsapp_opt_in && customer.phone && (
+                              <BalanceReminderButton customerId={customer.id} programId={e.program_id} />
+                            )}
+                          </div>
                         </>
                       )}
 

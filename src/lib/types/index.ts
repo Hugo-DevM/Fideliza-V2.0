@@ -58,6 +58,12 @@ export interface TenantSettings {
   notify_new_customer: boolean;
   notify_redemption: boolean;
   notify_weekly_digest: boolean;
+  wa_notify_welcome: boolean;
+  wa_notify_voucher_expiry: boolean;
+  wa_notify_balance_reminder: boolean;
+  wa_notify_reactivation: boolean;
+  wa_notify_streak_at_risk: boolean;
+  wa_notify_promotion: boolean;
   created_at: string;
   updated_at: string;
 }
@@ -129,6 +135,8 @@ export interface Customer {
   access_code: string;
   is_active: boolean;
   notes: string | null;
+  whatsapp_opt_in: boolean;
+  whatsapp_opted_in_at: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -176,6 +184,7 @@ export interface CustomerRewardRedemption {
   expires_at: string | null;
   used_at: string | null;
   cancelled_at: string | null;
+  whatsapp_expiry_notified_at: string | null;
   created_at: string;
 }
 

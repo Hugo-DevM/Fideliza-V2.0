@@ -14,7 +14,7 @@
 import { createServiceRoleClient } from '@/lib/supabase/server';
 import type { UUID } from '@/lib/types';
 
-export type AlertType = 'stock_out' | 'program_expiring' | 'vouchers_expired' | 'milestone';
+export type AlertType = 'stock_out' | 'program_expiring' | 'vouchers_expired' | 'milestone' | 'whatsapp_quality';
 
 export interface AlertItem {
   /** Stable unique key — milestones use this for localStorage dismiss tracking. */
@@ -38,7 +38,7 @@ export async function getAlerts(tenantId: UUID): Promise<AlertItem[]> {
   const now = new Date();
   const in7Days = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000).toISOString();
 
-  const [stockRes, expiringRes, expiredVouchersRes, countsRes] = await Promise.allSettled([
+  const [stockRes, expiringRes, expiredVouchersRes, qualityRes, countsRes] = await Promise.allSettled([
     // 1. Active rewards with stock = 0
     db
       .from('rewards')
@@ -64,7 +64,15 @@ export async function getAlerts(tenantId: UUID): Promise<AlertItem[]> {
       .eq('tenant_id', tenantId)
       .eq('status', 'expired'),
 
-    // 4. Counts for milestones
+    // 4. WhatsApp quality state (global — not tenant-scoped)
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (db as any)
+      .from('whatsapp_quality_state')
+      .select('rating, is_paused')
+      .limit(1)
+      .single() as Promise<{ data: { rating: string; is_paused: boolean } | null }>,
+
+    // 5. Counts for milestones
     Promise.all([
       db.from('customers').select('id', { count: 'exact', head: true }).eq('tenant_id', tenantId).eq('is_active', true),
       db.from('transactions').select('id', { count: 'exact', head: true }).eq('tenant_id', tenantId),
@@ -121,7 +129,31 @@ export async function getAlerts(tenantId: UUID): Promise<AlertItem[]> {
     }
   }
 
-  // ── 4. Milestones ─────────────────────────────────────────────────────────
+  // ── 4. WhatsApp quality alert ─────────────────────────────────────────────
+  if (qualityRes.status === 'fulfilled' && qualityRes.value.data) {
+    const q = qualityRes.value.data as { rating: string; is_paused: boolean };
+    if (q.is_paused || q.rating === 'RED') {
+      alerts.push({
+        id:          'whatsapp_quality:red',
+        type:        'whatsapp_quality',
+        title:       'WhatsApp pausado',
+        body:        'El número de WhatsApp fue bloqueado por Meta. Los mensajes a clientes están detenidos.',
+        href:        '/dashboard/settings',
+        dismissible: false,
+      });
+    } else if (q.rating === 'YELLOW') {
+      alerts.push({
+        id:          'whatsapp_quality:yellow',
+        type:        'whatsapp_quality',
+        title:       'Calidad de WhatsApp baja',
+        body:        'El número tiene calidad YELLOW. Los mensajes de marketing están pausados preventivamente.',
+        href:        '/dashboard/settings',
+        dismissible: false,
+      });
+    }
+  }
+
+  // ── 5. Milestones ─────────────────────────────────────────────────────────
   if (countsRes.status === 'fulfilled') {
     const [customersRes, txRes, redemptionsRes] = countsRes.value;
     const customerCount   = customersRes.count    ?? 0;

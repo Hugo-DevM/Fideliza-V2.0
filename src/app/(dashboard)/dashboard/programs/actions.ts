@@ -32,6 +32,12 @@ export async function createProgramAction(formData: FormData) {
     };
   }
 
+  // Head Start — optional bonus on first earn (all program types)
+  const initialBonusRaw = parseInt(formData.get('initial_bonus') as string, 10);
+  if (!isNaN(initialBonusRaw) && initialBonusRaw > 0) {
+    config.initial_bonus = initialBonusRaw;
+  }
+
   try {
     const program = await createProgram(tenantId, { name, description, type, config });
     revalidateTag('programs', 'max');
