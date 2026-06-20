@@ -13,7 +13,7 @@ import { getTransactionHistoryLimit } from '@/lib/middleware/plan-limits';
 import { logger } from '@/lib/utils/logger';
 import { getNotificationPrefs } from '@/lib/email/notification-prefs';
 import { sendRedemptionNotification } from '@/lib/email/resend';
-import { sendMilestone80Message } from '@/modules/whatsapp/whatsapp.service';
+import { sendMilestone80Message, sendTierUpgradeMessage } from '@/modules/whatsapp/whatsapp.service';
 import { computeTier } from '@/lib/utils/tiers';
 import type { TierConfig } from '@/lib/utils/tiers';
 import type {
@@ -164,6 +164,47 @@ export async function processTransaction(
           customer.phone,
           unitsRemaining,
           cheapestReward.name,
+        );
+      } catch { /* best-effort — never blocks the earn */ }
+    })();
+    // ── Tier upgrade notification (fire-and-forget) ──────────────────────────
+    void (async () => {
+      try {
+        if (!cfg.tiers_enabled || !tiers || tiers.length === 0) return;
+
+        const tierBefore   = computeTier(lifetimePoints, tiers);
+        const lifetimeAfter = lifetimePoints + effectiveDelta;
+        const tierAfter    = computeTier(lifetimeAfter, tiers);
+
+        // Only fire if customer moved to a strictly higher tier
+        if (!tierAfter || !tierBefore) return;
+        if (tierAfter.min_lifetime <= tierBefore.min_lifetime) return;
+
+        const db2 = createServiceRoleClient();
+
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const { data: customer } = await (db2.from('customers') as any)
+          .select('name, phone, whatsapp_opt_in')
+          .eq('id', input.customer_id)
+          .eq('whatsapp_opt_in', true)
+          .maybeSingle() as { data: { name: string; phone: string | null } | null };
+
+        if (!customer?.phone) return;
+
+        const { data: tenantRow } = await db2
+          .from('tenants')
+          .select('name')
+          .eq('id', tenantId)
+          .single() as { data: { name: string } | null };
+
+        await sendTierUpgradeMessage(
+          input.customer_id,
+          tenantId,
+          customer.name,
+          tenantRow?.name ?? '',
+          customer.phone,
+          tierAfter.label,
+          tierAfter.multiplier,
         );
       } catch { /* best-effort — never blocks the earn */ }
     })();
