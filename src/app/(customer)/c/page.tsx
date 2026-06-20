@@ -22,6 +22,7 @@ import type {
   PortalTransaction,
   PortalVoucher,
   PortalReward,
+  PortalProgramRanking,
 } from '@/modules/portal';
 
 export const dynamic = 'force-dynamic';
@@ -30,7 +31,7 @@ interface PageProps {
   searchParams: Promise<{ code?: string; tab?: string }>;
 }
 
-type Tab = 'points' | 'rewards' | 'history';
+type Tab = 'points' | 'rewards' | 'history' | 'ranking';
 
 // ── Page ──────────────────────────────────────────────────────────────
 
@@ -40,7 +41,9 @@ export default async function CustomerPortalPage({ searchParams }: PageProps) {
 
   const { code: rawCode, tab: rawTab } = await searchParams;
   const code = rawCode?.toUpperCase().trim();
-  const tab: Tab = (rawTab === 'rewards' || rawTab === 'history') ? rawTab : 'points';
+  const tab: Tab = (['rewards', 'history', 'ranking'] as string[]).includes(rawTab ?? '')
+    ? (rawTab as Tab)
+    : 'points';
 
   if (!subdomain) {
     return (
@@ -192,7 +195,7 @@ function EntryScreen({
 const ACCENT = '#6366F1';
 
 function PortalShell({ data, code, tab }: { data: PortalData; code: string; tab: Tab }) {
-  const { tenant, customer, enrollments, recent_transactions, pending_vouchers } = data;
+  const { tenant, customer, enrollments, recent_transactions, pending_vouchers, rankings } = data;
   const tabHref = (t: Tab) => `?code=${code}&tab=${t}`;
 
   return (
@@ -268,6 +271,15 @@ function PortalShell({ data, code, tab }: { data: PortalData; code: string; tab:
                 </svg>
               ),
             },
+            {
+              key: 'ranking' as Tab,
+              label: 'Ranking',
+              icon: (
+                <svg className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth={1.8} viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 18.75h-9m9 0a3 3 0 0 1 3 3h-15a3 3 0 0 1 3-3m9 0v-3.375c0-.621-.503-1.125-1.125-1.125h-.871M7.5 18.75v-3.375c0-.621.504-1.125 1.125-1.125h.872m5.007 0H9.497m5.007 0a7.454 7.454 0 0 1-.982-3.172M9.497 14.25a7.454 7.454 0 0 0 .981-3.172M5.25 4.236c-.982.143-1.954.317-2.916.52A6.003 6.003 0 0 0 7.73 9.728M5.25 4.236V4.5c0 2.108.966 3.99 2.48 5.228M5.25 4.236V2.721C7.456 2.41 9.71 2.25 12 2.25c2.291 0 4.545.16 6.75.47v1.516M7.73 9.728a6.726 6.726 0 0 0 2.748 1.35m8.272-6.842V4.5c0 2.108-.966 3.99-2.48 5.228m2.48-5.492a46.32 46.32 0 0 1 2.916.52 6.003 6.003 0 0 1-5.395 4.972m0 0a6.726 6.726 0 0 1-2.749 1.35m0 0a6.772 6.772 0 0 1-3.044 0" />
+                </svg>
+              ),
+            },
           ]).map(({ key, label, icon }) => {
             const active = tab === key;
             return (
@@ -309,6 +321,12 @@ function PortalShell({ data, code, tab }: { data: PortalData; code: string; tab:
           <HistoryTab
             transactions={recent_transactions}
             tenant={tenant}
+          />
+        )}
+        {tab === 'ranking' && (
+          <RankingTab
+            rankings={rankings}
+            customer={customer}
           />
         )}
       </main>
@@ -578,6 +596,174 @@ function HistoryTab({
         ))}
       </div>
     </section>
+  );
+}
+
+// ── RANKING TAB ───────────────────────────────────────────────────────
+
+const LIFETIME_METRIC: Record<string, string> = {
+  points:   'puntos acumulados',
+  stamp:    'sellos acumulados',
+  visit:    'visitas acumuladas',
+  cashback: 'cashback acumulado',
+};
+
+const MEDAL: Record<number, string> = { 1: '🥇', 2: '🥈', 3: '🥉' };
+
+function RankingTab({
+  rankings,
+  customer,
+}: {
+  rankings: PortalProgramRanking[];
+  customer: PortalData['customer'];
+}) {
+  if (rankings.length === 0) {
+    return (
+      <EmptyState
+        type="history"
+        title="Sin programas aún"
+        message="Inscríbete en un programa de lealtad para ver tu posición en el ranking."
+      />
+    );
+  }
+
+  return (
+    <div className="space-y-4">
+      {rankings.map((r) => (
+        <ProgramRankingCard key={r.program_id} ranking={r} customerName={customer.name} />
+      ))}
+    </div>
+  );
+}
+
+function ProgramRankingCard({
+  ranking: r,
+  customerName,
+}: {
+  ranking: PortalProgramRanking;
+  customerName: string;
+}) {
+  const metricLabel = LIFETIME_METRIC[r.program_type] ?? 'puntos acumulados';
+  const selfInTop10 = r.top10.some((e) => e.is_self);
+
+  return (
+    <div className="rounded-2xl border border-gray-100 dark:border-[#1e2438] bg-white dark:bg-[#161b2e] shadow-sm overflow-hidden">
+      {/* Program header */}
+      <div className="px-5 py-4 border-b border-gray-100 dark:border-[#1e2438]">
+        <p className="text-[11px] font-semibold uppercase tracking-widest text-gray-400 dark:text-gray-500">
+          {r.program_name}
+        </p>
+        {/* Customer's own rank badge */}
+        <div className="mt-3 flex items-center gap-3">
+          <div className="flex flex-col items-center justify-center rounded-2xl bg-indigo-50 dark:bg-indigo-500/15 px-5 py-3 min-w-[72px]">
+            <span className="text-3xl font-bold text-indigo-600 dark:text-indigo-400">
+              #{r.customer_rank}
+            </span>
+            <span className="text-[10px] font-semibold uppercase tracking-wide text-indigo-400 dark:text-indigo-500 mt-0.5">
+              tu lugar
+            </span>
+          </div>
+          <div>
+            <p className="text-sm font-semibold text-gray-800 dark:text-gray-100">{customerName}</p>
+            <p className="text-xs text-gray-400 dark:text-gray-500 mt-0.5">
+              de {r.total_enrolled.toLocaleString()} cliente{r.total_enrolled !== 1 ? 's' : ''}
+            </p>
+            {r.customer_rank === 1 && (
+              <p className="mt-1 text-xs font-semibold text-yellow-600 dark:text-yellow-400">
+                ¡Eres el cliente más leal! 🏆
+              </p>
+            )}
+            {r.customer_rank <= 3 && r.customer_rank > 1 && (
+              <p className="mt-1 text-xs font-semibold text-amber-600 dark:text-amber-400">
+                ¡Estás en el podio! {MEDAL[r.customer_rank]}
+              </p>
+            )}
+            {r.customer_rank <= 10 && r.customer_rank > 3 && (
+              <p className="mt-1 text-xs font-semibold text-emerald-600 dark:text-emerald-400">
+                ¡Estás en el top 10!
+              </p>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* Top 10 list */}
+      {r.top10.length > 0 && (
+        <div className="divide-y divide-gray-50 dark:divide-[#1e2438]">
+          <p className="px-5 pt-3 pb-2 text-[11px] font-semibold uppercase tracking-widest text-gray-400 dark:text-gray-500">
+            Top {r.top10.length}
+          </p>
+          {r.top10.map((entry) => (
+            <div
+              key={entry.rank}
+              className={`flex items-center gap-3 px-5 py-3 ${
+                entry.is_self ? 'bg-indigo-50 dark:bg-indigo-500/10' : ''
+              }`}
+            >
+              {/* Rank / medal */}
+              <div className="w-8 shrink-0 text-center">
+                {MEDAL[entry.rank] ? (
+                  <span className="text-lg">{MEDAL[entry.rank]}</span>
+                ) : (
+                  <span className="text-sm font-bold text-gray-400 dark:text-gray-500">
+                    #{entry.rank}
+                  </span>
+                )}
+              </div>
+
+              {/* Name */}
+              <div className="flex-1 min-w-0">
+                <p className={`text-sm font-semibold truncate ${
+                  entry.is_self
+                    ? 'text-indigo-600 dark:text-indigo-400'
+                    : 'text-gray-800 dark:text-gray-100'
+                }`}>
+                  {entry.display_name}
+                  {entry.is_self && (
+                    <span className="ml-1.5 text-[10px] font-bold uppercase tracking-wide opacity-70">tú</span>
+                  )}
+                </p>
+              </div>
+
+              {/* Score */}
+              <div className="shrink-0 text-right">
+                <p className="font-mono text-sm font-semibold text-gray-600 dark:text-gray-300">
+                  {entry.lifetime_points.toLocaleString()}
+                </p>
+                <p className="text-[10px] text-gray-400 dark:text-gray-500">{metricLabel}</p>
+              </div>
+            </div>
+          ))}
+
+          {/* Show customer's rank if not in top 10 */}
+          {!selfInTop10 && (
+            <>
+              <div className="px-5 py-1.5 text-center">
+                <span className="text-[11px] text-gray-300 dark:text-gray-600">•••</span>
+              </div>
+              <div className="flex items-center gap-3 px-5 py-3 bg-indigo-50 dark:bg-indigo-500/10">
+                <div className="w-8 shrink-0 text-center">
+                  <span className="text-sm font-bold text-indigo-500 dark:text-indigo-400">
+                    #{r.customer_rank}
+                  </span>
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-semibold text-indigo-600 dark:text-indigo-400 truncate">
+                    {customerName} <span className="text-[10px] font-bold uppercase tracking-wide opacity-70">tú</span>
+                  </p>
+                </div>
+                <div className="shrink-0 text-right">
+                  <p className="font-mono text-sm font-semibold text-indigo-600 dark:text-indigo-400">
+                    {r.customer_lifetime_points.toLocaleString()}
+                  </p>
+                  <p className="text-[10px] text-gray-400 dark:text-gray-500">{metricLabel}</p>
+                </div>
+              </div>
+            </>
+          )}
+        </div>
+      )}
+    </div>
   );
 }
 

@@ -125,12 +125,38 @@ export interface PortalVoucher {
   created_at: string;
 }
 
+export interface PortalLeaderboardEntry {
+  rank: number;
+  display_name: string;
+  lifetime_points: number;
+  is_self: boolean;
+}
+
+export interface PortalProgramRanking {
+  program_id: string;
+  program_name: string;
+  program_type: 'points' | 'stamp' | 'visit' | 'cashback';
+  customer_rank: number;
+  customer_lifetime_points: number;
+  total_enrolled: number;
+  top10: PortalLeaderboardEntry[];
+}
+
 export interface PortalData {
   tenant: PortalTenant;
   customer: PortalCustomer;
   enrollments: PortalEnrollment[];
   recent_transactions: PortalTransaction[];
   pending_vouchers: PortalVoucher[];
+  rankings: PortalProgramRanking[];
+}
+
+// ── Helpers ───────────────────────────────────────────────────────────
+
+function truncateName(name: string): string {
+  const parts = name.trim().split(/\s+/);
+  if (parts.length <= 1) return parts[0] ?? '?';
+  return `${parts[0]} ${parts[1][0]}.`;
 }
 
 // ── Service function ──────────────────────────────────────────────────
@@ -369,7 +395,60 @@ export async function getPortalData(
     created_at:   t.created_at,
   }));
 
-  // ── 6. Parse pending vouchers ─────────────────────────────────────
+  // ── 6. Leaderboard per enrolled program ──────────────────────────
+  const rankings: PortalProgramRanking[] = await Promise.all(
+    enrollments.map(async (e) => {
+      const myLifetime = e.lifetime_points;
+
+      const [top10Res, aboveRes, totalRes] = await Promise.all([
+        (db as any)
+          .from('customer_program_enrollments')
+          .select('customer_id, lifetime_points, customers(name)')
+          .eq('tenant_id', tenantId)
+          .eq('program_id', e.program_id)
+          .order('lifetime_points', { ascending: false })
+          .limit(10),
+        db
+          .from('customer_program_enrollments')
+          .select('*', { count: 'exact', head: true })
+          .eq('tenant_id', tenantId)
+          .eq('program_id', e.program_id)
+          .gt('lifetime_points', myLifetime),
+        db
+          .from('customer_program_enrollments')
+          .select('*', { count: 'exact', head: true })
+          .eq('tenant_id', tenantId)
+          .eq('program_id', e.program_id),
+      ]);
+
+      type RawLeaderRow = {
+        customer_id: string;
+        lifetime_points: number;
+        customers: { name: string } | null;
+      };
+
+      const top10: PortalLeaderboardEntry[] = (
+        (top10Res.data ?? []) as unknown as RawLeaderRow[]
+      ).map((row, idx) => ({
+        rank:            idx + 1,
+        display_name:    truncateName(row.customers?.name ?? '?'),
+        lifetime_points: row.lifetime_points,
+        is_self:         row.customer_id === customer.id,
+      }));
+
+      return {
+        program_id:               e.program_id,
+        program_name:             e.program_name,
+        program_type:             e.program_type,
+        customer_rank:            (aboveRes.count ?? 0) + 1,
+        customer_lifetime_points: myLifetime,
+        total_enrolled:           totalRes.count ?? 0,
+        top10,
+      };
+    })
+  );
+
+  // ── 7. Parse pending vouchers ─────────────────────────────────────
   type RawVoucher = {
     id: string;
     redemption_code: string;
@@ -399,5 +478,6 @@ export async function getPortalData(
     enrollments,
     recent_transactions,
     pending_vouchers,
+    rankings,
   };
 }

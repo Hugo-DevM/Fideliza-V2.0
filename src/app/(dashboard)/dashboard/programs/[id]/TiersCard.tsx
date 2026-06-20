@@ -6,10 +6,25 @@ import { DEFAULT_TIERS, TIER_STYLES } from '@/lib/utils/tiers';
 import type { TierConfig } from '@/lib/utils/tiers';
 
 interface TiersCardProps {
-  programId: string;
-  plan:      string;
-  config:    Record<string, unknown>;
+  programId:   string;
+  plan:        string;
+  programType: string;
+  config:      Record<string, unknown>;
 }
+
+const LIFETIME_LABEL: Record<string, string> = {
+  points:   'Puntos de por vida mínimos',
+  stamp:    'Sellos acumulados mínimos',
+  visit:    'Visitas acumuladas mínimas',
+  cashback: 'Cashback acumulado mínimo',
+};
+
+const MULTIPLIER_HINT: Record<string, string> = {
+  points:   'El cliente gana más puntos por earn a mayor nivel de lealtad.',
+  stamp:    'El cliente acumula más sellos por visita a mayor nivel de lealtad.',
+  visit:    'El cliente acumula más visitas registradas a mayor nivel de lealtad.',
+  cashback: 'El cliente recibe más cashback por compra a mayor nivel de lealtad.',
+};
 
 const MULTIPLIER_OPTIONS = [
   { label: '1×',   value: 1   },
@@ -18,7 +33,9 @@ const MULTIPLIER_OPTIONS = [
   { label: '3×',   value: 3   },
 ];
 
-export default function TiersCard({ programId, plan, config }: TiersCardProps) {
+export default function TiersCard({ programId, plan, programType, config }: TiersCardProps) {
+  const lifetimeLabel  = LIFETIME_LABEL[programType]  ?? LIFETIME_LABEL.points;
+  const multiplierHint = MULTIPLIER_HINT[programType] ?? MULTIPLIER_HINT.points;
   const isPro = plan === 'pro' || plan === 'enterprise';
 
   const [enabled, setEnabled] = useState(Boolean(config.tiers_enabled));
@@ -106,7 +123,7 @@ export default function TiersCard({ programId, plan, config }: TiersCardProps) {
       ) : (
         <div className={`space-y-3 px-5 py-4 ${!enabled ? 'pointer-events-none opacity-40' : ''}`}>
           <p className="text-xs text-gray-400 dark:text-gray-500">
-            Define los niveles de lealtad basados en <strong>puntos de por vida</strong> (nunca se decrementan). El multiplicador se aplica automáticamente en cada earn.
+            {multiplierHint} El umbral se basa en el acumulado histórico (nunca se decrementa).
           </p>
 
           {tiers.map((tier, i) => {
@@ -132,7 +149,7 @@ export default function TiersCard({ programId, plan, config }: TiersCardProps) {
                 <div className="grid grid-cols-2 gap-3">
                   <div>
                     <label className="mb-1 block text-xs font-medium text-gray-500 dark:text-gray-400">
-                      Puntos de por vida mínimos
+                      {lifetimeLabel}
                     </label>
                     {i === 0 ? (
                       <div className="flex items-center rounded-lg border border-gray-200 dark:border-[#2a3147] bg-gray-100 dark:bg-[#1a1f35] px-2.5 py-1.5">
@@ -174,7 +191,7 @@ export default function TiersCard({ programId, plan, config }: TiersCardProps) {
           })}
 
           <p className="text-xs text-gray-400 dark:text-gray-500">
-            El nivel base (Bronce) aplica a todos los clientes desde el primer punto acumulado.
+            El nivel base (Bronce) aplica a todos los clientes desde el primero acumulado.
           </p>
         </div>
       )}

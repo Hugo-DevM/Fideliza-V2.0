@@ -159,6 +159,7 @@ export default async function ProgramDetailPage({
         <TiersCard
           programId={program.id}
           plan={effectivePlan}
+          programType={program.type}
           config={config}
         />
 

@@ -7,4 +7,6 @@ export type {
   PortalTransaction,
   PortalVoucher,
   PortalReward,
+  PortalLeaderboardEntry,
+  PortalProgramRanking,
 } from './portal.service';
