@@ -6,6 +6,7 @@ import { useState, useEffect, useRef } from 'react';
 const ALLOWED = /^[a-zA-ZáéíóúÁÉÍÓÚàèìòùÀÈÌÒÙäëïöüÄËÏÖÜñÑçÇ0-9 +\-()]*$/;
 
 type StatusFilter = 'all' | 'active' | 'inactive';
+type TierFilter  = 'all' | 'bronze' | 'silver' | 'gold';
 
 const STATUS_OPTIONS: { value: StatusFilter; label: string }[] = [
   { value: 'all',      label: 'Todos'     },
@@ -13,23 +14,36 @@ const STATUS_OPTIONS: { value: StatusFilter; label: string }[] = [
   { value: 'inactive', label: 'Inactivos' },
 ];
 
+const TIER_OPTIONS: { value: TierFilter; label: string }[] = [
+  { value: 'all',    label: 'Todos' },
+  { value: 'bronze', label: '🥉 Bronce' },
+  { value: 'silver', label: '🥈 Plata'  },
+  { value: 'gold',   label: '🥇 Oro'    },
+];
+
 export default function CustomerSearchInput({
   defaultValue,
   defaultStatus = 'all',
+  defaultTier   = 'all',
+  showTierFilter = false,
 }: {
   defaultValue?: string;
   defaultStatus?: StatusFilter;
+  defaultTier?:  TierFilter;
+  showTierFilter?: boolean;
 }) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [value, setValue]   = useState((defaultValue ?? '').slice(0, 60));
   const [status, setStatus] = useState<StatusFilter>(defaultStatus);
+  const [tier,   setTier]   = useState<TierFilter>(defaultTier);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  function buildParams(q: string, s: StatusFilter) {
+  function buildParams(q: string, s: StatusFilter, t: TierFilter) {
     const params = new URLSearchParams(searchParams.toString());
     if (q.trim()) { params.set('q', q.trim()); } else { params.delete('q'); }
     if (s !== 'all') { params.set('status', s); } else { params.delete('status'); }
+    if (t !== 'all') { params.set('tier', t);   } else { params.delete('tier'); }
     params.delete('page');
     return params.toString();
   }
@@ -41,26 +55,32 @@ export default function CustomerSearchInput({
     setValue(upper);
     if (debounceRef.current) clearTimeout(debounceRef.current);
     debounceRef.current = setTimeout(() => {
-      router.push(`/dashboard/customers?${buildParams(upper, status)}`);
+      router.push(`/dashboard/customers?${buildParams(upper, status, tier)}`);
     }, 120);
   }
 
   function handleStatusChange(s: StatusFilter) {
     setStatus(s);
     if (debounceRef.current) clearTimeout(debounceRef.current);
-    router.push(`/dashboard/customers?${buildParams(value, s)}`);
+    router.push(`/dashboard/customers?${buildParams(value, s, tier)}`);
+  }
+
+  function handleTierChange(t: TierFilter) {
+    setTier(t);
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    router.push(`/dashboard/customers?${buildParams(value, status, t)}`);
   }
 
   function handleClear() {
     setValue('');
     if (debounceRef.current) clearTimeout(debounceRef.current);
-    router.push(`/dashboard/customers?${buildParams('', status)}`);
+    router.push(`/dashboard/customers?${buildParams('', status, tier)}`);
   }
 
   function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     if (debounceRef.current) clearTimeout(debounceRef.current);
-    router.push(`/dashboard/customers?${buildParams(value, status)}`);
+    router.push(`/dashboard/customers?${buildParams(value, status, tier)}`);
   }
 
   useEffect(() => () => { if (debounceRef.current) clearTimeout(debounceRef.current); }, []);
@@ -108,6 +128,27 @@ export default function CustomerSearchInput({
           </button>
         ))}
       </div>
+
+      {/* Tier filter pills — Pro only */}
+      {showTierFilter && (
+        <div className="flex gap-1 rounded-xl bg-gray-50 dark:bg-[#0d0f17] p-1">
+          {TIER_OPTIONS.map((opt) => (
+            <button
+              key={opt.value}
+              type="button"
+              onClick={() => handleTierChange(opt.value)}
+              className={[
+                'rounded-lg px-3 py-1.5 text-sm font-medium transition',
+                tier === opt.value
+                  ? 'bg-white dark:bg-[#1e2438] text-yellow-600 dark:text-yellow-400 shadow-sm'
+                  : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200',
+              ].join(' ')}
+            >
+              {opt.label}
+            </button>
+          ))}
+        </div>
+      )}
     </div>
   );
 }

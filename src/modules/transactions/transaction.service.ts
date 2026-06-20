@@ -109,6 +109,19 @@ export async function processTransaction(
 
     const tx = data as unknown as Transaction;
 
+    // ── Update cached tier columns on the enrollment ─────────────────────────
+    if (cfg.tiers_enabled && tiers && tiers.length > 0) {
+      const newLifetime  = lifetimePoints + effectiveDelta;
+      const newTier      = computeTier(newLifetime, tiers as TierConfig[]);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      void (db.from('customer_program_enrollments') as any)
+        .update({ tier_label: newTier?.label ?? null, tier_color: newTier?.color ?? null })
+        .eq('tenant_id', tenantId)
+        .eq('customer_id', input.customer_id)
+        .eq('program_id', input.program_id);
+    }
+    // ────────────────────────────────────────────────────────────────────────
+
     // ── 80% milestone notification (fire-and-forget) ─────────────────────────
     void (async () => {
       try {

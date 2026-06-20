@@ -53,11 +53,24 @@ export const listCustomers = unstable_cache(
     page = 1,
     limit = 50,
     q?: string,
-    status?: 'active' | 'inactive'
+    status?: 'active' | 'inactive',
+    tier?: 'bronze' | 'silver' | 'gold'
   ): Promise<{ customers: Customer[]; total: number }> => {
     const db = createServiceRoleClient();
     const from = (page - 1) * limit;
     const to = from + limit - 1;
+
+    // If filtering by tier, first resolve matching customer IDs from enrollments
+    let tierCustomerIds: string[] | null = null;
+    if (tier) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const { data: enrollData } = await (db.from('customer_program_enrollments') as any)
+        .select('customer_id')
+        .eq('tenant_id', tenantId)
+        .eq('tier_color', tier);
+      tierCustomerIds = [...new Set(((enrollData ?? []) as { customer_id: string }[]).map((e) => e.customer_id))];
+      if (tierCustomerIds.length === 0) return { customers: [], total: 0 };
+    }
 
     let query = db
       .from('customers')
@@ -69,6 +82,9 @@ export const listCustomers = unstable_cache(
     if (q) {
       const term = `%${q}%`;
       query = query.or(`name.ilike.${term},phone.ilike.${term},access_code.ilike.${term}`);
+    }
+    if (tierCustomerIds !== null) {
+      query = query.in('id', tierCustomerIds);
     }
 
     const { data, error, count } = await query

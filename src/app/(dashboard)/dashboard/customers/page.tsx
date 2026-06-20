@@ -6,6 +6,7 @@ import NewCustomerModal from './NewCustomerModal';
 import CustomerSearchInput from './CustomerSearchInput';
 import CopyCodeButton from './CopyCodeButton';
 import PromotionBlastButton from './PromotionBlastButton';
+import { TIER_STYLES } from '@/lib/utils/tiers';
 
 export const metadata = { title: 'Clientes — Fideliza+' };
 
@@ -14,12 +15,16 @@ const LIMIT = 10;
 export default async function CustomersPage({
   searchParams,
 }: {
-  searchParams: Promise<{ page?: string; q?: string; status?: string }>;
+  searchParams: Promise<{ page?: string; q?: string; status?: string; tier?: string }>;
 }) {
   const { tenantId, settings, planLimits, effectivePlan } = await getAuthenticatedTenant();
-  const { page: pageStr, q, status } = await searchParams;
+  const { page: pageStr, q, status, tier: tierParam } = await searchParams;
   const page = Math.max(1, parseInt(pageStr ?? '1', 10));
   const statusFilter = status === 'active' ? 'active' : status === 'inactive' ? 'inactive' : 'all';
+  const isPro = effectivePlan === 'pro' || effectivePlan === 'enterprise';
+  const tierFilter = isPro && (tierParam === 'bronze' || tierParam === 'silver' || tierParam === 'gold')
+    ? tierParam
+    : undefined;
 
   const db = createServiceRoleClient();
 
@@ -27,9 +32,30 @@ export default async function CustomersPage({
     { customers: filtered, total },
     { count: activeCount },
   ] = await Promise.all([
-    listCustomers(tenantId, page, LIMIT, q || undefined, statusFilter !== 'all' ? statusFilter : undefined),
+    listCustomers(tenantId, page, LIMIT, q || undefined, statusFilter !== 'all' ? statusFilter : undefined, tierFilter),
     db.from('customers').select('id', { count: 'exact', head: true }).eq('tenant_id', tenantId).eq('is_active', true),
   ]);
+
+  // Fetch best tier per customer for the current page (Pro only)
+  type TierRow = { customer_id: string; tier_label: string; tier_color: string };
+  const tierMap = new Map<string, TierRow>();
+  if (isPro && filtered.length > 0) {
+    const customerIds = filtered.map((c) => c.id);
+    const { data: tierRows } = await db
+      .from('customer_program_enrollments')
+      .select('customer_id, tier_label, tier_color')
+      .eq('tenant_id', tenantId)
+      .in('customer_id', customerIds)
+      .not('tier_color', 'is', null) as { data: TierRow[] | null };
+
+    const TIER_RANK: Record<string, number> = { bronze: 1, silver: 2, gold: 3 };
+    for (const row of (tierRows ?? [])) {
+      const existing = tierMap.get(row.customer_id);
+      if (!existing || (TIER_RANK[row.tier_color] ?? 0) > (TIER_RANK[existing.tier_color] ?? 0)) {
+        tierMap.set(row.customer_id, row);
+      }
+    }
+  }
 
   const atCustomerLimit = planLimits.maxCustomers !== null && total >= planLimits.maxCustomers;
   const totalPages = Math.ceil(total / LIMIT);
@@ -86,7 +112,12 @@ export default async function CustomersPage({
       </div>
 
       {/* Search + filter */}
-      <CustomerSearchInput defaultValue={q} defaultStatus={statusFilter} />
+      <CustomerSearchInput
+        defaultValue={q}
+        defaultStatus={statusFilter}
+        defaultTier={(tierFilter ?? 'all') as 'all' | 'bronze' | 'silver' | 'gold'}
+        showTierFilter={isPro}
+      />
 
       {/* Empty state */}
       {!filtered.length && (
@@ -108,15 +139,25 @@ export default async function CustomersPage({
           {filtered.map((c) => {
             const initials = c.name.split(' ').slice(0, 2).map((w: string) => w[0]).join('').toUpperCase();
             const color = AVATAR_COLORS[initials.charCodeAt(0) % AVATAR_COLORS.length];
+            const customerTier = tierMap.get(c.id);
             return (
               <Link
                 key={c.id}
                 href={`/dashboard/customers/${c.id}`}
                 className="rounded-2xl border border-gray-100 dark:border-[#1e2438] bg-white dark:bg-[#161b2e] px-4 py-3 shadow-sm active:bg-gray-50 dark:active:bg-[#1a1f35] transition block"
               >
-                {/* Row 1: name + status */}
+                {/* Row 1: name + tier + status */}
                 <div className="flex items-center gap-3">
                   <p className="flex-1 font-semibold text-gray-900 dark:text-white leading-snug">{c.name}</p>
+                  {customerTier && (() => {
+                    const s = TIER_STYLES[customerTier.tier_color] ?? TIER_STYLES.bronze;
+                    const emoji = customerTier.tier_color === 'gold' ? '🥇' : customerTier.tier_color === 'silver' ? '🥈' : '🥉';
+                    return (
+                      <span className={`shrink-0 inline-flex items-center gap-0.5 rounded-full border px-1.5 py-0.5 text-[10px] font-bold ${s.bg} ${s.border} ${s.text}`}>
+                        {emoji} {customerTier.tier_label}
+                      </span>
+                    );
+                  })()}
                   {c.whatsapp_opt_in && (
                     <span title="WhatsApp activo">
                       <WhatsAppSmallIcon className="h-3.5 w-3.5 text-green-500 shrink-0" />
@@ -163,6 +204,7 @@ export default async function CustomersPage({
                 {filtered.map((c) => {
                   const initials = c.name.split(' ').slice(0, 2).map((w: string) => w[0]).join('').toUpperCase();
                   const color = AVATAR_COLORS[initials.charCodeAt(0) % AVATAR_COLORS.length];
+                  const customerTier = tierMap.get(c.id);
                   return (
                     <tr key={c.id} className="group hover:bg-gray-50 dark:hover:bg-[#1a1f35] transition">
                       <td className="px-5 py-3.5">
@@ -171,6 +213,15 @@ export default async function CustomersPage({
                             {initials}
                           </div>
                           <span className="font-semibold text-gray-900 dark:text-white">{c.name}</span>
+                          {customerTier && (() => {
+                            const s = TIER_STYLES[customerTier.tier_color] ?? TIER_STYLES.bronze;
+                            const emoji = customerTier.tier_color === 'gold' ? '🥇' : customerTier.tier_color === 'silver' ? '🥈' : '🥉';
+                            return (
+                              <span className={`inline-flex items-center gap-0.5 rounded-full border px-1.5 py-0.5 text-[10px] font-bold ${s.bg} ${s.border} ${s.text}`}>
+                                {emoji} {customerTier.tier_label}
+                              </span>
+                            );
+                          })()}
                           {c.whatsapp_opt_in && <WhatsAppSmallIcon className="h-3.5 w-3.5 text-green-500 shrink-0" title="WhatsApp activo" />}
                         </div>
                       </td>
@@ -219,7 +270,7 @@ export default async function CustomersPage({
           <div className="flex gap-2">
             {page > 1 && (
               <Link
-                href={`?page=${page - 1}${q ? `&q=${q}` : ''}${statusFilter !== 'all' ? `&status=${statusFilter}` : ''}`}
+                href={`?page=${page - 1}${q ? `&q=${q}` : ''}${statusFilter !== 'all' ? `&status=${statusFilter}` : ''}${tierFilter ? `&tier=${tierFilter}` : ''}`}
                 className="rounded-xl border border-gray-200 dark:border-[#2a3147] bg-white dark:bg-[#161b2e] px-4 py-2 text-sm font-medium text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-[#1e2438] transition"
               >
                 ← Anterior
@@ -227,7 +278,7 @@ export default async function CustomersPage({
             )}
             {page < totalPages && (
               <Link
-                href={`?page=${page + 1}${q ? `&q=${q}` : ''}${statusFilter !== 'all' ? `&status=${statusFilter}` : ''}`}
+                href={`?page=${page + 1}${q ? `&q=${q}` : ''}${statusFilter !== 'all' ? `&status=${statusFilter}` : ''}${tierFilter ? `&tier=${tierFilter}` : ''}`}
                 className="rounded-xl border border-gray-200 dark:border-[#2a3147] bg-white dark:bg-[#161b2e] px-4 py-2 text-sm font-medium text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-[#1e2438] transition"
               >
                 Siguiente

@@ -155,6 +155,8 @@ export interface CustomerProgramEnrollment {
   lifetime_points: number;   // all-time earned (never decremented)
   stamp_count: number;       // for stamp-type programs
   visit_count: number;       // for visit-type programs
+  tier_label: string | null; // cached from program config tiers (updated on each earn)
+  tier_color: string | null; // 'bronze' | 'silver' | 'gold' | null
   enrolled_at: string;
   last_activity_at: string;
 }
