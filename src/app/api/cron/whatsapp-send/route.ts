@@ -96,7 +96,7 @@ export async function GET(request: Request) {
       const result = await sendTemplateMessage(
         msg.phone_number,
         msg.template_name,
-        'es_MX',
+        'es',
         components,
       );
 
