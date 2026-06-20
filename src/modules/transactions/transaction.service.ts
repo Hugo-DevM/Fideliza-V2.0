@@ -14,6 +14,8 @@ import { logger } from '@/lib/utils/logger';
 import { getNotificationPrefs } from '@/lib/email/notification-prefs';
 import { sendRedemptionNotification } from '@/lib/email/resend';
 import { sendMilestone80Message } from '@/modules/whatsapp/whatsapp.service';
+import { computeTier } from '@/lib/utils/tiers';
+import type { TierConfig } from '@/lib/utils/tiers';
 import type {
   Transaction,
   CustomerRewardRedemption,
@@ -46,6 +48,28 @@ export async function processTransaction(
 
     const cfg = (program?.config ?? {}) as Record<string, unknown>;
 
+    // Fetch enrollment once — used by both Tier and Head Start logic
+    const { data: existingEnrollment } = await db
+      .from('customer_program_enrollments')
+      .select('lifetime_points')
+      .eq('customer_id', input.customer_id)
+      .eq('program_id', input.program_id)
+      .maybeSingle() as { data: { lifetime_points: number } | null };
+
+    const lifetimePoints = existingEnrollment?.lifetime_points ?? 0;
+
+    // Tier VIP multiplier — applied first so Flash can stack on top
+    const tiers = cfg.tiers as TierConfig[] | undefined;
+    if (cfg.tiers_enabled && tiers && tiers.length > 0) {
+      const tier = computeTier(lifetimePoints, tiers);
+      if (tier && tier.multiplier > 1) {
+        effectiveDelta = Math.round(effectiveDelta * tier.multiplier);
+        effectiveNote  = effectiveNote
+          ? `${effectiveNote} · ${tier.label} ${tier.multiplier}×`
+          : `${tier.label} ${tier.multiplier}×`;
+      }
+    }
+
     // Flash Offer: multiply points if active window matches current time
     if (cfg.flash_enabled && isFlashOfferActive(cfg)) {
       const mult = Number(cfg.flash_multiplier ?? 2);
@@ -57,20 +81,11 @@ export async function processTransaction(
 
     // Head Start: bonus points on a customer's very first earn in this program
     const initialBonus = Number(cfg.initial_bonus ?? 0);
-    if (initialBonus > 0) {
-      const { data: existingEnrollment } = await db
-        .from('customer_program_enrollments')
-        .select('lifetime_points')
-        .eq('customer_id', input.customer_id)
-        .eq('program_id', input.program_id)
-        .maybeSingle();
-
-      if (!existingEnrollment || (existingEnrollment as { lifetime_points: number }).lifetime_points === 0) {
-        effectiveDelta += initialBonus;
-        effectiveNote   = effectiveNote
-          ? `${effectiveNote} · +${initialBonus} bienvenida`
-          : `+${initialBonus} bienvenida`;
-      }
+    if (initialBonus > 0 && lifetimePoints === 0) {
+      effectiveDelta += initialBonus;
+      effectiveNote   = effectiveNote
+        ? `${effectiveNote} · +${initialBonus} bienvenida`
+        : `+${initialBonus} bienvenida`;
     }
     // ────────────────────────────────────────────────────────────────────────
 

@@ -13,9 +13,10 @@ export interface QuickProgram {
   type: RewardProgram['type'];
   config: Record<string, unknown>;
   // balance from enrollment (null if not yet enrolled)
-  current_points: number | null;
-  stamp_count: number | null;
-  visit_count: number | null;
+  current_points:  number | null;
+  lifetime_points: number | null;
+  stamp_count:     number | null;
+  visit_count:     number | null;
 }
 
 export interface QuickCustomer {
@@ -75,11 +76,11 @@ export async function lookupCustomerAction(query: string): Promise<
   // Customer enrollments (balance per program)
   const { data: enrollRows } = await db
     .from('customer_program_enrollments')
-    .select('program_id, current_points, stamp_count, visit_count')
+    .select('program_id, current_points, lifetime_points, stamp_count, visit_count')
     .eq('tenant_id', tenantId)
     .eq('customer_id', customerData.id);
 
-  type EnrollRow = Pick<CustomerProgramEnrollment, 'program_id' | 'current_points' | 'stamp_count' | 'visit_count'>;
+  type EnrollRow = Pick<CustomerProgramEnrollment, 'program_id' | 'current_points' | 'lifetime_points' | 'stamp_count' | 'visit_count'>;
   const enrollMap = new Map<string, EnrollRow>();
   for (const e of ((enrollRows ?? []) as unknown as EnrollRow[])) {
     enrollMap.set(e.program_id, e);
@@ -93,9 +94,10 @@ export async function lookupCustomerAction(query: string): Promise<
         name:           p.name,
         type:           p.type,
         config:         (p.config as unknown as Record<string, unknown>) ?? {},
-        current_points: enroll?.current_points ?? null,
-        stamp_count:    enroll?.stamp_count    ?? null,
-        visit_count:    enroll?.visit_count    ?? null,
+        current_points:  enroll?.current_points  ?? null,
+        lifetime_points: enroll?.lifetime_points ?? null,
+        stamp_count:     enroll?.stamp_count     ?? null,
+        visit_count:     enroll?.visit_count     ?? null,
       };
     });
 

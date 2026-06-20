@@ -45,6 +45,37 @@ export async function updateFlashOfferAction(
   }
 }
 
+export async function updateTiersAction(
+  programId: string,
+  tiers: { tiers_enabled: boolean; tiers: unknown[] },
+) {
+  const { tenantId, effectivePlan } = await getAuthenticatedTenant();
+  if (effectivePlan !== 'pro' && effectivePlan !== 'enterprise') {
+    return { error: 'Tiers VIP requiere el plan Pro.' };
+  }
+
+  const db = createServiceRoleClient();
+
+  const { data: program } = await db
+    .from('reward_programs')
+    .select('config')
+    .eq('id', programId)
+    .eq('tenant_id', tenantId)
+    .single();
+
+  if (!program) return { error: 'Programa no encontrado.' };
+
+  const newConfig = { ...(program.config as Record<string, unknown>), ...tiers };
+
+  try {
+    await updateProgram(tenantId, programId, { config: newConfig });
+    revalidatePath(`/dashboard/programs/${programId}`);
+    return { success: true };
+  } catch (err) {
+    return { error: err instanceof Error ? err.message : 'No se pudo guardar los Tiers.' };
+  }
+}
+
 export async function updateProgramInfoAction(programId: string, formData: FormData) {
   const { tenantId } = await getAuthenticatedTenant();
   const name        = (formData.get('name') as string).trim();

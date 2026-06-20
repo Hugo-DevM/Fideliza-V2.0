@@ -10,6 +10,8 @@ import WhatsAppOptInToggle from './WhatsAppOptInToggle';
 import BalanceReminderButton from './BalanceReminderButton';
 import { NotFoundError } from '@/lib/middleware/errors';
 import type { ProgramConfig } from '@/lib/types';
+import { computeTier, TIER_STYLES } from '@/lib/utils/tiers';
+import type { TierConfig } from '@/lib/utils/tiers';
 
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -172,6 +174,10 @@ export default async function CustomerDetailPage({
                   const visitsNeeded = isVisit && prog ? (prog.config as { visits_needed?: number }).visits_needed ?? 10 : 10;
                   const minRedeem   = isPoints && prog ? (prog.config as { min_redeem?: number }).min_redeem ?? 100 : 100;
 
+                  const rawCfg = prog?.config as Record<string, unknown> | undefined;
+                  const tierList = rawCfg?.tiers_enabled ? (rawCfg.tiers as TierConfig[] | undefined) : undefined;
+                  const currentTier = tierList ? computeTier(e.lifetime_points, tierList) : null;
+
                   const progressPct = isPoints
                     ? Math.min(100, Math.round((e.current_points / minRedeem) * 100))
                     : 0;
@@ -184,7 +190,15 @@ export default async function CustomerDetailPage({
                             <ProgramTypeIcon type={e.program_type} className="h-4 w-4" />
                           </div>
                           <div>
-                            <p className="text-sm font-semibold text-gray-800 dark:text-white">{e.program_name}</p>
+                            <div className="flex items-center gap-2">
+                              <p className="text-sm font-semibold text-gray-800 dark:text-white">{e.program_name}</p>
+                              {currentTier && (
+                                <span className={`inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[11px] font-semibold ${TIER_STYLES[currentTier.color].bg} ${TIER_STYLES[currentTier.color].border} ${TIER_STYLES[currentTier.color].text}`}>
+                                  {currentTier.color === 'bronze' ? '🥉' : currentTier.color === 'silver' ? '🥈' : '🥇'} {currentTier.label}
+                                  {currentTier.multiplier > 1 && ` ${currentTier.multiplier}×`}
+                                </span>
+                              )}
+                            </div>
                             <p className="text-xs text-gray-400 dark:text-gray-500 capitalize mt-0.5">
                               {PROGRAM_TYPE_LABELS[e.program_type] ?? e.program_type}
                               {isPoints && ` · lifetime ${e.lifetime_points}`}

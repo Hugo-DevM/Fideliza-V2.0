@@ -4,6 +4,8 @@ import { useState, useTransition, useRef, useEffect } from 'react';
 import { lookupCustomerAction, quickTransactionAction } from './actions';
 import type { QuickCustomer, QuickProgram } from './actions';
 import { useAutoError } from '@/hooks/useAutoError';
+import { computeTier, TIER_STYLES } from '@/lib/utils/tiers';
+import type { TierConfig } from '@/lib/utils/tiers';
 
 interface Props {
   programLabel: string;
@@ -148,6 +150,14 @@ export default function QuickRegister({ programLabel, currency }: Props) {
 
   const selectedProgram = customer?.programs.find((p) => p.id === selectedProgramId);
 
+  // Tier for selected program
+  const selectedTierList = selectedProgram?.config?.tiers_enabled
+    ? (selectedProgram.config.tiers as TierConfig[] | undefined)
+    : undefined;
+  const selectedTier = selectedTierList
+    ? computeTier(selectedProgram?.lifetime_points ?? 0, selectedTierList)
+    : null;
+
   // Unique program types the customer has
   const availableTabs = getUniqueTabs(customer?.programs ?? []);
 
@@ -264,12 +274,18 @@ export default function QuickRegister({ programLabel, currency }: Props) {
               <div className="flex items-start justify-between gap-2">
                 <div>
                   <p className="text-base font-bold text-gray-900 dark:text-white">{customer.name}</p>
-                  <div className="flex items-center gap-2 mt-0.5">
+                  <div className="flex flex-wrap items-center gap-2 mt-0.5">
                     <span className="font-mono text-xs text-indigo-500 dark:text-indigo-400">{customer.access_code}</span>
                     <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 dark:bg-emerald-500/10 px-2 py-0.5 text-[11px] font-semibold text-emerald-700 dark:text-emerald-400">
                       <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 dark:bg-emerald-400" />
                       Activo
                     </span>
+                    {selectedTier && (
+                      <span className={`inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[11px] font-semibold ${TIER_STYLES[selectedTier.color].bg} ${TIER_STYLES[selectedTier.color].border} ${TIER_STYLES[selectedTier.color].text}`}>
+                        {selectedTier.color === 'bronze' ? '🥉' : selectedTier.color === 'silver' ? '🥈' : '🥇'} {selectedTier.label}
+                        {selectedTier.multiplier > 1 && ` · ${selectedTier.multiplier}×`}
+                      </span>
+                    )}
                   </div>
                   {customer.phone && (
                     <p className="text-xs text-gray-400 dark:text-gray-500 mt-0.5">{customer.phone}</p>

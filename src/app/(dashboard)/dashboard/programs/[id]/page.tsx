@@ -8,6 +8,7 @@ import ProgramStatusButtons from './ProgramStatusButtons';
 import EditProgramModal from './EditProgramModal';
 import DeleteRewardButton from './DeleteRewardButton';
 import FlashOfferCard from './FlashOfferCard';
+import TiersCard from './TiersCard';
 import { NotFoundError } from '@/lib/middleware/errors';
 import type { ProgramStatus } from '@/lib/types';
 
@@ -149,6 +150,13 @@ export default async function ProgramDetailPage({
 
         {/* Flash Offer card */}
         <FlashOfferCard
+          programId={program.id}
+          plan={effectivePlan}
+          config={config}
+        />
+
+        {/* Tiers VIP card */}
+        <TiersCard
           programId={program.id}
           plan={effectivePlan}
           config={config}
