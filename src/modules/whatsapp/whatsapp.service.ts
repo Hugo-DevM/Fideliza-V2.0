@@ -72,7 +72,7 @@ async function enqueueMessage(p: EnqueueParams): Promise<void> {
 /**
  * Sent when a customer is registered with WhatsApp opt-in.
  * Template: fideliza_welcome_v1 (utility)
- * Params: [customer_name, business_name, initial_points]
+ * Params: [customer_name, business_name]
  */
 export async function sendWelcomeMessage(
   customerId:   UUID,
@@ -92,7 +92,6 @@ export async function sendWelcomeMessage(
       params: {
         '1': customerName,
         '2': businessName,
-        '3': String(initialPoints),
       },
       priority: 1, // welcome messages get highest priority
     });
