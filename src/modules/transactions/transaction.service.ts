@@ -130,8 +130,8 @@ export async function processTransaction(
         const businessName = (settings.tenants as { name: string } | null)?.name ?? '';
 
         // Fetch customer
-        const { data: customer } = await db2
-          .from('customers')
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const { data: customer } = await (db2.from('customers') as any)
           .select('name, phone, whatsapp_opt_in')
           .eq('id', input.customer_id)
           .eq('whatsapp_opt_in', true)
