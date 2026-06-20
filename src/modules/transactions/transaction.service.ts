@@ -13,6 +13,7 @@ import { getTransactionHistoryLimit } from '@/lib/middleware/plan-limits';
 import { logger } from '@/lib/utils/logger';
 import { getNotificationPrefs } from '@/lib/email/notification-prefs';
 import { sendRedemptionNotification } from '@/lib/email/resend';
+import { sendMilestone80Message } from '@/modules/whatsapp/whatsapp.service';
 import type {
   Transaction,
   CustomerRewardRedemption,
@@ -91,7 +92,69 @@ export async function processTransaction(
       throw new Error(`Transacción fallida: ${error.message}`);
     }
 
-    return data as unknown as Transaction;
+    const tx = data as unknown as Transaction;
+
+    // ── 80% milestone notification (fire-and-forget) ─────────────────────────
+    void (async () => {
+      try {
+        const balanceAfter  = tx.balance_after;
+        const balanceBefore = balanceAfter - effectiveDelta;
+
+        // Fetch cheapest active reward to determine the program goal
+        const db2 = createServiceRoleClient();
+        const { data: cheapestReward } = await db2
+          .from('rewards')
+          .select('cost_points, name')
+          .eq('program_id', input.program_id)
+          .eq('is_active', true)
+          .order('cost_points', { ascending: true })
+          .limit(1)
+          .maybeSingle() as { data: { cost_points: number; name: string } | null };
+
+        if (!cheapestReward || cheapestReward.cost_points <= 0) return;
+
+        const goal = cheapestReward.cost_points;
+        const crossedThreshold = balanceBefore / goal < 0.8 && balanceAfter / goal >= 0.8;
+        if (!crossedThreshold) return;
+
+        // Check tenant setting
+        const { data: settings } = await db2
+          .from('tenant_settings')
+          .select('wa_notify_milestone_80, tenants!inner(name)')
+          .eq('tenant_id', tenantId)
+          .eq('wa_notify_milestone_80', true)
+          .maybeSingle() as { data: { wa_notify_milestone_80: boolean; tenants: { name: string } | null } | null };
+
+        if (!settings) return;
+
+        const businessName = (settings.tenants as { name: string } | null)?.name ?? '';
+
+        // Fetch customer
+        const { data: customer } = await db2
+          .from('customers')
+          .select('name, phone, whatsapp_opt_in')
+          .eq('id', input.customer_id)
+          .eq('whatsapp_opt_in', true)
+          .maybeSingle() as { data: { name: string; phone: string | null; whatsapp_opt_in: boolean } | null };
+
+        if (!customer?.phone) return;
+
+        const unitsRemaining = Math.max(0, goal - balanceAfter);
+
+        await sendMilestone80Message(
+          input.customer_id,
+          tenantId,
+          customer.name,
+          businessName,
+          customer.phone,
+          unitsRemaining,
+          cheapestReward.name,
+        );
+      } catch { /* best-effort — never blocks the earn */ }
+    })();
+    // ────────────────────────────────────────────────────────────────────────
+
+    return tx;
   }
 
   // For adjustments, expire, refund — direct insert with manual balance calculation

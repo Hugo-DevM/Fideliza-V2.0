@@ -97,6 +97,8 @@ export async function updateTenantSettings(
     wa_notify_reactivation?: boolean;
     wa_notify_streak_at_risk?: boolean;
     wa_notify_promotion?: boolean;
+    wa_notify_birthday?: boolean;
+    wa_notify_milestone_80?: boolean;
   }
 ): Promise<TenantSettings> {
   const db = await createServerClient();

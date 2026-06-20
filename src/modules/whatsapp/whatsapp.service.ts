@@ -221,6 +221,68 @@ export async function sendStreakAtRiskMessage(
 }
 
 /**
+ * Sent on the customer's birthday by the daily birthday-rewards cron.
+ * Template: fideliza_birthday_v1 (marketing)
+ * Params: [customer_name, business_name, bonus_points]
+ */
+export async function sendBirthdayMessage(
+  customerId:   UUID,
+  tenantId:     UUID,
+  customerName: string,
+  businessName: string,
+  phone:        string,
+  bonusPoints:  number,
+): Promise<void> {
+  try {
+    await enqueueMessage({
+      tenantId,
+      customerId,
+      phone,
+      template: 'fideliza_birthday_v1',
+      category: 'marketing',
+      params: {
+        '1': customerName,
+        '2': businessName,
+        '3': String(bonusPoints),
+      },
+      priority: 2,
+    });
+  } catch { /* best-effort */ }
+}
+
+/**
+ * Sent post-earn when a customer crosses the 80% threshold toward a reward.
+ * Template: fideliza_milestone_80_v1 (utility)
+ * Params: [customer_name, business_name, units_remaining, reward_name]
+ */
+export async function sendMilestone80Message(
+  customerId:    UUID,
+  tenantId:      UUID,
+  customerName:  string,
+  businessName:  string,
+  phone:         string,
+  unitsRemaining: number,
+  rewardName:    string,
+): Promise<void> {
+  try {
+    await enqueueMessage({
+      tenantId,
+      customerId,
+      phone,
+      template: 'fideliza_milestone_80_v1',
+      category: 'utility',
+      params: {
+        '1': customerName,
+        '2': businessName,
+        '3': String(unitsRemaining),
+        '4': rewardName,
+      },
+      priority: 3,
+    });
+  } catch { /* best-effort */ }
+}
+
+/**
  * Sent manually by the business owner as a promotion blast.
  * Template: fideliza_promotion_v1 (marketing)
  * Params: [customer_name, business_name]

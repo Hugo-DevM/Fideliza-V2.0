@@ -43,6 +43,8 @@ export default function SettingsForm({
   const [waNotifyReactivation,   setWaNotifyReactivation]   = useState(settings.wa_notify_reactivation   ?? true);
   const [waNotifyStreakAtRisk,   setWaNotifyStreakAtRisk]   = useState(settings.wa_notify_streak_at_risk  ?? false);
   const [waNotifyPromotion,      setWaNotifyPromotion]      = useState(settings.wa_notify_promotion       ?? false);
+  const [waNotifyBirthday,       setWaNotifyBirthday]       = useState(settings.wa_notify_birthday        ?? false);
+  const [waNotifyMilestone80,    setWaNotifyMilestone80]    = useState(settings.wa_notify_milestone_80    ?? false);
   const [saved, setSaved] = useState({
     primary_color:   settings.primary_color,
     secondary_color: settings.secondary_color,
@@ -60,6 +62,8 @@ export default function SettingsForm({
     waNotifyReactivation:      settings.wa_notify_reactivation   ?? true,
     waNotifyStreakAtRisk:      settings.wa_notify_streak_at_risk  ?? false,
     waNotifyPromotion:         settings.wa_notify_promotion       ?? false,
+    waNotifyBirthday:          settings.wa_notify_birthday        ?? false,
+    waNotifyMilestone80:       settings.wa_notify_milestone_80    ?? false,
   });
   const [copied, setCopied] = useState(false);
 
@@ -79,7 +83,9 @@ export default function SettingsForm({
     waNotifyBalanceReminder    !== saved.waNotifyBalanceReminder   ||
     waNotifyReactivation       !== saved.waNotifyReactivation      ||
     waNotifyStreakAtRisk       !== saved.waNotifyStreakAtRisk      ||
-    waNotifyPromotion          !== saved.waNotifyPromotion;
+    waNotifyPromotion          !== saved.waNotifyPromotion         ||
+    waNotifyBirthday           !== saved.waNotifyBirthday       ||
+    waNotifyMilestone80        !== saved.waNotifyMilestone80;
 
   function handleProgramLabelChange(e: React.ChangeEvent<HTMLInputElement>) {
     const raw = e.target.value;
@@ -119,6 +125,8 @@ export default function SettingsForm({
           waNotifyReactivation,
           waNotifyStreakAtRisk,
           waNotifyPromotion,
+          waNotifyBirthday,
+          waNotifyMilestone80,
         });
         setSuccess(s.saved);
         router.refresh();
@@ -476,6 +484,8 @@ export default function SettingsForm({
       <input type="hidden" name="wa_notify_reactivation"     value={waNotifyReactivation    ? 'true' : 'false'} />
       <input type="hidden" name="wa_notify_streak_at_risk"   value={waNotifyStreakAtRisk    ? 'true' : 'false'} />
       <input type="hidden" name="wa_notify_promotion"        value={waNotifyPromotion       ? 'true' : 'false'} />
+      <input type="hidden" name="wa_notify_birthday"         value={waNotifyBirthday        ? 'true' : 'false'} />
+      <input type="hidden" name="wa_notify_milestone_80"    value={waNotifyMilestone80     ? 'true' : 'false'} />
       <div className="rounded-2xl border border-gray-100 dark:border-[#1e2438] bg-white dark:bg-[#161b2e] shadow-sm p-5 space-y-4">
         <div className="flex items-center justify-between gap-2">
           <div className="flex items-center gap-2">
@@ -549,6 +559,20 @@ export default function SettingsForm({
             hint="Envía promociones y ofertas especiales a tus clientes (costo más alto)."
             checked={waNotifyPromotion}
             onChange={setWaNotifyPromotion}
+            disabled={plan === 'free'}
+          />
+          <NotifToggle
+            label="Felicitación de cumpleaños"
+            hint="Mensaje automático el día del cumpleaños del cliente con puntos de regalo."
+            checked={waNotifyBirthday}
+            onChange={setWaNotifyBirthday}
+            disabled={plan === 'free'}
+          />
+          <NotifToggle
+            label="Cerca de su recompensa (80%)"
+            hint="Avisa al cliente cuando le falta poco para completar su meta y obtener su recompensa."
+            checked={waNotifyMilestone80}
+            onChange={setWaNotifyMilestone80}
             disabled={plan === 'free'}
           />
         </div>

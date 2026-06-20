@@ -77,6 +77,8 @@ export async function createCustomer(
       is_active: true,
       whatsapp_opt_in: optIn,
       whatsapp_opted_in_at: optIn ? new Date().toISOString() : null,
+      birth_month: input.birth_month ?? null,
+      birth_day:   input.birth_day   ?? null,
     })
     .select('*')
     .single();
@@ -194,7 +196,7 @@ export async function getCustomerPoints(
 export async function updateCustomer(
   tenantId: UUID,
   customerId: UUID,
-  input: { name: string; phone?: string | null; notes?: string | null }
+  input: { name: string; phone?: string | null; notes?: string | null; birth_month?: number | null; birth_day?: number | null }
 ): Promise<Customer> {
   const db = createServiceRoleClient();
 
@@ -212,7 +214,13 @@ export async function updateCustomer(
 
   const { data, error } = await db
     .from('customers')
-    .update({ name: input.name, phone: input.phone ?? null, notes: input.notes ?? null })
+    .update({
+      name:        input.name,
+      phone:       input.phone       ?? null,
+      notes:       input.notes       ?? null,
+      birth_month: input.birth_month ?? null,
+      birth_day:   input.birth_day   ?? null,
+    })
     .eq('tenant_id', tenantId)
     .eq('id', customerId)
     .select('*')

@@ -28,6 +28,8 @@ export default function NewCustomerModal({ phonePrefix, plan }: Props) {
   const [phone, setPhone] = useState("");
   const [notesLen, setNotesLen] = useState(0);
   const [whatsappOptIn, setWhatsappOptIn] = useState(false);
+  const [birthMonth, setBirthMonth] = useState("");
+  const [birthDay,   setBirthDay]   = useState("");
   const NOTES_MAX = 300;
   const formRef = useRef<HTMLFormElement>(null);
   const router = useRouter();
@@ -75,6 +77,8 @@ export default function NewCustomerModal({ phonePrefix, plan }: Props) {
         setPhone("");
         setNotesLen(0);
         setWhatsappOptIn(false);
+        setBirthMonth("");
+        setBirthDay("");
         setOpen(false);
         router.refresh();
       }
@@ -86,6 +90,8 @@ export default function NewCustomerModal({ phonePrefix, plan }: Props) {
     setPhone("");
     setNotesLen(0);
     setWhatsappOptIn(false);
+    setBirthMonth("");
+    setBirthDay("");
     setError("");
     formRef.current?.reset();
     setOpen(false);
@@ -241,6 +247,38 @@ export default function NewCustomerModal({ phonePrefix, plan }: Props) {
                   onChange={(e) => setNotesLen(e.target.value.length)}
                   className={`${inputCls} resize-none`}
                 />
+              </div>
+
+              {/* Birthday */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
+                  Fecha de cumpleaños <span className="text-gray-400 dark:text-gray-500 font-normal">(opcional)</span>
+                </label>
+                <div className="flex gap-2">
+                  <select
+                    name="birth_month"
+                    value={birthMonth}
+                    onChange={(e) => { setBirthMonth(e.target.value); if (!e.target.value) setBirthDay(""); }}
+                    className={`${inputCls} flex-1`}
+                  >
+                    <option value="">Mes</option>
+                    {['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'].map((m, i) => (
+                      <option key={i + 1} value={i + 1}>{m}</option>
+                    ))}
+                  </select>
+                  <select
+                    name="birth_day"
+                    value={birthDay}
+                    onChange={(e) => setBirthDay(e.target.value)}
+                    disabled={!birthMonth}
+                    className={`${inputCls} w-24 ${!birthMonth ? 'opacity-40 cursor-not-allowed' : ''}`}
+                  >
+                    <option value="">Día</option>
+                    {Array.from({ length: 31 }, (_, i) => i + 1).map((d) => (
+                      <option key={d} value={d}>{d}</option>
+                    ))}
+                  </select>
+                </div>
               </div>
 
               {/* WhatsApp opt-in */}

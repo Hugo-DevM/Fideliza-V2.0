@@ -64,6 +64,8 @@ export interface TenantSettings {
   wa_notify_reactivation: boolean;
   wa_notify_streak_at_risk: boolean;
   wa_notify_promotion: boolean;
+  wa_notify_birthday: boolean;
+  wa_notify_milestone_80: boolean;
   created_at: string;
   updated_at: string;
 }
@@ -137,6 +139,8 @@ export interface Customer {
   notes: string | null;
   whatsapp_opt_in: boolean;
   whatsapp_opted_in_at: string | null;
+  birth_month: number | null;
+  birth_day: number | null;
   created_at: string;
   updated_at: string;
 }

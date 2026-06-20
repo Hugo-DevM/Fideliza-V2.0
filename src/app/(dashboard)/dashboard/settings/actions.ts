@@ -26,6 +26,8 @@ export async function updateSettingsAction(formData: FormData) {
   const wa_notify_reactivation     = formData.get('wa_notify_reactivation')     === 'true';
   const wa_notify_streak_at_risk   = formData.get('wa_notify_streak_at_risk')   === 'true';
   const wa_notify_promotion        = formData.get('wa_notify_promotion')        === 'true';
+  const wa_notify_birthday         = formData.get('wa_notify_birthday')         === 'true';
+  const wa_notify_milestone_80     = formData.get('wa_notify_milestone_80')     === 'true';
 
   // Validate hex color format
   const hexRe = /^#[0-9A-Fa-f]{6}$/;
@@ -66,6 +68,8 @@ export async function updateSettingsAction(formData: FormData) {
       wa_notify_reactivation,
       wa_notify_streak_at_risk,
       wa_notify_promotion,
+      wa_notify_birthday,
+      wa_notify_milestone_80,
     });
     revalidatePath('/dashboard/settings');
     revalidatePath('/dashboard');
