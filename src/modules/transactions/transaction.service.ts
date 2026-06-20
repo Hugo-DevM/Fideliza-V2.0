@@ -118,8 +118,8 @@ export async function processTransaction(
         if (!crossedThreshold) return;
 
         // Check tenant setting
-        const { data: settings } = await db2
-          .from('tenant_settings')
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const { data: settings } = await (db2.from('tenant_settings') as any)
           .select('wa_notify_milestone_80, tenants!inner(name)')
           .eq('tenant_id', tenantId)
           .eq('wa_notify_milestone_80', true)
