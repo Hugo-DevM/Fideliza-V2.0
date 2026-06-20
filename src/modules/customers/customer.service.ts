@@ -212,8 +212,8 @@ export async function updateCustomer(
     if (existing) throw new BadRequestError('Ya existe un cliente con este teléfono.');
   }
 
-  const { data, error } = await db
-    .from('customers')
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { data, error } = await (db.from('customers') as any)
     .update({
       name:        input.name,
       phone:       input.phone       ?? null,
