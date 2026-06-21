@@ -281,7 +281,7 @@ export async function processTransaction(
           const db2 = createServiceRoleClient();
 
           // Check if this customer has a pending referral in this program
-          const { data: referral } = await (db2.from('referrals') as any)
+          const { data: referral } = await (db2 as any).from('referrals')
             .select('id, referrer_id, referred_id')
             .eq('tenant_id', tenantId)
             .eq('referred_id', input.customer_id)
@@ -294,7 +294,7 @@ export async function processTransaction(
           if (!referral) return;
 
           // Mark referral as completed
-          await (db2.from('referrals') as any)
+          await (db2 as any).from('referrals')
             .update({ status: 'completed', completed_at: new Date().toISOString() })
             .eq('id', referral.id);
 
