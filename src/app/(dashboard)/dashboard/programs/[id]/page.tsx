@@ -11,6 +11,7 @@ import FlashOfferCard from './FlashOfferCard';
 import TiersCard from './TiersCard';
 import SurpriseDelightCard from './SurpriseDelightCard';
 import ReferralCard from './ReferralCard';
+import ChallengesCard from './ChallengesCard';
 import { NotFoundError } from '@/lib/middleware/errors';
 import type { ProgramStatus } from '@/lib/types';
 
@@ -70,6 +71,19 @@ export default async function ProgramDetailPage({
     ]);
 
     const db = createServiceRoleClient();
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const challengesRes = await (db as any)
+      .from('challenges')
+      .select('id, title, target, bonus_points, ends_at, is_active')
+      .eq('tenant_id', tenantId)
+      .eq('program_id', id)
+      .eq('is_active', true)
+      .order('created_at', { ascending: false }) as {
+        data: Array<{ id: string; title: string; target: number; bonus_points: number; ends_at: string | null; is_active: boolean }> | null;
+      };
+
+    const challenges = challengesRes.data ?? [];
 
     const [{ count: enrollmentCount }, { count: totalRedemptions }, { count: txTotal }, { data: recentTx }] = await Promise.all([
       db.from('customer_program_enrollments').select('id', { count: 'exact', head: true }).eq('program_id', id).eq('tenant_id', tenantId),
@@ -177,6 +191,13 @@ export default async function ProgramDetailPage({
           programId={program.id}
           plan={effectivePlan}
           config={config}
+        />
+
+        {/* Challenges / Misiones card */}
+        <ChallengesCard
+          programId={program.id}
+          plan={effectivePlan}
+          challenges={challenges}
         />
 
         {/* Content grid */}

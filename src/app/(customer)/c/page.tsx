@@ -23,6 +23,7 @@ import type {
   PortalTransaction,
   PortalVoucher,
   PortalReward,
+  PortalChallenge,
   PortalProgramRanking,
 } from '@/modules/portal';
 import { computeTier, nextTier, TIER_STYLES } from '@/lib/utils/tiers';
@@ -881,6 +882,53 @@ function EmptyState({
   );
 }
 
+// ── Challenge row ─────────────────────────────────────────────────────
+
+function ChallengeRow({ challenge: c }: { challenge: PortalChallenge }) {
+  const pct       = Math.min(100, Math.round((c.progress / c.target) * 100));
+  const remaining = Math.max(0, c.target - c.progress);
+  const done      = Boolean(c.completed_at);
+
+  return (
+    <div className={`rounded-xl px-4 py-3 ${done ? 'bg-emerald-50 dark:bg-emerald-500/10' : 'bg-gray-50 dark:bg-[#0d0f17]'}`}>
+      <div className="flex items-start justify-between gap-2 mb-2">
+        <div className="min-w-0">
+          <p className={`text-sm font-semibold truncate ${done ? 'text-emerald-700 dark:text-emerald-400' : 'text-gray-800 dark:text-gray-100'}`}>
+            {done && <span className="mr-1">✓</span>}{c.title}
+          </p>
+          {c.ends_at && !done && (
+            <p className="text-[10px] text-gray-400 dark:text-gray-500 mt-0.5">
+              hasta {new Date(c.ends_at).toLocaleDateString('es', { day: 'numeric', month: 'short' })}
+            </p>
+          )}
+        </div>
+        <span className={`shrink-0 text-xs font-bold rounded-full px-2 py-0.5 ${
+          done
+            ? 'bg-emerald-100 dark:bg-emerald-500/20 text-emerald-700 dark:text-emerald-400'
+            : 'bg-orange-100 dark:bg-orange-500/20 text-orange-700 dark:text-orange-400'
+        }`}>
+          +{c.bonus_points} pts
+        </span>
+      </div>
+
+      {!done && (
+        <>
+          <div className="h-1.5 w-full rounded-full bg-gray-200 dark:bg-[#1e2438] overflow-hidden">
+            <div
+              className="h-full rounded-full bg-orange-400 dark:bg-orange-500 transition-all"
+              style={{ width: `${pct}%` }}
+            />
+          </div>
+          <p className="mt-1 text-[11px] text-gray-400 dark:text-gray-500">
+            {c.progress}/{c.target} visitas
+            {remaining > 0 && <> · faltan <strong className="text-gray-600 dark:text-gray-300">{remaining}</strong></>}
+          </p>
+        </>
+      )}
+    </div>
+  );
+}
+
 // ── Enrollment card ───────────────────────────────────────────────────
 
 const LIFETIME_UNIT: Record<PortalEnrollment['program_type'], string> = {
@@ -997,6 +1045,18 @@ function EnrollmentCard({
           </div>
         );
       })()}
+
+      {/* Active challenges */}
+      {e.challenges.length > 0 && (
+        <div className="mt-4 space-y-2">
+          <p className="text-[11px] font-semibold uppercase tracking-widest text-gray-400 dark:text-gray-500">
+            Misiones activas
+          </p>
+          {e.challenges.map((c) => (
+            <ChallengeRow key={c.id} challenge={c} />
+          ))}
+        </div>
+      )}
 
       {affordableRewards.length > 0 && (
         <div className="mt-4 rounded-xl p-3.5" style={{ backgroundColor: `${primaryColor}12` }}>

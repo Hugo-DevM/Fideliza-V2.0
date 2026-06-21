@@ -18,6 +18,7 @@ import {
   sendTierUpgradeMessage,
   sendSurpriseDelightMessage,
   sendReferralEarnedMessage,
+  sendChallengeCompletedMessage,
 } from '@/modules/whatsapp/whatsapp.service';
 import { computeTier } from '@/lib/utils/tiers';
 import type { TierConfig } from '@/lib/utils/tiers';
@@ -346,6 +347,105 @@ export async function processTransaction(
         } catch { /* best-effort */ }
       })();
     }
+    // ── Challenge progress hook (fire-and-forget) ────────────────────────────
+    void (async () => {
+      try {
+        const db2 = createServiceRoleClient();
+        const now  = new Date().toISOString();
+
+        // Fetch active challenges for this program within their time window
+        const { data: activeChallenges } = await (db2 as any)
+          .from('challenges')
+          .select('id, title, target, bonus_points')
+          .eq('tenant_id', tenantId)
+          .eq('program_id', input.program_id)
+          .eq('is_active', true)
+          .or(`starts_at.is.null,starts_at.lte.${now}`)
+          .or(`ends_at.is.null,ends_at.gte.${now}`) as {
+            data: Array<{ id: string; title: string; target: number; bonus_points: number }> | null;
+          };
+
+        if (!activeChallenges?.length) return;
+
+        for (const challenge of activeChallenges) {
+          // Fetch or create progress row
+          const { data: existing } = await (db2 as any)
+            .from('customer_challenge_progress')
+            .select('id, progress, completed_at')
+            .eq('customer_id', input.customer_id)
+            .eq('challenge_id', challenge.id)
+            .maybeSingle() as {
+              data: { id: string; progress: number; completed_at: string | null } | null;
+            };
+
+          // Skip if already completed
+          if (existing?.completed_at) continue;
+
+          const newProgress = (existing?.progress ?? 0) + 1;
+
+          if (existing) {
+            await (db2 as any)
+              .from('customer_challenge_progress')
+              .update({ progress: newProgress })
+              .eq('id', existing.id);
+          } else {
+            await (db2 as any)
+              .from('customer_challenge_progress')
+              .insert({
+                tenant_id:    tenantId,
+                customer_id:  input.customer_id,
+                challenge_id: challenge.id,
+                progress:     newProgress,
+              });
+          }
+
+          // Check completion
+          if (newProgress >= challenge.target) {
+            // Mark completed
+            await (db2 as any)
+              .from('customer_challenge_progress')
+              .update({ completed_at: now })
+              .eq('customer_id', input.customer_id)
+              .eq('challenge_id', challenge.id);
+
+            // Credit bonus points
+            await (db2 as any).rpc('rpc_earn_points', {
+              p_tenant_id:    tenantId,
+              p_customer_id:  input.customer_id,
+              p_program_id:   input.program_id,
+              p_points_delta: challenge.bonus_points,
+              p_note:         `Misión completada: ${challenge.title}`,
+            });
+
+            // WhatsApp notification
+            const { data: customer } = await (db2 as any)
+              .from('customers')
+              .select('name, phone, whatsapp_opt_in')
+              .eq('id', input.customer_id)
+              .eq('whatsapp_opt_in', true)
+              .maybeSingle() as { data: { name: string; phone: string | null } | null };
+
+            if (customer?.phone) {
+              const { data: tenantRow } = await db2
+                .from('tenants')
+                .select('name')
+                .eq('id', tenantId)
+                .single() as { data: { name: string } | null };
+
+              await sendChallengeCompletedMessage(
+                input.customer_id,
+                tenantId,
+                customer.name,
+                tenantRow?.name ?? '',
+                customer.phone,
+                challenge.title,
+                challenge.bonus_points,
+              );
+            }
+          }
+        }
+      } catch { /* best-effort — never blocks the earn */ }
+    })();
     // ────────────────────────────────────────────────────────────────────────
 
     return tx;

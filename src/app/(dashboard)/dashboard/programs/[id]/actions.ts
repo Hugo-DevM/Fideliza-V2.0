@@ -146,6 +146,55 @@ export async function updateReferralAction(
   }
 }
 
+export async function createChallengeAction(
+  programId: string,
+  input: {
+    title:       string;
+    target:      number;
+    bonus_points: number;
+    ends_at:     string | null;
+  },
+) {
+  const { tenantId, effectivePlan } = await getAuthenticatedTenant();
+  if (effectivePlan !== 'pro' && effectivePlan !== 'enterprise') {
+    return { error: 'Las misiones requieren el plan Pro.' };
+  }
+  if (!input.title.trim() || input.target < 1 || input.bonus_points < 1) {
+    return { error: 'Datos inválidos.' };
+  }
+
+  const db = createServiceRoleClient();
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { error } = await (db as any).from('challenges').insert({
+    tenant_id:    tenantId,
+    program_id:   programId,
+    title:        input.title.trim(),
+    target:       input.target,
+    bonus_points: input.bonus_points,
+    ends_at:      input.ends_at || null,
+    is_active:    true,
+  });
+
+  if (error) return { error: 'No se pudo crear la misión.' };
+
+  revalidatePath(`/dashboard/programs/${programId}`);
+  return { success: true };
+}
+
+export async function deleteChallengeAction(programId: string, challengeId: string) {
+  const { tenantId } = await getAuthenticatedTenant();
+  const db = createServiceRoleClient();
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  await (db as any)
+    .from('challenges')
+    .update({ is_active: false })
+    .eq('id', challengeId)
+    .eq('tenant_id', tenantId);
+
+  revalidatePath(`/dashboard/programs/${programId}`);
+  return { success: true };
+}
+
 export async function updateProgramInfoAction(programId: string, formData: FormData) {
   const { tenantId } = await getAuthenticatedTenant();
   const name        = (formData.get('name') as string).trim();

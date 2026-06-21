@@ -404,6 +404,38 @@ export async function sendSurpriseDelightMessage(
 }
 
 /**
+ * Sent when a customer completes a challenge and receives a bonus.
+ * Template: fideliza_challenge_completed_v1 (utility)
+ * Params: [customer_name, challenge_title, bonus_points, business_name]
+ */
+export async function sendChallengeCompletedMessage(
+  customerId:     UUID,
+  tenantId:       UUID,
+  customerName:   string,
+  businessName:   string,
+  phone:          string,
+  challengeTitle: string,
+  bonusPoints:    number,
+): Promise<void> {
+  try {
+    await enqueueMessage({
+      tenantId,
+      customerId,
+      phone,
+      template: 'fideliza_challenge_completed_v1',
+      category: 'utility',
+      params: {
+        '1': customerName,
+        '2': challengeTitle,
+        '3': String(bonusPoints),
+        '4': businessName,
+      },
+      priority: 2,
+    });
+  } catch { /* best-effort */ }
+}
+
+/**
  * Sent when a customer crosses a tier threshold (Bronze→Silver, Silver→Gold).
  * Template: fideliza_tier_upgrade_v1 (utility)
  * Params: [customer_name, business_name, tier_label, multiplier]

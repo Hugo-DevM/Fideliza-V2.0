@@ -91,6 +91,17 @@ export interface PortalReward {
   progress_label: string;    // "stamps" | "visits" | program_label (e.g. "Beans")
 }
 
+export interface PortalChallenge {
+  id: string;
+  title: string;
+  description: string | null;
+  target: number;
+  bonus_points: number;
+  ends_at: string | null;
+  progress: number;
+  completed_at: string | null;
+}
+
 export interface PortalEnrollment {
   enrollment_id: string;
   program_id: string;
@@ -104,6 +115,7 @@ export interface PortalEnrollment {
   enrolled_at: string;
   last_activity_at: string;
   rewards: PortalReward[];
+  challenges: PortalChallenge[];
 }
 
 export interface PortalTransaction {
@@ -325,6 +337,7 @@ export async function getPortalData(
       visit_count:       e.visit_count,
       enrolled_at:       e.enrolled_at,
       last_activity_at:  e.last_activity_at,
+      challenges: [],   // populated below
       rewards: allProgramRewards.map((r) => {
         const inStock = r.stock === null || r.stock > 0;
 
@@ -370,7 +383,59 @@ export async function getPortalData(
     };
   });
 
-  // ── 5. Parse transactions ─────────────────────────────────────────
+  // ── 5. Fetch active challenges + customer progress ───────────────
+  if (programIds.length > 0) {
+    const now = new Date().toISOString();
+
+    const [challengesRes, progressRes] = await Promise.all([
+      (db as any)
+        .from('challenges')
+        .select('id, program_id, title, description, target, bonus_points, ends_at')
+        .eq('tenant_id', tenantId)
+        .in('program_id', programIds)
+        .eq('is_active', true) as Promise<{ data: Array<{
+          id: string; program_id: string; title: string; description: string | null;
+          target: number; bonus_points: number; ends_at: string | null;
+        }> | null }>,
+      (db as any)
+        .from('customer_challenge_progress')
+        .select('challenge_id, progress, completed_at')
+        .eq('tenant_id', tenantId)
+        .eq('customer_id', customer.id) as Promise<{ data: Array<{
+          challenge_id: string; progress: number; completed_at: string | null;
+        }> | null }>,
+    ]);
+
+    const progressMap = new Map(
+      ((progressRes as any).data ?? []).map((p: { challenge_id: string; progress: number; completed_at: string | null }) =>
+        [p.challenge_id, p]
+      )
+    );
+
+    const allChallenges = ((challengesRes as any).data ?? []).filter((c: { ends_at: string | null }) =>
+      !c.ends_at || c.ends_at >= now
+    );
+
+    for (const enrollment of enrollments) {
+      enrollment.challenges = allChallenges
+        .filter((c: { program_id: string }) => c.program_id === enrollment.program_id)
+        .map((c: { id: string; title: string; description: string | null; target: number; bonus_points: number; ends_at: string | null }) => {
+          const prog = progressMap.get(c.id);
+          return {
+            id:           c.id,
+            title:        c.title,
+            description:  c.description,
+            target:       c.target,
+            bonus_points: c.bonus_points,
+            ends_at:      c.ends_at,
+            progress:     prog?.progress ?? 0,
+            completed_at: prog?.completed_at ?? null,
+          };
+        });
+    }
+  }
+
+  // ── 7. Parse transactions ─────────────────────────────────────────
   type RawTx = {
     id: string;
     type: string;
