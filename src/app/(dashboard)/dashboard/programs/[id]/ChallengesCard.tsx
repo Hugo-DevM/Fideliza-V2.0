@@ -42,7 +42,7 @@ export default function ChallengesCard({ programId, plan, challenges }: Challeng
         ends_at:      endsAt || null,
       });
       if ('error' in res) {
-        setError(res.error);
+        setError(res.error ?? 'Unknown error');
       } else {
         setTitle(''); setTarget(5); setBonus(100); setEndsAt('');
         setShowForm(false);
