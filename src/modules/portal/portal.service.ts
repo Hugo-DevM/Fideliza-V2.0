@@ -406,7 +406,7 @@ export async function getPortalData(
         }> | null }>,
     ]);
 
-    const progressMap = new Map(
+    const progressMap = new Map<string, { challenge_id: string; progress: number; completed_at: string | null }>(
       ((progressRes as any).data ?? []).map((p: { challenge_id: string; progress: number; completed_at: string | null }) =>
         [p.challenge_id, p]
       )
