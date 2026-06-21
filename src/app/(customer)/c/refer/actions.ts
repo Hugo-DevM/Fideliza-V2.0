@@ -1,7 +1,6 @@
 'use server';
 
 import { createServiceRoleClient } from '@/lib/supabase/server';
-import { sendWelcomeMessage } from '@/modules/whatsapp/whatsapp.service';
 import { sendReferralWelcomeMessage } from '@/modules/whatsapp/whatsapp.service';
 
 interface RegisterReferredInput {
@@ -77,8 +76,8 @@ export async function registerReferredCustomerAction(
 
   // Create the referred customer
   const whatsappOptIn = Boolean(phone);
-  const { data: newCustomer, error: createErr } = await db
-    .from('customers')
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { data: newCustomer, error: createErr } = await (db.from('customers') as any)
     .insert({
       tenant_id:        tenantId,
       name:             name.trim(),
@@ -95,7 +94,8 @@ export async function registerReferredCustomerAction(
   }
 
   // Record the referral (pending — completed on first earn)
-  await db.from('referrals').insert({
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  await (db as any).from('referrals').insert({
     tenant_id:   tenantId,
     referrer_id: referrerId,
     referred_id: newCustomer.id,
@@ -126,8 +126,6 @@ export async function registerReferredCustomerAction(
       referredBonus,
       referrer?.name ?? 'un amigo',
     );
-  } else {
-    // No phone — send standard welcome if they provided phone later (N/A here)
   }
 
   return { accessCode: newCustomer.access_code };
