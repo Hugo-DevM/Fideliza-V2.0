@@ -10,6 +10,7 @@ import DeleteRewardButton from './DeleteRewardButton';
 import FlashOfferCard from './FlashOfferCard';
 import TiersCard from './TiersCard';
 import SurpriseDelightCard from './SurpriseDelightCard';
+import ReferralCard from './ReferralCard';
 import { NotFoundError } from '@/lib/middleware/errors';
 import type { ProgramStatus } from '@/lib/types';
 
@@ -166,6 +167,13 @@ export default async function ProgramDetailPage({
 
         {/* Surprise & Delight card */}
         <SurpriseDelightCard
+          programId={program.id}
+          plan={effectivePlan}
+          config={config}
+        />
+
+        {/* Referral Program card */}
+        <ReferralCard
           programId={program.id}
           plan={effectivePlan}
           config={config}

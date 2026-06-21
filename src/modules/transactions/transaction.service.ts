@@ -13,7 +13,12 @@ import { getTransactionHistoryLimit } from '@/lib/middleware/plan-limits';
 import { logger } from '@/lib/utils/logger';
 import { getNotificationPrefs } from '@/lib/email/notification-prefs';
 import { sendRedemptionNotification } from '@/lib/email/resend';
-import { sendMilestone80Message, sendTierUpgradeMessage, sendSurpriseDelightMessage } from '@/modules/whatsapp/whatsapp.service';
+import {
+  sendMilestone80Message,
+  sendTierUpgradeMessage,
+  sendSurpriseDelightMessage,
+  sendReferralEarnedMessage,
+} from '@/modules/whatsapp/whatsapp.service';
 import { computeTier } from '@/lib/utils/tiers';
 import type { TierConfig } from '@/lib/utils/tiers';
 import type {
@@ -265,6 +270,80 @@ export async function processTransaction(
             surpriseMult,
           );
         } catch { /* best-effort — never blocks the earn */ }
+      })();
+    }
+    // ── Referral completion hook (fire-and-forget) ───────────────────────────
+    // Fires only on the referred customer's first real earn (lifetimePoints === 0
+    // before this earn, meaning we just added their first activity).
+    if (lifetimePoints === 0) {
+      void (async () => {
+        try {
+          const db2 = createServiceRoleClient();
+
+          // Check if this customer has a pending referral in this program
+          const { data: referral } = await (db2.from('referrals') as any)
+            .select('id, referrer_id, referred_id')
+            .eq('tenant_id', tenantId)
+            .eq('referred_id', input.customer_id)
+            .eq('program_id', input.program_id)
+            .eq('status', 'pending')
+            .maybeSingle() as {
+              data: { id: string; referrer_id: string; referred_id: string } | null;
+            };
+
+          if (!referral) return;
+
+          // Mark referral as completed
+          await (db2.from('referrals') as any)
+            .update({ status: 'completed', completed_at: new Date().toISOString() })
+            .eq('id', referral.id);
+
+          // Fetch program config for referrer bonus
+          const referrerBonus = Number(cfg.referrer_bonus ?? 100);
+
+          // Credit referrer bonus
+          if (referrerBonus > 0) {
+            await (db2 as any).rpc('rpc_earn_points', {
+              p_tenant_id:    tenantId,
+              p_customer_id:  referral.referrer_id,
+              p_program_id:   input.program_id,
+              p_points_delta: referrerBonus,
+              p_note:         'Bono por referido',
+            });
+          }
+
+          // Fetch referrer for WhatsApp
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          const { data: referrerCustomer } = await (db2.from('customers') as any)
+            .select('name, phone, whatsapp_opt_in')
+            .eq('id', referral.referrer_id)
+            .eq('whatsapp_opt_in', true)
+            .maybeSingle() as { data: { name: string; phone: string | null } | null };
+
+          if (!referrerCustomer?.phone) return;
+
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          const { data: referredCustomer } = await (db2.from('customers') as any)
+            .select('name')
+            .eq('id', referral.referred_id)
+            .maybeSingle() as { data: { name: string } | null };
+
+          const { data: tenantRow } = await db2
+            .from('tenants')
+            .select('name')
+            .eq('id', tenantId)
+            .single() as { data: { name: string } | null };
+
+          await sendReferralEarnedMessage(
+            referral.referrer_id,
+            tenantId,
+            referrerCustomer.name,
+            referredCustomer?.name ?? 'Tu amigo',
+            referrerCustomer.phone,
+            referrerBonus,
+            tenantRow?.name ?? '',
+          );
+        } catch { /* best-effort */ }
       })();
     }
     // ────────────────────────────────────────────────────────────────────────

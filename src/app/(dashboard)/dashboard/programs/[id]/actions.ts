@@ -111,6 +111,41 @@ export async function updateSurpriseDelightAction(
   }
 }
 
+export async function updateReferralAction(
+  programId: string,
+  referral: {
+    referral_enabled: boolean;
+    referrer_bonus:   number;
+    referred_bonus:   number;
+  },
+) {
+  const { tenantId, effectivePlan } = await getAuthenticatedTenant();
+  if (effectivePlan !== 'pro' && effectivePlan !== 'enterprise') {
+    return { error: 'El programa de referidos requiere el plan Pro.' };
+  }
+
+  const db = createServiceRoleClient();
+
+  const { data: program } = await db
+    .from('reward_programs')
+    .select('config')
+    .eq('id', programId)
+    .eq('tenant_id', tenantId)
+    .single();
+
+  if (!program) return { error: 'Programa no encontrado.' };
+
+  const newConfig = { ...(program.config as Record<string, unknown>), ...referral };
+
+  try {
+    await updateProgram(tenantId, programId, { config: newConfig });
+    revalidatePath(`/dashboard/programs/${programId}`);
+    return { success: true };
+  } catch (err) {
+    return { error: err instanceof Error ? err.message : 'No se pudo guardar el programa de referidos.' };
+  }
+}
+
 export async function updateProgramInfoAction(programId: string, formData: FormData) {
   const { tenantId } = await getAuthenticatedTenant();
   const name        = (formData.get('name') as string).trim();

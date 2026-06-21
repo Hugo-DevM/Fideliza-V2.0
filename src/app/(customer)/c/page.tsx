@@ -13,6 +13,7 @@ import RedeemButton from './RedeemButton';
 import AutoRefresh from './AutoRefresh';
 import ThemeToggle from './ThemeToggle';
 import VoucherCard from './VoucherCard';
+import ReferralShareButton from './ReferralShareButton';
 import AuthThemeToggle from '@/app/(auth)/ThemeToggle';
 import { getPortalData, getTenantBySubdomainPublic } from '@/modules/portal';
 import { NotFoundError, TenantNotFoundError } from '@/lib/middleware/errors';
@@ -359,6 +360,10 @@ function PointsTab({
     0,
   );
 
+  const referralPrograms = enrollments.filter(
+    (e) => e.program_config?.referral_enabled,
+  );
+
   return (
     <>
       {/* Pending vouchers */}
@@ -403,7 +408,66 @@ function PointsTab({
           message={`Pide a ${tenant.name} que te inscriba en un programa de lealtad.`}
         />
       )}
+
+      {/* Referral cards */}
+      {referralPrograms.length > 0 && (
+        <section className="space-y-3">
+          <SectionHeading>Invita amigos</SectionHeading>
+          {referralPrograms.map((e) => (
+            <ReferralShareCard
+              key={e.program_id}
+              enrollment={e}
+              accessCode={customer.access_code}
+              tenantSubdomain={tenant.subdomain}
+            />
+          ))}
+        </section>
+      )}
     </>
+  );
+}
+
+function ReferralShareCard({
+  enrollment: e,
+  accessCode,
+  tenantSubdomain,
+}: {
+  enrollment: PortalEnrollment;
+  accessCode: string;
+  tenantSubdomain: string;
+}) {
+  const referrerBonus = Number(e.program_config?.referrer_bonus ?? 100);
+  const referredBonus = Number(e.program_config?.referred_bonus ?? 50);
+  const referralPath  = `/c/refer?ref=${accessCode}&program=${e.program_id}`;
+
+  return (
+    <div className="rounded-2xl border border-emerald-100 dark:border-emerald-500/20 bg-white dark:bg-[#161b2e] p-5 shadow-sm">
+      <div className="flex items-center gap-3 mb-3">
+        <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-emerald-100 dark:bg-emerald-500/20">
+          <svg className="h-5 w-5 text-emerald-600 dark:text-emerald-400" fill="none" stroke="currentColor" strokeWidth={1.8} viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M18 18.72a9.094 9.094 0 0 0 3.741-.479 3 3 0 0 0-4.682-2.72m.94 3.198.001.031c0 .225-.012.447-.037.666A11.944 11.944 0 0 1 12 21c-2.17 0-4.207-.576-5.963-1.584A6.062 6.062 0 0 1 6 18.719m12 0a5.971 5.971 0 0 0-.941-3.197m0 0A5.995 5.995 0 0 0 12 12.75a5.995 5.995 0 0 0-5.058 2.772m0 0a3 3 0 0 0-4.681 2.72 8.986 8.986 0 0 0 3.74.477m.94-3.197a5.971 5.971 0 0 0-.94 3.197M15 6.75a3 3 0 1 1-6 0 3 3 0 0 1 6 0Zm6 3a2.25 2.25 0 1 1-4.5 0 2.25 2.25 0 0 1 4.5 0Zm-13.5 0a2.25 2.25 0 1 1-4.5 0 2.25 2.25 0 0 1 4.5 0Z" />
+          </svg>
+        </div>
+        <div>
+          <p className="text-sm font-semibold text-gray-800 dark:text-white">{e.program_name}</p>
+          <p className="text-xs text-gray-400 dark:text-gray-500">
+            Gana <strong className="text-emerald-600 dark:text-emerald-400">{referrerBonus} pts</strong> por cada amigo que traigas
+          </p>
+        </div>
+      </div>
+
+      <div className="rounded-xl bg-gray-50 dark:bg-[#0d0f17] px-4 py-3 flex items-center justify-between gap-3">
+        <div className="min-w-0">
+          <p className="text-[10px] font-semibold uppercase tracking-wide text-gray-400 dark:text-gray-500 mb-0.5">Tu código de referido</p>
+          <p className="font-mono text-sm font-bold text-gray-900 dark:text-white truncate">{accessCode}</p>
+        </div>
+        <ReferralShareButton path={referralPath} code={accessCode} />
+      </div>
+
+      <p className="mt-2.5 text-xs text-gray-400 dark:text-gray-500">
+        Tu amigo recibe <strong>{referredBonus} pts de regalo</strong> al registrarse con tu código.
+      </p>
+    </div>
   );
 }
 

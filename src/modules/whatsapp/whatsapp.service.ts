@@ -310,6 +310,70 @@ export async function sendPromotionMessage(
 }
 
 /**
+ * Sent to the referred customer at registration when they have a referral code.
+ * Template: fideliza_referral_welcome_v1 (utility)
+ * Params: [referred_name, business_name, referred_bonus, referrer_name]
+ */
+export async function sendReferralWelcomeMessage(
+  customerId:   UUID,
+  tenantId:     UUID,
+  customerName: string,
+  businessName: string,
+  phone:        string,
+  referredBonus: number,
+  referrerName: string,
+): Promise<void> {
+  try {
+    await enqueueMessage({
+      tenantId,
+      customerId,
+      phone,
+      template: 'fideliza_referral_welcome_v1',
+      category: 'utility',
+      params: {
+        '1': customerName,
+        '2': businessName,
+        '3': String(referredBonus),
+        '4': referrerName,
+      },
+      priority: 2,
+    });
+  } catch { /* best-effort */ }
+}
+
+/**
+ * Sent to the referrer when their referred customer completes their first earn.
+ * Template: fideliza_referral_earned_v1 (utility)
+ * Params: [referrer_name, referred_name, referrer_bonus, business_name]
+ */
+export async function sendReferralEarnedMessage(
+  customerId:    UUID,
+  tenantId:      UUID,
+  referrerName:  string,
+  referredName:  string,
+  phone:         string,
+  referrerBonus: number,
+  businessName:  string,
+): Promise<void> {
+  try {
+    await enqueueMessage({
+      tenantId,
+      customerId,
+      phone,
+      template: 'fideliza_referral_earned_v1',
+      category: 'utility',
+      params: {
+        '1': referrerName,
+        '2': referredName,
+        '3': String(referrerBonus),
+        '4': businessName,
+      },
+      priority: 2,
+    });
+  } catch { /* best-effort */ }
+}
+
+/**
  * Sent when a Surprise & Delight event fires on an earn.
  * Template: fideliza_surprise_v1 (marketing)
  * Params: [customer_name, business_name, multiplier]
