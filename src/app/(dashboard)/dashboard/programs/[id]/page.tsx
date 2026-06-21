@@ -9,6 +9,7 @@ import EditProgramModal from './EditProgramModal';
 import DeleteRewardButton from './DeleteRewardButton';
 import FlashOfferCard from './FlashOfferCard';
 import TiersCard from './TiersCard';
+import SurpriseDelightCard from './SurpriseDelightCard';
 import { NotFoundError } from '@/lib/middleware/errors';
 import type { ProgramStatus } from '@/lib/types';
 
@@ -160,6 +161,13 @@ export default async function ProgramDetailPage({
           programId={program.id}
           plan={effectivePlan}
           programType={program.type}
+          config={config}
+        />
+
+        {/* Surprise & Delight card */}
+        <SurpriseDelightCard
+          programId={program.id}
+          plan={effectivePlan}
           config={config}
         />
 

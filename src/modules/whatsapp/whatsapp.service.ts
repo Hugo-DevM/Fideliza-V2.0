@@ -310,6 +310,36 @@ export async function sendPromotionMessage(
 }
 
 /**
+ * Sent when a Surprise & Delight event fires on an earn.
+ * Template: fideliza_surprise_v1 (marketing)
+ * Params: [customer_name, business_name, multiplier]
+ */
+export async function sendSurpriseDelightMessage(
+  customerId:   UUID,
+  tenantId:     UUID,
+  customerName: string,
+  businessName: string,
+  phone:        string,
+  multiplier:   number,
+): Promise<void> {
+  try {
+    await enqueueMessage({
+      tenantId,
+      customerId,
+      phone,
+      template: 'fideliza_surprise_v1',
+      category: 'marketing',
+      params: {
+        '1': customerName,
+        '2': businessName,
+        '3': String(multiplier),
+      },
+      priority: 3,
+    });
+  } catch { /* best-effort */ }
+}
+
+/**
  * Sent when a customer crosses a tier threshold (Bronze→Silver, Silver→Gold).
  * Template: fideliza_tier_upgrade_v1 (utility)
  * Params: [customer_name, business_name, tier_label, multiplier]

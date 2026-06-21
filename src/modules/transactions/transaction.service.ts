@@ -13,7 +13,7 @@ import { getTransactionHistoryLimit } from '@/lib/middleware/plan-limits';
 import { logger } from '@/lib/utils/logger';
 import { getNotificationPrefs } from '@/lib/email/notification-prefs';
 import { sendRedemptionNotification } from '@/lib/email/resend';
-import { sendMilestone80Message, sendTierUpgradeMessage } from '@/modules/whatsapp/whatsapp.service';
+import { sendMilestone80Message, sendTierUpgradeMessage, sendSurpriseDelightMessage } from '@/modules/whatsapp/whatsapp.service';
 import { computeTier } from '@/lib/utils/tiers';
 import type { TierConfig } from '@/lib/utils/tiers';
 import type {
@@ -86,6 +86,20 @@ export async function processTransaction(
       effectiveNote   = effectiveNote
         ? `${effectiveNote} · +${initialBonus} bienvenida`
         : `+${initialBonus} bienvenida`;
+    }
+
+    // Surprise & Delight: random multiplier with configured probability (Pro only)
+    let surpriseFired = false;
+    const surpriseMult = Number(cfg.surprise_multiplier ?? 2);
+    if (cfg.surprise_enabled) {
+      const prob = Number(cfg.surprise_probability ?? 0.10);
+      if (Math.random() < prob) {
+        effectiveDelta = Math.round(effectiveDelta * surpriseMult);
+        effectiveNote  = effectiveNote
+          ? `${effectiveNote} · 🎲 Surprise ${surpriseMult}×`
+          : `🎲 Surprise ${surpriseMult}×`;
+        surpriseFired = true;
+      }
     }
     // ────────────────────────────────────────────────────────────────────────
 
@@ -221,6 +235,38 @@ export async function processTransaction(
         );
       } catch { /* best-effort — never blocks the earn */ }
     })();
+    // ── Surprise & Delight notification (fire-and-forget) ────────────────────
+    if (surpriseFired) {
+      void (async () => {
+        try {
+          const db2 = createServiceRoleClient();
+
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          const { data: customer } = await (db2.from('customers') as any)
+            .select('name, phone, whatsapp_opt_in')
+            .eq('id', input.customer_id)
+            .eq('whatsapp_opt_in', true)
+            .maybeSingle() as { data: { name: string; phone: string | null } | null };
+
+          if (!customer?.phone) return;
+
+          const { data: tenantRow } = await db2
+            .from('tenants')
+            .select('name')
+            .eq('id', tenantId)
+            .single() as { data: { name: string } | null };
+
+          await sendSurpriseDelightMessage(
+            input.customer_id,
+            tenantId,
+            customer.name,
+            tenantRow?.name ?? '',
+            customer.phone,
+            surpriseMult,
+          );
+        } catch { /* best-effort — never blocks the earn */ }
+      })();
+    }
     // ────────────────────────────────────────────────────────────────────────
 
     return tx;

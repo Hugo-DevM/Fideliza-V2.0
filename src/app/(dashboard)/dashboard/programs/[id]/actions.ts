@@ -76,6 +76,41 @@ export async function updateTiersAction(
   }
 }
 
+export async function updateSurpriseDelightAction(
+  programId: string,
+  surprise: {
+    surprise_enabled:     boolean;
+    surprise_probability: number;
+    surprise_multiplier:  number;
+  },
+) {
+  const { tenantId, effectivePlan } = await getAuthenticatedTenant();
+  if (effectivePlan !== 'pro' && effectivePlan !== 'enterprise') {
+    return { error: 'Surprise & Delight requiere el plan Pro.' };
+  }
+
+  const db = createServiceRoleClient();
+
+  const { data: program } = await db
+    .from('reward_programs')
+    .select('config')
+    .eq('id', programId)
+    .eq('tenant_id', tenantId)
+    .single();
+
+  if (!program) return { error: 'Programa no encontrado.' };
+
+  const newConfig = { ...(program.config as Record<string, unknown>), ...surprise };
+
+  try {
+    await updateProgram(tenantId, programId, { config: newConfig });
+    revalidatePath(`/dashboard/programs/${programId}`);
+    return { success: true };
+  } catch (err) {
+    return { error: err instanceof Error ? err.message : 'No se pudo guardar Surprise & Delight.' };
+  }
+}
+
 export async function updateProgramInfoAction(programId: string, formData: FormData) {
   const { tenantId } = await getAuthenticatedTenant();
   const name        = (formData.get('name') as string).trim();
