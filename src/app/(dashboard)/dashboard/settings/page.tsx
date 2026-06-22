@@ -3,6 +3,7 @@ import { createServiceRoleClient } from '@/lib/supabase/server';
 import SettingsForm from './SettingsForm';
 import BillingSection from './BillingSection';
 import DeleteAccountSection from './DeleteAccountSection';
+import WhatsappSenderSection from './WhatsappSenderSection';
 
 export const metadata = { title: 'Configuración — Fideliza+' };
 
@@ -36,6 +37,11 @@ export default async function SettingsPage({
         subdomain={tenant.subdomain}
         logoUrl={tenant.logo_url}
         year={year}
+        plan={effectivePlan}
+      />
+
+      <WhatsappSenderSection
+        currentFrom={tenant.whatsapp_from ?? null}
         plan={effectivePlan}
       />
 

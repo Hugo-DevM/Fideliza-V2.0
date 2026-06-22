@@ -14,8 +14,8 @@
 import { NextResponse }          from 'next/server';
 import { createServiceRoleClient } from '@/lib/supabase/server';
 import { isSendingAllowed }      from '@/lib/whatsapp/quality-gate';
-import { sendTemplateMessage, WhatsAppApiError } from '@/lib/whatsapp/meta-client';
-import type { MetaTemplateComponent } from '@/lib/whatsapp/meta-client';
+import { sendTemplateMessage, WhatsAppApiError } from '@/lib/whatsapp/twilio-client';
+import type { MetaTemplateComponent } from '@/lib/whatsapp/twilio-client';
 
 export const dynamic    = 'force-dynamic';
 export const maxDuration = 60;
@@ -25,6 +25,7 @@ interface QueuedMessage {
   tenant_id:         string;
   customer_id:       string;
   phone_number:      string;
+  from_number:       string | null;
   template_name:     string;
   template_category: 'utility' | 'marketing';
   template_params:   Record<string, string>;
@@ -98,6 +99,7 @@ export async function GET(request: Request) {
         msg.template_name,
         'es',
         components,
+        msg.from_number ?? undefined,
       );
 
       await db
@@ -152,12 +154,8 @@ export async function GET(request: Request) {
   });
 }
 
-/** Transient Meta error codes worth retrying. */
+/** Transient Twilio error codes worth retrying (HTTP 429 rate limit, 503 unavailable). */
 function isTransientWaError(err: WhatsAppApiError): boolean {
-  const TRANSIENT_CODES = [
-    80007, // temporary blocking
-    131048, // spam rate limit
-    131056, // pair rate limit
-  ];
-  return TRANSIENT_CODES.includes(err.metaCode);
+  const TRANSIENT_HTTP_CODES = [429, 503, 504];
+  return TRANSIENT_HTTP_CODES.includes(err.metaCode);
 }

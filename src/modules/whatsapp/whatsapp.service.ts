@@ -25,7 +25,7 @@ interface EnqueueParams {
   tenantId:    UUID;
   customerId:  UUID;
   phone:       string;   // E.164 format
-  template:    string;   // Meta template name
+  template:    string;   // template name
   category:    TemplateCategory;
   params:      Record<string, string>;  // template variable values, in order
   priority?:   number;                 // lower = higher priority (default 5)
@@ -37,12 +37,24 @@ async function enqueueMessage(p: EnqueueParams): Promise<void> {
   const db = createServiceRoleClient() as any;
 
   // 0. Plan gate — WhatsApp notifications are Starter and Pro only
+  // Also resolve the sender: Pro tenants may have their own whatsapp_from
   const { data: tenant } = await db
     .from('tenants')
-    .select('plan')
+    .select('plan, whatsapp_from')
     .eq('id', p.tenantId)
     .single();
   if (!tenant || tenant.plan === 'free') return;
+
+  // Pro tenants with their own sender use it; Starter uses null (falls back to env var)
+  const fromNumber: string | null = tenant.whatsapp_from ?? null;
+
+  // Fetch program_label for unit variable (Puntos, Sellos, Visitas, etc.)
+  const { data: settings } = await db
+    .from('tenant_settings')
+    .select('program_label')
+    .eq('tenant_id', p.tenantId)
+    .single();
+  const unitLabel: string = settings?.program_label ?? 'Puntos';
 
   // 1. Quality gate — stop here if the number is in a bad state
   const allowed = await isSendingAllowed(p.category);
@@ -57,6 +69,7 @@ async function enqueueMessage(p: EnqueueParams): Promise<void> {
     tenant_id:         p.tenantId,
     customer_id:       p.customerId,
     phone_number:      p.phone,
+    from_number:       fromNumber,
     template_name:     p.template,
     template_category: p.category,
     template_params:   p.params,
@@ -157,6 +170,7 @@ export async function sendBalanceReminder(
         '3': businessName,
         '4': String(pointsNeeded),
         '5': rewardName,
+        '6': unitLabel,
       },
     });
   } catch { /* best-effort */ }
@@ -186,6 +200,7 @@ export async function sendReactivationMessage(
         '1': customerName,
         '2': businessName,
         '3': String(bonusPoints),
+        '4': unitLabel,
       },
     });
   } catch { /* best-effort */ }
@@ -244,6 +259,7 @@ export async function sendBirthdayMessage(
         '1': customerName,
         '2': businessName,
         '3': String(bonusPoints),
+        '4': unitLabel,
       },
       priority: 2,
     });
@@ -276,6 +292,7 @@ export async function sendMilestone80Message(
         '2': businessName,
         '3': String(unitsRemaining),
         '4': rewardName,
+        '5': unitLabel,
       },
       priority: 3,
     });
@@ -335,6 +352,7 @@ export async function sendReferralWelcomeMessage(
         '2': businessName,
         '3': String(referredBonus),
         '4': referrerName,
+        '5': unitLabel,
       },
       priority: 2,
     });
@@ -367,6 +385,7 @@ export async function sendReferralEarnedMessage(
         '2': referredName,
         '3': String(referrerBonus),
         '4': businessName,
+        '5': unitLabel,
       },
       priority: 2,
     });
@@ -397,6 +416,7 @@ export async function sendSurpriseDelightMessage(
         '1': customerName,
         '2': businessName,
         '3': String(multiplier),
+        '4': unitLabel,
       },
       priority: 3,
     });
@@ -429,6 +449,7 @@ export async function sendChallengeCompletedMessage(
         '2': challengeTitle,
         '3': String(bonusPoints),
         '4': businessName,
+        '5': unitLabel,
       },
       priority: 2,
     });
@@ -461,6 +482,7 @@ export async function sendTierUpgradeMessage(
         '2': businessName,
         '3': tierLabel,
         '4': String(multiplier),
+        '5': unitLabel,
       },
       priority: 2,
     });
