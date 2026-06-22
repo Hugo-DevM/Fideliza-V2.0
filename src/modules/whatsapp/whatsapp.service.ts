@@ -17,6 +17,7 @@
 import { createServiceRoleClient } from '@/lib/supabase/server';
 import { isSendingAllowed }        from '@/lib/whatsapp/quality-gate';
 import { checkAndIncrementCap }    from '@/lib/whatsapp/frequency-caps';
+import { getPlanLimits }           from '@/lib/config/plans';
 import type { UUID }               from '@/lib/types';
 
 type TemplateCategory = 'utility' | 'marketing';
@@ -44,6 +45,25 @@ async function enqueueMessage(p: EnqueueParams): Promise<void> {
     .eq('id', p.tenantId)
     .single();
   if (!tenant || tenant.plan === 'free') return;
+
+  const planLimits = getPlanLimits(tenant.plan);
+
+  // Gate 1 — marketing templates are Pro-only
+  if (p.category === 'marketing' && !planLimits.whatsappMarketing) return;
+
+  // Gate 2 — monthly message cap (Starter: 500/month)
+  if (planLimits.whatsappMonthlyLimit !== null) {
+    const monthStart = new Date();
+    monthStart.setUTCDate(1);
+    monthStart.setUTCHours(0, 0, 0, 0);
+    const { count } = await db
+      .from('whatsapp_message_queue')
+      .select('id', { count: 'exact', head: true })
+      .eq('tenant_id', p.tenantId)
+      .neq('status', 'failed')
+      .gte('created_at', monthStart.toISOString());
+    if ((count ?? 0) >= planLimits.whatsappMonthlyLimit) return;
+  }
 
   // Pro tenants with their own sender use it; Starter uses null (falls back to env var)
   const fromNumber: string | null = tenant.whatsapp_from ?? null;

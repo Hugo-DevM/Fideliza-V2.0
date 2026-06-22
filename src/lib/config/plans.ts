@@ -16,6 +16,8 @@ export interface PlanLimits {
   exportCSV: boolean;
   analytics: boolean;
   prioritySupport: boolean;
+  whatsappMonthlyLimit: number | null;    // null = unlimited; Starter = 500
+  whatsappMarketing: boolean;             // true = can send marketing category templates
 }
 
 export const PLAN_CONFIG: Record<string, PlanLimits> = {
@@ -29,6 +31,8 @@ export const PLAN_CONFIG: Record<string, PlanLimits> = {
     exportCSV:              false,
     analytics:              false,
     prioritySupport:        false,
+    whatsappMonthlyLimit:   0,
+    whatsappMarketing:      false,
   },
   starter: {
     maxCustomers:           300,
@@ -40,6 +44,8 @@ export const PLAN_CONFIG: Record<string, PlanLimits> = {
     exportCSV:              false,
     analytics:              false,
     prioritySupport:        false,
+    whatsappMonthlyLimit:   500,
+    whatsappMarketing:      false,
   },
   pro: {
     maxCustomers:           null,
@@ -51,6 +57,8 @@ export const PLAN_CONFIG: Record<string, PlanLimits> = {
     exportCSV:              true,
     analytics:              true,
     prioritySupport:        true,
+    whatsappMonthlyLimit:   null,
+    whatsappMarketing:      true,
   },
   // Backward compatibility — maps to pro limits
   enterprise: {
@@ -63,6 +71,8 @@ export const PLAN_CONFIG: Record<string, PlanLimits> = {
     exportCSV:              true,
     analytics:              true,
     prioritySupport:        true,
+    whatsappMonthlyLimit:   null,
+    whatsappMarketing:      true,
   },
 };
 
