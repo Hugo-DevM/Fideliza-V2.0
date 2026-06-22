@@ -64,7 +64,13 @@ async function enqueueMessage(p: EnqueueParams): Promise<void> {
   const underCap = await checkAndIncrementCap(p.customerId, p.tenantId, p.category);
   if (!underCap) return;
 
-  // 3. Insert into the queue
+  // 3. Resolve {{unit_label}} sentinel in params
+  const resolvedParams: Record<string, string> = {};
+  for (const [k, v] of Object.entries(p.params)) {
+    resolvedParams[k] = v === '{{unit_label}}' ? unitLabel : v;
+  }
+
+  // 4. Insert into the queue
   await db.from('whatsapp_message_queue').insert({
     tenant_id:         p.tenantId,
     customer_id:       p.customerId,
@@ -72,7 +78,7 @@ async function enqueueMessage(p: EnqueueParams): Promise<void> {
     from_number:       fromNumber,
     template_name:     p.template,
     template_category: p.category,
-    template_params:   p.params,
+    template_params:   resolvedParams,
     priority:          p.priority ?? 5,
     scheduled_at:      p.scheduledAt?.toISOString() ?? new Date().toISOString(),
     status:            'pending',
@@ -170,7 +176,7 @@ export async function sendBalanceReminder(
         '3': businessName,
         '4': String(pointsNeeded),
         '5': rewardName,
-        '6': unitLabel,
+        '6': '{{unit_label}}',
       },
     });
   } catch { /* best-effort */ }
@@ -200,7 +206,7 @@ export async function sendReactivationMessage(
         '1': customerName,
         '2': businessName,
         '3': String(bonusPoints),
-        '4': unitLabel,
+        '4': '{{unit_label}}',
       },
     });
   } catch { /* best-effort */ }
@@ -259,7 +265,7 @@ export async function sendBirthdayMessage(
         '1': customerName,
         '2': businessName,
         '3': String(bonusPoints),
-        '4': unitLabel,
+        '4': '{{unit_label}}',
       },
       priority: 2,
     });
@@ -292,7 +298,7 @@ export async function sendMilestone80Message(
         '2': businessName,
         '3': String(unitsRemaining),
         '4': rewardName,
-        '5': unitLabel,
+        '5': '{{unit_label}}',
       },
       priority: 3,
     });
@@ -352,7 +358,7 @@ export async function sendReferralWelcomeMessage(
         '2': businessName,
         '3': String(referredBonus),
         '4': referrerName,
-        '5': unitLabel,
+        '5': '{{unit_label}}',
       },
       priority: 2,
     });
@@ -385,7 +391,7 @@ export async function sendReferralEarnedMessage(
         '2': referredName,
         '3': String(referrerBonus),
         '4': businessName,
-        '5': unitLabel,
+        '5': '{{unit_label}}',
       },
       priority: 2,
     });
@@ -416,7 +422,7 @@ export async function sendSurpriseDelightMessage(
         '1': customerName,
         '2': businessName,
         '3': String(multiplier),
-        '4': unitLabel,
+        '4': '{{unit_label}}',
       },
       priority: 3,
     });
@@ -449,7 +455,7 @@ export async function sendChallengeCompletedMessage(
         '2': challengeTitle,
         '3': String(bonusPoints),
         '4': businessName,
-        '5': unitLabel,
+        '5': '{{unit_label}}',
       },
       priority: 2,
     });
@@ -482,7 +488,7 @@ export async function sendTierUpgradeMessage(
         '2': businessName,
         '3': tierLabel,
         '4': String(multiplier),
-        '5': unitLabel,
+        '5': '{{unit_label}}',
       },
       priority: 2,
     });
