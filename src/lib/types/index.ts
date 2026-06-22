@@ -36,7 +36,7 @@ export interface Tenant {
   subscription_status:    SubscriptionStatus | null;
   subscription_end_date:  string | null;
   // WhatsApp — Pro tenants may have their own sender number (nullable, defaults to NULL)
-  whatsapp_from?: string | null;
+  whatsapp_from: string | null;
   // Soft delete — set by deleteAccountAction, never cleared
   deleted_at:        string | null;
   deletion_reason:   string | null;
@@ -135,6 +135,7 @@ export interface Customer {
   id: UUID;
   tenant_id: UUID;
   name: string;
+  email: string | null;
   phone: string | null;
   access_code: string;
   is_active: boolean;
