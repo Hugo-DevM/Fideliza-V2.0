@@ -94,11 +94,14 @@ export async function sendTemplateMessage(
   const url = `https://api.twilio.com/2010-04-01/Accounts/${accountSid}/Messages.json`;
 
   const body = new URLSearchParams({
-    To:               to,
-    From:             from,
-    ContentSid:       contentSid,
-    ContentVariables: JSON.stringify(contentVariables),
+    To:         to,
+    From:       from,
+    ContentSid: contentSid,
   });
+
+  if (Object.keys(contentVariables).length > 0) {
+    body.set('ContentVariables', JSON.stringify(contentVariables));
+  }
 
   const credentials = Buffer.from(`${accountSid}:${authToken}`).toString('base64');
 

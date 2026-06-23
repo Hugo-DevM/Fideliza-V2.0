@@ -131,6 +131,7 @@ export async function sendWelcomeMessage(
       params: {
         '1': customerName,
         '2': businessName,
+        '3': '{{unit_label}}',
       },
       priority: 1, // welcome messages get highest priority
     });
