@@ -90,12 +90,13 @@ export async function sendTemplateMessage(
     });
   }
 
-  const to  = phone.startsWith('whatsapp:') ? phone : `whatsapp:${phone}`;
-  const url = `https://api.twilio.com/2010-04-01/Accounts/${accountSid}/Messages.json`;
+  const to   = phone.startsWith('whatsapp:') ? phone : `whatsapp:${phone}`;
+  const from_ = from.startsWith('whatsapp:')  ? from  : `whatsapp:${from}`;
+  const url  = `https://api.twilio.com/2010-04-01/Accounts/${accountSid}/Messages.json`;
 
   const body = new URLSearchParams({
     To:         to,
-    From:       from,
+    From:       from_,
     ContentSid: contentSid,
   });
 
