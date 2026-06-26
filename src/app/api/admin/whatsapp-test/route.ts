@@ -45,7 +45,7 @@ interface TemplateDef {
 }
 
 const TEMPLATES: Record<string, TemplateDef> = {
-  fideliza_welcome_v1: {
+  fideliza_welcome_v2: {
     category: 'utility',
     priority: 1,
     params: ({ customerName, businessName, unitLabel }) => ({
@@ -54,7 +54,7 @@ const TEMPLATES: Record<string, TemplateDef> = {
       '3': unitLabel,
     }),
   },
-  fideliza_voucher_expiry_v1: {
+  fideliza_voucher_expiry_v2: {
     category: 'utility',
     priority: 4,
     params: ({ customerName, businessName }) => ({
@@ -64,7 +64,7 @@ const TEMPLATES: Record<string, TemplateDef> = {
       '4': '3',
     }),
   },
-  fideliza_balance_reminder_v1: {
+  fideliza_balance_reminder_v2: {
     category: 'utility',
     priority: 4,
     params: ({ customerName, businessName, unitLabel }) => ({
@@ -76,7 +76,7 @@ const TEMPLATES: Record<string, TemplateDef> = {
       '6': unitLabel,
     }),
   },
-  fideliza_reactivation_v1: {
+  fideliza_reactivation_v2: {
     category: 'marketing',
     priority: 5,
     params: ({ customerName, businessName, unitLabel }) => ({
@@ -86,7 +86,7 @@ const TEMPLATES: Record<string, TemplateDef> = {
       '4': unitLabel,
     }),
   },
-  fideliza_streak_at_risk_v1: {
+  fideliza_streak_at_risk_v2: {
     category: 'marketing',
     priority: 5,
     params: ({ customerName, businessName }) => ({
@@ -95,7 +95,7 @@ const TEMPLATES: Record<string, TemplateDef> = {
       '3': businessName,
     }),
   },
-  fideliza_promotion_v1: {
+  fideliza_promotion_v2: {
     category: 'marketing',
     priority: 5,
     params: ({ customerName, businessName }) => ({
@@ -103,7 +103,7 @@ const TEMPLATES: Record<string, TemplateDef> = {
       '2': businessName,
     }),
   },
-  fideliza_birthday_v1: {
+  fideliza_birthday_v2: {
     category: 'marketing',
     priority: 2,
     params: ({ customerName, businessName, unitLabel }) => ({
@@ -113,7 +113,7 @@ const TEMPLATES: Record<string, TemplateDef> = {
       '4': unitLabel,
     }),
   },
-  fideliza_milestone_80_v1: {
+  fideliza_milestone_80_v2: {
     category: 'utility',
     priority: 3,
     params: ({ customerName, businessName, unitLabel }) => ({
@@ -124,7 +124,7 @@ const TEMPLATES: Record<string, TemplateDef> = {
       '5': unitLabel,
     }),
   },
-  fideliza_tier_upgrade_v1: {
+  fideliza_tier_upgrade_v2: {
     category: 'utility',
     priority: 2,
     params: ({ customerName, businessName, unitLabel }) => ({
@@ -135,7 +135,7 @@ const TEMPLATES: Record<string, TemplateDef> = {
       '5': unitLabel,
     }),
   },
-  fideliza_surprise_v1: {
+  fideliza_surprise_v2: {
     category: 'marketing',
     priority: 3,
     params: ({ customerName, businessName, unitLabel }) => ({
@@ -145,7 +145,7 @@ const TEMPLATES: Record<string, TemplateDef> = {
       '4': unitLabel,
     }),
   },
-  fideliza_referral_earned_v1: {
+  fideliza_referral_earned_v2: {
     category: 'utility',
     priority: 2,
     params: ({ customerName, businessName, unitLabel }) => ({
@@ -156,7 +156,7 @@ const TEMPLATES: Record<string, TemplateDef> = {
       '5': unitLabel,
     }),
   },
-  fideliza_referral_welcome_v1: {
+  fideliza_referral_welcome_v2: {
     category: 'utility',
     priority: 2,
     params: ({ customerName, businessName, unitLabel }) => ({
@@ -167,7 +167,7 @@ const TEMPLATES: Record<string, TemplateDef> = {
       '5': unitLabel,
     }),
   },
-  fideliza_challenge_completed_v1: {
+  fideliza_challenge_completed_v2: {
     category: 'utility',
     priority: 2,
     params: ({ customerName, businessName, unitLabel }) => ({

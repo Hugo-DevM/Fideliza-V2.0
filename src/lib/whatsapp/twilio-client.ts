@@ -35,19 +35,19 @@ export class WhatsAppApiError extends Error {
  * Fill in each SID after creating and approving the template in Twilio Content Template Builder.
  */
 const TEMPLATE_SID_MAP: Record<string, string> = {
-  fideliza_welcome_v1:            process.env.TWILIO_TMPL_WELCOME            ?? '',
-  fideliza_voucher_expiry_v1:     process.env.TWILIO_TMPL_VOUCHER_EXPIRY     ?? '',
-  fideliza_balance_reminder_v1:   process.env.TWILIO_TMPL_BALANCE_REMINDER   ?? '',
-  fideliza_reactivation_v1:       process.env.TWILIO_TMPL_REACTIVATION       ?? '',
-  fideliza_streak_at_risk_v1:     process.env.TWILIO_TMPL_STREAK_AT_RISK     ?? '',
-  fideliza_promotion_v1:          process.env.TWILIO_TMPL_PROMOTION          ?? '',
-  fideliza_birthday_v1:           process.env.TWILIO_TMPL_BIRTHDAY           ?? '',
-  fideliza_milestone_80_v1:       process.env.TWILIO_TMPL_MILESTONE_80       ?? '',
-  fideliza_tier_upgrade_v1:       process.env.TWILIO_TMPL_TIER_UPGRADE       ?? '',
-  fideliza_surprise_v1:           process.env.TWILIO_TMPL_SURPRISE           ?? '',
-  fideliza_referral_earned_v1:    process.env.TWILIO_TMPL_REFERRAL_EARNED    ?? '',
-  fideliza_referral_welcome_v1:   process.env.TWILIO_TMPL_REFERRAL_WELCOME   ?? '',
-  fideliza_challenge_completed_v1: process.env.TWILIO_TMPL_CHALLENGE_COMPLETED ?? '',
+  fideliza_welcome_v2:            process.env.TWILIO_TMPL_WELCOME            ?? '',
+  fideliza_voucher_expiry_v2:     process.env.TWILIO_TMPL_VOUCHER_EXPIRY     ?? '',
+  fideliza_balance_reminder_v2:   process.env.TWILIO_TMPL_BALANCE_REMINDER   ?? '',
+  fideliza_reactivation_v2:       process.env.TWILIO_TMPL_REACTIVATION       ?? '',
+  fideliza_streak_at_risk_v2:     process.env.TWILIO_TMPL_STREAK_AT_RISK     ?? '',
+  fideliza_promotion_v2:          process.env.TWILIO_TMPL_PROMOTION          ?? '',
+  fideliza_birthday_v2:           process.env.TWILIO_TMPL_BIRTHDAY           ?? '',
+  fideliza_milestone_80_v2:       process.env.TWILIO_TMPL_MILESTONE_80       ?? '',
+  fideliza_tier_upgrade_v2:       process.env.TWILIO_TMPL_TIER_UPGRADE       ?? '',
+  fideliza_surprise_v2:           process.env.TWILIO_TMPL_SURPRISE           ?? '',
+  fideliza_referral_earned_v2:    process.env.TWILIO_TMPL_REFERRAL_EARNED    ?? '',
+  fideliza_referral_welcome_v2:   process.env.TWILIO_TMPL_REFERRAL_WELCOME   ?? '',
+  fideliza_challenge_completed_v2: process.env.TWILIO_TMPL_CHALLENGE_COMPLETED ?? '',
 };
 
 function getTwilioConfig() {
