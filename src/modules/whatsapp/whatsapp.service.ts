@@ -110,7 +110,7 @@ async function enqueueMessage(p: EnqueueParams): Promise<void> {
 
 /**
  * Sent when a customer is registered with WhatsApp opt-in.
- * Template: fideliza_welcome_v1 (utility)
+ * Template: fideliza_welcome_v2 (utility)
  * Params: [customer_name, business_name]
  */
 export async function sendWelcomeMessage(
@@ -126,7 +126,7 @@ export async function sendWelcomeMessage(
       tenantId,
       customerId,
       phone,
-      template: 'fideliza_welcome_v1',
+      template: 'fideliza_welcome_v2',
       category: 'utility',
       params: {
         '1': customerName,
@@ -140,7 +140,7 @@ export async function sendWelcomeMessage(
 
 /**
  * Sent by the daily voucher-expiry cron when a voucher is about to expire.
- * Template: fideliza_voucher_expiry_v1 (utility)
+ * Template: fideliza_voucher_expiry_v2 (utility)
  * Params: [customer_name, reward_name, business_name, days_left]
  */
 export async function sendVoucherExpiryReminder(
@@ -157,7 +157,7 @@ export async function sendVoucherExpiryReminder(
       tenantId,
       customerId,
       phone,
-      template: 'fideliza_voucher_expiry_v1',
+      template: 'fideliza_voucher_expiry_v2',
       category: 'utility',
       params: {
         '1': customerName,
@@ -171,7 +171,7 @@ export async function sendVoucherExpiryReminder(
 
 /**
  * Sent manually by the business owner from the dashboard.
- * Template: fideliza_balance_reminder_v1 (utility)
+ * Template: fideliza_balance_reminder_v2 (utility)
  * Params: [customer_name, current_points, business_name, points_needed, reward_name]
  */
 export async function sendBalanceReminder(
@@ -189,7 +189,7 @@ export async function sendBalanceReminder(
       tenantId,
       customerId,
       phone,
-      template: 'fideliza_balance_reminder_v1',
+      template: 'fideliza_balance_reminder_v2',
       category: 'utility',
       params: {
         '1': customerName,
@@ -205,7 +205,7 @@ export async function sendBalanceReminder(
 
 /**
  * Sent by the weekly reactivation cron to customers inactive for 21+ days.
- * Template: fideliza_reactivation_v1 (marketing)
+ * Template: fideliza_reactivation_v2 (marketing)
  * Params: [customer_name, business_name, bonus_points]
  */
 export async function sendReactivationMessage(
@@ -221,7 +221,7 @@ export async function sendReactivationMessage(
       tenantId,
       customerId,
       phone,
-      template: 'fideliza_reactivation_v1',
+      template: 'fideliza_reactivation_v2',
       category: 'marketing',
       params: {
         '1': customerName,
@@ -235,7 +235,7 @@ export async function sendReactivationMessage(
 
 /**
  * Sent when a customer's streak is about to break (future — streak feature).
- * Template: fideliza_streak_at_risk_v1 (marketing)
+ * Template: fideliza_streak_at_risk_v2 (marketing)
  * Params: [customer_name, streak_weeks, business_name]
  */
 export async function sendStreakAtRiskMessage(
@@ -251,7 +251,7 @@ export async function sendStreakAtRiskMessage(
       tenantId,
       customerId,
       phone,
-      template: 'fideliza_streak_at_risk_v1',
+      template: 'fideliza_streak_at_risk_v2',
       category: 'marketing',
       params: {
         '1': customerName,
@@ -264,7 +264,7 @@ export async function sendStreakAtRiskMessage(
 
 /**
  * Sent on the customer's birthday by the daily birthday-rewards cron.
- * Template: fideliza_birthday_v1 (marketing)
+ * Template: fideliza_birthday_v2 (marketing)
  * Params: [customer_name, business_name, bonus_points]
  */
 export async function sendBirthdayMessage(
@@ -280,7 +280,7 @@ export async function sendBirthdayMessage(
       tenantId,
       customerId,
       phone,
-      template: 'fideliza_birthday_v1',
+      template: 'fideliza_birthday_v2',
       category: 'marketing',
       params: {
         '1': customerName,
@@ -295,7 +295,7 @@ export async function sendBirthdayMessage(
 
 /**
  * Sent post-earn when a customer crosses the 80% threshold toward a reward.
- * Template: fideliza_milestone_80_v1 (utility)
+ * Template: fideliza_milestone_80_v2 (utility)
  * Params: [customer_name, business_name, units_remaining, reward_name]
  */
 export async function sendMilestone80Message(
@@ -312,7 +312,7 @@ export async function sendMilestone80Message(
       tenantId,
       customerId,
       phone,
-      template: 'fideliza_milestone_80_v1',
+      template: 'fideliza_milestone_80_v2',
       category: 'utility',
       params: {
         '1': customerName,
@@ -328,7 +328,7 @@ export async function sendMilestone80Message(
 
 /**
  * Sent manually by the business owner as a promotion blast.
- * Template: fideliza_promotion_v1 (marketing)
+ * Template: fideliza_promotion_v2 (marketing)
  * Params: [customer_name, business_name]
  */
 export async function sendPromotionMessage(
@@ -343,7 +343,7 @@ export async function sendPromotionMessage(
       tenantId,
       customerId,
       phone,
-      template: 'fideliza_promotion_v1',
+      template: 'fideliza_promotion_v2',
       category: 'marketing',
       params: {
         '1': customerName,
@@ -355,7 +355,7 @@ export async function sendPromotionMessage(
 
 /**
  * Sent to the referred customer at registration when they have a referral code.
- * Template: fideliza_referral_welcome_v1 (utility)
+ * Template: fideliza_referral_welcome_v2 (utility)
  * Params: [referred_name, business_name, referred_bonus, referrer_name]
  */
 export async function sendReferralWelcomeMessage(
@@ -372,7 +372,7 @@ export async function sendReferralWelcomeMessage(
       tenantId,
       customerId,
       phone,
-      template: 'fideliza_referral_welcome_v1',
+      template: 'fideliza_referral_welcome_v2',
       category: 'utility',
       params: {
         '1': customerName,
@@ -388,7 +388,7 @@ export async function sendReferralWelcomeMessage(
 
 /**
  * Sent to the referrer when their referred customer completes their first earn.
- * Template: fideliza_referral_earned_v1 (utility)
+ * Template: fideliza_referral_earned_v2 (utility)
  * Params: [referrer_name, referred_name, referrer_bonus, business_name]
  */
 export async function sendReferralEarnedMessage(
@@ -405,7 +405,7 @@ export async function sendReferralEarnedMessage(
       tenantId,
       customerId,
       phone,
-      template: 'fideliza_referral_earned_v1',
+      template: 'fideliza_referral_earned_v2',
       category: 'utility',
       params: {
         '1': referrerName,
@@ -421,7 +421,7 @@ export async function sendReferralEarnedMessage(
 
 /**
  * Sent when a Surprise & Delight event fires on an earn.
- * Template: fideliza_surprise_v1 (marketing)
+ * Template: fideliza_surprise_v2 (marketing)
  * Params: [customer_name, business_name, multiplier]
  */
 export async function sendSurpriseDelightMessage(
@@ -437,7 +437,7 @@ export async function sendSurpriseDelightMessage(
       tenantId,
       customerId,
       phone,
-      template: 'fideliza_surprise_v1',
+      template: 'fideliza_surprise_v2',
       category: 'marketing',
       params: {
         '1': customerName,
@@ -452,7 +452,7 @@ export async function sendSurpriseDelightMessage(
 
 /**
  * Sent when a customer completes a challenge and receives a bonus.
- * Template: fideliza_challenge_completed_v1 (utility)
+ * Template: fideliza_challenge_completed_v2 (utility)
  * Params: [customer_name, challenge_title, bonus_points, business_name]
  */
 export async function sendChallengeCompletedMessage(
@@ -469,7 +469,7 @@ export async function sendChallengeCompletedMessage(
       tenantId,
       customerId,
       phone,
-      template: 'fideliza_challenge_completed_v1',
+      template: 'fideliza_challenge_completed_v2',
       category: 'utility',
       params: {
         '1': customerName,
@@ -485,7 +485,7 @@ export async function sendChallengeCompletedMessage(
 
 /**
  * Sent when a customer crosses a tier threshold (Bronze→Silver, Silver→Gold).
- * Template: fideliza_tier_upgrade_v1 (utility)
+ * Template: fideliza_tier_upgrade_v2 (utility)
  * Params: [customer_name, business_name, tier_label, multiplier]
  */
 export async function sendTierUpgradeMessage(
@@ -502,7 +502,7 @@ export async function sendTierUpgradeMessage(
       tenantId,
       customerId,
       phone,
-      template: 'fideliza_tier_upgrade_v1',
+      template: 'fideliza_tier_upgrade_v2',
       category: 'utility',
       params: {
         '1': customerName,
