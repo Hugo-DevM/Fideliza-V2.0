@@ -98,7 +98,7 @@ export default function SurpriseDelightCard({ programId, plan, config }: Surpris
           </a>
         </div>
       ) : (
-        <div className={`space-y-4 px-5 py-4 ${!enabled ? 'pointer-events-none opacity-40' : ''}`}>
+        <div className={`max-w-2xl space-y-4 px-5 py-4 ${!enabled ? 'pointer-events-none opacity-40' : ''}`}>
           <p className="text-xs text-gray-400 dark:text-gray-500">
             En cada earn, hay una probabilidad de que el cliente reciba puntos extra como sorpresa.
             El cliente no sabe cuándo ocurrirá — eso es lo que lo hace efectivo.

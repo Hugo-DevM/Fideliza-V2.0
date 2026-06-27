@@ -121,7 +121,7 @@ export default function TiersCard({ programId, plan, programType, config }: Tier
           </a>
         </div>
       ) : (
-        <div className={`space-y-3 px-5 py-4 ${!enabled ? 'pointer-events-none opacity-40' : ''}`}>
+        <div className={`max-w-2xl space-y-3 px-5 py-4 ${!enabled ? 'pointer-events-none opacity-40' : ''}`}>
           <p className="text-xs text-gray-400 dark:text-gray-500">
             {multiplierHint} El umbral se basa en el acumulado histórico (nunca se decrementa).
           </p>

@@ -114,7 +114,7 @@ export default function FlashOfferCard({ programId, plan, config }: FlashOfferCa
           </a>
         </div>
       ) : (
-        <div className={`space-y-4 px-5 py-4 ${!enabled ? 'pointer-events-none opacity-40' : ''}`}>
+        <div className={`max-w-2xl space-y-4 px-5 py-4 ${!enabled ? 'pointer-events-none opacity-40' : ''}`}>
           {/* Multiplier */}
           <div>
             <label className="mb-2 block text-xs font-medium text-gray-600 dark:text-gray-400">Multiplicador</label>
