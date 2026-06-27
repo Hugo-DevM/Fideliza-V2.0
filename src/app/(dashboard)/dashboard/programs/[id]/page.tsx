@@ -58,10 +58,13 @@ function rewardCostLabel(type: string, costPoints: number, config: Record<string
 
 export default async function ProgramDetailPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ id: string }>;
+  searchParams: Promise<{ tab?: string }>;
 }) {
   const { id } = await params;
+  const activeTab = (await searchParams).tab ?? 'programa';
   const { tenantId, settings, planLimits, effectivePlan } = await getAuthenticatedTenant();
 
   try {
@@ -164,43 +167,64 @@ export default async function ProgramDetailPage({
           ))}
         </div>
 
-        {/* Flash Offer card */}
-        <FlashOfferCard
-          programId={program.id}
-          plan={effectivePlan}
-          config={config}
-        />
+        {/* Tab nav */}
+        <div className="flex gap-1 rounded-2xl border border-gray-100 dark:border-[#1e2438] bg-white dark:bg-[#161b2e] shadow-sm p-1">
+          <Link
+            href={`/dashboard/programs/${id}`}
+            className={`flex-1 rounded-xl px-4 py-2 text-sm font-medium text-center transition-colors ${
+              activeTab === 'programa'
+                ? 'bg-gray-100 dark:bg-[#1e2438] text-gray-900 dark:text-white'
+                : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200'
+            }`}
+          >
+            Programa
+          </Link>
+          <Link
+            href={`/dashboard/programs/${id}?tab=retencion`}
+            className={`flex-1 rounded-xl px-4 py-2 text-sm font-medium text-center transition-colors ${
+              activeTab === 'retencion'
+                ? 'bg-gray-100 dark:bg-[#1e2438] text-gray-900 dark:text-white'
+                : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200'
+            }`}
+          >
+            Retención
+          </Link>
+        </div>
 
-        {/* Tiers VIP card */}
-        <TiersCard
-          programId={program.id}
-          plan={effectivePlan}
-          programType={program.type}
-          config={config}
-        />
+        {/* Retention tab */}
+        {activeTab === 'retencion' && (
+          <>
+            <FlashOfferCard
+              programId={program.id}
+              plan={effectivePlan}
+              config={config}
+            />
+            <TiersCard
+              programId={program.id}
+              plan={effectivePlan}
+              programType={program.type}
+              config={config}
+            />
+            <SurpriseDelightCard
+              programId={program.id}
+              plan={effectivePlan}
+              config={config}
+            />
+            <ReferralCard
+              programId={program.id}
+              plan={effectivePlan}
+              config={config}
+            />
+            <ChallengesCard
+              programId={program.id}
+              plan={effectivePlan}
+              challenges={challenges}
+            />
+          </>
+        )}
 
-        {/* Surprise & Delight card */}
-        <SurpriseDelightCard
-          programId={program.id}
-          plan={effectivePlan}
-          config={config}
-        />
-
-        {/* Referral Program card */}
-        <ReferralCard
-          programId={program.id}
-          plan={effectivePlan}
-          config={config}
-        />
-
-        {/* Challenges / Misiones card */}
-        <ChallengesCard
-          programId={program.id}
-          plan={effectivePlan}
-          challenges={challenges}
-        />
-
-        {/* Content grid */}
+        {/* Programa tab — content grid */}
+        {activeTab === 'programa' && (
         <div className="grid gap-4 lg:grid-cols-2 lg:items-start">
 
           {/* Reward catalog */}
@@ -323,6 +347,7 @@ export default async function ProgramDetailPage({
             )}
           </div>
         </div>
+        )}
       </div>
     );
   } catch (err) {
