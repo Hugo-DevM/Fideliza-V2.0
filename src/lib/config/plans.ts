@@ -18,6 +18,7 @@ export interface PlanLimits {
   prioritySupport: boolean;
   whatsappMonthlyLimit: number | null;    // null = unlimited; Starter = 500
   whatsappMarketing: boolean;             // true = can send marketing category templates
+  universalTiers: boolean;                // true = universal loyalty tier system enabled
 }
 
 export const PLAN_CONFIG: Record<string, PlanLimits> = {
@@ -33,6 +34,7 @@ export const PLAN_CONFIG: Record<string, PlanLimits> = {
     prioritySupport:        false,
     whatsappMonthlyLimit:   0,
     whatsappMarketing:      false,
+    universalTiers:         false,
   },
   starter: {
     maxCustomers:           300,
@@ -46,6 +48,7 @@ export const PLAN_CONFIG: Record<string, PlanLimits> = {
     prioritySupport:        false,
     whatsappMonthlyLimit:   500,
     whatsappMarketing:      false,
+    universalTiers:         true,
   },
   pro: {
     maxCustomers:           null,
@@ -59,6 +62,7 @@ export const PLAN_CONFIG: Record<string, PlanLimits> = {
     prioritySupport:        true,
     whatsappMonthlyLimit:   null,
     whatsappMarketing:      true,
+    universalTiers:         true,
   },
   // Backward compatibility — maps to pro limits
   enterprise: {
@@ -73,6 +77,7 @@ export const PLAN_CONFIG: Record<string, PlanLimits> = {
     prioritySupport:        true,
     whatsappMonthlyLimit:   null,
     whatsappMarketing:      true,
+    universalTiers:         true,
   },
 };
 

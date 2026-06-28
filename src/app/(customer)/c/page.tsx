@@ -312,6 +312,7 @@ function PortalShell({ data, code, tab }: { data: PortalData; code: string; tab:
             pendingVouchers={pending_vouchers}
             tenant={tenant}
             customer={customer}
+            tenantTiers={data.tenant_tiers}
           />
         )}
         {tab === 'rewards' && (
@@ -350,11 +351,13 @@ function PointsTab({
   pendingVouchers,
   tenant,
   customer,
+  tenantTiers,
 }: {
   enrollments: PortalEnrollment[];
   pendingVouchers: PortalVoucher[];
   tenant: PortalData['tenant'];
   customer: PortalData['customer'];
+  tenantTiers: PortalData['tenant_tiers'];
 }) {
   const affordableCount = enrollments.reduce(
     (sum, e) => sum + e.rewards.filter((r) => r.is_affordable).length,
@@ -367,6 +370,53 @@ function PointsTab({
 
   return (
     <>
+      {/* Universal VIP Tier badge */}
+      {tenantTiers && tenantTiers.length > 0 && (() => {
+        const currentTier = computeTier(customer.loyalty_score, tenantTiers as TierConfig[]);
+        const upcoming    = nextTier(customer.loyalty_score, tenantTiers as TierConfig[]);
+        if (!currentTier) return null;
+        const style  = TIER_STYLES[currentTier.color] ?? TIER_STYLES.bronze;
+        const medal  = currentTier.color === 'gold' ? '🥇' : currentTier.color === 'silver' ? '🥈' : '🥉';
+        const pct    = upcoming
+          ? Math.min(100, Math.round((customer.loyalty_score - currentTier.min_lifetime) / (upcoming.min_lifetime - currentTier.min_lifetime) * 100))
+          : 100;
+        return (
+          <div className={`rounded-2xl border px-4 py-3 space-y-2 ${style.bg} ${style.border}`}>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <span className="text-xl">{medal}</span>
+                <div>
+                  <p className={`text-sm font-bold ${style.text}`}>{currentTier.label}</p>
+                  <p className="text-xs text-gray-500 dark:text-gray-400">{customer.loyalty_score.toLocaleString()} pts de lealtad</p>
+                </div>
+              </div>
+              {currentTier.multiplier > 1 && (
+                <span className={`rounded-full px-2.5 py-0.5 text-xs font-bold ${style.bg} ${style.border} ${style.text} border`}>
+                  {currentTier.multiplier}× earn
+                </span>
+              )}
+            </div>
+            {upcoming && (
+              <div className="space-y-1">
+                <div className="flex justify-between text-xs text-gray-400 dark:text-gray-500">
+                  <span>Siguiente: {upcoming.label}</span>
+                  <span>{(upcoming.min_lifetime - customer.loyalty_score).toLocaleString()} pts restantes</span>
+                </div>
+                <div className="h-1.5 w-full rounded-full bg-gray-200 dark:bg-[#2a3147]">
+                  <div
+                    className={`h-1.5 rounded-full transition-all ${style.text.replace('text-', 'bg-').split(' ')[0]}`}
+                    style={{ width: `${pct}%` }}
+                  />
+                </div>
+              </div>
+            )}
+            {!upcoming && (
+              <p className={`text-xs font-medium ${style.text}`}>Nivel máximo alcanzado 🏆</p>
+            )}
+          </div>
+        );
+      })()}
+
       {/* Pending vouchers */}
       {pendingVouchers.length > 0 && (
         <section className="space-y-3">

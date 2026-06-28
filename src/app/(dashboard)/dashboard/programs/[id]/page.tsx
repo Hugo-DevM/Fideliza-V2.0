@@ -8,7 +8,7 @@ import ProgramStatusButtons from './ProgramStatusButtons';
 import EditProgramModal from './EditProgramModal';
 import DeleteRewardButton from './DeleteRewardButton';
 import FlashOfferCard from './FlashOfferCard';
-import TiersCard from './TiersCard';
+// TiersCard removed — tiers are now configured globally at /dashboard/tiers
 import SurpriseDelightCard from './SurpriseDelightCard';
 import ReferralCard from './ReferralCard';
 import ChallengesCard from './ChallengesCard';
@@ -200,12 +200,7 @@ export default async function ProgramDetailPage({
               programType={program.type}
               config={config}
             />
-            <TiersCard
-              programId={program.id}
-              plan={effectivePlan}
-              programType={program.type}
-              config={config}
-            />
+            {/* Tiers VIP moved to /dashboard/tiers */}
             <SurpriseDelightCard
               programId={program.id}
               plan={effectivePlan}

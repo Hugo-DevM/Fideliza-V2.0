@@ -20,8 +20,8 @@ import {
   sendReferralEarnedMessage,
   sendChallengeCompletedMessage,
 } from '@/modules/whatsapp/whatsapp.service';
-import { computeTier } from '@/lib/utils/tiers';
-import type { TierConfig } from '@/lib/utils/tiers';
+import { computeTier, computeLoyaltyDelta } from '@/lib/utils/tiers';
+import type { TierConfig, TenantTierSettings } from '@/lib/utils/tiers';
 import type {
   Transaction,
   CustomerRewardRedemption,
@@ -45,18 +45,41 @@ export async function processTransaction(
     let effectiveDelta = input.points_delta;
     let effectiveNote  = input.note ?? undefined;
 
-    const { data: program } = await db
-      .from('reward_programs')
-      .select('config')
-      .eq('id', input.program_id)
-      .eq('tenant_id', tenantId)
-      .single();
+    // Fetch program config+type, tenant tier settings, and enrollment in parallel
+    const [programRes, tierSettingsRes, enrollmentRes] = await Promise.all([
+      db.from('reward_programs')
+        .select('config, type')
+        .eq('id', input.program_id)
+        .eq('tenant_id', tenantId)
+        .single(),
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (db.from('tenant_settings') as any)
+        .select('tiers_enabled, tiers, tier_score_per_stamp, tier_score_per_visit, tier_score_per_point, tier_score_per_cashback_cent')
+        .eq('tenant_id', tenantId)
+        .maybeSingle() as Promise<{ data: TenantTierSettings | null }>,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (db.from('customers') as any)
+        .select('loyalty_score, tier_label, tier_color')
+        .eq('id', input.customer_id)
+        .eq('tenant_id', tenantId)
+        .maybeSingle() as Promise<{ data: { loyalty_score: number; tier_label: string | null; tier_color: string | null } | null }>,
+    ]);
 
-    const cfg = (program?.config ?? {}) as Record<string, unknown>;
+    const cfg         = (programRes.data?.config ?? {}) as Record<string, unknown>;
+    const programType = (programRes.data?.type ?? 'points') as string;
+    const tierSettings: TenantTierSettings = {
+      tiers_enabled:                Boolean(tierSettingsRes.data?.tiers_enabled),
+      tiers:                        (tierSettingsRes.data?.tiers as TierConfig[] | undefined) ?? [],
+      tier_score_per_stamp:         Number(tierSettingsRes.data?.tier_score_per_stamp ?? 10),
+      tier_score_per_visit:         Number(tierSettingsRes.data?.tier_score_per_visit ?? 10),
+      tier_score_per_point:         Number(tierSettingsRes.data?.tier_score_per_point ?? 1),
+      tier_score_per_cashback_cent: Number(tierSettingsRes.data?.tier_score_per_cashback_cent ?? 0.1),
+    };
+    const loyaltyScore = enrollmentRes.data?.loyalty_score ?? 0;
 
-    // Fetch enrollment once — used by both Tier and Head Start logic
-    const { data: existingEnrollment } = await db
-      .from('customer_program_enrollments')
+    // Fetch enrollment for Head Start (lifetime_points check)
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const { data: existingEnrollment } = await (db.from('customer_program_enrollments') as any)
       .select('lifetime_points')
       .eq('customer_id', input.customer_id)
       .eq('program_id', input.program_id)
@@ -64,10 +87,12 @@ export async function processTransaction(
 
     const lifetimePoints = existingEnrollment?.lifetime_points ?? 0;
 
-    // Tier VIP multiplier — applied first so Flash can stack on top
-    const tiers = cfg.tiers as TierConfig[] | undefined;
-    if (cfg.tiers_enabled && tiers && tiers.length > 0) {
-      const tier = computeTier(lifetimePoints, tiers);
+    // Capture base delta BEFORE multipliers — used for loyalty score calculation
+    const baseDelta = effectiveDelta;
+
+    // Universal Tier VIP multiplier — derived from customer's loyalty_score (global)
+    if (tierSettings.tiers_enabled && tierSettings.tiers.length > 0) {
+      const tier = computeTier(loyaltyScore, tierSettings.tiers);
       if (tier && tier.multiplier > 1) {
         effectiveDelta = Math.round(effectiveDelta * tier.multiplier);
         effectiveNote  = effectiveNote
@@ -129,17 +154,65 @@ export async function processTransaction(
 
     const tx = data as unknown as Transaction;
 
-    // ── Update cached tier columns on the enrollment ─────────────────────────
-    if (cfg.tiers_enabled && tiers && tiers.length > 0) {
-      const newLifetime  = lifetimePoints + effectiveDelta;
-      const newTier      = computeTier(newLifetime, tiers as TierConfig[]);
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      void (db.from('customer_program_enrollments') as any)
-        .update({ tier_label: newTier?.label ?? null, tier_color: newTier?.color ?? null })
-        .eq('tenant_id', tenantId)
-        .eq('customer_id', input.customer_id)
-        .eq('program_id', input.program_id);
-    }
+    // ── Update loyalty score + tier cache (fire-and-forget) ──────────────────
+    void (async () => {
+      try {
+        const loyaltyDelta = computeLoyaltyDelta(programType, baseDelta, tierSettings);
+        if (loyaltyDelta <= 0) return;
+
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const { data: newScore, error: scoreErr } = await (db as any).rpc('rpc_add_loyalty_score', {
+          p_tenant_id:   tenantId,
+          p_customer_id: input.customer_id,
+          p_delta:       loyaltyDelta,
+        });
+
+        if (scoreErr || newScore === null) return;
+
+        const newLoyaltyScore = newScore as number;
+        const tierBefore = computeTier(loyaltyScore, tierSettings.tiers);
+        const tierAfter  = computeTier(newLoyaltyScore, tierSettings.tiers);
+
+        // Update cached tier on customers table
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        void (db.from('customers') as any)
+          .update({ tier_label: tierAfter?.label ?? null, tier_color: tierAfter?.color ?? null })
+          .eq('id', input.customer_id)
+          .eq('tenant_id', tenantId);
+
+        // Fire tier upgrade notification if customer moved to a higher tier
+        if (
+          tierAfter && tierBefore &&
+          tierAfter.min_lifetime > tierBefore.min_lifetime
+        ) {
+          const db2 = createServiceRoleClient();
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          const { data: customer } = await (db2.from('customers') as any)
+            .select('name, phone, whatsapp_opt_in')
+            .eq('id', input.customer_id)
+            .eq('whatsapp_opt_in', true)
+            .maybeSingle() as { data: { name: string; phone: string | null } | null };
+
+          if (customer?.phone) {
+            const { data: tenantRow } = await db2
+              .from('tenants')
+              .select('name')
+              .eq('id', tenantId)
+              .single() as { data: { name: string } | null };
+
+            await sendTierUpgradeMessage(
+              input.customer_id,
+              tenantId,
+              customer.name,
+              tenantRow?.name ?? '',
+              customer.phone,
+              tierAfter.label,
+              tierAfter.multiplier,
+            );
+          }
+        }
+      } catch { /* best-effort — never blocks the earn */ }
+    })();
     // ────────────────────────────────────────────────────────────────────────
 
     // ── 80% milestone notification (fire-and-forget) ─────────────────────────
@@ -200,47 +273,7 @@ export async function processTransaction(
         );
       } catch { /* best-effort — never blocks the earn */ }
     })();
-    // ── Tier upgrade notification (fire-and-forget) ──────────────────────────
-    void (async () => {
-      try {
-        if (!cfg.tiers_enabled || !tiers || tiers.length === 0) return;
-
-        const tierBefore   = computeTier(lifetimePoints, tiers);
-        const lifetimeAfter = lifetimePoints + effectiveDelta;
-        const tierAfter    = computeTier(lifetimeAfter, tiers);
-
-        // Only fire if customer moved to a strictly higher tier
-        if (!tierAfter || !tierBefore) return;
-        if (tierAfter.min_lifetime <= tierBefore.min_lifetime) return;
-
-        const db2 = createServiceRoleClient();
-
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const { data: customer } = await (db2.from('customers') as any)
-          .select('name, phone, whatsapp_opt_in')
-          .eq('id', input.customer_id)
-          .eq('whatsapp_opt_in', true)
-          .maybeSingle() as { data: { name: string; phone: string | null } | null };
-
-        if (!customer?.phone) return;
-
-        const { data: tenantRow } = await db2
-          .from('tenants')
-          .select('name')
-          .eq('id', tenantId)
-          .single() as { data: { name: string } | null };
-
-        await sendTierUpgradeMessage(
-          input.customer_id,
-          tenantId,
-          customer.name,
-          tenantRow?.name ?? '',
-          customer.phone,
-          tierAfter.label,
-          tierAfter.multiplier,
-        );
-      } catch { /* best-effort — never blocks the earn */ }
-    })();
+    // Note: tier upgrade notification is handled inside the loyalty score block above.
     // ── Surprise & Delight notification (fire-and-forget) ────────────────────
     if (surpriseFired) {
       void (async () => {

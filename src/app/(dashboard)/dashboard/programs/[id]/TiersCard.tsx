@@ -26,24 +26,42 @@ const MULTIPLIER_HINT: Record<string, string> = {
   cashback: 'El cliente recibe más cashback por compra a mayor nivel de lealtad.',
 };
 
-const MULTIPLIER_OPTIONS = [
+const ALL_MULTIPLIER_OPTIONS = [
   { label: '1×',   value: 1   },
   { label: '1.5×', value: 1.5 },
   { label: '2×',   value: 2   },
   { label: '3×',   value: 3   },
 ];
 
+const HEADER_SUBTITLE: Record<string, string> = {
+  points:   'Multiplicador de puntos por lealtad acumulada',
+  stamp:    'Multiplicador de sellos por lealtad acumulada',
+  visit:    'Multiplicador de visitas por lealtad acumulada',
+  cashback: 'Multiplicador de cashback por lealtad acumulada',
+};
+
 export default function TiersCard({ programId, plan, programType, config }: TiersCardProps) {
-  const lifetimeLabel  = LIFETIME_LABEL[programType]  ?? LIFETIME_LABEL.points;
-  const multiplierHint = MULTIPLIER_HINT[programType] ?? MULTIPLIER_HINT.points;
+  const lifetimeLabel   = LIFETIME_LABEL[programType]   ?? LIFETIME_LABEL.points;
+  const multiplierHint  = MULTIPLIER_HINT[programType]  ?? MULTIPLIER_HINT.points;
+  const headerSubtitle  = HEADER_SUBTITLE[programType]  ?? HEADER_SUBTITLE.points;
   const isPro = plan === 'pro' || plan === 'enterprise';
 
+  // Stamp and visit programs award 1 unit per transaction — 1.5× rounds to 2, making it
+  // identical to 2×. Remove the 1.5× option for these program types.
+  const isDiscrete = programType === 'stamp' || programType === 'visit';
+  const multiplierOptions = ALL_MULTIPLIER_OPTIONS.filter((m) => !(isDiscrete && m.value === 1.5));
+
   const [enabled, setEnabled] = useState(Boolean(config.tiers_enabled));
-  const [tiers, setTiers]     = useState<TierConfig[]>(
-    Array.isArray(config.tiers) && (config.tiers as unknown[]).length > 0
+  const [tiers, setTiers]     = useState<TierConfig[]>(() => {
+    const saved = Array.isArray(config.tiers) && (config.tiers as unknown[]).length > 0
       ? (config.tiers as TierConfig[])
-      : DEFAULT_TIERS,
-  );
+      : DEFAULT_TIERS;
+    // Migrate any 1.5× saved on discrete programs to 2×
+    if (isDiscrete) {
+      return saved.map((t) => t.multiplier === 1.5 ? { ...t, multiplier: 2 } : t);
+    }
+    return saved;
+  });
 
   const [saved,   setSaved]   = useState(false);
   const [error,   setError]   = useState('');
@@ -83,7 +101,7 @@ export default function TiersCard({ programId, plan, programType, config }: Tier
           </div>
           <div>
             <h2 className="text-sm font-semibold text-gray-800 dark:text-white">Tiers VIP</h2>
-            <p className="text-xs text-gray-400 dark:text-gray-500">Multiplicador de puntos por lealtad acumulada</p>
+            <p className="text-xs text-gray-400 dark:text-gray-500">{headerSubtitle}</p>
           </div>
         </div>
 
@@ -168,7 +186,7 @@ export default function TiersCard({ programId, plan, programType, config }: Tier
                   <div>
                     <label className="mb-1 block text-xs font-medium text-gray-500 dark:text-gray-400">Multiplicador</label>
                     <div className="flex gap-1">
-                      {MULTIPLIER_OPTIONS.filter((m) => i === 0 ? m.value === 1 : m.value >= 1).map((m) => (
+                      {multiplierOptions.filter((m) => i === 0 ? m.value === 1 : m.value >= 1).map((m) => (
                         <button
                           key={m.value}
                           type="button"
