@@ -32,7 +32,7 @@ export default async function TiersPage() {
   // Tier distribution — counts per color from customers.tier_color
   type TierCount = { tier_color: string; tier_label: string; count: number };
   let distribution: TierCount[] = [];
-  if (canUse && settings.tiers_enabled) {
+  if (canUse) {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const { data: rows } = await (db.from('customers') as any)
       .select('tier_color, tier_label')
@@ -66,7 +66,7 @@ export default async function TiersPage() {
       </div>
 
       {/* ── Distribución actual ──────────────────────────────────────── */}
-      {canUse && settings.tiers_enabled && (
+      {canUse && (
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
           {tiers.map((tier) => {
             const style  = TIER_STYLES[tier.color] ?? TIER_STYLES.bronze;
