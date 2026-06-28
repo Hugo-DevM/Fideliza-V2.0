@@ -20,16 +20,25 @@ const MULTIPLIERS = [
 ];
 
 interface FlashOfferCardProps {
-  programId:  string;
-  plan:       string;
-  config:     Record<string, unknown>;
+  programId:   string;
+  plan:        string;
+  programType: string;
+  config:      Record<string, unknown>;
 }
 
-export default function FlashOfferCard({ programId, plan, config }: FlashOfferCardProps) {
+export default function FlashOfferCard({ programId, plan, programType, config }: FlashOfferCardProps) {
+  // Stamp and visit programs award exactly 1 unit per transaction — 1.5× rounds to 2,
+  // making it identical to 2×. Hide the 1.5× option for these program types.
+  const multipliers = (programType === 'stamp' || programType === 'visit')
+    ? MULTIPLIERS.filter((m) => m.value !== 1.5)
+    : MULTIPLIERS;
   const isFree = plan === 'free';
 
   const [enabled,    setEnabled]    = useState(Boolean(config.flash_enabled));
-  const [multiplier, setMultiplier] = useState(Number(config.flash_multiplier ?? 2));
+  const savedMultiplier = Number(config.flash_multiplier ?? 2);
+  const [multiplier, setMultiplier] = useState(
+    (programType === 'stamp' || programType === 'visit') && savedMultiplier === 1.5 ? 2 : savedMultiplier,
+  );
   const [startHour,  setStartHour]  = useState(Number(config.flash_start_hour ?? 14));
   const [endHour,    setEndHour]    = useState(Number(config.flash_end_hour   ?? 17));
   const [days,       setDays]       = useState<number[]>(
@@ -119,7 +128,7 @@ export default function FlashOfferCard({ programId, plan, config }: FlashOfferCa
           <div>
             <label className="mb-2 block text-xs font-medium text-gray-600 dark:text-gray-400">Multiplicador</label>
             <div className="flex gap-2">
-              {MULTIPLIERS.map((m) => (
+              {multipliers.map((m) => (
                 <button
                   key={m.value}
                   type="button"

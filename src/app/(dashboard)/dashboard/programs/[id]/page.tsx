@@ -197,6 +197,7 @@ export default async function ProgramDetailPage({
             <FlashOfferCard
               programId={program.id}
               plan={effectivePlan}
+              programType={program.type}
               config={config}
             />
             <TiersCard
