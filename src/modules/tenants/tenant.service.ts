@@ -82,6 +82,12 @@ export async function onboardTenant(
     throw new Error(`Error al crear la configuración del negocio: ${settingsError?.message}`);
   }
 
-  return { tenant, settings: settings as TenantSettings };
+  return {
+    tenant,
+    settings: {
+      ...settings,
+      referral_program_configs: settings.referral_program_configs as TenantSettings['referral_program_configs'],
+    },
+  };
 }
 
