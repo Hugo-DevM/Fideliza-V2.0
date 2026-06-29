@@ -17,17 +17,23 @@ const MULTIPLIER_OPTIONS = [
 ];
 
 interface SurpriseDelightCardProps {
-  programId: string;
-  plan:      string;
-  config:    Record<string, unknown>;
+  programId:   string;
+  plan:        string;
+  programType: string;
+  config:      Record<string, unknown>;
 }
 
-export default function SurpriseDelightCard({ programId, plan, config }: SurpriseDelightCardProps) {
+export default function SurpriseDelightCard({ programId, plan, programType, config }: SurpriseDelightCardProps) {
   const isPro = plan === 'pro' || plan === 'enterprise';
+  const isDiscrete = programType === 'stamp' || programType === 'visit';
+  const multiplierOptions = isDiscrete
+    ? MULTIPLIER_OPTIONS.filter((m) => m.value !== 1.5)
+    : MULTIPLIER_OPTIONS;
 
+  const savedMultiplier = Number(config.surprise_multiplier ?? 2);
   const [enabled,     setEnabled]     = useState(Boolean(config.surprise_enabled));
   const [probability, setProbability] = useState(Number(config.surprise_probability ?? 0.10));
-  const [multiplier,  setMultiplier]  = useState(Number(config.surprise_multiplier  ?? 2));
+  const [multiplier,  setMultiplier]  = useState(isDiscrete && savedMultiplier === 1.5 ? 2 : savedMultiplier);
 
   const [saved,     setSaved]     = useState(false);
   const [error,     setError]     = useState('');
@@ -133,7 +139,7 @@ export default function SurpriseDelightCard({ programId, plan, config }: Surpris
               Multiplicador de puntos
             </label>
             <div className="flex gap-2">
-              {MULTIPLIER_OPTIONS.map((m) => (
+              {multiplierOptions.map((m) => (
                 <button
                   key={m.value}
                   type="button"

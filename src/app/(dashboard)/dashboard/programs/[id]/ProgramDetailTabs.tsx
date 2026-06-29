@@ -120,7 +120,7 @@ export default function ProgramDetailTabs({
         {activeTab === 'retencion' && (
           <div className="grid gap-4 lg:grid-cols-2 lg:items-start">
             <FlashOfferCard programId={programId} plan={effectivePlan} programType={programType} config={config} />
-            <SurpriseDelightCard programId={programId} plan={effectivePlan} config={config} />
+            <SurpriseDelightCard programId={programId} plan={effectivePlan} programType={programType} config={config} />
             <ReferralCard programId={programId} plan={effectivePlan} config={config} />
             <ChallengesCard programId={programId} plan={effectivePlan} challenges={challenges} />
           </div>

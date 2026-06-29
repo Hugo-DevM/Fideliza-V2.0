@@ -45,7 +45,7 @@ function thirtyDaysAgoStr() {
   return new Date(Date.now() - 30 * 86_400_000).toISOString().slice(0, 10);
 }
 
-export default function ExportPanel({ isPro }: { isPro?: boolean }) {
+export default function ExportPanel({ isPro, minDate }: { isPro?: boolean; minDate?: string }) {
   const [reportType, setReportType] = useState<ReportType>('transactions');
   const [from, setFrom] = useState(thirtyDaysAgoStr());
   const [to, setTo]     = useState(todayStr());
@@ -119,6 +119,7 @@ export default function ExportPanel({ isPro }: { isPro?: boolean }) {
               <label className="text-xs font-medium text-gray-500 dark:text-gray-400">Desde</label>
               <DatePicker
                 value={from}
+                min={minDate}
                 max={to}
                 onChange={(val) => {
                   const today = todayStr();
@@ -137,6 +138,7 @@ export default function ExportPanel({ isPro }: { isPro?: boolean }) {
                   setTo(val > today ? today : val < from ? from : val);
                 }}
               />
+
             </div>
           </div>
           <a

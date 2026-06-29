@@ -128,6 +128,7 @@ export default async function AnalyticsPage({
     { data: enrollments6m },
     { count: baseEnrollmentCount },
     { data: tx6m },
+    { data: tenantRow },
   ] = await Promise.all([
     db.from('transactions').select('customer_id, created_at, points_delta').eq('tenant_id', tenantId).gte('created_at', thirtyDaysAgo),
     db.from('transactions').select('customer_id, points_delta').eq('tenant_id', tenantId).gte('created_at', sixtyDaysAgo).lt('created_at', thirtyDaysAgo),
@@ -138,7 +139,12 @@ export default async function AnalyticsPage({
     db.from('customer_program_enrollments').select('enrolled_at').eq('tenant_id', tenantId).gte('enrolled_at', thirtyDaysAgo),
     db.from('customer_program_enrollments').select('id', { count: 'exact', head: true }).eq('tenant_id', tenantId).lt('enrolled_at', thirtyDaysAgo),
     db.from('transactions').select('created_at').eq('tenant_id', tenantId).gte('created_at', thirtyDaysAgo),
+    db.from('tenants').select('created_at').eq('id', tenantId).single(),
   ]);
+
+  const tenantCreatedAt = tenantRow?.created_at
+    ? tenantRow.created_at.slice(0, 10)
+    : '2020-01-01';
 
   // ── Metrics ───────────────────────────────────────────────────────────────
 
@@ -250,7 +256,7 @@ export default async function AnalyticsPage({
       </div>
 
       {/* Export panel */}
-      <ExportPanel isPro={planLimits.exportCSV} />
+      <ExportPanel isPro={planLimits.exportCSV} minDate={tenantCreatedAt} />
 
       {/* KPI row */}
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
