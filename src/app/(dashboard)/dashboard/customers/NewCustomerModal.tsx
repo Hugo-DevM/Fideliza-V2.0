@@ -30,6 +30,7 @@ export default function NewCustomerModal({ phonePrefix, plan }: Props) {
   const [whatsappOptIn, setWhatsappOptIn] = useState(false);
   const [birthMonth, setBirthMonth] = useState("");
   const [birthDay,   setBirthDay]   = useState("");
+  const [birthYear,  setBirthYear]  = useState("");
   const NOTES_MAX = 300;
   const formRef = useRef<HTMLFormElement>(null);
   const router = useRouter();
@@ -79,6 +80,7 @@ export default function NewCustomerModal({ phonePrefix, plan }: Props) {
         setWhatsappOptIn(false);
         setBirthMonth("");
         setBirthDay("");
+        setBirthYear("");
         setOpen(false);
         router.refresh();
       }
@@ -92,6 +94,7 @@ export default function NewCustomerModal({ phonePrefix, plan }: Props) {
     setWhatsappOptIn(false);
     setBirthMonth("");
     setBirthDay("");
+    setBirthYear("");
     setError("");
     formRef.current?.reset();
     setOpen(false);
@@ -256,30 +259,31 @@ export default function NewCustomerModal({ phonePrefix, plan }: Props) {
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
                   Fecha de cumpleaños <span className="text-gray-400 dark:text-gray-500 font-normal">(opcional)</span>
                 </label>
-                <div className="flex gap-2">
-                  <select
-                    name="birth_month"
-                    value={birthMonth}
-                    onChange={(e) => { setBirthMonth(e.target.value); if (!e.target.value) setBirthDay(""); }}
-                    className={`${inputCls} flex-1`}
-                  >
-                    <option value="">Mes</option>
-                    {['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'].map((m, i) => (
-                      <option key={i + 1} value={i + 1}>{m}</option>
-                    ))}
-                  </select>
-                  <select
+                <div className="grid grid-cols-3 gap-2">
+                  <CustomSelect
                     name="birth_day"
                     value={birthDay}
-                    onChange={(e) => setBirthDay(e.target.value)}
-                    disabled={!birthMonth}
-                    className={`${inputCls} w-24 ${!birthMonth ? 'opacity-40 cursor-not-allowed' : ''}`}
-                  >
-                    <option value="">Día</option>
-                    {Array.from({ length: 31 }, (_, i) => i + 1).map((d) => (
-                      <option key={d} value={d}>{d}</option>
-                    ))}
-                  </select>
+                    onChange={setBirthDay}
+                    placeholder="Día"
+                    options={Array.from({ length: 31 }, (_, i) => ({ value: String(i + 1), label: String(i + 1) }))}
+                  />
+                  <CustomSelect
+                    name="birth_month"
+                    value={birthMonth}
+                    onChange={(v) => { setBirthMonth(v); if (!v) setBirthDay(""); }}
+                    placeholder="Mes"
+                    options={['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'].map((m, i) => ({ value: String(i + 1), label: m }))}
+                  />
+                  <CustomSelect
+                    name="birth_year"
+                    value={birthYear}
+                    onChange={setBirthYear}
+                    placeholder="Año"
+                    options={Array.from({ length: 100 }, (_, i) => {
+                      const y = new Date().getFullYear() - i;
+                      return { value: String(y), label: String(y) };
+                    })}
+                  />
                 </div>
               </div>
 
@@ -354,6 +358,35 @@ export default function NewCustomerModal({ phonePrefix, plan }: Props) {
 
 const inputCls =
   "w-full rounded-xl border border-gray-200 dark:border-[#2a3147] bg-white dark:bg-[#0d0f17] px-3 py-2.5 text-sm text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-600 outline-none transition focus:border-indigo-400 dark:focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 dark:focus:ring-indigo-500/20";
+
+function CustomSelect({ name, value, onChange, placeholder, options }: {
+  name: string;
+  value: string;
+  onChange: (v: string) => void;
+  placeholder: string;
+  options: { value: string; label: string }[];
+}) {
+  return (
+    <div className="relative">
+      <select
+        name={name}
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        className="w-full appearance-none rounded-xl border border-gray-200 dark:border-[#2a3147] bg-white dark:bg-[#0d0f17] px-3 py-2.5 pr-8 text-sm text-gray-900 dark:text-white outline-none transition focus:border-indigo-400 dark:focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 dark:focus:ring-indigo-500/20 cursor-pointer"
+      >
+        <option value="">{placeholder}</option>
+        {options.map((o) => (
+          <option key={o.value} value={o.value}>{o.label}</option>
+        ))}
+      </select>
+      <div className="pointer-events-none absolute inset-y-0 right-2.5 flex items-center">
+        <svg className="h-4 w-4 text-gray-400 dark:text-gray-500" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" d="m19 9-7 7-7-7" />
+        </svg>
+      </div>
+    </div>
+  );
+}
 
 function PlusIcon({ className }: { className?: string }) {
   return (

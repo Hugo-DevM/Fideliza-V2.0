@@ -21,6 +21,7 @@ export const CreateCustomerSchema = z.object({
   whatsapp_opt_in: z.boolean().optional().default(false),
   birth_month: z.number().int().min(1).max(12).nullable().optional(),
   birth_day:   z.number().int().min(1).max(31).nullable().optional(),
+  birth_year:  z.number().int().min(1900).max(2100).nullable().optional(),
 });
 
 export const UpdateCustomerSchema = z.object({
@@ -35,6 +36,7 @@ export const UpdateCustomerSchema = z.object({
   notes: z.string().max(1000).nullable().optional(),
   birth_month: z.number().int().min(1).max(12).nullable().optional(),
   birth_day:   z.number().int().min(1).max(31).nullable().optional(),
+  birth_year:  z.number().int().min(1900).max(2100).nullable().optional(),
 });
 
 export const LookupCustomerSchema = z.object({

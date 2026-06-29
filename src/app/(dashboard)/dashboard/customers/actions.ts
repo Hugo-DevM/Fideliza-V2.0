@@ -15,14 +15,16 @@ export async function createCustomerAction(formData: FormData) {
   const whatsapp_opt_in  = formData.get('whatsapp_opt_in') === 'true';
   const birth_month_raw  = formData.get('birth_month') as string | null;
   const birth_day_raw    = formData.get('birth_day')   as string | null;
+  const birth_year_raw   = formData.get('birth_year')  as string | null;
   const birth_month      = birth_month_raw ? parseInt(birth_month_raw, 10) : null;
   const birth_day        = birth_day_raw   ? parseInt(birth_day_raw,   10) : null;
+  const birth_year       = birth_year_raw  ? parseInt(birth_year_raw,  10) : null;
 
   if (!name)  return { error: 'El nombre es obligatorio.' };
   if (!phone) return { error: 'El teléfono es obligatorio.' };
 
   try {
-    const customer = await createCustomer(tenantId, { name, phone, notes, whatsapp_opt_in, birth_month, birth_day });
+    const customer = await createCustomer(tenantId, { name, phone, notes, whatsapp_opt_in, birth_month, birth_day, birth_year });
     revalidateTag('customers', 'max');
     revalidatePath('/dashboard/customers');
     revalidatePath('/dashboard');
@@ -41,14 +43,16 @@ export async function updateCustomerAction(formData: FormData) {
   const notes           = (formData.get('notes') as string | null)?.trim() || null;
   const birth_month_raw = formData.get('birth_month') as string | null;
   const birth_day_raw   = formData.get('birth_day')   as string | null;
+  const birth_year_raw  = formData.get('birth_year')  as string | null;
   const birth_month     = birth_month_raw ? parseInt(birth_month_raw, 10) : null;
   const birth_day       = birth_day_raw   ? parseInt(birth_day_raw,   10) : null;
+  const birth_year      = birth_year_raw  ? parseInt(birth_year_raw,  10) : null;
 
   if (!customerId) return { error: 'ID de cliente inválido.' };
   if (!name)       return { error: 'El nombre es obligatorio.' };
 
   try {
-    await updateCustomer(tenantId, customerId, { name, phone, notes, birth_month, birth_day });
+    await updateCustomer(tenantId, customerId, { name, phone, notes, birth_month, birth_day, birth_year });
     revalidateTag('customers', 'max');
     revalidatePath(`/dashboard/customers/${customerId}`);
     return { success: true };
