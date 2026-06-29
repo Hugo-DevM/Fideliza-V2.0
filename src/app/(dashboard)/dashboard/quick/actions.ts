@@ -19,12 +19,25 @@ export interface QuickProgram {
   visit_count:     number | null;
 }
 
+export interface QuickMission {
+  challengeId:  string;
+  title:        string;
+  description:  string | null;
+  target:       number;
+  bonusPoints:  number;
+  programType:  string;
+  progress:     number;
+  completedAt:  string | null;
+  endsAt:       string | null;
+}
+
 export interface QuickCustomer {
   id: string;
   name: string;
   access_code: string;
   phone: string | null;
   programs: QuickProgram[];
+  missions: QuickMission[];
 }
 
 export async function lookupCustomerAction(query: string): Promise<
@@ -65,20 +78,26 @@ export async function lookupCustomerAction(query: string): Promise<
     return { error: 'Cliente no encontrado. Revisa el código de acceso o teléfono.' };
   }
 
-  // All active tenant programs
-  const { data: programRows } = await db
-    .from('reward_programs')
-    .select('id, name, type, config')
-    .eq('tenant_id', tenantId)
-    .eq('status', 'active')
-    .order('name');
+  const now = new Date().toISOString();
 
-  // Customer enrollments (balance per program)
-  const { data: enrollRows } = await db
-    .from('customer_program_enrollments')
-    .select('program_id, current_points, lifetime_points, stamp_count, visit_count')
-    .eq('tenant_id', tenantId)
-    .eq('customer_id', customerData.id);
+  // All active tenant programs + enrollments + missions in parallel
+  const [{ data: programRows }, { data: enrollRows }, { data: missionRows }] = await Promise.all([
+    db.from('reward_programs').select('id, name, type, config').eq('tenant_id', tenantId).eq('status', 'active').order('name'),
+    db.from('customer_program_enrollments').select('program_id, current_points, lifetime_points, stamp_count, visit_count').eq('tenant_id', tenantId).eq('customer_id', customerData.id),
+    (db as any)
+      .from('challenges')
+      .select(`id, title, description, target, bonus_points, ends_at,
+        reward_programs!inner(type),
+        customer_challenge_progress!left(progress, completed_at, customer_id)`)
+      .eq('tenant_id', tenantId)
+      .eq('is_active', true)
+      .or(`ends_at.is.null,ends_at.gte.${now}`) as Promise<{ data: Array<{
+        id: string; title: string; description: string | null;
+        target: number; bonus_points: number; ends_at: string | null;
+        reward_programs: { type: string };
+        customer_challenge_progress: Array<{ progress: number; completed_at: string | null; customer_id: string }>;
+      }> | null }>,
+  ]);
 
   type EnrollRow = Pick<CustomerProgramEnrollment, 'program_id' | 'current_points' | 'lifetime_points' | 'stamp_count' | 'visit_count'>;
   const enrollMap = new Map<string, EnrollRow>();
@@ -101,6 +120,21 @@ export async function lookupCustomerAction(query: string): Promise<
       };
     });
 
+  const missions: QuickMission[] = ((missionRows ?? []) as any[]).map((c) => {
+    const prog = c.customer_challenge_progress?.find((p: any) => p.customer_id === customerData!.id);
+    return {
+      challengeId: c.id,
+      title:       c.title,
+      description: c.description,
+      target:      c.target,
+      bonusPoints: c.bonus_points,
+      programType: c.reward_programs?.type ?? 'points',
+      endsAt:      c.ends_at,
+      progress:    prog?.progress ?? 0,
+      completedAt: prog?.completed_at ?? null,
+    };
+  });
+
   return {
     customer: {
       id:          customerData.id,
@@ -108,8 +142,63 @@ export async function lookupCustomerAction(query: string): Promise<
       access_code: customerData.access_code,
       phone:       customerData.phone,
       programs,
+      missions,
     },
   };
+}
+
+export async function quickMissionProgressAction(
+  customerId: string,
+  challengeId: string,
+): Promise<{ success: true; progress: number; target: number; completed: boolean } | { error: string }> {
+  const { tenantId } = await getAuthenticatedTenant();
+  const db = createServiceRoleClient();
+
+  const { data: challenge } = await (db as any)
+    .from('challenges')
+    .select('id, title, target, bonus_points, program_id, ends_at')
+    .eq('id', challengeId)
+    .eq('tenant_id', tenantId)
+    .eq('is_active', true)
+    .single() as { data: { id: string; title: string; target: number; bonus_points: number; program_id: string; ends_at: string | null } | null };
+
+  if (!challenge) return { error: 'Misión no disponible.' };
+
+  const now = new Date().toISOString();
+  if (challenge.ends_at && challenge.ends_at < now) return { error: 'La misión ya expiró.' };
+
+  const { data: existing } = await (db as any)
+    .from('customer_challenge_progress')
+    .select('id, progress, completed_at')
+    .eq('customer_id', customerId)
+    .eq('challenge_id', challengeId)
+    .maybeSingle() as { data: { id: string; progress: number; completed_at: string | null } | null };
+
+  if (existing?.completed_at) return { error: 'La misión ya fue completada.' };
+
+  const newProgress = (existing?.progress ?? 0) + 1;
+
+  if (existing) {
+    await (db as any).from('customer_challenge_progress').update({ progress: newProgress }).eq('id', existing.id);
+  } else {
+    await (db as any).from('customer_challenge_progress').insert({ tenant_id: tenantId, customer_id: customerId, challenge_id: challengeId, progress: newProgress });
+  }
+
+  let completed = false;
+  if (newProgress >= challenge.target) {
+    await (db as any).from('customer_challenge_progress').update({ completed_at: now }).eq('customer_id', customerId).eq('challenge_id', challengeId);
+    await (db as any).rpc('rpc_earn_points', {
+      p_tenant_id:    tenantId,
+      p_customer_id:  customerId,
+      p_program_id:   challenge.program_id,
+      p_points_delta: challenge.bonus_points,
+      p_note:         `Misión completada: ${challenge.title}`,
+    });
+    completed = true;
+  }
+
+  revalidatePath(`/dashboard/customers/${customerId}`);
+  return { success: true, progress: newProgress, target: challenge.target, completed };
 }
 
 export async function quickTransactionAction(formData: FormData): Promise<

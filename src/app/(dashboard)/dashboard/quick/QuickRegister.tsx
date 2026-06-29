@@ -1,8 +1,8 @@
 'use client';
 
 import { useState, useTransition, useRef, useEffect } from 'react';
-import { lookupCustomerAction, quickTransactionAction } from './actions';
-import type { QuickCustomer, QuickProgram } from './actions';
+import { lookupCustomerAction, quickTransactionAction, quickMissionProgressAction } from './actions';
+import type { QuickCustomer, QuickProgram, QuickMission } from './actions';
 import { useAutoError } from '@/hooks/useAutoError';
 import { computeTier, TIER_STYLES } from '@/lib/utils/tiers';
 import type { TierConfig } from '@/lib/utils/tiers';
@@ -27,6 +27,7 @@ export default function QuickRegister({ programLabel, currency }: Props) {
   const { error: lookupError, setError: setLookupError, mounted: lookupMounted, displayText: lookupDisplayText, wrapperStyle: lookupWrapperStyle, errorStyle: lookupErrorStyle } = useAutoError();
   const [isLooking, startLookup]              = useTransition();
 
+  const [missions, setMissions]       = useState<QuickMission[]>([]);
   const [selectedProgramId, setSelectedProgramId] = useState('');
   const [activeTab, setActiveTab]     = useState<ActionTab>('points');
   const [deltaStr, setDeltaStr]       = useState('1');
@@ -53,6 +54,7 @@ export default function QuickRegister({ programLabel, currency }: Props) {
     if (!query.trim()) return;
     setLookupError('');
     setCustomer(null);
+    setMissions([]);
     setLastSuccess(null);
     setTxError('');
     setDeltaStr('1');
@@ -65,6 +67,7 @@ export default function QuickRegister({ programLabel, currency }: Props) {
       } else {
         const c = result.customer;
         setCustomer(c);
+        setMissions(c.missions);
         // Default to first available tab type
         const firstType = getUniqueTabs(c.programs)[0] ?? 'points';
         setActiveTab(firstType);
@@ -258,6 +261,35 @@ export default function QuickRegister({ programLabel, currency }: Props) {
             +{lastSuccess.delta} {lastSuccess.unit} registrados para <strong>{lastSuccess.name}</strong>
           </p>
           <button onClick={() => setLastSuccess(null)} className="text-emerald-400 hover:text-emerald-600 dark:hover:text-emerald-300 text-lg leading-none ml-3">×</button>
+        </div>
+      )}
+
+      {/* Missions */}
+      {customer && missions.filter((m) => !m.completedAt).length > 0 && (
+        <div className="rounded-2xl border border-orange-100 dark:border-orange-500/20 bg-white dark:bg-[#161b2e] shadow-sm overflow-hidden">
+          <div className="flex items-center gap-2.5 px-5 py-3.5 border-b border-orange-100 dark:border-orange-500/20">
+            <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-orange-100 dark:bg-orange-500/20">
+              <svg className="h-3.5 w-3.5 text-orange-600 dark:text-orange-400" fill="none" stroke="currentColor" strokeWidth={1.8} viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 1 0 0 4 2 2 0 0 0 0-4Zm-8 2a2 2 0 1 1-4 0 2 2 0 0 1 4 0Z" />
+              </svg>
+            </div>
+            <p className="text-sm font-semibold text-gray-800 dark:text-white">Misiones activas</p>
+          </div>
+          <div className="divide-y divide-gray-50 dark:divide-[#1e2438]">
+            {missions.filter((m) => !m.completedAt).map((m) => (
+              <QuickMissionRow
+                key={m.challengeId}
+                mission={m}
+                customerId={customer.id}
+                onComplete={(id) =>
+                  setMissions((prev) => prev.map((x) => x.challengeId === id ? { ...x, completedAt: new Date().toISOString() } : x))
+                }
+                onProgress={(id, p) =>
+                  setMissions((prev) => prev.map((x) => x.challengeId === id ? { ...x, progress: p } : x))
+                }
+              />
+            ))}
+          </div>
         </div>
       )}
 
@@ -480,6 +512,92 @@ export default function QuickRegister({ programLabel, currency }: Props) {
 
         </div>
       )}
+    </div>
+  );
+}
+
+// ── Mission row ───────────────────────────────────────────────────
+
+function bonusLabel(type: string): string {
+  if (type === 'visit')    return 'visitas';
+  if (type === 'stamp')    return 'sellos';
+  if (type === 'cashback') return 'bono $';
+  return 'pts';
+}
+
+function QuickMissionRow({
+  mission: m,
+  customerId,
+  onComplete,
+  onProgress,
+}: {
+  mission: QuickMission;
+  customerId: string;
+  onComplete: (id: string) => void;
+  onProgress: (id: string, progress: number) => void;
+}) {
+  const [isPending, startTransition] = useTransition();
+  const [flash, setFlash] = useState<'ok' | 'done' | null>(null);
+  const pct = Math.min(100, Math.round((m.progress / m.target) * 100));
+
+  function handleAdd() {
+    startTransition(async () => {
+      const res = await quickMissionProgressAction(customerId, m.challengeId);
+      if ('success' in res) {
+        if (res.completed) {
+          setFlash('done');
+          setTimeout(() => onComplete(m.challengeId), 1200);
+        } else {
+          onProgress(m.challengeId, res.progress);
+          setFlash('ok');
+          setTimeout(() => setFlash(null), 1500);
+        }
+      }
+    });
+  }
+
+  return (
+    <div className="px-5 py-3.5 space-y-2">
+      <div className="flex items-start justify-between gap-3">
+        <div className="flex-1 min-w-0">
+          <p className="text-sm font-semibold text-gray-800 dark:text-white truncate">{m.title}</p>
+          {m.description && (
+            <p className="text-xs text-gray-500 dark:text-gray-400 truncate">{m.description}</p>
+          )}
+          <p className="text-xs text-gray-400 dark:text-gray-500 mt-0.5">
+            {m.progress}/{m.target} · <span className="text-orange-500 font-medium">+{m.bonusPoints} {bonusLabel(m.programType)}</span>
+          </p>
+        </div>
+        <button
+          type="button"
+          onClick={handleAdd}
+          disabled={isPending}
+          className={[
+            'shrink-0 flex items-center gap-1 rounded-xl px-3 py-1.5 text-xs font-semibold transition',
+            flash === 'done'
+              ? 'bg-emerald-100 dark:bg-emerald-500/20 text-emerald-700 dark:text-emerald-400'
+              : flash === 'ok'
+              ? 'bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400'
+              : 'bg-orange-100 dark:bg-orange-500/20 text-orange-700 dark:text-orange-400 hover:bg-orange-200 dark:hover:bg-orange-500/30',
+            isPending ? 'opacity-50 cursor-not-allowed' : '',
+          ].join(' ')}
+        >
+          {flash === 'done' ? '¡Completada! 🎉' : flash === 'ok' ? '✓ Listo' : (
+            <>
+              <svg className="h-3 w-3" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+              </svg>
+              +1
+            </>
+          )}
+        </button>
+      </div>
+      <div className="h-1.5 w-full rounded-full bg-gray-100 dark:bg-[#1e2438] overflow-hidden">
+        <div
+          className="h-full rounded-full bg-orange-400 dark:bg-orange-500 transition-all duration-500"
+          style={{ width: `${pct}%` }}
+        />
+      </div>
     </div>
   );
 }
