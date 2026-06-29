@@ -14,8 +14,14 @@ interface Props {
 function unitLabel(type: string): string {
   if (type === 'stamp')    return 'sellos';
   if (type === 'visit')    return 'visitas';
-  if (type === 'cashback') return '$ bono';
+  if (type === 'cashback') return 'bono $';
   return 'pts';
+}
+
+function bonusLimits(type: string): { max: number; step: number; defaultReferrer: number; defaultReferred: number } {
+  if (type === 'stamp' || type === 'visit') return { max: 50,    step: 1,    defaultReferrer: 3,   defaultReferred: 2   };
+  if (type === 'cashback')                  return { max: 500,   step: 0.5,  defaultReferrer: 10,  defaultReferred: 5   };
+  return                                           { max: 10000, step: 50,   defaultReferrer: 100, defaultReferred: 50  };
 }
 
 export default function ReferidosClient({
@@ -31,13 +37,14 @@ export default function ReferidosClient({
   const [errMsg,  setErrMsg]    = useState('');
   const [isPending, startTransition] = useTransition();
 
-  function handleBonusChange(programId: string, field: 'referrer_bonus' | 'referred_bonus', value: string) {
-    const num = Math.max(0, Math.min(10000, parseInt(value, 10) || 0));
+  function handleBonusChange(programId: string, field: 'referrer_bonus' | 'referred_bonus', value: string, type: string) {
+    const { max, defaultReferrer, defaultReferred } = bonusLimits(type);
+    const num = Math.max(0, Math.min(max, parseFloat(value) || 0));
     setConfigs((prev) => ({
       ...prev,
       [programId]: {
-        referrer_bonus: prev[programId]?.referrer_bonus ?? 100,
-        referred_bonus: prev[programId]?.referred_bonus ?? 50,
+        referrer_bonus: prev[programId]?.referrer_bonus ?? defaultReferrer,
+        referred_bonus: prev[programId]?.referred_bonus ?? defaultReferred,
         [field]: num,
       },
     }));
@@ -134,7 +141,8 @@ export default function ReferidosClient({
         <div className="space-y-3">
           <h2 className="text-sm font-semibold text-gray-700 dark:text-gray-300">Bonos por programa</h2>
           {programs.map((p) => {
-            const cfg = configs[p.id] ?? { referrer_bonus: 100, referred_bonus: 50 };
+            const { max, step, defaultReferrer, defaultReferred } = bonusLimits(p.type);
+            const cfg = configs[p.id] ?? { referrer_bonus: defaultReferrer, referred_bonus: defaultReferred };
             const unit = unitLabel(p.type);
             return (
               <div
@@ -160,10 +168,11 @@ export default function ReferidosClient({
                     <input
                       type="number"
                       min={0}
-                      max={10000}
+                      max={max}
+                      step={step}
                       value={cfg.referrer_bonus}
                       disabled={!isPro}
-                      onChange={(e) => handleBonusChange(p.id, 'referrer_bonus', e.target.value)}
+                      onChange={(e) => handleBonusChange(p.id, 'referrer_bonus', e.target.value, p.type)}
                       className="w-full rounded-xl border border-gray-200 dark:border-[#2a3147] bg-white dark:bg-[#0d0f17] px-3 py-2 text-sm text-gray-900 dark:text-white outline-none transition focus:border-emerald-400 dark:focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100 dark:focus:ring-emerald-500/20 disabled:opacity-50"
                     />
                     <p className="mt-1 text-[11px] text-gray-400 dark:text-gray-500">Quien refirió recibe este bono</p>
@@ -175,10 +184,11 @@ export default function ReferidosClient({
                     <input
                       type="number"
                       min={0}
-                      max={10000}
+                      max={max}
+                      step={step}
                       value={cfg.referred_bonus}
                       disabled={!isPro}
-                      onChange={(e) => handleBonusChange(p.id, 'referred_bonus', e.target.value)}
+                      onChange={(e) => handleBonusChange(p.id, 'referred_bonus', e.target.value, p.type)}
                       className="w-full rounded-xl border border-gray-200 dark:border-[#2a3147] bg-white dark:bg-[#0d0f17] px-3 py-2 text-sm text-gray-900 dark:text-white outline-none transition focus:border-emerald-400 dark:focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100 dark:focus:ring-emerald-500/20 disabled:opacity-50"
                     />
                     <p className="mt-1 text-[11px] text-gray-400 dark:text-gray-500">El nuevo cliente recibe este bono</p>
