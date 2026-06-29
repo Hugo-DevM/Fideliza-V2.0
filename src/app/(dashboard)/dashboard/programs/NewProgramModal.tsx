@@ -229,9 +229,20 @@ export default function NewProgramModal({
 
 const inputCls = 'w-full rounded-xl border border-gray-200 dark:border-[#2a3147] bg-white dark:bg-[#0d0f17] px-3 py-2.5 text-sm text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-600 outline-none transition focus:border-indigo-400 dark:focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 dark:focus:ring-indigo-500/20';
 
+const NAME_ALLOWED = /^[a-zA-Z0-9áéíóúÁÉÍÓÚàèìòùÀÈÌÒÙäëïöüÄËÏÖÜñÑçÇüÜ ]*$/;
+
 function NameField({ charCount, onCharCount }: { charCount: number; onCharCount: (n: number) => void }) {
   const MAX = 60;
   const warn = charCount >= Math.floor(MAX * 0.85);
+
+  function handleChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const val = e.target.value;
+    if (!NAME_ALLOWED.test(val)) {
+      e.target.value = val.replace(/[^a-zA-Z0-9áéíóúÁÉÍÓÚàèìòùÀÈÌÒÙäëïöüÄËÏÖÜñÑçÇ ]/g, '');
+    }
+    onCharCount(e.target.value.length);
+  }
+
   return (
     <div>
       <div className="flex items-center justify-between mb-1">
@@ -246,7 +257,7 @@ function NameField({ charCount, onCharCount }: { charCount: number; onCharCount:
         placeholder="Recompensas Café"
         required
         maxLength={MAX}
-        onChange={(e) => onCharCount(e.target.value.length)}
+        onChange={handleChange}
         className={inputCls}
       />
     </div>

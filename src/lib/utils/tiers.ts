@@ -80,20 +80,23 @@ export function nextTier(
   return sorted.find((t) => lifetimePoints < t.min_lifetime) ?? null;
 }
 
-export const TIER_STYLES: Record<string, { bg: string; text: string; border: string }> = {
+export const TIER_STYLES: Record<string, { bg: string; text: string; border: string; btnSelected: string }> = {
   bronze: {
-    bg:     'bg-amber-50  dark:bg-amber-900/20',
-    text:   'text-amber-700 dark:text-amber-400',
-    border: 'border-amber-200 dark:border-amber-800/50',
+    bg:          'bg-amber-50  dark:bg-amber-900/20',
+    text:        'text-amber-700 dark:text-amber-400',
+    border:      'border-amber-200 dark:border-amber-800/50',
+    btnSelected: 'bg-amber-200 dark:bg-amber-700/50 border-amber-500 dark:border-amber-500 text-amber-900 dark:text-amber-200',
   },
   silver: {
-    bg:     'bg-slate-100 dark:bg-slate-700/30',
-    text:   'text-slate-600 dark:text-slate-300',
-    border: 'border-slate-200 dark:border-slate-600/50',
+    bg:          'bg-slate-100 dark:bg-slate-700/30',
+    text:        'text-slate-600 dark:text-slate-300',
+    border:      'border-slate-200 dark:border-slate-600/50',
+    btnSelected: 'bg-slate-300 dark:bg-slate-600/60 border-slate-500 dark:border-slate-400 text-slate-900 dark:text-slate-100',
   },
   gold: {
-    bg:     'bg-yellow-50 dark:bg-yellow-900/20',
-    text:   'text-yellow-700 dark:text-yellow-400',
-    border: 'border-yellow-200 dark:border-yellow-800/50',
+    bg:          'bg-yellow-50 dark:bg-yellow-900/20',
+    text:        'text-yellow-700 dark:text-yellow-400',
+    border:      'border-yellow-200 dark:border-yellow-800/50',
+    btnSelected: 'bg-yellow-200 dark:bg-yellow-700/50 border-yellow-500 dark:border-yellow-500 text-yellow-900 dark:text-yellow-200',
   },
 };

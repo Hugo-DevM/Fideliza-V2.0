@@ -199,7 +199,7 @@ export default function TiersClient({ settings, canUse }: TiersClientProps) {
                       </div>
                       <div>
                         <label className="mb-1 block text-xs font-medium text-gray-500 dark:text-gray-400">
-                          Multiplicador de earn
+                          Multiplicador de ganancia
                         </label>
                         <div className="flex gap-1">
                           {MULTIPLIER_OPTIONS.filter((m) => i === 0 ? m.value === 1 : m.value > 1).map((m) => (
@@ -210,8 +210,8 @@ export default function TiersClient({ settings, canUse }: TiersClientProps) {
                               onClick={() => updateTier(i, { multiplier: m.value })}
                               className={`flex-1 rounded-lg border py-1.5 text-xs font-semibold transition disabled:cursor-default ${
                                 tier.multiplier === m.value
-                                  ? `${style.bg} ${style.border} ${style.text}`
-                                  : 'border-gray-200 dark:border-[#2a3147] text-gray-400 dark:text-gray-500 hover:border-yellow-300'
+                                  ? style.btnSelected
+                                  : 'border-gray-200 dark:border-[#2a3147] text-gray-400 dark:text-gray-500 hover:border-yellow-300 dark:hover:border-yellow-700'
                               }`}
                             >
                               {m.label}
@@ -225,7 +225,7 @@ export default function TiersClient({ settings, canUse }: TiersClientProps) {
               })}
             </div>
             <p className="mt-2 text-xs text-gray-400 dark:text-gray-500">
-              El multiplicador se aplica automáticamente en cada earn, para cualquier tipo de programa.
+              El multiplicador se aplica automáticamente en cada acción, para cualquier tipo de programa.
             </p>
           </div>
         </div>
@@ -252,12 +252,12 @@ export default function TiersClient({ settings, canUse }: TiersClientProps) {
 
       {/* ── Info box ────────────────────────────────────────────────── */}
       <div className="rounded-2xl border border-blue-100 dark:border-blue-500/20 bg-blue-50 dark:bg-blue-500/10 px-5 py-4 text-sm text-blue-700 dark:text-blue-300 space-y-1">
-        <p className="font-semibold">¿Cómo funciona el score de lealtad?</p>
+        <p className="font-semibold">¿Cómo funcionan los puntos de lealtad?</p>
         <ul className="list-disc list-inside space-y-1 text-xs text-blue-600 dark:text-blue-400">
-          <li>Cada earn suma puntos de lealtad usando las tasas de conversión configuradas arriba.</li>
-          <li>El nivel VIP del cliente se calcula sobre su score acumulado histórico (nunca decrementa).</li>
-          <li>El multiplicador del tier aplica en todos los programas donde el cliente gana.</li>
-          <li>Cuando un cliente sube de nivel, recibe una notificación por WhatsApp (si tiene opt-in).</li>
+          <li>Cada acción (sello, visita, punto, cashback) suma puntos de lealtad según las tasas configuradas arriba.</li>
+          <li>El nivel VIP se calcula sobre los puntos acumulados históricos del cliente — nunca bajan.</li>
+          <li>El multiplicador del nivel aplica automáticamente en todos los programas donde el cliente gana.</li>
+          <li>Cuando un cliente sube de nivel, recibe una notificación por WhatsApp (si aceptó recibirlas).</li>
         </ul>
       </div>
     </div>
