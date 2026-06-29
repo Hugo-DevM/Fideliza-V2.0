@@ -16,10 +16,19 @@ interface Challenge {
 interface ChallengesCardProps {
   programId: string;
   plan: string;
+  programType: string;
   challenges: Challenge[];
 }
 
-export default function ChallengesCard({ programId, plan, challenges }: ChallengesCardProps) {
+function bonusLabel(type: string): string {
+  if (type === 'visit')    return 'visitas';
+  if (type === 'stamp')    return 'sellos';
+  if (type === 'cashback') return 'bono $';
+  return 'pts';
+}
+
+export default function ChallengesCard({ programId, plan, programType, challenges }: ChallengesCardProps) {
+  const unit = bonusLabel(programType);
   const isPro = plan === 'pro' || plan === 'enterprise';
   const [showForm, setShowForm] = useState(false);
   const [title,       setTitle]       = useState('');
@@ -100,7 +109,7 @@ export default function ChallengesCard({ programId, plan, challenges }: Challeng
                       <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5 truncate">{c.description}</p>
                     )}
                     <p className="text-xs text-gray-400 dark:text-gray-500 mt-0.5">
-                      Meta: {c.target} · <span className="text-orange-600 dark:text-orange-400 font-semibold">+{c.bonus_points} pts</span>
+                      Meta: {c.target} · <span className="text-orange-600 dark:text-orange-400 font-semibold">+{c.bonus_points} {unit}</span>
                       {c.ends_at && (
                         <> · hasta {new Date(c.ends_at).toLocaleDateString('es', { day: 'numeric', month: 'short' })}</>
                       )}
@@ -173,7 +182,7 @@ export default function ChallengesCard({ programId, plan, challenges }: Challeng
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">Bonus (pts)</label>
+                  <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">Bonus ({unit})</label>
                   <input
                     type="number"
                     min={1}
@@ -217,7 +226,7 @@ export default function ChallengesCard({ programId, plan, challenges }: Challeng
                 <p className="text-xs text-gray-400 dark:text-gray-500 text-center pt-1">
                   <strong className="text-gray-700 dark:text-gray-200">{title}</strong>
                   {description && <> · {description}</>}
-                  {' · '}Meta: <strong>{target}</strong> → <strong className="text-orange-500">+{bonus} pts</strong>
+                  {' · '}Meta: <strong>{target}</strong> → <strong className="text-orange-500">+{bonus} {unit}</strong>
                 </p>
               )}
             </form>

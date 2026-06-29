@@ -3,12 +3,20 @@
 import { useState, useTransition } from 'react';
 import { addMissionProgressAction } from './actions';
 
+function bonusLabel(type: string): string {
+  if (type === 'visit')    return 'visitas';
+  if (type === 'stamp')    return 'sellos';
+  if (type === 'cashback') return 'bono $';
+  return 'pts';
+}
+
 interface MissionProgress {
   challengeId: string;
   title: string;
   description: string | null;
   target: number;
   bonusPoints: number;
+  programType: string;
   progress: number;
   completedAt: string | null;
   endsAt: string | null;
@@ -100,7 +108,7 @@ function MissionRow({ mission: m, customerId }: { mission: MissionProgress; cust
         </div>
         <div className="flex-1 min-w-0">
           <p className="text-xs font-semibold text-emerald-700 dark:text-emerald-400">¡Misión completada!</p>
-          <p className="text-[11px] text-gray-400 dark:text-gray-500">+{m.bonusPoints} pts acreditados</p>
+          <p className="text-[11px] text-gray-400 dark:text-gray-500">+{m.bonusPoints} {bonusLabel(m.programType)} acreditados</p>
         </div>
       </div>
     );
@@ -115,7 +123,7 @@ function MissionRow({ mission: m, customerId }: { mission: MissionProgress; cust
             <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">{m.description}</p>
           )}
           <p className="text-xs text-gray-400 dark:text-gray-500 mt-0.5">
-            {progress} / {m.target} · <span className="text-orange-600 dark:text-orange-400 font-medium">+{m.bonusPoints} pts al completar</span>
+            {progress} / {m.target} · <span className="text-orange-600 dark:text-orange-400 font-medium">+{m.bonusPoints} {bonusLabel(m.programType)} al completar</span>
             {m.endsAt && (
               <> · hasta {new Date(m.endsAt).toLocaleDateString('es', { day: 'numeric', month: 'short' })}</>
             )}

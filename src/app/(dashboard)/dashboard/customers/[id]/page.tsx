@@ -47,12 +47,14 @@ export default async function CustomerDetailPage({
       (db as any)
         .from('challenges')
         .select(`id, title, description, target, bonus_points, ends_at,
+          reward_programs!inner(type),
           customer_challenge_progress!left(progress, completed_at, customer_id)`)
         .eq('tenant_id', tenantId)
         .eq('is_active', true)
         .or(`ends_at.is.null,ends_at.gte.${now}`) as Promise<{ data: Array<{
           id: string; title: string; description: string | null;
           target: number; bonus_points: number; ends_at: string | null;
+          reward_programs: { type: string };
           customer_challenge_progress: Array<{ progress: number; completed_at: string | null; customer_id: string }>;
         }> | null }>,
     ]);
@@ -65,6 +67,7 @@ export default async function CustomerDetailPage({
         description:  c.description,
         target:       c.target,
         bonusPoints:  c.bonus_points,
+        programType:  c.reward_programs?.type ?? 'points',
         endsAt:       c.ends_at,
         progress:     prog?.progress ?? 0,
         completedAt:  prog?.completed_at ?? null,
