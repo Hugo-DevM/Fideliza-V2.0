@@ -6,6 +6,29 @@ import { createProgramAction } from './actions';
 import { useAutoError } from '@/hooks/useAutoError';
 import { useModalTransition } from '@/hooks/useModalTransition';
 
+const HEAD_START_COPY: Record<string, { label: string; body: string; hint: string }> = {
+  points:   {
+    label: 'Puntos de bienvenida',
+    body:  '10/100 puntos convierte mejor que 0/100 — el cliente siente que ya tiene progreso que perder.',
+    hint:  '0 = sin bonus. Ej: 10 en un programa de 100 pts mínimos',
+  },
+  stamp:    {
+    label: 'Sellos de bienvenida',
+    body:  '2/10 sellos convierte mejor que 0/10 — el cliente siente que ya tiene progreso que perder.',
+    hint:  '0 = sin bonus. Ej: 2 en un programa de 10 sellos',
+  },
+  visit:    {
+    label: 'Visitas de bienvenida',
+    body:  '1/5 visitas convierte mejor que 0/5 — el cliente siente que ya tiene progreso que perder.',
+    hint:  '0 = sin bonus. Ej: 1 en un programa de 5 visitas',
+  },
+  cashback: {
+    label: 'Crédito inicial (centavos)',
+    body:  'Un saldo inicial para arrancar. El cliente siente que ya tiene algo que perder.',
+    hint:  '0 = sin bonus. Ej: 50 = $0.50 de cashback inicial',
+  },
+};
+
 const ALL_PROGRAM_TYPES = [
   { value: 'points',   label: 'Puntos',           hint: 'Gana X puntos por $ gastado' },
   { value: 'stamp',    label: 'Tarjeta de sellos', hint: 'Acumula N sellos, gana una recompensa' },
@@ -161,23 +184,28 @@ export default function NewProgramModal({
                 </div>
               )}
 
-              {/* Head Start — bonus points on first earn */}
-              <div className="rounded-xl border border-amber-200 dark:border-amber-700/40 bg-amber-50 dark:bg-amber-950/20 p-4 space-y-1.5">
-                <div className="flex items-center gap-2">
-                  <span className="text-sm font-semibold text-amber-800 dark:text-amber-300">Head Start (opcional)</span>
-                  <span className="rounded-full bg-amber-200 dark:bg-amber-700/40 px-1.5 py-0.5 text-[10px] font-bold text-amber-800 dark:text-amber-300">NUEVO</span>
-                </div>
-                <p className="text-xs text-amber-700 dark:text-amber-400">
-                  Puntos extra al inscribirse. <strong>2/10 sellos convierte mejor que 0/10</strong> — el cliente siente que ya tiene progreso que perder.
-                </p>
-                <NumField
-                  label="Puntos de bienvenida"
-                  name="initial_bonus"
-                  defaultValue="0"
-                  min="0"
-                  hint="0 = sin bonus. Ej: 2 en programa de 10 sellos"
-                />
-              </div>
+              {/* Head Start — bonus on first earn */}
+              {(() => {
+                const hs = HEAD_START_COPY[type] ?? HEAD_START_COPY.points;
+                return (
+                  <div className="rounded-xl border border-amber-200 dark:border-amber-700/40 bg-amber-50 dark:bg-amber-950/20 p-4 space-y-1.5">
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm font-semibold text-amber-800 dark:text-amber-300">Inicio con ventaja (opcional)</span>
+                      <span className="rounded-full bg-amber-200 dark:bg-amber-700/40 px-1.5 py-0.5 text-[10px] font-bold text-amber-800 dark:text-amber-300">NUEVO</span>
+                    </div>
+                    <p className="text-xs text-amber-700 dark:text-amber-400">
+                      Bonus al inscribirse. <strong>{hs.body.split(' — ')[0]}</strong> — {hs.body.split(' — ')[1]}
+                    </p>
+                    <NumField
+                      label={hs.label}
+                      name="initial_bonus"
+                      defaultValue="0"
+                      min="0"
+                      hint={hs.hint}
+                    />
+                  </div>
+                );
+              })()}
 
               <div className="flex justify-end gap-3 pt-1">
                 <button type="button" onClick={() => setOpen(false)}
