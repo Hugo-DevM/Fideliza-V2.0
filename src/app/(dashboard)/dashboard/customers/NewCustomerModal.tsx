@@ -407,7 +407,7 @@ function CustomSelect({ name, value, onChange, placeholder, options }: {
 
       {/* Dropdown list */}
       {open && (
-        <div className="absolute z-50 mt-1 w-full rounded-xl border border-gray-200 dark:border-[#2a3147] bg-white dark:bg-[#161b2e] shadow-lg overflow-hidden">
+        <div className="absolute z-50 bottom-full mb-1 w-full rounded-xl border border-gray-200 dark:border-[#2a3147] bg-white dark:bg-[#161b2e] shadow-lg overflow-hidden">
           <ul className="max-h-48 overflow-y-auto py-1 [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-gray-200 dark:[&::-webkit-scrollbar-thumb]:bg-[#2a3147]">
             {options.map((o) => (
               <li key={o.value}>

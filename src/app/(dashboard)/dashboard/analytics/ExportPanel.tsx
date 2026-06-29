@@ -224,7 +224,7 @@ function DatePicker({ value, onChange, min, max }: {
     ...Array.from({ length: daysInMonth }, (_, i) => i + 1),
   ];
 
-  const monthLabel = new Date(viewYear, viewMonth).toLocaleDateString('es', { month: 'long', year: 'numeric' });
+  const monthLabel = new Date(viewYear, viewMonth).toLocaleDateString('es', { month: 'long', year: 'numeric' }).replace(/ De /, ' de ');
   const today      = todayStr();
 
   function selectDay(day: number) {
@@ -265,7 +265,7 @@ function DatePicker({ value, onChange, min, max }: {
       </button>
 
       {open && (
-        <div className="absolute top-full left-0 mt-1.5 z-50 w-72 rounded-2xl border border-gray-100 dark:border-[#1e2438] bg-white dark:bg-[#161b2e] shadow-xl p-3">
+        <div className="absolute bottom-full left-0 mb-1.5 z-50 w-72 rounded-2xl border border-gray-100 dark:border-[#1e2438] bg-white dark:bg-[#161b2e] shadow-xl p-3">
           {/* Month nav */}
           <div className="flex items-center justify-between mb-3">
             <button
