@@ -32,6 +32,7 @@ interface CustomerRow {
   tenant_id:       string;
   whatsapp_opt_in: boolean;
   is_active:       boolean;
+  birth_year:      number | null;
 }
 
 interface TenantSettingsRow {
@@ -59,7 +60,7 @@ export async function GET(request: Request) {
   // ── Step 1: Customers with birthday today ────────────────────────────────
   const { data: customers } = await db
     .from('customers')
-    .select('id, name, phone, tenant_id, whatsapp_opt_in, is_active')
+    .select('id, name, phone, tenant_id, whatsapp_opt_in, is_active, birth_year')
     .eq('birth_month', todayMonth)
     .eq('birth_day',   todayDay)
     .eq('is_active', true)
@@ -112,6 +113,7 @@ export async function GET(request: Request) {
     }
 
     const businessName = tenantNames.get(customer.tenant_id) ?? '';
+    const age = customer.birth_year ? thisYear - customer.birth_year : null;
 
     // Log first (idempotency — prevents double send if cron retries)
     const { error: logError } = await db
@@ -131,6 +133,7 @@ export async function GET(request: Request) {
       businessName,
       customer.phone!,
       BIRTHDAY_BONUS_POINTS,
+      age,
     );
 
     queued++;

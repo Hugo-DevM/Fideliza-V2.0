@@ -6,6 +6,29 @@ import { createProgramAction } from './actions';
 import { useAutoError } from '@/hooks/useAutoError';
 import { useModalTransition } from '@/hooks/useModalTransition';
 
+const HEAD_START_COPY: Record<string, { label: string; body: string; hint: string }> = {
+  points:   {
+    label: 'Puntos de bienvenida',
+    body:  '10/100 puntos convierte mejor que 0/100 — el cliente siente que ya tiene progreso que perder.',
+    hint:  '0 = sin bonus. Ej: 10 en un programa de 100 pts mínimos',
+  },
+  stamp:    {
+    label: 'Sellos de bienvenida',
+    body:  '2/10 sellos convierte mejor que 0/10 — el cliente siente que ya tiene progreso que perder.',
+    hint:  '0 = sin bonus. Ej: 2 en un programa de 10 sellos',
+  },
+  visit:    {
+    label: 'Visitas de bienvenida',
+    body:  '1/5 visitas convierte mejor que 0/5 — el cliente siente que ya tiene progreso que perder.',
+    hint:  '0 = sin bonus. Ej: 1 en un programa de 5 visitas',
+  },
+  cashback: {
+    label: 'Crédito inicial (centavos)',
+    body:  'Un saldo inicial para arrancar. El cliente siente que ya tiene algo que perder.',
+    hint:  '0 = sin bonus. Ej: 50 = $0.50 de cashback inicial',
+  },
+};
+
 const ALL_PROGRAM_TYPES = [
   { value: 'points',   label: 'Puntos',           hint: 'Gana X puntos por $ gastado' },
   { value: 'stamp',    label: 'Tarjeta de sellos', hint: 'Acumula N sellos, gana una recompensa' },
@@ -55,15 +78,17 @@ export default function NewProgramModal({
 
   return (
     <>
-      <button
-        onClick={() => setOpen(true)}
-        className="inline-flex items-center justify-center gap-2 rounded-xl bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-indigo-700 transition shrink-0"
-      >
-        <svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
-        </svg>
-        Nuevo programa
-      </button>
+      {controlledOpen === undefined && (
+        <button
+          onClick={() => setOpen(true)}
+          className="inline-flex items-center justify-center gap-2 rounded-xl bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-indigo-700 transition shrink-0"
+        >
+          <svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+          </svg>
+          Nuevo programa
+        </button>
+      )}
 
       {modalMounted && (
         <div
@@ -161,23 +186,28 @@ export default function NewProgramModal({
                 </div>
               )}
 
-              {/* Head Start — bonus points on first earn */}
-              <div className="rounded-xl border border-amber-200 dark:border-amber-700/40 bg-amber-50 dark:bg-amber-950/20 p-4 space-y-1.5">
-                <div className="flex items-center gap-2">
-                  <span className="text-sm font-semibold text-amber-800 dark:text-amber-300">Head Start (opcional)</span>
-                  <span className="rounded-full bg-amber-200 dark:bg-amber-700/40 px-1.5 py-0.5 text-[10px] font-bold text-amber-800 dark:text-amber-300">NUEVO</span>
-                </div>
-                <p className="text-xs text-amber-700 dark:text-amber-400">
-                  Puntos extra al inscribirse. <strong>2/10 sellos convierte mejor que 0/10</strong> — el cliente siente que ya tiene progreso que perder.
-                </p>
-                <NumField
-                  label="Puntos de bienvenida"
-                  name="initial_bonus"
-                  defaultValue="0"
-                  min="0"
-                  hint="0 = sin bonus. Ej: 2 en programa de 10 sellos"
-                />
-              </div>
+              {/* Head Start — bonus on first earn */}
+              {(() => {
+                const hs = HEAD_START_COPY[type] ?? HEAD_START_COPY.points;
+                return (
+                  <div className="rounded-xl border border-amber-200 dark:border-amber-700/40 bg-amber-50 dark:bg-amber-950/20 p-4 space-y-1.5">
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm font-semibold text-amber-800 dark:text-amber-300">Inicio con ventaja (opcional)</span>
+                      <span className="rounded-full bg-amber-200 dark:bg-amber-700/40 px-1.5 py-0.5 text-[10px] font-bold text-amber-800 dark:text-amber-300">NUEVO</span>
+                    </div>
+                    <p className="text-xs text-amber-700 dark:text-amber-400">
+                      Bonus al inscribirse. <strong>{hs.body.split(' — ')[0]}</strong> — {hs.body.split(' — ')[1]}
+                    </p>
+                    <NumField
+                      label={hs.label}
+                      name="initial_bonus"
+                      defaultValue="0"
+                      min="0"
+                      hint={hs.hint}
+                    />
+                  </div>
+                );
+              })()}
 
               <div className="flex justify-end gap-3 pt-1">
                 <button type="button" onClick={() => setOpen(false)}
@@ -199,9 +229,20 @@ export default function NewProgramModal({
 
 const inputCls = 'w-full rounded-xl border border-gray-200 dark:border-[#2a3147] bg-white dark:bg-[#0d0f17] px-3 py-2.5 text-sm text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-600 outline-none transition focus:border-indigo-400 dark:focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 dark:focus:ring-indigo-500/20';
 
+const NAME_ALLOWED = /^[a-zA-Z0-9áéíóúÁÉÍÓÚàèìòùÀÈÌÒÙäëïöüÄËÏÖÜñÑçÇüÜ ]*$/;
+
 function NameField({ charCount, onCharCount }: { charCount: number; onCharCount: (n: number) => void }) {
   const MAX = 60;
   const warn = charCount >= Math.floor(MAX * 0.85);
+
+  function handleChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const val = e.target.value;
+    if (!NAME_ALLOWED.test(val)) {
+      e.target.value = val.replace(/[^a-zA-Z0-9áéíóúÁÉÍÓÚàèìòùÀÈÌÒÙäëïöüÄËÏÖÜñÑçÇ ]/g, '');
+    }
+    onCharCount(e.target.value.length);
+  }
+
   return (
     <div>
       <div className="flex items-center justify-between mb-1">
@@ -216,7 +257,7 @@ function NameField({ charCount, onCharCount }: { charCount: number; onCharCount:
         placeholder="Recompensas Café"
         required
         maxLength={MAX}
-        onChange={(e) => onCharCount(e.target.value.length)}
+        onChange={handleChange}
         className={inputCls}
       />
     </div>

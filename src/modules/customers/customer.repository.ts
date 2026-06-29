@@ -60,15 +60,15 @@ export const listCustomers = unstable_cache(
     const from = (page - 1) * limit;
     const to = from + limit - 1;
 
-    // If filtering by tier, first resolve matching customer IDs from enrollments
+    // Tier filter uses the universal loyalty score cache on customers (migration 031)
     let tierCustomerIds: string[] | null = null;
     if (tier) {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const { data: enrollData } = await (db.from('customer_program_enrollments') as any)
-        .select('customer_id')
+      const { data: tierData } = await (db.from('customers') as any)
+        .select('id')
         .eq('tenant_id', tenantId)
         .eq('tier_color', tier);
-      tierCustomerIds = [...new Set(((enrollData ?? []) as { customer_id: string }[]).map((e) => e.customer_id))];
+      tierCustomerIds = ((tierData ?? []) as { id: string }[]).map((c) => c.id);
       if (tierCustomerIds.length === 0) return { customers: [], total: 0 };
     }
 

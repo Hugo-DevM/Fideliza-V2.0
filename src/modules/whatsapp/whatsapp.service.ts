@@ -265,7 +265,12 @@ export async function sendStreakAtRiskMessage(
 /**
  * Sent on the customer's birthday by the daily birthday-rewards cron.
  * Template: fideliza_birthday_v2 (marketing)
+<<<<<<< HEAD
  * Params: [customer_name, business_name, bonus_points]
+=======
+ * Params: [customer_name, business_name, bonus_points, age_years]
+ * age_years is empty string when birth_year is not set.
+>>>>>>> main
  */
 export async function sendBirthdayMessage(
   customerId:   UUID,
@@ -274,6 +279,7 @@ export async function sendBirthdayMessage(
   businessName: string,
   phone:        string,
   bonusPoints:  number,
+  age:          number | null = null,
 ): Promise<void> {
   try {
     await enqueueMessage({
@@ -286,7 +292,7 @@ export async function sendBirthdayMessage(
         '1': customerName,
         '2': businessName,
         '3': String(bonusPoints),
-        '4': '{{unit_label}}',
+        '4': age !== null ? String(age) : '',
       },
       priority: 2,
     });

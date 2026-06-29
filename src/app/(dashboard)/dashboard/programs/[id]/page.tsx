@@ -1,17 +1,10 @@
 import { notFound } from 'next/navigation';
-import Link from 'next/link';
 import { getAuthenticatedTenant } from '@/lib/auth/get-tenant';
 import { getProgramById, listRewardsByProgram } from '@/modules/rewards';
 import { createServiceRoleClient } from '@/lib/supabase/server';
-import NewRewardForm from './NewRewardForm';
 import ProgramStatusButtons from './ProgramStatusButtons';
 import EditProgramModal from './EditProgramModal';
-import DeleteRewardButton from './DeleteRewardButton';
-import FlashOfferCard from './FlashOfferCard';
-import TiersCard from './TiersCard';
-import SurpriseDelightCard from './SurpriseDelightCard';
-import ReferralCard from './ReferralCard';
-import ChallengesCard from './ChallengesCard';
+import ProgramDetailTabs from './ProgramDetailTabs';
 import { NotFoundError } from '@/lib/middleware/errors';
 import type { ProgramStatus } from '@/lib/types';
 
@@ -49,19 +42,16 @@ function conversionLabel(type: string, config: Record<string, unknown>): string 
   return '—';
 }
 
-function rewardCostLabel(type: string, costPoints: number, config: Record<string, unknown>): string {
-  if (type === 'stamp')    return `${config.stamps_needed ?? costPoints} sellos`;
-  if (type === 'visit')    return `${config.visits_needed ?? costPoints} visitas`;
-  if (type === 'cashback') return `${costPoints} pts`;
-  return `${costPoints} pts`;
-}
 
 export default async function ProgramDetailPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ id: string }>;
+  searchParams: Promise<{ tab?: string }>;
 }) {
   const { id } = await params;
+  const initialTab = (await searchParams).tab ?? 'programa';
   const { tenantId, settings, planLimits, effectivePlan } = await getAuthenticatedTenant();
 
   try {
@@ -164,183 +154,26 @@ export default async function ProgramDetailPage({
           ))}
         </div>
 
-        {/* Flash Offer card */}
-        <FlashOfferCard
+        <ProgramDetailTabs
+          initialTab={initialTab}
           programId={program.id}
-          plan={effectivePlan}
-          config={config}
-        />
-
-        {/* Tiers VIP card */}
-        <TiersCard
-          programId={program.id}
-          plan={effectivePlan}
           programType={program.type}
+          effectivePlan={effectivePlan}
           config={config}
-        />
-
-        {/* Surprise & Delight card */}
-        <SurpriseDelightCard
-          programId={program.id}
-          plan={effectivePlan}
-          config={config}
-        />
-
-        {/* Referral Program card */}
-        <ReferralCard
-          programId={program.id}
-          plan={effectivePlan}
-          config={config}
-        />
-
-        {/* Challenges / Misiones card */}
-        <ChallengesCard
-          programId={program.id}
-          plan={effectivePlan}
           challenges={challenges}
+          rewards={rewards as unknown as { id: string; name: string; cost_points: number; is_active: boolean; redeemed_count: number; stock: number | null; expiry_days: number | null }[]}
+          recentTx={(recentTx ?? []) as unknown as { id: string; type: string; points_delta: number; note: string | null; created_at: string; customers: { name: string } | null }[]}
+          txTotal={txTotal ?? 0}
+          programLabel={settings.program_label ?? 'puntos'}
+          rewardCatalog={planLimits.rewardCatalog}
+          maxRewardsPerProgram={planLimits.maxRewardsPerProgram}
         />
-
-        {/* Content grid */}
-        <div className="grid gap-4 lg:grid-cols-2 lg:items-start">
-
-          {/* Reward catalog */}
-          <div className="min-h-[220px] rounded-2xl border border-gray-100 dark:border-[#1e2438] bg-white dark:bg-[#161b2e] shadow-sm">
-            <div className="flex items-center justify-between border-b border-gray-100 dark:border-[#1e2438] px-5 py-4">
-              <h2 className="text-sm font-semibold text-gray-800 dark:text-white">Catálogo de recompensas</h2>
-              {(() => {
-                const activeRewards = rewards.filter((r) => r.is_active).length;
-                const max = planLimits.maxRewardsPerProgram;
-                const atLimit = max !== null && activeRewards >= max;
-                return program.status !== 'archived' && planLimits.rewardCatalog ? (
-                  !atLimit ? (
-                    <NewRewardForm
-                      programId={program.id}
-                      programType={program.type as 'points' | 'stamp' | 'visit' | 'cashback'}
-                      programConfig={config}
-                      compact
-                    />
-                  ) : (
-                    <span className="text-xs text-gray-400 dark:text-gray-500">Límite: {max} activas</span>
-                  )
-                ) : null;
-              })()}
-            </div>
-
-            {!rewards.length && (
-              <p className="px-5 py-10 text-center text-sm text-gray-400 dark:text-gray-500">Sin recompensas aún.</p>
-            )}
-
-            {rewards.filter((r) => r.is_active).length > 0 && (
-              <ul className="divide-y divide-gray-50 dark:divide-[#1e2438]">
-                {rewards.filter((r) => r.is_active).map((r) => (
-                  <li key={r.id} className="flex items-center gap-3 px-5 py-3.5">
-                    <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-indigo-50 dark:bg-indigo-500/15 text-indigo-500 dark:text-indigo-400">
-                      <RewardIcon type={program.type} className="h-4 w-4" />
-                    </div>
-                    <div className="min-w-0 flex-1">
-                      <p className="truncate text-sm font-semibold text-gray-800 dark:text-white">{r.name}</p>
-                      <p className="text-xs text-gray-400 dark:text-gray-500">
-                        {r.redeemed_count} canjes
-                        {r.stock !== null && ` · stock: ${r.stock}`}
-                        {r.expiry_days && ` · vence en ${r.expiry_days}d`}
-                      </p>
-                    </div>
-                    <span className="shrink-0 rounded-full bg-indigo-50 dark:bg-indigo-500/15 px-2.5 py-1 text-xs font-semibold text-indigo-600 dark:text-indigo-400">
-                      {rewardCostLabel(program.type, r.cost_points, config)}
-                    </span>
-                    <DeleteRewardButton programId={program.id} rewardId={r.id} rewardName={r.name} />
-                  </li>
-                ))}
-              </ul>
-            )}
-
-            {/* Upsell when catalog not available */}
-            {program.status !== 'archived' && !planLimits.rewardCatalog && (
-              <div className="mx-5 mb-5 mt-3 rounded-xl border border-dashed border-amber-300 dark:border-amber-700/50 bg-amber-50 dark:bg-amber-950/30 p-4 text-center">
-                <p className="text-xs font-medium text-amber-800 dark:text-amber-300">El catálogo de recompensas requiere el plan Starter o Pro</p>
-                <a href="/dashboard/settings" className="mt-1 inline-block text-xs text-amber-700 dark:text-amber-400 underline hover:text-amber-900">
-                  Actualizar plan
-                </a>
-              </div>
-            )}
-          </div>
-
-          {/* Recent transactions */}
-          <div className="min-h-[220px] rounded-2xl border border-gray-100 dark:border-[#1e2438] bg-white dark:bg-[#161b2e] shadow-sm">
-            <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100 dark:border-[#1e2438]">
-              <h2 className="text-sm font-semibold text-gray-800 dark:text-white">Transacciones recientes</h2>
-              {(txTotal ?? 0) > 0 && (
-                <span className="text-xs text-gray-400 dark:text-gray-500">{txTotal} en total</span>
-              )}
-            </div>
-            {!recentTx?.length ? (
-              <p className="px-5 py-10 text-center text-sm text-gray-400 dark:text-gray-500">Sin transacciones aún.</p>
-            ) : (
-              <>
-                <ul className="divide-y divide-gray-50 dark:divide-[#1e2438]">
-                  {(recentTx as unknown as Record<string, unknown>[]).map((tx) => {
-                    const cust     = tx['customers'] as { name: string } | null;
-                    const delta    = tx['points_delta'] as number;
-                    const isPos    = delta > 0;
-                    const note     = tx['note'] as string | null;
-                    const name     = cust?.name ?? '—';
-                    const initials = name.split(' ').slice(0, 2).map((w: string) => w[0]).join('').toUpperCase();
-                    const color    = AVATAR_COLORS[initials.charCodeAt(0) % AVATAR_COLORS.length];
-                    const ago      = formatAgo(new Date(tx['created_at'] as string));
-                    const action   = isPos
-                      ? `ganó ${delta} ${settings.program_label}`
-                      : note ? `canjeó ${note}` : `canjeó ${Math.abs(delta)} pts`;
-                    return (
-                      <li key={tx['id'] as string} className="flex items-center gap-3 px-5 py-3.5">
-                        <div className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-xl text-xs font-bold text-white ${color}`}>
-                          {initials}
-                        </div>
-                        <div className="min-w-0 flex-1">
-                          <p className="text-sm text-gray-800 dark:text-gray-100">
-                            <span className="font-semibold">{name}</span>{' '}
-                            <span className="text-gray-500 dark:text-gray-400 font-normal">{action}</span>
-                          </p>
-                          <p className="text-xs text-gray-400 dark:text-gray-500">{ago}</p>
-                        </div>
-                        <span className={`shrink-0 text-sm font-semibold ${isPos ? 'text-emerald-500' : 'text-gray-400 dark:text-gray-500'}`}>
-                          {isPos ? `+${delta}` : delta} pts
-                        </span>
-                      </li>
-                    );
-                  })}
-                </ul>
-                {(txTotal ?? 0) > 5 && (
-                  <div className="border-t border-gray-100 dark:border-[#1e2438] px-5 py-3">
-                    <Link
-                      href={`/dashboard/programs/${id}/transactions`}
-                      className="text-sm font-medium text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300 transition"
-                    >
-                      Ver todas las transacciones
-                    </Link>
-                  </div>
-                )}
-              </>
-            )}
-          </div>
-        </div>
       </div>
     );
   } catch (err) {
     if (err instanceof NotFoundError) notFound();
     throw err;
   }
-}
-
-const AVATAR_COLORS = ['bg-indigo-500','bg-violet-500','bg-emerald-500','bg-amber-500','bg-rose-500','bg-cyan-500'];
-
-function formatAgo(date: Date): string {
-  const diff = Date.now() - date.getTime();
-  const mins = Math.floor(diff / 60000);
-  if (mins < 1)  return 'ahora';
-  if (mins < 60) return `hace ${mins} min`;
-  const hrs = Math.floor(mins / 60);
-  if (hrs < 24)  return `hace ${hrs} h`;
-  return `hace ${Math.floor(hrs / 24)} d`;
 }
 
 // ── Icons ─────────────────────────────────────────────────────────
@@ -369,20 +202,3 @@ function ProgramTypeIcon({ type, className }: { type: string; className?: string
   );
 }
 
-function RewardIcon({ type, className }: { type: string; className?: string }) {
-  if (type === 'points' || type === 'cashback') return (
-    <svg className={className} fill="none" stroke="currentColor" strokeWidth={1.8} viewBox="0 0 24 24">
-      <path strokeLinecap="round" strokeLinejoin="round" d="M9 14.25l6-6m4.5-3.493V21.75l-3.75-1.5-3.75 1.5-3.75-1.5-3.75 1.5V4.757c0-1.108.806-2.057 1.907-2.185a48.507 48.507 0 0 1 11.186 0c1.1.128 1.907 1.077 1.907 2.185Z" />
-    </svg>
-  );
-  if (type === 'stamp') return (
-    <svg className={className} fill="none" stroke="currentColor" strokeWidth={1.8} viewBox="0 0 24 24">
-      <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 6v.75a3.375 3.375 0 0 1-3.375 3.375h-1.5a3.375 3.375 0 0 1-3.375-3.375V6m-1.125 0h10.875m-10.875 0a1.125 1.125 0 0 0-1.125 1.125v3.375c0 .621.504 1.125 1.125 1.125H6m10.875-5.625H18a1.125 1.125 0 0 1 1.125 1.125v3.375c0 .621-.504 1.125-1.125 1.125h-1.125M6 10.5h12M6 10.5v8.25A1.5 1.5 0 0 0 7.5 20.25h9a1.5 1.5 0 0 0 1.5-1.5V10.5" />
-    </svg>
-  );
-  return (
-    <svg className={className} fill="none" stroke="currentColor" strokeWidth={1.8} viewBox="0 0 24 24">
-      <path strokeLinecap="round" strokeLinejoin="round" d="M21 11.25v8.25a1.5 1.5 0 0 1-1.5 1.5H5.25a1.5 1.5 0 0 1-1.5-1.5v-8.25M12 4.875A2.625 2.625 0 1 0 9.375 7.5H12m0-2.625V7.5m0-2.625A2.625 2.625 0 1 1 14.625 7.5H12m0 0V21m-8.625-9.75h18c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125h-18c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125Z" />
-    </svg>
-  );
-}

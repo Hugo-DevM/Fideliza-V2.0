@@ -21,8 +21,8 @@ export default async function CustomersPage({
   const { page: pageStr, q, status, tier: tierParam } = await searchParams;
   const page = Math.max(1, parseInt(pageStr ?? '1', 10));
   const statusFilter = status === 'active' ? 'active' : status === 'inactive' ? 'inactive' : 'all';
-  const isPro = effectivePlan === 'pro' || effectivePlan === 'enterprise';
-  const tierFilter = isPro && (tierParam === 'bronze' || tierParam === 'silver' || tierParam === 'gold')
+  const hasTiers = planLimits.universalTiers;
+  const tierFilter = hasTiers && (tierParam === 'bronze' || tierParam === 'silver' || tierParam === 'gold')
     ? tierParam
     : undefined;
 
@@ -36,24 +36,20 @@ export default async function CustomersPage({
     db.from('customers').select('id', { count: 'exact', head: true }).eq('tenant_id', tenantId).eq('is_active', true),
   ]);
 
-  // Fetch best tier per customer for the current page (Pro only)
-  type TierRow = { customer_id: string; tier_label: string; tier_color: string };
-  const tierMap = new Map<string, TierRow>();
-  if (isPro && filtered.length > 0) {
+  // Fetch tier from the universal loyalty score cache on customers (Starter+)
+  type TierRow = { id: string; tier_label: string; tier_color: string };
+  const tierMap = new Map<string, { tier_label: string; tier_color: string }>();
+  if (hasTiers && filtered.length > 0) {
     const customerIds = filtered.map((c) => c.id);
-    const { data: tierRows } = await db
-      .from('customer_program_enrollments')
-      .select('customer_id, tier_label, tier_color')
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const { data: tierRows } = await (db.from('customers') as any)
+      .select('id, tier_label, tier_color')
       .eq('tenant_id', tenantId)
-      .in('customer_id', customerIds)
+      .in('id', customerIds)
       .not('tier_color', 'is', null) as { data: TierRow[] | null };
 
-    const TIER_RANK: Record<string, number> = { bronze: 1, silver: 2, gold: 3 };
     for (const row of (tierRows ?? [])) {
-      const existing = tierMap.get(row.customer_id);
-      if (!existing || (TIER_RANK[row.tier_color] ?? 0) > (TIER_RANK[existing.tier_color] ?? 0)) {
-        tierMap.set(row.customer_id, row);
-      }
+      tierMap.set(row.id, { tier_label: row.tier_label, tier_color: row.tier_color });
     }
   }
 
@@ -116,7 +112,7 @@ export default async function CustomersPage({
         defaultValue={q}
         defaultStatus={statusFilter}
         defaultTier={(tierFilter ?? 'all') as 'all' | 'bronze' | 'silver' | 'gold'}
-        showTierFilter={isPro}
+        showTierFilter={hasTiers}
       />
 
       {/* Empty state */}

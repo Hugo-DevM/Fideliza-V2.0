@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition, useRef } from "react";
+import { useState, useTransition, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { createCustomerAction } from "./actions";
 import { getLocalLimits } from "@/lib/constants/phone-limits";
@@ -30,6 +30,7 @@ export default function NewCustomerModal({ phonePrefix, plan }: Props) {
   const [whatsappOptIn, setWhatsappOptIn] = useState(false);
   const [birthMonth, setBirthMonth] = useState("");
   const [birthDay,   setBirthDay]   = useState("");
+  const [birthYear,  setBirthYear]  = useState("");
   const NOTES_MAX = 300;
   const formRef = useRef<HTMLFormElement>(null);
   const router = useRouter();
@@ -79,6 +80,7 @@ export default function NewCustomerModal({ phonePrefix, plan }: Props) {
         setWhatsappOptIn(false);
         setBirthMonth("");
         setBirthDay("");
+        setBirthYear("");
         setOpen(false);
         router.refresh();
       }
@@ -92,6 +94,7 @@ export default function NewCustomerModal({ phonePrefix, plan }: Props) {
     setWhatsappOptIn(false);
     setBirthMonth("");
     setBirthDay("");
+    setBirthYear("");
     setError("");
     formRef.current?.reset();
     setOpen(false);
@@ -109,14 +112,15 @@ export default function NewCustomerModal({ phonePrefix, plan }: Props) {
 
       {modalMounted && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center p-4"
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6"
           style={{ backgroundColor: modalVisible ? 'rgba(0,0,0,0.6)' : 'rgba(0,0,0,0)', transition: 'background-color 220ms ease' }}
         >
           <div
-            className="w-full max-w-md rounded-2xl bg-white dark:bg-[#161b2e] p-6 shadow-2xl"
+            className="w-full max-w-md rounded-2xl bg-white dark:bg-[#161b2e] shadow-2xl flex flex-col max-h-[90dvh]"
             style={{ opacity: modalVisible ? 1 : 0, transform: modalVisible ? 'translateY(0) scale(1)' : 'translateY(12px) scale(0.97)', transition: 'opacity 220ms ease, transform 220ms ease' }}
           >
-            <div className="mb-5 flex items-center justify-between">
+            {/* Header — fijo */}
+            <div className="flex items-center justify-between px-6 pt-6 pb-4 shrink-0">
               <h2 className="text-base font-bold text-gray-900 dark:text-white">
                 Agregar cliente
               </h2>
@@ -128,7 +132,8 @@ export default function NewCustomerModal({ phonePrefix, plan }: Props) {
               </button>
             </div>
 
-            <form ref={formRef} onSubmit={handleSubmit} className="space-y-4">
+            <form ref={formRef} onSubmit={handleSubmit} className="flex flex-col flex-1 min-h-0">
+            <div className="flex-1 overflow-y-auto px-6 pb-2 space-y-4 [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-gray-200 dark:[&::-webkit-scrollbar-thumb]:bg-[#2a3147]">
               {mounted && (
                 <div style={wrapperStyle}>
                   <div style={{ overflow: 'hidden' }}>
@@ -254,30 +259,31 @@ export default function NewCustomerModal({ phonePrefix, plan }: Props) {
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
                   Fecha de cumpleaños <span className="text-gray-400 dark:text-gray-500 font-normal">(opcional)</span>
                 </label>
-                <div className="flex gap-2">
-                  <select
-                    name="birth_month"
-                    value={birthMonth}
-                    onChange={(e) => { setBirthMonth(e.target.value); if (!e.target.value) setBirthDay(""); }}
-                    className={`${inputCls} flex-1`}
-                  >
-                    <option value="">Mes</option>
-                    {['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'].map((m, i) => (
-                      <option key={i + 1} value={i + 1}>{m}</option>
-                    ))}
-                  </select>
-                  <select
+                <div className="grid grid-cols-3 gap-2">
+                  <CustomSelect
                     name="birth_day"
                     value={birthDay}
-                    onChange={(e) => setBirthDay(e.target.value)}
-                    disabled={!birthMonth}
-                    className={`${inputCls} w-24 ${!birthMonth ? 'opacity-40 cursor-not-allowed' : ''}`}
-                  >
-                    <option value="">Día</option>
-                    {Array.from({ length: 31 }, (_, i) => i + 1).map((d) => (
-                      <option key={d} value={d}>{d}</option>
-                    ))}
-                  </select>
+                    onChange={setBirthDay}
+                    placeholder="Día"
+                    options={Array.from({ length: 31 }, (_, i) => ({ value: String(i + 1), label: String(i + 1) }))}
+                  />
+                  <CustomSelect
+                    name="birth_month"
+                    value={birthMonth}
+                    onChange={(v) => { setBirthMonth(v); if (!v) setBirthDay(""); }}
+                    placeholder="Mes"
+                    options={['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'].map((m, i) => ({ value: String(i + 1), label: m }))}
+                  />
+                  <CustomSelect
+                    name="birth_year"
+                    value={birthYear}
+                    onChange={setBirthYear}
+                    placeholder="Año"
+                    options={Array.from({ length: 100 }, (_, i) => {
+                      const y = new Date().getFullYear() - i;
+                      return { value: String(y), label: String(y) };
+                    })}
+                  />
                 </div>
               </div>
 
@@ -323,7 +329,10 @@ export default function NewCustomerModal({ phonePrefix, plan }: Props) {
                 </p>
               )}
 
-              <div className="flex justify-end gap-3 pt-1">
+            </div>
+
+            {/* Footer — fijo */}
+            <div className="flex justify-end gap-3 px-6 py-4 border-t border-gray-100 dark:border-[#1e2438] shrink-0">
                 <button
                   type="button"
                   onClick={handleClose}
@@ -349,6 +358,78 @@ export default function NewCustomerModal({ phonePrefix, plan }: Props) {
 
 const inputCls =
   "w-full rounded-xl border border-gray-200 dark:border-[#2a3147] bg-white dark:bg-[#0d0f17] px-3 py-2.5 text-sm text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-600 outline-none transition focus:border-indigo-400 dark:focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 dark:focus:ring-indigo-500/20";
+
+function CustomSelect({ name, value, onChange, placeholder, options }: {
+  name: string;
+  value: string;
+  onChange: (v: string) => void;
+  placeholder: string;
+  options: { value: string; label: string }[];
+}) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+  const selected = options.find((o) => o.value === value);
+
+  // Close on outside click
+  useEffect(() => {
+    function handler(e: MouseEvent) {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+    }
+    if (open) document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, [open]);
+
+  return (
+    <div ref={ref} className="relative">
+      {/* Hidden input for form submission */}
+      <input type="hidden" name={name} value={value} />
+
+      {/* Trigger */}
+      <button
+        type="button"
+        onClick={() => setOpen((v) => !v)}
+        className={`w-full flex items-center justify-between rounded-xl border px-3 py-2.5 text-sm transition outline-none ${
+          open
+            ? 'border-indigo-400 dark:border-indigo-500 ring-2 ring-indigo-100 dark:ring-indigo-500/20'
+            : 'border-gray-200 dark:border-[#2a3147] hover:border-gray-300 dark:hover:border-[#3a4157]'
+        } bg-white dark:bg-[#0d0f17]`}
+      >
+        <span className={selected ? 'text-gray-900 dark:text-white' : 'text-gray-400 dark:text-gray-500'}>
+          {selected ? selected.label : placeholder}
+        </span>
+        <svg
+          className={`h-4 w-4 text-gray-400 dark:text-gray-500 transition-transform shrink-0 ${open ? 'rotate-180' : ''}`}
+          fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"
+        >
+          <path strokeLinecap="round" strokeLinejoin="round" d="m19 9-7 7-7-7" />
+        </svg>
+      </button>
+
+      {/* Dropdown list */}
+      {open && (
+        <div className="absolute z-50 bottom-full mb-1 w-full rounded-xl border border-gray-200 dark:border-[#2a3147] bg-white dark:bg-[#161b2e] shadow-lg overflow-hidden">
+          <ul className="max-h-48 overflow-y-auto py-1 [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-gray-200 dark:[&::-webkit-scrollbar-thumb]:bg-[#2a3147]">
+            {options.map((o) => (
+              <li key={o.value}>
+                <button
+                  type="button"
+                  onClick={() => { onChange(o.value); setOpen(false); }}
+                  className={`w-full text-left px-3 py-2 text-sm transition ${
+                    o.value === value
+                      ? 'bg-indigo-50 dark:bg-indigo-500/15 text-indigo-600 dark:text-indigo-400 font-medium'
+                      : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-[#1e2438]'
+                  }`}
+                >
+                  {o.label}
+                </button>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+    </div>
+  );
+}
 
 function PlusIcon({ className }: { className?: string }) {
   return (

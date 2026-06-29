@@ -75,6 +75,9 @@ export interface PortalCustomer {
   name: string;
   access_code: string;
   member_since: string;
+  loyalty_score: number;
+  tier_label: string | null;
+  tier_color: string | null;
 }
 
 export interface PortalReward {
@@ -154,6 +157,13 @@ export interface PortalProgramRanking {
   top10: PortalLeaderboardEntry[];
 }
 
+export interface PortalTierConfig {
+  label:        string;
+  min_lifetime: number;
+  multiplier:   number;
+  color:        string;
+}
+
 export interface PortalData {
   tenant: PortalTenant;
   customer: PortalCustomer;
@@ -161,6 +171,8 @@ export interface PortalData {
   recent_transactions: PortalTransaction[];
   pending_vouchers: PortalVoucher[];
   rankings: PortalProgramRanking[];
+  /** Universal tier system — null when tiers_enabled = false */
+  tenant_tiers: PortalTierConfig[] | null;
 }
 
 // ── Helpers ───────────────────────────────────────────────────────────
@@ -182,7 +194,7 @@ export async function getPortalData(
 
   // ── 1. Customer lookup ────────────────────────────────────────────
   // Deliberately select only safe columns — no email, phone, or notes.
-  const { data: customer, error: custErr } = await db
+  const { data: customerRaw, error: custErr } = await db
     .from('customers')
     .select('id, name, access_code, created_at')
     .eq('tenant_id', tenantId)
@@ -190,16 +202,33 @@ export async function getPortalData(
     .eq('is_active', true)
     .single();
 
+  // Fetch loyalty score separately to avoid breaking the typed select above
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { data: loyaltyRaw } = customerRaw ? await (db.from('customers') as any)
+    .select('loyalty_score, tier_label, tier_color')
+    .eq('id', customerRaw.id)
+    .eq('tenant_id', tenantId)
+    .single() as { data: { loyalty_score: number; tier_label: string | null; tier_color: string | null } | null }
+    : { data: null };
+
+  const customer = customerRaw ? {
+    ...customerRaw,
+    loyalty_score: loyaltyRaw?.loyalty_score ?? 0,
+    tier_label:    loyaltyRaw?.tier_label    ?? null,
+    tier_color:    loyaltyRaw?.tier_color    ?? null,
+  } : null;
+
   if (custErr || !customer) {
     throw new NotFoundError('Cliente no encontrado. Verifica tu código de acceso e intenta de nuevo.');
   }
 
   // ── 2. Parallel data fetch ────────────────────────────────────────
   const [tenantRes, enrollRes, txRes, voucherRes] = await Promise.all([
-    // Tenant name + branding settings (no email, no plan)
+    // Tenant name + branding settings + tier config (no email, no plan)
     db
       .from('tenants')
-      .select('name, subdomain, logo_url, tenant_settings(primary_color, secondary_color, welcome_message, program_label, logo_padding)')
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      .select('name, subdomain, logo_url, tenant_settings(primary_color, secondary_color, welcome_message, program_label, logo_padding, tiers_enabled, tiers)' as any)
       .eq('id', tenantId)
       .single(),
 
@@ -247,6 +276,8 @@ export async function getPortalData(
       welcome_message: string | null;
       program_label: string;
       logo_padding: number;
+      tiers_enabled: boolean;
+      tiers: PortalTierConfig[] | null;
     }> | null;
   };
 
@@ -532,17 +563,31 @@ export async function getPortalData(
     created_at:       v.created_at,
   }));
 
+  const rawCustomer = customer as unknown as {
+    id: string; name: string; access_code: string; created_at: string;
+    loyalty_score: number; tier_label: string | null; tier_color: string | null;
+  };
+
+  const tenantTiersEnabled = settings?.tiers_enabled ?? false;
+  const tenantTiers: PortalTierConfig[] | null = tenantTiersEnabled
+    ? (settings?.tiers ?? null)
+    : null;
+
   return {
     tenant,
     customer: {
-      id:           customer.id,
-      name:         customer.name,
-      access_code:  customer.access_code,
-      member_since: customer.created_at,
+      id:            rawCustomer.id,
+      name:          rawCustomer.name,
+      access_code:   rawCustomer.access_code,
+      member_since:  rawCustomer.created_at,
+      loyalty_score: rawCustomer.loyalty_score ?? 0,
+      tier_label:    rawCustomer.tier_label ?? null,
+      tier_color:    rawCustomer.tier_color ?? null,
     },
     enrollments,
     recent_transactions,
     pending_vouchers,
     rankings,
+    tenant_tiers: tenantTiers,
   };
 }

@@ -17,17 +17,23 @@ const MULTIPLIER_OPTIONS = [
 ];
 
 interface SurpriseDelightCardProps {
-  programId: string;
-  plan:      string;
-  config:    Record<string, unknown>;
+  programId:   string;
+  plan:        string;
+  programType: string;
+  config:      Record<string, unknown>;
 }
 
-export default function SurpriseDelightCard({ programId, plan, config }: SurpriseDelightCardProps) {
+export default function SurpriseDelightCard({ programId, plan, programType, config }: SurpriseDelightCardProps) {
   const isPro = plan === 'pro' || plan === 'enterprise';
+  const isDiscrete = programType === 'stamp' || programType === 'visit';
+  const multiplierOptions = isDiscrete
+    ? MULTIPLIER_OPTIONS.filter((m) => m.value !== 1.5)
+    : MULTIPLIER_OPTIONS;
 
+  const savedMultiplier = Number(config.surprise_multiplier ?? 2);
   const [enabled,     setEnabled]     = useState(Boolean(config.surprise_enabled));
   const [probability, setProbability] = useState(Number(config.surprise_probability ?? 0.10));
-  const [multiplier,  setMultiplier]  = useState(Number(config.surprise_multiplier  ?? 2));
+  const [multiplier,  setMultiplier]  = useState(isDiscrete && savedMultiplier === 1.5 ? 2 : savedMultiplier);
 
   const [saved,     setSaved]     = useState(false);
   const [error,     setError]     = useState('');
@@ -59,7 +65,7 @@ export default function SurpriseDelightCard({ programId, plan, config }: Surpris
             <DiceIcon className="h-4 w-4 text-violet-600 dark:text-violet-400" />
           </div>
           <div>
-            <h2 className="text-sm font-semibold text-gray-800 dark:text-white">Surprise & Delight</h2>
+            <h2 className="text-sm font-semibold text-gray-800 dark:text-white">Sorpresa Especial</h2>
             <p className="text-xs text-gray-400 dark:text-gray-500">Puntos extra en visitas aleatorias</p>
           </div>
         </div>
@@ -91,7 +97,7 @@ export default function SurpriseDelightCard({ programId, plan, config }: Surpris
       {!isPro ? (
         <div className="px-5 py-6 text-center">
           <p className="text-sm text-gray-500 dark:text-gray-400">
-            Surprise & Delight está disponible en el plan <span className="font-semibold text-gray-700 dark:text-gray-200">Pro</span>.
+            Sorpresa Especial está disponible en el plan <span className="font-semibold text-gray-700 dark:text-gray-200">Pro</span>.
           </p>
           <a href="/dashboard/settings" className="mt-2 inline-block text-sm font-medium text-indigo-600 dark:text-indigo-400 hover:underline">
             Actualizar plan →
@@ -133,7 +139,7 @@ export default function SurpriseDelightCard({ programId, plan, config }: Surpris
               Multiplicador de puntos
             </label>
             <div className="flex gap-2">
-              {MULTIPLIER_OPTIONS.map((m) => (
+              {multiplierOptions.map((m) => (
                 <button
                   key={m.value}
                   type="button"
