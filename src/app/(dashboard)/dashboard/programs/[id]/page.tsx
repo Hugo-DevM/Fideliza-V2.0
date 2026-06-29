@@ -193,7 +193,7 @@ export default async function ProgramDetailPage({
 
         {/* Retention tab */}
         {activeTab === 'retencion' && (
-          <>
+          <div className="grid gap-4 lg:grid-cols-2 lg:items-start">
             <FlashOfferCard
               programId={program.id}
               plan={effectivePlan}
@@ -216,7 +216,7 @@ export default async function ProgramDetailPage({
               plan={effectivePlan}
               challenges={challenges}
             />
-          </>
+          </div>
         )}
 
         {/* Programa tab — content grid */}

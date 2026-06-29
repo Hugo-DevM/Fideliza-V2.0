@@ -83,7 +83,7 @@ export default function FlashOfferCard({ programId, plan, programType, config }:
             <FlashIcon className="h-4 w-4 text-amber-600 dark:text-amber-400" />
           </div>
           <div>
-            <h2 className="text-sm font-semibold text-gray-800 dark:text-white">Flash Offer</h2>
+            <h2 className="text-sm font-semibold text-gray-800 dark:text-white">Oferta Flash</h2>
             <p className="text-xs text-gray-400 dark:text-gray-500">Puntos dobles en horas específicas</p>
           </div>
         </div>
@@ -116,14 +116,14 @@ export default function FlashOfferCard({ programId, plan, programType, config }:
       {isFree ? (
         <div className="px-5 py-6 text-center">
           <p className="text-sm text-gray-500 dark:text-gray-400">
-            Flash Offers está disponible en el plan <span className="font-semibold text-gray-700 dark:text-gray-200">Starter</span> y <span className="font-semibold text-gray-700 dark:text-gray-200">Pro</span>.
+            Oferta Flash está disponible en el plan <span className="font-semibold text-gray-700 dark:text-gray-200">Starter</span> y <span className="font-semibold text-gray-700 dark:text-gray-200">Pro</span>.
           </p>
           <a href="/dashboard/settings" className="mt-2 inline-block text-sm font-medium text-indigo-600 dark:text-indigo-400 hover:underline">
             Actualizar plan →
           </a>
         </div>
       ) : (
-        <div className={`max-w-2xl space-y-4 px-5 py-4 ${!enabled ? 'pointer-events-none opacity-40' : ''}`}>
+        <div className={`space-y-4 px-5 py-4 ${!enabled ? 'pointer-events-none opacity-40' : ''}`}>
           {/* Multiplier */}
           <div>
             <label className="mb-2 block text-xs font-medium text-gray-600 dark:text-gray-400">Multiplicador</label>

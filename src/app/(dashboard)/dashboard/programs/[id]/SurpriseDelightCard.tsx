@@ -59,7 +59,7 @@ export default function SurpriseDelightCard({ programId, plan, config }: Surpris
             <DiceIcon className="h-4 w-4 text-violet-600 dark:text-violet-400" />
           </div>
           <div>
-            <h2 className="text-sm font-semibold text-gray-800 dark:text-white">Surprise & Delight</h2>
+            <h2 className="text-sm font-semibold text-gray-800 dark:text-white">Sorpresa Especial</h2>
             <p className="text-xs text-gray-400 dark:text-gray-500">Puntos extra en visitas aleatorias</p>
           </div>
         </div>
@@ -91,14 +91,14 @@ export default function SurpriseDelightCard({ programId, plan, config }: Surpris
       {!isPro ? (
         <div className="px-5 py-6 text-center">
           <p className="text-sm text-gray-500 dark:text-gray-400">
-            Surprise & Delight está disponible en el plan <span className="font-semibold text-gray-700 dark:text-gray-200">Pro</span>.
+            Sorpresa Especial está disponible en el plan <span className="font-semibold text-gray-700 dark:text-gray-200">Pro</span>.
           </p>
           <a href="/dashboard/settings" className="mt-2 inline-block text-sm font-medium text-indigo-600 dark:text-indigo-400 hover:underline">
             Actualizar plan →
           </a>
         </div>
       ) : (
-        <div className={`max-w-2xl space-y-4 px-5 py-4 ${!enabled ? 'pointer-events-none opacity-40' : ''}`}>
+        <div className={`space-y-4 px-5 py-4 ${!enabled ? 'pointer-events-none opacity-40' : ''}`}>
           <p className="text-xs text-gray-400 dark:text-gray-500">
             En cada earn, hay una probabilidad de que el cliente reciba puntos extra como sorpresa.
             El cliente no sabe cuándo ocurrirá — eso es lo que lo hace efectivo.

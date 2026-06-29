@@ -84,7 +84,7 @@ export default function ChallengesCard({ programId, plan, challenges }: Challeng
           </a>
         </div>
       ) : (
-        <div className="max-w-2xl px-5 py-4 space-y-4">
+        <div className="px-5 py-4 space-y-4">
 
           {/* Active challenges list */}
           {active.length > 0 && (

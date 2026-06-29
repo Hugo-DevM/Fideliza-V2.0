@@ -90,7 +90,7 @@ export default function ReferralCard({ programId, plan, config }: ReferralCardPr
           </a>
         </div>
       ) : (
-        <div className={`max-w-2xl space-y-4 px-5 py-4 ${!enabled ? 'pointer-events-none opacity-40' : ''}`}>
+        <div className={`space-y-4 px-5 py-4 ${!enabled ? 'pointer-events-none opacity-40' : ''}`}>
           <p className="text-xs text-gray-400 dark:text-gray-500">
             Cada cliente tiene un código de referido único (su código de acceso).
             Cuando un amigo se registra con ese código y completa su primera visita,
