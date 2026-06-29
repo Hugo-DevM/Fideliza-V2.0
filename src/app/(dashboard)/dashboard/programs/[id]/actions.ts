@@ -51,7 +51,7 @@ export async function updateTiersAction(
 ) {
   const { tenantId, effectivePlan } = await getAuthenticatedTenant();
   if (effectivePlan !== 'pro' && effectivePlan !== 'enterprise') {
-    return { error: 'Tiers VIP requiere el plan Pro.' };
+    return { error: 'Niveles VIP requiere el plan Pro.' };
   }
 
   const db = createServiceRoleClient();

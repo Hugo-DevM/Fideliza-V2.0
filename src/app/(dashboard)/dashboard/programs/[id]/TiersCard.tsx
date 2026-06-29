@@ -100,7 +100,7 @@ export default function TiersCard({ programId, plan, programType, config }: Tier
             <TierIcon className="h-4 w-4 text-yellow-600 dark:text-yellow-400" />
           </div>
           <div>
-            <h2 className="text-sm font-semibold text-gray-800 dark:text-white">Tiers VIP</h2>
+            <h2 className="text-sm font-semibold text-gray-800 dark:text-white">Niveles VIP</h2>
             <p className="text-xs text-gray-400 dark:text-gray-500">{headerSubtitle}</p>
           </div>
         </div>
@@ -132,7 +132,7 @@ export default function TiersCard({ programId, plan, programType, config }: Tier
       {!isPro ? (
         <div className="px-5 py-6 text-center">
           <p className="text-sm text-gray-500 dark:text-gray-400">
-            Tiers VIP está disponible en el plan <span className="font-semibold text-gray-700 dark:text-gray-200">Pro</span>.
+            Niveles VIP está disponible en el plan <span className="font-semibold text-gray-700 dark:text-gray-200">Pro</span>.
           </p>
           <a href="/dashboard/settings" className="mt-2 inline-block text-sm font-medium text-indigo-600 dark:text-indigo-400 hover:underline">
             Actualizar plan →

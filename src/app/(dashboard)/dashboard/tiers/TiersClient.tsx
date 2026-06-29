@@ -58,7 +58,7 @@ export default function TiersClient({ settings, canUse }: TiersClientProps) {
     return (
       <div className="rounded-2xl border border-gray-100 dark:border-[#1e2438] bg-white dark:bg-[#161b2e] shadow-sm px-5 py-10 text-center space-y-2">
         <p className="text-sm text-gray-500 dark:text-gray-400">
-          Tiers VIP está disponible desde el plan{' '}
+          Niveles VIP está disponible desde el plan{' '}
           <span className="font-semibold text-gray-700 dark:text-gray-200">Starter</span>.
         </p>
         <a
@@ -81,7 +81,7 @@ export default function TiersClient({ settings, canUse }: TiersClientProps) {
               <TierIcon className="h-4 w-4 text-yellow-600 dark:text-yellow-400" />
             </div>
             <div>
-              <h2 className="text-sm font-semibold text-gray-800 dark:text-white">Tiers VIP</h2>
+              <h2 className="text-sm font-semibold text-gray-800 dark:text-white">Niveles VIP</h2>
               <p className="text-xs text-gray-400 dark:text-gray-500">
                 Sistema de lealtad universal — un solo nivel por cliente, independiente del programa
               </p>

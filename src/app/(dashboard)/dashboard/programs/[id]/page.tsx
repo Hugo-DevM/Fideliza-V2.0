@@ -200,7 +200,7 @@ export default async function ProgramDetailPage({
               programType={program.type}
               config={config}
             />
-            {/* Tiers VIP moved to /dashboard/tiers */}
+            {/* Niveles VIP moved to /dashboard/tiers */}
             <SurpriseDelightCard
               programId={program.id}
               plan={effectivePlan}

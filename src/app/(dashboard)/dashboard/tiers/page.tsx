@@ -6,7 +6,7 @@ import type { TenantTierSettings, TierConfig } from '@/lib/utils/tiers';
 import TiersClient from './TiersClient';
 import Link from 'next/link';
 
-export const metadata = { title: 'Tiers VIP — Fideliza' };
+export const metadata = { title: 'Niveles VIP — Fideliza' };
 
 export default async function TiersPage() {
   const { tenantId, effectivePlan } = await getAuthenticatedTenant();
@@ -58,7 +58,7 @@ export default async function TiersPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-xl font-bold text-gray-900 dark:text-white">Tiers VIP</h1>
+        <h1 className="text-xl font-bold text-gray-900 dark:text-white">Niveles VIP</h1>
         <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
           Define los niveles de lealtad de tus clientes. El nivel se calcula de forma universal
           a partir de todas sus interacciones, sin importar el tipo de programa.
