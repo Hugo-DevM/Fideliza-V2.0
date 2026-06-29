@@ -104,7 +104,7 @@ export default function TiersClient({ settings, canUse }: TiersClientProps) {
           </button>
         </div>
 
-        <div className={`max-w-2xl px-5 py-4 space-y-4 ${!enabled ? 'pointer-events-none opacity-40' : ''}`}>
+        <div className={`px-5 py-4 grid gap-6 lg:grid-cols-2 lg:items-start ${!enabled ? 'pointer-events-none opacity-40' : ''}`}>
           {/* ── Conversion rates ──────────────────────────────────────── */}
           <div>
             <h3 className="text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wide mb-3">

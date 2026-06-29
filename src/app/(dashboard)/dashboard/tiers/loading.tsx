@@ -39,7 +39,7 @@ export default function Loading() {
           <div className={`h-6 w-11 rounded-full ${S}`} />
         </div>
 
-        <div className="max-w-2xl px-5 py-4 space-y-6">
+        <div className="px-5 py-4 grid gap-6 lg:grid-cols-2 lg:items-start">
 
           {/* Conversion rates section */}
           <div className="space-y-3">
