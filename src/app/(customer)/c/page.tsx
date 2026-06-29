@@ -944,7 +944,15 @@ function EmptyState({
 
 // ── Challenge row ─────────────────────────────────────────────────────
 
-function ChallengeRow({ challenge: c }: { challenge: PortalChallenge }) {
+function bonusLabel(type: string): string {
+  if (type === 'visit')    return 'visitas';
+  if (type === 'stamp')    return 'sellos';
+  if (type === 'cashback') return 'bono $';
+  return 'pts';
+}
+
+function ChallengeRow({ challenge: c, programType }: { challenge: PortalChallenge; programType: string }) {
+  const unit      = bonusLabel(programType);
   const pct       = Math.min(100, Math.round((c.progress / c.target) * 100));
   const remaining = Math.max(0, c.target - c.progress);
   const done      = Boolean(c.completed_at);
@@ -956,6 +964,9 @@ function ChallengeRow({ challenge: c }: { challenge: PortalChallenge }) {
           <p className={`text-sm font-semibold truncate ${done ? 'text-emerald-700 dark:text-emerald-400' : 'text-gray-800 dark:text-gray-100'}`}>
             {done && <span className="mr-1">✓</span>}{c.title}
           </p>
+          {c.description && (
+            <p className="text-[11px] text-gray-500 dark:text-gray-400 mt-0.5">{c.description}</p>
+          )}
           {c.ends_at && !done && (
             <p className="text-[10px] text-gray-400 dark:text-gray-500 mt-0.5">
               hasta {new Date(c.ends_at).toLocaleDateString('es', { day: 'numeric', month: 'short' })}
@@ -967,7 +978,7 @@ function ChallengeRow({ challenge: c }: { challenge: PortalChallenge }) {
             ? 'bg-emerald-100 dark:bg-emerald-500/20 text-emerald-700 dark:text-emerald-400'
             : 'bg-orange-100 dark:bg-orange-500/20 text-orange-700 dark:text-orange-400'
         }`}>
-          +{c.bonus_points} pts
+          +{c.bonus_points} {unit}
         </span>
       </div>
 
@@ -980,7 +991,7 @@ function ChallengeRow({ challenge: c }: { challenge: PortalChallenge }) {
             />
           </div>
           <p className="mt-1 text-[11px] text-gray-400 dark:text-gray-500">
-            {c.progress}/{c.target} visitas
+            {c.progress}/{c.target} {unit}
             {remaining > 0 && <> · faltan <strong className="text-gray-600 dark:text-gray-300">{remaining}</strong></>}
           </p>
         </>
@@ -1051,7 +1062,7 @@ function EnrollmentCard({
             Misiones activas
           </p>
           {e.challenges.map((c) => (
-            <ChallengeRow key={c.id} challenge={c} />
+            <ChallengeRow key={c.id} challenge={c} programType={e.program_type} />
           ))}
         </div>
       )}
