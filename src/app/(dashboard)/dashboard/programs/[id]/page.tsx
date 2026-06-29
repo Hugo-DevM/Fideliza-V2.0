@@ -65,12 +65,12 @@ export default async function ProgramDetailPage({
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const challengesRes = await (db as any)
       .from('challenges')
-      .select('id, title, target, bonus_points, ends_at, is_active')
+      .select('id, title, description, target, bonus_points, ends_at, is_active')
       .eq('tenant_id', tenantId)
       .eq('program_id', id)
       .eq('is_active', true)
       .order('created_at', { ascending: false }) as {
-        data: Array<{ id: string; title: string; target: number; bonus_points: number; ends_at: string | null; is_active: boolean }> | null;
+        data: Array<{ id: string; title: string; description: string | null; target: number; bonus_points: number; ends_at: string | null; is_active: boolean }> | null;
       };
 
     const challenges = challengesRes.data ?? [];

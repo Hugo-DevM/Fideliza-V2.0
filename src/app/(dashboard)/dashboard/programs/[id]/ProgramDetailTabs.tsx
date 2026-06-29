@@ -9,7 +9,7 @@ import DeleteRewardButton from './DeleteRewardButton';
 import Link from 'next/link';
 
 interface Challenge {
-  id: string; title: string; target: number;
+  id: string; title: string; description: string | null; target: number;
   bonus_points: number; ends_at: string | null; is_active: boolean;
 }
 

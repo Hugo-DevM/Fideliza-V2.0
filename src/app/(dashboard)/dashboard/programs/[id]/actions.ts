@@ -149,10 +149,11 @@ export async function updateReferralAction(
 export async function createChallengeAction(
   programId: string,
   input: {
-    title:       string;
-    target:      number;
+    title:        string;
+    description?: string | null;
+    target:       number;
     bonus_points: number;
-    ends_at:     string | null;
+    ends_at:      string | null;
   },
 ) {
   const { tenantId, effectivePlan } = await getAuthenticatedTenant();
@@ -169,6 +170,7 @@ export async function createChallengeAction(
     tenant_id:    tenantId,
     program_id:   programId,
     title:        input.title.trim(),
+    description:  input.description?.trim() || null,
     target:       input.target,
     bonus_points: input.bonus_points,
     ends_at:      input.ends_at || null,

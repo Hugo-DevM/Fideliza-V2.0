@@ -8,6 +8,7 @@ import ToggleStatusButton from './ToggleStatusButton';
 import EditCustomerModal from './EditCustomerModal';
 import WhatsAppOptInToggle from './WhatsAppOptInToggle';
 import BalanceReminderButton from './BalanceReminderButton';
+import MissionsCard from './MissionsCard';
 import { NotFoundError } from '@/lib/middleware/errors';
 import type { ProgramConfig } from '@/lib/types';
 import { computeTier, TIER_STYLES } from '@/lib/utils/tiers';
@@ -32,7 +33,8 @@ export default async function CustomerDetailPage({
   try {
     const db = createServiceRoleClient();
 
-    const [{ customer, enrollments }, { transactions }, { count: txTotal }, { data: vouchers }] = await Promise.all([
+    const now = new Date().toISOString();
+    const [{ customer, enrollments }, { transactions }, { count: txTotal }, { data: vouchers }, { data: rawMissions }] = await Promise.all([
       getCustomerPoints(tenantId, id),
       getCustomerTransactionHistory(tenantId, id, undefined, 1, 8),
       db.from('transactions').select('id', { count: 'exact', head: true }).eq('tenant_id', tenantId).eq('customer_id', id),
@@ -42,7 +44,32 @@ export default async function CustomerDetailPage({
         .eq('customer_id', id)
         .order('created_at', { ascending: false })
         .limit(10),
+      (db as any)
+        .from('challenges')
+        .select(`id, title, description, target, bonus_points, ends_at,
+          customer_challenge_progress!left(progress, completed_at, customer_id)`)
+        .eq('tenant_id', tenantId)
+        .eq('is_active', true)
+        .or(`ends_at.is.null,ends_at.gte.${now}`) as Promise<{ data: Array<{
+          id: string; title: string; description: string | null;
+          target: number; bonus_points: number; ends_at: string | null;
+          customer_challenge_progress: Array<{ progress: number; completed_at: string | null; customer_id: string }>;
+        }> | null }>,
     ]);
+
+    const missions = (rawMissions ?? []).map((c) => {
+      const prog = c.customer_challenge_progress?.find((p) => p.customer_id === id);
+      return {
+        challengeId:  c.id,
+        title:        c.title,
+        description:  c.description,
+        target:       c.target,
+        bonusPoints:  c.bonus_points,
+        endsAt:       c.ends_at,
+        progress:     prog?.progress ?? 0,
+        completedAt:  prog?.completed_at ?? null,
+      };
+    });
 
     const { data: programs } = enrollments.length
       ? await db.from('reward_programs').select('id, type, config').in('id', enrollments.map((e) => e.program_id))
@@ -331,6 +358,9 @@ export default async function CustomerDetailPage({
             )}
           </div>
         </div>
+
+        {/* Missions */}
+        <MissionsCard customerId={id} missions={missions} />
 
         {/* Vouchers */}
         {vouchers && vouchers.length > 0 && (

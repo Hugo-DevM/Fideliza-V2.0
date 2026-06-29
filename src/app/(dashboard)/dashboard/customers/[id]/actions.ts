@@ -85,6 +85,69 @@ export async function toggleWhatsAppOptInAction(customerId: string, optIn: boole
   return { success: true };
 }
 
+export async function addMissionProgressAction(customerId: string, challengeId: string) {
+  const { tenantId } = await getAuthenticatedTenant();
+  const db = createServiceRoleClient();
+
+  // Fetch challenge
+  const { data: challenge } = await (db as any)
+    .from('challenges')
+    .select('id, title, target, bonus_points, program_id, is_active, ends_at')
+    .eq('id', challengeId)
+    .eq('tenant_id', tenantId)
+    .single() as { data: { id: string; title: string; target: number; bonus_points: number; program_id: string; is_active: boolean; ends_at: string | null } | null };
+
+  if (!challenge || !challenge.is_active) return { error: 'Misión no disponible.' };
+
+  const now = new Date().toISOString();
+  if (challenge.ends_at && challenge.ends_at < now) return { error: 'La misión ya expiró.' };
+
+  // Fetch existing progress
+  const { data: existing } = await (db as any)
+    .from('customer_challenge_progress')
+    .select('id, progress, completed_at')
+    .eq('customer_id', customerId)
+    .eq('challenge_id', challengeId)
+    .maybeSingle() as { data: { id: string; progress: number; completed_at: string | null } | null };
+
+  if (existing?.completed_at) return { error: 'La misión ya fue completada.' };
+
+  const newProgress = (existing?.progress ?? 0) + 1;
+
+  if (existing) {
+    await (db as any)
+      .from('customer_challenge_progress')
+      .update({ progress: newProgress })
+      .eq('id', existing.id);
+  } else {
+    await (db as any)
+      .from('customer_challenge_progress')
+      .insert({ tenant_id: tenantId, customer_id: customerId, challenge_id: challengeId, progress: newProgress });
+  }
+
+  let completed = false;
+  if (newProgress >= challenge.target) {
+    await (db as any)
+      .from('customer_challenge_progress')
+      .update({ completed_at: now })
+      .eq('customer_id', customerId)
+      .eq('challenge_id', challengeId);
+
+    await (db as any).rpc('rpc_earn_points', {
+      p_tenant_id:    tenantId,
+      p_customer_id:  customerId,
+      p_program_id:   challenge.program_id,
+      p_points_delta: challenge.bonus_points,
+      p_note:         `Misión completada: ${challenge.title}`,
+    });
+
+    completed = true;
+  }
+
+  revalidatePath(`/dashboard/customers/${customerId}`);
+  return { success: true, progress: newProgress, target: challenge.target, completed };
+}
+
 export async function sendBalanceReminderAction(customerId: string, programId: string) {
   const { tenantId, settings } = await getAuthenticatedTenant();
   const db = createServiceRoleClient();

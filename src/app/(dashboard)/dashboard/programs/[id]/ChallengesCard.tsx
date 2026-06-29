@@ -6,6 +6,7 @@ import { createChallengeAction, deleteChallengeAction } from './actions';
 interface Challenge {
   id: string;
   title: string;
+  description: string | null;
   target: number;
   bonus_points: number;
   ends_at: string | null;
@@ -21,11 +22,12 @@ interface ChallengesCardProps {
 export default function ChallengesCard({ programId, plan, challenges }: ChallengesCardProps) {
   const isPro = plan === 'pro' || plan === 'enterprise';
   const [showForm, setShowForm] = useState(false);
-  const [title,  setTitle]  = useState('');
-  const [target, setTarget] = useState(5);
-  const [bonus,  setBonus]  = useState(100);
-  const [endsAt, setEndsAt] = useState('');
-  const [error,  setError]  = useState('');
+  const [title,       setTitle]       = useState('');
+  const [description, setDescription] = useState('');
+  const [target,      setTarget]      = useState(5);
+  const [bonus,       setBonus]       = useState(100);
+  const [endsAt,      setEndsAt]      = useState('');
+  const [error,       setError]       = useState('');
   const [isPending, startTransition] = useTransition();
 
   const active = challenges.filter((c) => c.is_active);
@@ -37,6 +39,7 @@ export default function ChallengesCard({ programId, plan, challenges }: Challeng
     startTransition(async () => {
       const res = await createChallengeAction(programId, {
         title,
+        description:  description || null,
         target,
         bonus_points: bonus,
         ends_at:      endsAt || null,
@@ -44,7 +47,7 @@ export default function ChallengesCard({ programId, plan, challenges }: Challeng
       if ('error' in res) {
         setError(res.error ?? 'Unknown error');
       } else {
-        setTitle(''); setTarget(5); setBonus(100); setEndsAt('');
+        setTitle(''); setDescription(''); setTarget(5); setBonus(100); setEndsAt('');
         setShowForm(false);
       }
     });
@@ -93,8 +96,11 @@ export default function ChallengesCard({ programId, plan, challenges }: Challeng
                 <li key={c.id} className="flex items-center gap-3 rounded-xl bg-gray-50 dark:bg-[#0d0f17] px-4 py-3">
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-semibold text-gray-800 dark:text-white truncate">{c.title}</p>
+                    {c.description && (
+                      <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5 truncate">{c.description}</p>
+                    )}
                     <p className="text-xs text-gray-400 dark:text-gray-500 mt-0.5">
-                      {c.target} visitas → <span className="text-orange-600 dark:text-orange-400 font-semibold">+{c.bonus_points} pts</span>
+                      Meta: {c.target} · <span className="text-orange-600 dark:text-orange-400 font-semibold">+{c.bonus_points} pts</span>
                       {c.ends_at && (
                         <> · hasta {new Date(c.ends_at).toLocaleDateString('es', { day: 'numeric', month: 'short' })}</>
                       )}
@@ -134,19 +140,33 @@ export default function ChallengesCard({ programId, plan, challenges }: Challeng
                   type="text"
                   value={title}
                   onChange={(e) => setTitle(e.target.value)}
-                  placeholder="Visita 5 veces en enero"
+                  placeholder="Ej: Mes de verano, Reto del café, etc."
                   maxLength={80}
+                  className="w-full rounded-lg border border-gray-200 dark:border-[#2a3147] bg-white dark:bg-[#0f1222] px-3 py-2 text-sm text-gray-900 dark:text-white placeholder-gray-400 outline-none focus:border-orange-400 focus:ring-1 focus:ring-orange-400/30 transition"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">
+                  ¿Qué debe hacer el cliente? <span className="text-gray-400">(opcional)</span>
+                </label>
+                <input
+                  type="text"
+                  value={description}
+                  onChange={(e) => setDescription(e.target.value)}
+                  placeholder="Ej: Visita 5 veces, Compra 3 productos, Trae un amigo…"
+                  maxLength={120}
                   className="w-full rounded-lg border border-gray-200 dark:border-[#2a3147] bg-white dark:bg-[#0f1222] px-3 py-2 text-sm text-gray-900 dark:text-white placeholder-gray-400 outline-none focus:border-orange-400 focus:ring-1 focus:ring-orange-400/30 transition"
                 />
               </div>
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">Visitas requeridas</label>
+                  <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">Meta</label>
                   <input
                     type="number"
                     min={1}
-                    max={100}
+                    max={999}
                     value={target}
                     onChange={(e) => setTarget(Number(e.target.value))}
                     className="w-full rounded-lg border border-gray-200 dark:border-[#2a3147] bg-white dark:bg-[#0f1222] px-3 py-2 text-sm text-gray-900 dark:text-white outline-none focus:border-orange-400 focus:ring-1 focus:ring-orange-400/30 transition"
@@ -195,7 +215,9 @@ export default function ChallengesCard({ programId, plan, challenges }: Challeng
               {/* Preview */}
               {title.trim() && (
                 <p className="text-xs text-gray-400 dark:text-gray-500 text-center pt-1">
-                  Visita <strong>{target} {target === 1 ? 'vez' : 'veces'}</strong> y gana <strong className="text-orange-500">+{bonus} pts</strong> de bonus
+                  <strong className="text-gray-700 dark:text-gray-200">{title}</strong>
+                  {description && <> · {description}</>}
+                  {' · '}Meta: <strong>{target}</strong> → <strong className="text-orange-500">+{bonus} pts</strong>
                 </p>
               )}
             </form>
