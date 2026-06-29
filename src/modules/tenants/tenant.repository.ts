@@ -56,7 +56,10 @@ export async function getTenantSettings(tenantId: UUID): Promise<TenantSettings>
     throw new NotFoundError('Configuración del negocio');
   }
 
-  return data as TenantSettings;
+  return {
+    ...data,
+    referral_program_configs: data.referral_program_configs as TenantSettings['referral_program_configs'],
+  };
 }
 
 export async function createTenant(
@@ -114,7 +117,10 @@ export async function updateTenantSettings(
     throw new Error(`Error al actualizar la configuración: ${error?.message}`);
   }
 
-  return data as TenantSettings;
+  return {
+    ...data,
+    referral_program_configs: data.referral_program_configs as TenantSettings['referral_program_configs'],
+  };
 }
 
 export async function updateTenant(
