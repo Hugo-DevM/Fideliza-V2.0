@@ -287,6 +287,24 @@ export default function NewCustomerModal({ phonePrefix, plan }: Props) {
                 </div>
               </div>
 
+              {/* Referral code */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
+                  Código de referido <span className="text-gray-400 dark:text-gray-500 font-normal">(opcional)</span>
+                </label>
+                <input
+                  name="referral_code"
+                  type="text"
+                  placeholder="Ej. AB3X7K"
+                  maxLength={8}
+                  className={`${inputCls} uppercase`}
+                  onChange={(e) => { e.target.value = e.target.value.toUpperCase(); }}
+                />
+                <p className="mt-1 text-xs text-gray-400 dark:text-gray-500">
+                  Si un cliente existente refirió a esta persona, ingresa su código.
+                </p>
+              </div>
+
               {/* WhatsApp opt-in */}
               <button
                 type="button"

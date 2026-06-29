@@ -313,6 +313,8 @@ function PortalShell({ data, code, tab }: { data: PortalData; code: string; tab:
             tenant={tenant}
             customer={customer}
             tenantTiers={data.tenant_tiers}
+            referralEnabled={data.referral_enabled}
+            referralProgramConfigs={data.referral_program_configs}
           />
         )}
         {tab === 'rewards' && (
@@ -352,21 +354,26 @@ function PointsTab({
   tenant,
   customer,
   tenantTiers,
+  referralEnabled,
+  referralProgramConfigs,
 }: {
   enrollments: PortalEnrollment[];
   pendingVouchers: PortalVoucher[];
   tenant: PortalData['tenant'];
   customer: PortalData['customer'];
   tenantTiers: PortalData['tenant_tiers'];
+  referralEnabled: boolean;
+  referralProgramConfigs: Record<string, { referrer_bonus: number; referred_bonus: number }>;
 }) {
   const affordableCount = enrollments.reduce(
     (sum, e) => sum + e.rewards.filter((r) => r.is_affordable).length,
     0,
   );
 
-  const referralPrograms = enrollments.filter(
-    (e) => e.program_config?.referral_enabled,
-  );
+  // Show referral card for each enrolled program that has referral config set at tenant level
+  const referralPrograms = referralEnabled
+    ? enrollments.filter((e) => referralProgramConfigs[e.program_id] !== undefined)
+    : [];
 
   return (
     <>
@@ -468,8 +475,9 @@ function PointsTab({
             <ReferralShareCard
               key={e.program_id}
               enrollment={e}
-              accessCode={customer.access_code}
+              referralCode={customer.referral_code ?? ''}
               tenantSubdomain={tenant.subdomain}
+              programConfig={referralProgramConfigs[e.program_id]}
             />
           ))}
         </section>
@@ -480,16 +488,18 @@ function PointsTab({
 
 function ReferralShareCard({
   enrollment: e,
-  accessCode,
+  referralCode,
   tenantSubdomain,
+  programConfig,
 }: {
   enrollment: PortalEnrollment;
-  accessCode: string;
+  referralCode: string;
   tenantSubdomain: string;
+  programConfig?: { referrer_bonus: number; referred_bonus: number };
 }) {
-  const referrerBonus = Number(e.program_config?.referrer_bonus ?? 100);
-  const referredBonus = Number(e.program_config?.referred_bonus ?? 50);
-  const referralPath  = `/c/refer?ref=${accessCode}&program=${e.program_id}`;
+  const referrerBonus = programConfig?.referrer_bonus ?? 100;
+  const referredBonus = programConfig?.referred_bonus ?? 50;
+  const referralPath  = `/c/refer?ref=${referralCode}&program=${e.program_id}`;
 
   return (
     <div className="rounded-2xl border border-emerald-100 dark:border-emerald-500/20 bg-white dark:bg-[#161b2e] p-5 shadow-sm">
@@ -510,9 +520,9 @@ function ReferralShareCard({
       <div className="rounded-xl bg-gray-50 dark:bg-[#0d0f17] px-4 py-3 flex items-center justify-between gap-3">
         <div className="min-w-0">
           <p className="text-[10px] font-semibold uppercase tracking-wide text-gray-400 dark:text-gray-500 mb-0.5">Tu código de referido</p>
-          <p className="font-mono text-sm font-bold text-gray-900 dark:text-white truncate">{accessCode}</p>
+          <p className="font-mono text-sm font-bold text-gray-900 dark:text-white truncate">{referralCode}</p>
         </div>
-        <ReferralShareButton path={referralPath} code={accessCode} />
+        <ReferralShareButton path={referralPath} code={referralCode} />
       </div>
 
       <p className="mt-2.5 text-xs text-gray-400 dark:text-gray-500">

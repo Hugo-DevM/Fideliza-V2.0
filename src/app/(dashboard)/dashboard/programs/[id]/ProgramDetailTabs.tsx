@@ -3,7 +3,6 @@
 import { useState, useEffect, useRef } from 'react';
 import FlashOfferCard from './FlashOfferCard';
 import SurpriseDelightCard from './SurpriseDelightCard';
-import ReferralCard from './ReferralCard';
 import ChallengesCard from './ChallengesCard';
 import NewRewardForm from './NewRewardForm';
 import DeleteRewardButton from './DeleteRewardButton';
@@ -121,7 +120,6 @@ export default function ProgramDetailTabs({
           <div className="grid gap-4 lg:grid-cols-2 lg:items-start">
             <FlashOfferCard programId={programId} plan={effectivePlan} programType={programType} config={config} />
             <SurpriseDelightCard programId={programId} plan={effectivePlan} programType={programType} config={config} />
-            <ReferralCard programId={programId} plan={effectivePlan} config={config} />
             <ChallengesCard programId={programId} plan={effectivePlan} challenges={challenges} />
           </div>
         )}

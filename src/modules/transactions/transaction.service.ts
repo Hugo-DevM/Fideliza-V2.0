@@ -307,33 +307,43 @@ export async function processTransaction(
       })();
     }
     // ── Referral completion hook (fire-and-forget) ───────────────────────────
-    // Fires only on the referred customer's first real earn (lifetimePoints === 0
-    // before this earn, meaning we just added their first activity).
+    // Fires only on the referred customer's FIRST earn (lifetimePoints === 0).
+    // Applies bonus to whatever program they first transact in.
     if (lifetimePoints === 0) {
       void (async () => {
         try {
           const db2 = createServiceRoleClient();
 
-          // Check if this customer has a pending referral in this program
-          const { data: referral } = await (db2 as any).from('referrals')
-            .select('id, referrer_id, referred_id')
-            .eq('tenant_id', tenantId)
+          // Atomically complete the referral: UPDATE WHERE status='pending' prevents double-fire
+          const { data: referral } = await (db2 as any)
+            .from('referrals')
+            .update({
+              status:       'completed',
+              completed_at: new Date().toISOString(),
+              program_id:   input.program_id,
+            })
+            .eq('tenant_id',   tenantId)
             .eq('referred_id', input.customer_id)
-            .eq('program_id', input.program_id)
-            .eq('status', 'pending')
+            .eq('status',      'pending')
+            .is('program_id',  null)
+            .select('id, referrer_id, referred_id')
             .maybeSingle() as {
-              data: { id: string; referrer_id: string; referred_id: string } | null;
+              data:  { id: string; referrer_id: string; referred_id: string } | null;
+              error: unknown;
             };
 
-          if (!referral) return;
+          if (!referral) return; // No pending referral or already completed
 
-          // Mark referral as completed
-          await (db2 as any).from('referrals')
-            .update({ status: 'completed', completed_at: new Date().toISOString() })
-            .eq('id', referral.id);
+          // Fetch referral bonuses from tenant settings
+          const { data: tsRow } = await db2
+            .from('tenant_settings')
+            .select('referral_program_configs')
+            .eq('tenant_id', tenantId)
+            .single() as { data: { referral_program_configs: Record<string, { referrer_bonus: number; referred_bonus: number }> } | null };
 
-          // Fetch program config for referrer bonus
-          const referrerBonus = Number(cfg.referrer_bonus ?? 100);
+          const programConfig = tsRow?.referral_program_configs?.[input.program_id];
+          const referrerBonus = programConfig?.referrer_bonus ?? 100;
+          const referredBonus = programConfig?.referred_bonus ?? 50;
 
           // Credit referrer bonus
           if (referrerBonus > 0) {
@@ -342,12 +352,22 @@ export async function processTransaction(
               p_customer_id:  referral.referrer_id,
               p_program_id:   input.program_id,
               p_points_delta: referrerBonus,
-              p_note:         'Bono por referido',
+              p_note:         '🎁 Bono por referido',
             });
           }
 
-          // Fetch referrer for WhatsApp
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          // Credit referred bonus (on top of their normal earn)
+          if (referredBonus > 0) {
+            await (db2 as any).rpc('rpc_earn_points', {
+              p_tenant_id:    tenantId,
+              p_customer_id:  referral.referred_id,
+              p_program_id:   input.program_id,
+              p_points_delta: referredBonus,
+              p_note:         '🎁 Bono de bienvenida por referido',
+            });
+          }
+
+          // WhatsApp notification to referrer
           const { data: referrerCustomer } = await (db2.from('customers') as any)
             .select('name, phone, whatsapp_opt_in')
             .eq('id', referral.referrer_id)
@@ -356,7 +376,6 @@ export async function processTransaction(
 
           if (!referrerCustomer?.phone) return;
 
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
           const { data: referredCustomer } = await (db2.from('customers') as any)
             .select('name')
             .eq('id', referral.referred_id)
@@ -377,7 +396,7 @@ export async function processTransaction(
             referrerBonus,
             tenantRow?.name ?? '',
           );
-        } catch { /* best-effort */ }
+        } catch { /* best-effort — never blocks the earn */ }
       })();
     }
     // ── Challenge progress hook (fire-and-forget) ────────────────────────────

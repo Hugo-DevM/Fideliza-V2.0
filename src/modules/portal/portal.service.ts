@@ -74,6 +74,7 @@ export interface PortalCustomer {
   id: string;
   name: string;
   access_code: string;
+  referral_code: string;
   member_since: string;
   loyalty_score: number;
   tier_label: string | null;
@@ -173,6 +174,9 @@ export interface PortalData {
   rankings: PortalProgramRanking[];
   /** Universal tier system — null when tiers_enabled = false */
   tenant_tiers: PortalTierConfig[] | null;
+  /** Referral system — tenant-level config */
+  referral_enabled: boolean;
+  referral_program_configs: Record<string, { referrer_bonus: number; referred_bonus: number }>;
 }
 
 // ── Helpers ───────────────────────────────────────────────────────────
@@ -202,13 +206,13 @@ export async function getPortalData(
     .eq('is_active', true)
     .single();
 
-  // Fetch loyalty score separately to avoid breaking the typed select above
+  // Fetch loyalty score + referral_code separately to avoid breaking the typed select above
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const { data: loyaltyRaw } = customerRaw ? await (db.from('customers') as any)
-    .select('loyalty_score, tier_label, tier_color')
+    .select('loyalty_score, tier_label, tier_color, referral_code')
     .eq('id', customerRaw.id)
     .eq('tenant_id', tenantId)
-    .single() as { data: { loyalty_score: number; tier_label: string | null; tier_color: string | null } | null }
+    .single() as { data: { loyalty_score: number; tier_label: string | null; tier_color: string | null; referral_code: string | null } | null }
     : { data: null };
 
   const customer = customerRaw ? {
@@ -216,6 +220,7 @@ export async function getPortalData(
     loyalty_score: loyaltyRaw?.loyalty_score ?? 0,
     tier_label:    loyaltyRaw?.tier_label    ?? null,
     tier_color:    loyaltyRaw?.tier_color    ?? null,
+    referral_code: loyaltyRaw?.referral_code ?? '',
   } : null;
 
   if (custErr || !customer) {
@@ -228,7 +233,7 @@ export async function getPortalData(
     db
       .from('tenants')
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      .select('name, subdomain, logo_url, tenant_settings(primary_color, secondary_color, welcome_message, program_label, logo_padding, tiers_enabled, tiers)' as any)
+      .select('name, subdomain, logo_url, tenant_settings(primary_color, secondary_color, welcome_message, program_label, logo_padding, tiers_enabled, tiers, referral_enabled, referral_program_configs)' as any)
       .eq('id', tenantId)
       .single(),
 
@@ -278,6 +283,8 @@ export async function getPortalData(
       logo_padding: number;
       tiers_enabled: boolean;
       tiers: PortalTierConfig[] | null;
+      referral_enabled: boolean;
+      referral_program_configs: Record<string, { referrer_bonus: number; referred_bonus: number }>;
     }> | null;
   };
 
@@ -564,7 +571,7 @@ export async function getPortalData(
   }));
 
   const rawCustomer = customer as unknown as {
-    id: string; name: string; access_code: string; created_at: string;
+    id: string; name: string; access_code: string; referral_code: string; created_at: string;
     loyalty_score: number; tier_label: string | null; tier_color: string | null;
   };
 
@@ -579,6 +586,7 @@ export async function getPortalData(
       id:            rawCustomer.id,
       name:          rawCustomer.name,
       access_code:   rawCustomer.access_code,
+      referral_code: rawCustomer.referral_code ?? '',
       member_since:  rawCustomer.created_at,
       loyalty_score: rawCustomer.loyalty_score ?? 0,
       tier_label:    rawCustomer.tier_label ?? null,
@@ -589,5 +597,7 @@ export async function getPortalData(
     pending_vouchers,
     rankings,
     tenant_tiers: tenantTiers,
+    referral_enabled:          settings?.referral_enabled ?? false,
+    referral_program_configs:  settings?.referral_program_configs ?? {},
   };
 }

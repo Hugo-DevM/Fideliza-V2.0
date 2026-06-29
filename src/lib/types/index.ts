@@ -68,6 +68,8 @@ export interface TenantSettings {
   wa_notify_promotion: boolean;
   wa_notify_birthday: boolean;
   wa_notify_milestone_80: boolean;
+  referral_enabled:          boolean;
+  referral_program_configs:  Record<string, { referrer_bonus: number; referred_bonus: number }>;
   created_at: string;
   updated_at: string;
 }
@@ -138,6 +140,7 @@ export interface Customer {
   email: string | null;
   phone: string | null;
   access_code: string;
+  referral_code?: string;
   is_active: boolean;
   notes: string | null;
   whatsapp_opt_in: boolean;

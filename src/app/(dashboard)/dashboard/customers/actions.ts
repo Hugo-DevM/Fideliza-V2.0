@@ -19,12 +19,48 @@ export async function createCustomerAction(formData: FormData) {
   const birth_month      = birth_month_raw ? parseInt(birth_month_raw, 10) : null;
   const birth_day        = birth_day_raw   ? parseInt(birth_day_raw,   10) : null;
   const birth_year       = birth_year_raw  ? parseInt(birth_year_raw,  10) : null;
+  const referralCode     = (formData.get('referral_code') as string | null)?.trim().toUpperCase() || null;
 
   if (!name)  return { error: 'El nombre es obligatorio.' };
   if (!phone) return { error: 'El teléfono es obligatorio.' };
 
   try {
     const customer = await createCustomer(tenantId, { name, phone, notes, whatsapp_opt_in, birth_month, birth_day, birth_year });
+
+    if (referralCode) {
+      const db = createServiceRoleClient();
+
+      // Find referrer by referral_code in same tenant
+      const { data: referrer } = await (db as any)
+        .from('customers')
+        .select('id')
+        .eq('tenant_id', tenantId)
+        .eq('referral_code', referralCode)
+        .eq('is_active', true)
+        .neq('id', customer.id) // can't refer yourself
+        .maybeSingle() as { data: { id: string } | null };
+
+      if (referrer) {
+        // Only create if no referral already exists for this customer in this tenant
+        const { data: existing } = await (db as any)
+          .from('referrals')
+          .select('id')
+          .eq('tenant_id', tenantId)
+          .eq('referred_id', customer.id)
+          .maybeSingle() as { data: { id: string } | null };
+
+        if (!existing) {
+          await (db as any).from('referrals').insert({
+            tenant_id:   tenantId,
+            referrer_id: referrer.id,
+            referred_id: customer.id,
+            status:      'pending',
+            program_id:  null,
+          });
+        }
+      }
+    }
+
     revalidateTag('customers', 'max');
     revalidatePath('/dashboard/customers');
     revalidatePath('/dashboard');
