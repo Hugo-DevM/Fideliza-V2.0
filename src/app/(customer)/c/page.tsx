@@ -247,8 +247,8 @@ function PortalShell({ data, code, tab }: { data: PortalData; code: string; tab:
       </header>
 
       {/* ── Tab bar ──────────────────────────────────────────────── */}
-      <div className="sticky top-0 z-20 bg-gray-100 dark:bg-[#07090f] px-4 py-2.5 shadow-sm">
-        <div className="mx-auto max-w-lg flex gap-1 rounded-2xl bg-white dark:bg-[#0f1222] p-1 shadow-inner shadow-black/5 dark:shadow-black/30 ring-1 ring-black/5 dark:ring-white/5">
+      <div className="sticky top-0 z-20 bg-white dark:bg-[#0f1222] px-4 py-2">
+        <div className="mx-auto max-w-lg flex gap-1 rounded-2xl bg-gray-100 dark:bg-[#1a1f35] p-1">
           {([
             {
               key: 'points' as Tab,
@@ -292,12 +292,12 @@ function PortalShell({ data, code, tab }: { data: PortalData; code: string; tab:
               <Link
                 key={key}
                 href={tabHref(key)}
-                className={`flex flex-1 flex-col items-center gap-0.5 py-2 text-[11px] font-semibold rounded-xl transition-all ${
+                className={`flex flex-1 flex-col items-center gap-0.5 py-2 text-[11px] font-semibold rounded-xl ${
                   active
                     ? 'text-white shadow-sm'
-                    : 'text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300'
+                    : 'text-gray-400 dark:text-gray-500'
                 }`}
-                style={active ? { backgroundColor: tenant.primary_color } : {}}
+                style={active ? { backgroundColor: ACCENT } : {}}
               >
                 {icon}
                 {label}
