@@ -290,6 +290,22 @@ function PointsTab({
         </div>
       )}
 
+      {/* Referral card — shown early so it's visible without scrolling */}
+      {referralPrograms.length > 0 && (
+        <section className="space-y-3">
+          <SectionHeading>Invita amigos</SectionHeading>
+          {referralPrograms.map((e) => (
+            <ReferralShareCard
+              key={e.program_id}
+              enrollment={e}
+              referralCode={customer.referral_code ?? ''}
+              tenantSubdomain={tenant.subdomain}
+              programConfig={referralProgramConfigs[e.program_id]}
+            />
+          ))}
+        </section>
+      )}
+
       {/* Missions */}
       {missions.length > 0 && (
         <section className="space-y-3">
@@ -321,22 +337,6 @@ function PointsTab({
           title="Sin programas aún"
           message={`Pide a ${tenant.name} que te inscriba en un programa de lealtad.`}
         />
-      )}
-
-      {/* Referral cards */}
-      {referralPrograms.length > 0 && (
-        <section className="space-y-3">
-          <SectionHeading>Invita amigos</SectionHeading>
-          {referralPrograms.map((e) => (
-            <ReferralShareCard
-              key={e.program_id}
-              enrollment={e}
-              referralCode={customer.referral_code ?? ''}
-              tenantSubdomain={tenant.subdomain}
-              programConfig={referralProgramConfigs[e.program_id]}
-            />
-          ))}
-        </section>
       )}
     </>
   );
