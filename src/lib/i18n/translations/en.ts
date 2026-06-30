@@ -277,6 +277,7 @@ export const en = {
           "Analytics",
           "Priority support",
           "CSV export",
+          "3,000 WhatsApp messages/month",
         ],
         missing: [],
         cta: "Get early access",

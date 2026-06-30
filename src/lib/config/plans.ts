@@ -18,7 +18,15 @@ export interface PlanLimits {
   prioritySupport: boolean;
   whatsappMonthlyLimit: number | null;    // null = unlimited; Starter = 500
   whatsappMarketing: boolean;             // true = can send marketing category templates
-  universalTiers: boolean;                // true = universal loyalty tier system enabled
+  // ── Retention features ───────────────────────────────────────────────
+  clientPortal: boolean;                  // /c customer portal (Starter+)
+  flashOffers: boolean;                   // flash point multiplier windows (Starter+)
+  artificialHeadStart: boolean;           // initial_bonus on program enrollment (Starter+)
+  birthdayRewards: boolean;               // birthday WhatsApp + points cron (Pro)
+  universalTiers: boolean;                // VIP tier system with multipliers (Pro)
+  surpriseDelight: boolean;               // random surprise multiplier (Pro)
+  referralProgram: boolean;               // referral link + bonuses (Pro)
+  challenges: boolean;                    // missions / challenges (Pro)
 }
 
 export const PLAN_CONFIG: Record<string, PlanLimits> = {
@@ -34,7 +42,14 @@ export const PLAN_CONFIG: Record<string, PlanLimits> = {
     prioritySupport:        false,
     whatsappMonthlyLimit:   0,
     whatsappMarketing:      false,
+    clientPortal:           false,
+    flashOffers:            false,
+    artificialHeadStart:    false,
+    birthdayRewards:        false,
     universalTiers:         false,
+    surpriseDelight:        false,
+    referralProgram:        false,
+    challenges:             false,
   },
   starter: {
     maxCustomers:           300,
@@ -48,7 +63,14 @@ export const PLAN_CONFIG: Record<string, PlanLimits> = {
     prioritySupport:        false,
     whatsappMonthlyLimit:   500,
     whatsappMarketing:      false,
-    universalTiers:         true,
+    clientPortal:           true,
+    flashOffers:            true,
+    artificialHeadStart:    true,
+    birthdayRewards:        false,
+    universalTiers:         false,
+    surpriseDelight:        false,
+    referralProgram:        false,
+    challenges:             false,
   },
   pro: {
     maxCustomers:           null,
@@ -60,9 +82,16 @@ export const PLAN_CONFIG: Record<string, PlanLimits> = {
     exportCSV:              true,
     analytics:              true,
     prioritySupport:        true,
-    whatsappMonthlyLimit:   null,
+    whatsappMonthlyLimit:   3000,   // ~$24 USD max Twilio cost/tenant at avg $0.008/msg
     whatsappMarketing:      true,
+    clientPortal:           true,
+    flashOffers:            true,
+    artificialHeadStart:    true,
+    birthdayRewards:        true,
     universalTiers:         true,
+    surpriseDelight:        true,
+    referralProgram:        true,
+    challenges:             true,
   },
   // Backward compatibility — maps to pro limits
   enterprise: {
@@ -75,9 +104,16 @@ export const PLAN_CONFIG: Record<string, PlanLimits> = {
     exportCSV:              true,
     analytics:              true,
     prioritySupport:        true,
-    whatsappMonthlyLimit:   null,
+    whatsappMonthlyLimit:   3000,   // same as pro
     whatsappMarketing:      true,
+    clientPortal:           true,
+    flashOffers:            true,
+    artificialHeadStart:    true,
+    birthdayRewards:        true,
     universalTiers:         true,
+    surpriseDelight:        true,
+    referralProgram:        true,
+    challenges:             true,
   },
 };
 

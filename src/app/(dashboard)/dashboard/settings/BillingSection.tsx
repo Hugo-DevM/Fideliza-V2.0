@@ -474,6 +474,7 @@ export default function BillingSection({
                   <li>✓ Clientes ilimitados</li>
                   <li>✓ Programas ilimitados</li>
                   <li>✓ Todos los tipos de programa</li>
+                  <li>✓ 3,000 mensajes WhatsApp/mes</li>
                   <li>✓ Analíticas</li>
                   <li>✓ Exportación CSV</li>
                   <li>✓ Soporte prioritario</li>
@@ -512,6 +513,7 @@ export default function BillingSection({
               <li>✓ Clientes ilimitados</li>
               <li>✓ Programas ilimitados</li>
               <li>✓ Todos los tipos de programa</li>
+              <li>✓ 3,000 mensajes WhatsApp/mes</li>
               <li>✓ Exportación CSV</li>
               <li>✓ Soporte prioritario</li>
             </ul>

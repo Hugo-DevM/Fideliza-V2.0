@@ -18,6 +18,7 @@
 
 import { createServiceRoleClient } from '@/lib/supabase/server';
 import { NotFoundError, TenantNotFoundError } from '@/lib/middleware/errors';
+import { getPlanLimits, getEffectivePlan } from '@/lib/config/plans';
 import type { UUID } from '@/lib/types';
 
 /**
@@ -27,12 +28,12 @@ import type { UUID } from '@/lib/types';
  */
 export async function getTenantBySubdomainPublic(
   subdomain: string
-): Promise<{ id: UUID; name: string; is_active: boolean; logo_url: string | null; logo_padding: number }> {
+): Promise<{ id: UUID; name: string; is_active: boolean; logo_url: string | null; logo_padding: number; clientPortal: boolean }> {
   const db = createServiceRoleClient();
 
   const { data, error } = await db
     .from('tenants')
-    .select('id, name, is_active, logo_url, tenant_settings(logo_padding)')
+    .select('id, name, is_active, logo_url, plan, subscription_status, tenant_settings(logo_padding)')
     .eq('subdomain', subdomain.toLowerCase())
     .eq('is_active', true)
     .single();
@@ -43,16 +44,19 @@ export async function getTenantBySubdomainPublic(
 
   const raw = data as unknown as {
     id: UUID; name: string; is_active: boolean; logo_url: string | null;
+    plan: string; subscription_status: string | null;
     tenant_settings: Array<{ logo_padding: number }> | { logo_padding: number } | null;
   };
   const settings = Array.isArray(raw.tenant_settings) ? raw.tenant_settings[0] : raw.tenant_settings;
+  const effectivePlan = getEffectivePlan(raw.plan, raw.subscription_status);
 
   return {
-    id:          raw.id,
-    name:        raw.name,
-    is_active:   raw.is_active,
-    logo_url:    raw.logo_url,
+    id:           raw.id,
+    name:         raw.name,
+    is_active:    raw.is_active,
+    logo_url:     raw.logo_url,
     logo_padding: settings?.logo_padding ?? 8,
+    clientPortal: getPlanLimits(effectivePlan).clientPortal,
   };
 }
 

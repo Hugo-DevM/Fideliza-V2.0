@@ -3,7 +3,13 @@
 import { useState } from 'react';
 import NewProgramModal from './NewProgramModal';
 
-export default function CreateProgramCard({ allowedTypes }: { allowedTypes: string[] }) {
+export default function CreateProgramCard({
+  allowedTypes,
+  showHeadStart = false,
+}: {
+  allowedTypes: string[];
+  showHeadStart?: boolean;
+}) {
   const [open, setOpen] = useState(false);
 
   return (
@@ -20,7 +26,7 @@ export default function CreateProgramCard({ allowedTypes }: { allowedTypes: stri
       </button>
 
       {open && (
-        <NewProgramModal allowedTypes={allowedTypes} controlledOpen={open} onClose={() => setOpen(false)} />
+        <NewProgramModal allowedTypes={allowedTypes} showHeadStart={showHeadStart} controlledOpen={open} onClose={() => setOpen(false)} />
       )}
     </>
   );

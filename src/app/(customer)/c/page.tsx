@@ -14,6 +14,7 @@ import AuthThemeToggle from '@/app/(auth)/ThemeToggle';
 import PortalTabsClient from './PortalTabsClient';
 import { getPortalData, getTenantBySubdomainPublic } from '@/modules/portal';
 import { NotFoundError, TenantNotFoundError } from '@/lib/middleware/errors';
+import { getPlanLimits, getEffectivePlan } from '@/lib/config/plans';
 import type { PortalData } from '@/modules/portal';
 
 export const dynamic = 'force-dynamic';
@@ -63,18 +64,22 @@ export default async function CustomerPortalPage({ searchParams }: PageProps) {
     let tenantLogoUrl: string | null = null;
     let tenantLogoPadding = 8;
     let primaryColor: string | undefined;
+    let portalAllowed = true;
     try {
       const tenant      = await getTenantBySubdomainPublic(subdomain);
       tenantName        = tenant.name;
       tenantLogoUrl     = tenant.logo_url;
       tenantLogoPadding = tenant.logo_padding;
+      portalAllowed     = tenant.clientPortal;
     } catch { /* Tenant not found */ }
+    if (!portalAllowed) return <PortalUnavailableScreen />;
     return <EntryScreen tenantName={tenantName} logoUrl={tenantLogoUrl} logoPadding={tenantLogoPadding} primaryColor={primaryColor} />;
   }
 
   let data: PortalData;
   try {
     const tenant = await getTenantBySubdomainPublic(subdomain);
+    if (!tenant.clientPortal) return <PortalUnavailableScreen />;
     data = await getPortalData(tenant.id, code);
   } catch (err) {
     if (err instanceof TenantNotFoundError) notFound();
@@ -91,6 +96,30 @@ export default async function CustomerPortalPage({ searchParams }: PageProps) {
   }
 
   return <PortalShell data={data} code={code} tab={tab} />;
+}
+
+// ── Portal unavailable (Free plan) ───────────────────────────────────
+
+function PortalUnavailableScreen() {
+  return (
+    <>
+      <AuthBg />
+      <AuthThemeToggle />
+      <div className="flex min-h-screen items-center justify-center p-4">
+        <div className="w-full max-w-sm rounded-2xl bg-white dark:bg-[#161b2e] p-8 shadow-xl shadow-black/10 dark:shadow-black/50 ring-1 ring-black/5 dark:ring-white/5 text-center space-y-3">
+          <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-amber-50 dark:bg-amber-500/15">
+            <svg className="h-6 w-6 text-amber-500" fill="none" stroke="currentColor" strokeWidth={1.8} viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 1 0-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 0 0 2.25-2.25v-6.75a2.25 2.25 0 0 0-2.25-2.25H6.75a2.25 2.25 0 0 0-2.25 2.25v6.75a2.25 2.25 0 0 0 2.25 2.25Z" />
+            </svg>
+          </div>
+          <h1 className="text-base font-semibold text-gray-900 dark:text-white">Portal no disponible</h1>
+          <p className="text-sm text-gray-500 dark:text-gray-400">
+            El portal del cliente no está habilitado para este negocio. Contacta al negocio para más información.
+          </p>
+        </div>
+      </div>
+    </>
+  );
 }
 
 // ── Auth-style background (shared by entry + not-found screens) ────────

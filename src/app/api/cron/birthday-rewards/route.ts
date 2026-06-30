@@ -15,9 +15,10 @@
  *   - Enqueues a WhatsApp birthday message with 50 bonus points
  */
 
-import { NextResponse }            from 'next/server';
-import { createServiceRoleClient } from '@/lib/supabase/server';
-import { sendBirthdayMessage }     from '@/modules/whatsapp/whatsapp.service';
+import { NextResponse }                from 'next/server';
+import { createServiceRoleClient }    from '@/lib/supabase/server';
+import { sendBirthdayMessage }        from '@/modules/whatsapp/whatsapp.service';
+import { getPlanLimits, getEffectivePlanFromTenant } from '@/lib/config/plans';
 
 export const dynamic     = 'force-dynamic';
 export const maxDuration = 60;
@@ -38,7 +39,7 @@ interface CustomerRow {
 interface TenantSettingsRow {
   tenant_id:          string;
   wa_notify_birthday: boolean;
-  tenants: { name: string } | null;
+  tenants: { name: string; plan: string; subscription_status: string | null } | null;
 }
 
 export async function GET(request: Request) {
@@ -93,11 +94,22 @@ export async function GET(request: Request) {
 
   const { data: settingsRows } = await db
     .from('tenant_settings')
-    .select('tenant_id, wa_notify_birthday, tenants!inner(name)')
+    .select('tenant_id, wa_notify_birthday, tenants!inner(name, plan, subscription_status)')
     .in('tenant_id', tenantIds)
     .eq('wa_notify_birthday', true) as { data: TenantSettingsRow[] | null };
 
-  const enabledTenants = new Set((settingsRows ?? []).map((s) => s.tenant_id));
+  // Only Pro tenants with birthdayRewards flag active
+  const enabledTenants = new Set(
+    (settingsRows ?? [])
+      .filter((s) => {
+        const effectivePlan = getEffectivePlanFromTenant({
+          plan:                s.tenants?.plan ?? 'free',
+          subscription_status: s.tenants?.subscription_status ?? null,
+        });
+        return getPlanLimits(effectivePlan).birthdayRewards;
+      })
+      .map((s) => s.tenant_id),
+  );
   const tenantNames    = new Map(
     (settingsRows ?? []).map((s) => [s.tenant_id, s.tenants?.name ?? '']),
   );

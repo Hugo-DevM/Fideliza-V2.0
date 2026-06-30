@@ -164,7 +164,7 @@ export default async function ProgramsPage() {
             {programCount} activo{programCount !== 1 ? 's' : ''} · {planLabel} ({limitLabel})
           </p>
         </div>
-        {!atProgramLimit && <NewProgramModal allowedTypes={planLimits.allowedProgramTypes} />}
+        {!atProgramLimit && <NewProgramModal allowedTypes={planLimits.allowedProgramTypes} showHeadStart={planLimits.artificialHeadStart} />}
       </div>
 
       {/* Grid */}
@@ -184,7 +184,7 @@ export default async function ProgramsPage() {
 
           {/* Create new card */}
           {!atProgramLimit && (
-            <CreateProgramCard allowedTypes={planLimits.allowedProgramTypes} />
+            <CreateProgramCard allowedTypes={planLimits.allowedProgramTypes} showHeadStart={planLimits.artificialHeadStart} />
           )}
         </div>
       )}

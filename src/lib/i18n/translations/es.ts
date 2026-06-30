@@ -279,6 +279,7 @@ export const es: Dictionary = {
           "Analíticas",
           "Soporte prioritario",
           "Exportación CSV",
+          "3,000 mensajes WhatsApp/mes",
         ],
         missing: [],
         cta: "Acceso anticipado",

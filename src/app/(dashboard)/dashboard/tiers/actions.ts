@@ -13,7 +13,10 @@ export async function updateTenantTiersAction(payload: {
   tier_score_per_cashback_cent: number;
 }): Promise<{ error?: string }> {
   try {
-    const { tenantId } = await getAuthenticatedTenant();
+    const { tenantId, planLimits } = await getAuthenticatedTenant();
+    if (!planLimits.universalTiers) {
+      return { error: 'Los niveles VIP están disponibles en el plan Pro.' };
+    }
     const db = createServiceRoleClient();
 
     // Validate tiers: thresholds must be strictly increasing (first must be 0)

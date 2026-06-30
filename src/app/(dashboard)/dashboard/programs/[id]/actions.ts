@@ -20,7 +20,7 @@ export async function updateFlashOfferAction(
   },
 ) {
   const { tenantId, effectivePlan } = await getAuthenticatedTenant();
-  if (effectivePlan === 'free') return { error: 'Flash Offers requiere plan Starter o Pro.' };
+  if (!getPlanLimits(effectivePlan).flashOffers) return { error: 'Flash Offers requiere plan Starter o Pro.' };
 
   const db = createServiceRoleClient();
 
@@ -50,7 +50,7 @@ export async function updateTiersAction(
   tiers: { tiers_enabled: boolean; tiers: unknown[] },
 ) {
   const { tenantId, effectivePlan } = await getAuthenticatedTenant();
-  if (effectivePlan !== 'pro' && effectivePlan !== 'enterprise') {
+  if (!getPlanLimits(effectivePlan).universalTiers) {
     return { error: 'Niveles VIP requiere el plan Pro.' };
   }
 
@@ -85,7 +85,7 @@ export async function updateSurpriseDelightAction(
   },
 ) {
   const { tenantId, effectivePlan } = await getAuthenticatedTenant();
-  if (effectivePlan !== 'pro' && effectivePlan !== 'enterprise') {
+  if (!getPlanLimits(effectivePlan).surpriseDelight) {
     return { error: 'Surprise & Delight requiere el plan Pro.' };
   }
 
@@ -120,7 +120,7 @@ export async function updateReferralAction(
   },
 ) {
   const { tenantId, effectivePlan } = await getAuthenticatedTenant();
-  if (effectivePlan !== 'pro' && effectivePlan !== 'enterprise') {
+  if (!getPlanLimits(effectivePlan).referralProgram) {
     return { error: 'El programa de referidos requiere el plan Pro.' };
   }
 
@@ -157,7 +157,7 @@ export async function createChallengeAction(
   },
 ) {
   const { tenantId, effectivePlan } = await getAuthenticatedTenant();
-  if (effectivePlan !== 'pro' && effectivePlan !== 'enterprise') {
+  if (!getPlanLimits(effectivePlan).challenges) {
     return { error: 'Las misiones requieren el plan Pro.' };
   }
   if (!input.title.trim() || input.target < 1 || input.bonus_points < 1) {

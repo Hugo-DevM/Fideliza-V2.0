@@ -3,6 +3,7 @@
 import { revalidatePath } from 'next/cache';
 import { getAuthenticatedTenant } from '@/lib/auth/get-tenant';
 import { createServiceRoleClient } from '@/lib/supabase/server';
+import { getPlanLimits } from '@/lib/config/plans';
 
 export async function updateReferralSettingsAction(data: {
   referral_enabled: boolean;
@@ -10,7 +11,7 @@ export async function updateReferralSettingsAction(data: {
 }) {
   const { tenantId, effectivePlan } = await getAuthenticatedTenant();
 
-  if (effectivePlan !== 'pro' && effectivePlan !== 'enterprise') {
+  if (!getPlanLimits(effectivePlan).referralProgram) {
     return { error: 'El programa de referidos requiere el plan Pro.' };
   }
 

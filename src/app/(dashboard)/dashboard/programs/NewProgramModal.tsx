@@ -38,10 +38,12 @@ const ALL_PROGRAM_TYPES = [
 
 export default function NewProgramModal({
   allowedTypes,
+  showHeadStart = false,
   controlledOpen,
   onClose,
 }: {
   allowedTypes: string[];
+  showHeadStart?: boolean;
   controlledOpen?: boolean;
   onClose?: () => void;
 }) {
@@ -186,8 +188,8 @@ export default function NewProgramModal({
                 </div>
               )}
 
-              {/* Head Start — bonus on first earn */}
-              {(() => {
+              {/* Head Start — bonus on first earn (Starter+) */}
+              {showHeadStart && (() => {
                 const hs = HEAD_START_COPY[type] ?? HEAD_START_COPY.points;
                 return (
                   <div className="rounded-xl border border-amber-200 dark:border-amber-700/40 bg-amber-50 dark:bg-amber-950/20 p-4 space-y-1.5">

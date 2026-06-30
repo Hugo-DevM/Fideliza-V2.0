@@ -129,3 +129,102 @@ export async function getTransactionHistoryLimit(
   const limits = getPlanLimits(plan);
   return limits.transactionHistoryLimit;
 }
+
+/** Throws if the tenant's plan does not include the customer portal. */
+export async function enforceClientPortal(tenantId: UUID): Promise<void> {
+  const plan = await getTenantPlan(tenantId);
+  const limits = getPlanLimits(plan);
+  if (!limits.clientPortal) {
+    throw new ForbiddenError(
+      'El portal del cliente está disponible en el plan Starter o Pro.'
+    );
+  }
+}
+
+/** Throws if the tenant's plan does not include Artificial Head Start. */
+export async function enforceArtificialHeadStart(tenantId: UUID): Promise<void> {
+  const plan = await getTenantPlan(tenantId);
+  const limits = getPlanLimits(plan);
+  if (!limits.artificialHeadStart) {
+    throw new ForbiddenError(
+      'El inicio con ventaja está disponible en el plan Starter o Pro.'
+    );
+  }
+}
+
+/** Throws if the tenant's plan does not include Birthday Rewards. */
+export async function enforceBirthdayRewards(tenantId: UUID): Promise<void> {
+  const plan = await getTenantPlan(tenantId);
+  const limits = getPlanLimits(plan);
+  if (!limits.birthdayRewards) {
+    throw new ForbiddenError(
+      'Las recompensas de cumpleaños están disponibles en el plan Pro.'
+    );
+  }
+}
+
+/** Throws if the tenant's plan does not include Analytics. */
+export async function enforceAnalytics(tenantId: UUID): Promise<void> {
+  const plan = await getTenantPlan(tenantId);
+  const limits = getPlanLimits(plan);
+  if (!limits.analytics) {
+    throw new ForbiddenError(
+      'Las analíticas están disponibles en el plan Pro.'
+    );
+  }
+}
+
+/** Throws if the tenant's plan does not include Flash Offers. */
+export async function enforceFlashOffers(tenantId: UUID): Promise<void> {
+  const plan = await getTenantPlan(tenantId);
+  const limits = getPlanLimits(plan);
+  if (!limits.flashOffers) {
+    throw new ForbiddenError(
+      'Flash Offers está disponible en el plan Starter o Pro.'
+    );
+  }
+}
+
+/** Throws if the tenant's plan does not include Surprise & Delight. */
+export async function enforceSurpriseDelight(tenantId: UUID): Promise<void> {
+  const plan = await getTenantPlan(tenantId);
+  const limits = getPlanLimits(plan);
+  if (!limits.surpriseDelight) {
+    throw new ForbiddenError(
+      'Surprise & Delight está disponible en el plan Pro.'
+    );
+  }
+}
+
+/** Throws if the tenant's plan does not include the Referral Program. */
+export async function enforceReferralProgram(tenantId: UUID): Promise<void> {
+  const plan = await getTenantPlan(tenantId);
+  const limits = getPlanLimits(plan);
+  if (!limits.referralProgram) {
+    throw new ForbiddenError(
+      'El programa de referidos está disponible en el plan Pro.'
+    );
+  }
+}
+
+/** Throws if the tenant's plan does not include Challenges. */
+export async function enforceChallenges(tenantId: UUID): Promise<void> {
+  const plan = await getTenantPlan(tenantId);
+  const limits = getPlanLimits(plan);
+  if (!limits.challenges) {
+    throw new ForbiddenError(
+      'Las misiones/challenges están disponibles en el plan Pro.'
+    );
+  }
+}
+
+/** Throws if the tenant's plan does not include Universal Tiers. */
+export async function enforceUniversalTiers(tenantId: UUID): Promise<void> {
+  const plan = await getTenantPlan(tenantId);
+  const limits = getPlanLimits(plan);
+  if (!limits.universalTiers) {
+    throw new ForbiddenError(
+      'Los niveles VIP están disponibles en el plan Pro.'
+    );
+  }
+}

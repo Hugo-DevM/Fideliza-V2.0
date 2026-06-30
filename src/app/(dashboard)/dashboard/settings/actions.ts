@@ -5,9 +5,11 @@ import { redirect } from 'next/navigation';
 import { getAuthenticatedTenant } from '@/lib/auth/get-tenant';
 import { updateTenantSettings, softDeleteTenant } from '@/modules/tenants/tenant.repository';
 import { createServerClient, createServiceRoleClient } from '@/lib/supabase/server';
+import { getPlanLimits } from '@/lib/config/plans';
 
 export async function updateSettingsAction(formData: FormData) {
-  const { tenantId } = await getAuthenticatedTenant();
+  const { tenantId, effectivePlan } = await getAuthenticatedTenant();
+  const limits = getPlanLimits(effectivePlan);
 
   const primary_color   = (formData.get('primary_color')   as string | null)?.trim();
   const secondary_color = (formData.get('secondary_color') as string | null)?.trim();
@@ -23,11 +25,21 @@ export async function updateSettingsAction(formData: FormData) {
   const wa_notify_welcome          = formData.get('wa_notify_welcome')          === 'true';
   const wa_notify_voucher_expiry   = formData.get('wa_notify_voucher_expiry')   === 'true';
   const wa_notify_balance_reminder = formData.get('wa_notify_balance_reminder') === 'true';
-  const wa_notify_reactivation     = formData.get('wa_notify_reactivation')     === 'true';
-  const wa_notify_streak_at_risk   = formData.get('wa_notify_streak_at_risk')   === 'true';
+  // Plan-gated: reactivation + streak (Pro only — both are marketing templates)
+  const wa_notify_reactivation   = limits.whatsappMarketing
+    ? formData.get('wa_notify_reactivation')   === 'true'
+    : false;
+  const wa_notify_streak_at_risk = limits.whatsappMarketing
+    ? formData.get('wa_notify_streak_at_risk') === 'true'
+    : false;
   const wa_notify_promotion        = formData.get('wa_notify_promotion')        === 'true';
-  const wa_notify_birthday         = formData.get('wa_notify_birthday')         === 'true';
-  const wa_notify_milestone_80     = formData.get('wa_notify_milestone_80')     === 'true';
+  // Plan-gated: birthday (Pro) and milestone_80 (Starter+) — force false if plan doesn't allow
+  const wa_notify_birthday         = limits.birthdayRewards
+    ? formData.get('wa_notify_birthday') === 'true'
+    : false;
+  const wa_notify_milestone_80     = limits.whatsappMonthlyLimit !== 0  // Starter+ have WhatsApp enabled
+    ? formData.get('wa_notify_milestone_80') === 'true'
+    : false;
 
   // Validate hex color format
   const hexRe = /^#[0-9A-Fa-f]{6}$/;

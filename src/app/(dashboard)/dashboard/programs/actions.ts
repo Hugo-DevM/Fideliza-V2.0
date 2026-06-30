@@ -6,7 +6,7 @@ import { createProgram } from '@/modules/rewards';
 import type { ProgramType } from '@/lib/types';
 
 export async function createProgramAction(formData: FormData) {
-  const { tenantId } = await getAuthenticatedTenant();
+  const { tenantId, effectivePlan, planLimits } = await getAuthenticatedTenant();
 
   const name        = (formData.get('name')        as string).trim();
   const description = (formData.get('description') as string | null)?.trim() || null;
@@ -32,9 +32,12 @@ export async function createProgramAction(formData: FormData) {
     };
   }
 
-  // Head Start — optional bonus on first earn (all program types)
+  // Head Start — optional bonus on first earn (Starter+ only)
   const initialBonusRaw = parseInt(formData.get('initial_bonus') as string, 10);
   if (!isNaN(initialBonusRaw) && initialBonusRaw > 0) {
+    if (!planLimits.artificialHeadStart) {
+      return { error: 'El inicio con ventaja está disponible en el plan Starter o Pro.' };
+    }
     config.initial_bonus = initialBonusRaw;
   }
 
