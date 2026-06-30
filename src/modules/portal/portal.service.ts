@@ -229,12 +229,20 @@ export async function getPortalData(
     .single() as { data: { loyalty_score: number; tier_label: string | null; tier_color: string | null; referral_code: string | null } | null }
     : { data: null };
 
+  // Auto-generate referral_code for customers that don't have one yet
+  let referralCode = loyaltyRaw?.referral_code ?? null;
+  if (customerRaw && !referralCode) {
+    const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; // no 0/O/1/I to avoid confusion
+    referralCode = Array.from({ length: 6 }, () => chars[Math.floor(Math.random() * chars.length)]).join('');
+    await (db as any).from('customers').update({ referral_code: referralCode }).eq('id', customerRaw.id).eq('tenant_id', tenantId);
+  }
+
   const customer = customerRaw ? {
     ...customerRaw,
     loyalty_score: loyaltyRaw?.loyalty_score ?? 0,
     tier_label:    loyaltyRaw?.tier_label    ?? null,
     tier_color:    loyaltyRaw?.tier_color    ?? null,
-    referral_code: loyaltyRaw?.referral_code ?? '',
+    referral_code: referralCode ?? '',
   } : null;
 
   if (custErr || !customer) {

@@ -217,9 +217,7 @@ function PointsTab({
     0,
   );
 
-  const referralPrograms = referralEnabled
-    ? enrollments.filter((e) => referralProgramConfigs[e.program_id] !== undefined)
-    : [];
+  const referralPrograms = referralEnabled && customer.referral_code ? enrollments : [];
 
   return (
     <>
