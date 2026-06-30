@@ -10,6 +10,8 @@ import { NextResponse } from 'next/server';
 import ExcelJS from 'exceljs';
 import { getAuthenticatedTenant } from '@/lib/auth/get-tenant';
 import { createServiceRoleClient } from '@/lib/supabase/server';
+import { rateLimiters, rateLimitExceededResponse, rateLimitKey } from '@/lib/middleware/rate-limit';
+import { getClientIp } from '@/lib/middleware/api-context';
 
 // ── Styling constants ────────────────────────────────────────────────────────
 const HEADER_FILL: ExcelJS.Fill = {
@@ -49,6 +51,11 @@ function fmtDateOnly(iso: string | null | undefined): string {
 // ── Handler ──────────────────────────────────────────────────────────────────
 export async function GET(request: Request) {
   const { tenantId, planLimits, tenant } = await getAuthenticatedTenant();
+
+  // ── Rate limit ──────────────────────────────────────────────────────────
+  const ip = getClientIp(request);
+  const rl = await rateLimiters.exportReport(rateLimitKey.byTenantAndIp(tenantId, ip, 'GET:/api/export'));
+  if (!rl.allowed) return rateLimitExceededResponse(rl);
 
   if (!planLimits.analytics) {
     return NextResponse.json({ error: 'El plan Pro es requerido para exportar.' }, { status: 403 });

@@ -8,6 +8,8 @@ import { NextResponse } from 'next/server';
 import { createServerClient, createServiceRoleClient } from '@/lib/supabase/server';
 import { stripe, STRIPE_PRICE_IDS } from '@/lib/stripe';
 import { syncSubscriptionToTenant } from '@/lib/stripe/sync';
+import { rateLimiters, rateLimitExceededResponse, rateLimitKey } from '@/lib/middleware/rate-limit';
+import { getClientIp } from '@/lib/middleware/api-context';
 
 export const dynamic = 'force-dynamic';
 
@@ -25,6 +27,11 @@ export async function POST(request: Request) {
     if (!tenantId) {
       return NextResponse.json({ data: null, error: 'Tenant no encontrado' }, { status: 401 });
     }
+
+    // ── Rate limit ────────────────────────────────────────────────────────
+    const ip = getClientIp(request);
+    const rl = await rateLimiters.stripeAction(rateLimitKey.byTenantAndIp(tenantId, ip, 'POST:/api/stripe/upgrade'));
+    if (!rl.allowed) return rateLimitExceededResponse(rl);
 
     // ── 2. Parse target plan ──────────────────────────────────────────────
     const body       = await request.json().catch(() => ({}));

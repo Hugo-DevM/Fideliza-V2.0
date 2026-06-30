@@ -169,6 +169,12 @@ export const rateLimiters = {
 
   /** Password reset confirm — secondary brute-force guard */
   passwordResetConfirm: (key: string) => checkRateLimit(key, 10, 15 * 60_000),
+
+  /** Stripe API actions (portal, checkout, upgrade) — prevent API abuse */
+  stripeAction:         (key: string) => checkRateLimit(key, 10, 60_000),
+
+  /** Report export (xlsx/csv) — heavy DB + file generation */
+  exportReport:         (key: string) => checkRateLimit(key, 10, 60_000),
 };
 
 /**

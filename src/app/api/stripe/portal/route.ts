@@ -8,10 +8,12 @@
 import { NextResponse } from 'next/server';
 import { createServerClient, createServiceRoleClient } from '@/lib/supabase/server';
 import { stripe } from '@/lib/stripe';
+import { rateLimiters, rateLimitExceededResponse, rateLimitKey } from '@/lib/middleware/rate-limit';
+import { getClientIp } from '@/lib/middleware/api-context';
 
 export const dynamic = 'force-dynamic';
 
-export async function POST() {
+export async function POST(request: Request) {
   try {
     // ── Verify auth ───────────────────────────────────────────────────
     const supabase = await createServerClient();
@@ -25,6 +27,11 @@ export async function POST() {
     if (!tenantId) {
       return NextResponse.json({ data: null, error: 'Tenant no encontrado' }, { status: 401 });
     }
+
+    // ── Rate limit ────────────────────────────────────────────────────
+    const ip = getClientIp(request);
+    const rl = await rateLimiters.stripeAction(rateLimitKey.byTenantAndIp(tenantId, ip, 'POST:/api/stripe/portal'));
+    if (!rl.allowed) return rateLimitExceededResponse(rl);
 
     // ── Fetch stripe_customer_id ──────────────────────────────────────
     const db = createServiceRoleClient();

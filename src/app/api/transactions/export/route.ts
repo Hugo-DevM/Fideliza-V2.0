@@ -5,9 +5,16 @@
 import { NextResponse } from 'next/server';
 import { getAuthenticatedTenant } from '@/lib/auth/get-tenant';
 import { createServiceRoleClient } from '@/lib/supabase/server';
+import { rateLimiters, rateLimitExceededResponse, rateLimitKey } from '@/lib/middleware/rate-limit';
+import { getClientIp } from '@/lib/middleware/api-context';
 
 export async function GET(request: Request) {
   const { tenantId, planLimits } = await getAuthenticatedTenant();
+
+  // ── Rate limit ──────────────────────────────────────────────────────────
+  const ip = getClientIp(request);
+  const rl = await rateLimiters.exportReport(rateLimitKey.byTenantAndIp(tenantId, ip, 'GET:/api/transactions/export'));
+  if (!rl.allowed) return rateLimitExceededResponse(rl);
 
   if (!planLimits.exportCSV) {
     return NextResponse.json({ error: 'El plan Pro es requerido para exportar.' }, { status: 403 });
