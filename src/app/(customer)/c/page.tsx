@@ -308,7 +308,8 @@ function PortalShell({ data, code, tab }: { data: PortalData; code: string; tab:
       </div>
 
       {/* ── Tab content ──────────────────────────────────────────── */}
-      <main className="mx-auto w-full max-w-lg flex-1 space-y-4 px-4 py-5">
+      <style>{`@keyframes portalFadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}`}</style>
+      <main className="mx-auto w-full max-w-lg flex-1 space-y-4 px-4 py-5" style={{ animation: 'portalFadeIn 200ms ease' }}>
         {tab === 'points' && (
           <PointsTab
             enrollments={enrollments}
