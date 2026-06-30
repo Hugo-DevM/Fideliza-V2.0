@@ -214,11 +214,17 @@ function PortalShell({ data, code, tab }: { data: PortalData; code: string; tab:
           background: `linear-gradient(135deg, ${tenant.primary_color} 0%, ${tenant.secondary_color} 100%)`,
         }}
       >
-        <div className="mx-auto max-w-lg flex items-start justify-between gap-4">
-          <div className="flex items-start gap-3 min-w-0">
-            {/* Tenant logo (if uploaded) */}
+        <div className="mx-auto max-w-lg relative">
+          {/* Theme toggle — top right */}
+          <div className="absolute right-0 top-0">
+            <ThemeToggle />
+          </div>
+
+          {/* Centered layout */}
+          <div className="flex flex-col items-center text-center">
+            {/* Large circular logo */}
             {tenant.logo_url && (
-              <div className="shrink-0 flex h-11 w-11 items-center justify-center overflow-hidden rounded-xl bg-white/20 backdrop-blur-sm ring-1 ring-white/30">
+              <div className="flex h-16 w-16 items-center justify-center overflow-hidden rounded-full bg-white shadow-lg ring-2 ring-white/40 mb-3">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   src={tenant.logo_url}
@@ -228,32 +234,27 @@ function PortalShell({ data, code, tab }: { data: PortalData; code: string; tab:
                 />
               </div>
             )}
-            <div className="min-w-0">
-              <p className="text-[11px] font-semibold uppercase tracking-widest opacity-70">
-                {tenant.name}
-              </p>
-              <h1 className="mt-1 text-2xl font-bold leading-tight">{customer.name}</h1>
-              <p className="mt-0.5 font-mono text-sm opacity-60">{customer.access_code}</p>
-              {tenant.welcome_message && (
-                <p className="mt-2 text-sm opacity-80 leading-snug">{tenant.welcome_message}</p>
-              )}
-            </div>
-          </div>
-          <div className="shrink-0 pt-1">
-            <ThemeToggle />
+            <p className="text-[11px] font-semibold uppercase tracking-widest opacity-70">
+              {tenant.name}
+            </p>
+            <h1 className="mt-1 text-2xl font-bold leading-tight">{customer.name}</h1>
+            <p className="mt-0.5 font-mono text-sm opacity-60">{customer.access_code}</p>
+            {tenant.welcome_message && (
+              <p className="mt-2 text-sm opacity-80 leading-snug max-w-xs">{tenant.welcome_message}</p>
+            )}
           </div>
         </div>
       </header>
 
       {/* ── Tab bar ──────────────────────────────────────────────── */}
-      <div className="sticky top-0 z-20 border-b border-gray-200 dark:border-[#1e2438] bg-white dark:bg-[#0f1222] shadow-sm">
-        <div className="mx-auto flex max-w-lg">
+      <div className="sticky top-0 z-20 bg-gray-100 dark:bg-[#07090f] px-4 py-2.5 shadow-sm">
+        <div className="mx-auto max-w-lg flex gap-1 rounded-2xl bg-white dark:bg-[#0f1222] p-1 shadow-inner shadow-black/5 dark:shadow-black/30 ring-1 ring-black/5 dark:ring-white/5">
           {([
             {
               key: 'points' as Tab,
               label: 'Puntos',
               icon: (
-                <svg className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth={1.8} viewBox="0 0 24 24">
+                <svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={1.8} viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M11.48 3.499a.562.562 0 0 1 1.04 0l2.125 5.111a.563.563 0 0 0 .475.345l5.518.442c.499.04.701.663.321.988l-4.204 3.602a.563.563 0 0 0-.182.557l1.285 5.385a.562.562 0 0 1-.84.61l-4.725-2.885a.562.562 0 0 0-.586 0L6.982 20.54a.562.562 0 0 1-.84-.61l1.285-5.386a.562.562 0 0 0-.182-.557l-4.204-3.602a.562.562 0 0 1 .321-.988l5.518-.442a.563.563 0 0 0 .475-.345L11.48 3.5Z" />
                 </svg>
               ),
@@ -262,7 +263,7 @@ function PortalShell({ data, code, tab }: { data: PortalData; code: string; tab:
               key: 'rewards' as Tab,
               label: 'Recompensas',
               icon: (
-                <svg className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth={1.8} viewBox="0 0 24 24">
+                <svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={1.8} viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M21 11.25v8.25a1.5 1.5 0 0 1-1.5 1.5H5.25a1.5 1.5 0 0 1-1.5-1.5v-8.25M12 4.875A2.625 2.625 0 1 0 9.375 7.5H12m0-2.625V7.5m0-2.625A2.625 2.625 0 1 1 14.625 7.5H12m0 0V21m-8.625-9.75h18c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125h-18c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125Z" />
                 </svg>
               ),
@@ -271,7 +272,7 @@ function PortalShell({ data, code, tab }: { data: PortalData; code: string; tab:
               key: 'history' as Tab,
               label: 'Historial',
               icon: (
-                <svg className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth={1.8} viewBox="0 0 24 24">
+                <svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={1.8} viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
                 </svg>
               ),
@@ -280,7 +281,7 @@ function PortalShell({ data, code, tab }: { data: PortalData; code: string; tab:
               key: 'ranking' as Tab,
               label: 'Ranking',
               icon: (
-                <svg className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth={1.8} viewBox="0 0 24 24">
+                <svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={1.8} viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 18.75h-9m9 0a3 3 0 0 1 3 3h-15a3 3 0 0 1 3-3m9 0v-3.375c0-.621-.503-1.125-1.125-1.125h-.871M7.5 18.75v-3.375c0-.621.504-1.125 1.125-1.125h.872m5.007 0H9.497m5.007 0a7.454 7.454 0 0 1-.982-3.172M9.497 14.25a7.454 7.454 0 0 0 .981-3.172M5.25 4.236c-.982.143-1.954.317-2.916.52A6.003 6.003 0 0 0 7.73 9.728M5.25 4.236V4.5c0 2.108.966 3.99 2.48 5.228M5.25 4.236V2.721C7.456 2.41 9.71 2.25 12 2.25c2.291 0 4.545.16 6.75.47v1.516M7.73 9.728a6.726 6.726 0 0 0 2.748 1.35m8.272-6.842V4.5c0 2.108-.966 3.99-2.48 5.228m2.48-5.492a46.32 46.32 0 0 1 2.916.52 6.003 6.003 0 0 1-5.395 4.972m0 0a6.726 6.726 0 0 1-2.749 1.35m0 0a6.772 6.772 0 0 1-3.044 0" />
                 </svg>
               ),
@@ -291,11 +292,12 @@ function PortalShell({ data, code, tab }: { data: PortalData; code: string; tab:
               <Link
                 key={key}
                 href={tabHref(key)}
-                className={`flex flex-1 flex-col items-center gap-1 py-3 text-xs font-semibold transition-colors border-b-2 ${
+                className={`flex flex-1 flex-col items-center gap-0.5 py-2 text-[11px] font-semibold rounded-xl transition-all ${
                   active
-                    ? 'border-indigo-600 dark:border-indigo-400 text-indigo-600 dark:text-indigo-400'
-                    : 'border-transparent text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300'
+                    ? 'text-white shadow-sm'
+                    : 'text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300'
                 }`}
+                style={active ? { backgroundColor: tenant.primary_color } : {}}
               >
                 {icon}
                 {label}
