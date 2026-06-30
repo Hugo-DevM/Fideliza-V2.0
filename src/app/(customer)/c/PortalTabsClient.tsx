@@ -978,7 +978,7 @@ function ReferralShareCard({ enrollment: e, referralCode, tenantSubdomain, progr
           <p className="text-[10px] text-gray-500 dark:text-gray-400">pts para tu amigo</p>
         </div>
       </div>
-      <ReferralShareButton referralPath={referralPath} tenantSubdomain={tenantSubdomain} />
+      <ReferralShareButton path={referralPath} code={referralCode} />
     </div>
   );
 }
