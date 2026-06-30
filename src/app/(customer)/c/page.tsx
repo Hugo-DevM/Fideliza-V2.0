@@ -24,6 +24,7 @@ import type {
   PortalVoucher,
   PortalReward,
   PortalChallenge,
+  PortalMission,
   PortalProgramRanking,
 } from '@/modules/portal';
 import { computeTier, nextTier, TIER_STYLES } from '@/lib/utils/tiers';
@@ -315,6 +316,7 @@ function PortalShell({ data, code, tab }: { data: PortalData; code: string; tab:
             tenantTiers={data.tenant_tiers}
             referralEnabled={data.referral_enabled}
             referralProgramConfigs={data.referral_program_configs}
+            missions={data.missions}
           />
         )}
         {tab === 'rewards' && (
@@ -356,6 +358,7 @@ function PointsTab({
   tenantTiers,
   referralEnabled,
   referralProgramConfigs,
+  missions,
 }: {
   enrollments: PortalEnrollment[];
   pendingVouchers: PortalVoucher[];
@@ -364,6 +367,7 @@ function PointsTab({
   tenantTiers: PortalData['tenant_tiers'];
   referralEnabled: boolean;
   referralProgramConfigs: Record<string, { referrer_bonus: number; referred_bonus: number }>;
+  missions: PortalMission[];
 }) {
   const affordableCount = enrollments.reduce(
     (sum, e) => sum + e.rewards.filter((r) => r.is_affordable).length,
@@ -444,6 +448,18 @@ function PointsTab({
             ¡Puedes canjear {affordableCount} recompensa{affordableCount !== 1 ? 's' : ''}! Revisa la pestaña Recompensas.
           </p>
         </div>
+      )}
+
+      {/* Missions section — all active tenant missions */}
+      {missions.length > 0 && (
+        <section className="space-y-3">
+          <SectionHeading>Misiones</SectionHeading>
+          <div className="space-y-3">
+            {missions.map((m) => (
+              <ChallengeRow key={m.id} challenge={m} programType={m.program_type} />
+            ))}
+          </div>
+        </section>
       )}
 
       {/* Enrollment cards */}
@@ -1054,18 +1070,6 @@ function EnrollmentCard({
           />
         )}
       </div>
-
-      {/* Active challenges */}
-      {e.challenges.length > 0 && (
-        <div className="mt-4 space-y-2">
-          <p className="text-[11px] font-semibold uppercase tracking-widest text-gray-400 dark:text-gray-500">
-            Misiones activas
-          </p>
-          {e.challenges.map((c) => (
-            <ChallengeRow key={c.id} challenge={c} programType={e.program_type} />
-          ))}
-        </div>
-      )}
 
       {affordableRewards.length > 0 && (
         <div className="mt-4 rounded-xl p-3.5" style={{ backgroundColor: `${primaryColor}12` }}>

@@ -8,6 +8,7 @@ export type {
   PortalVoucher,
   PortalReward,
   PortalChallenge,
+  PortalMission,
   PortalLeaderboardEntry,
   PortalProgramRanking,
   PortalTierConfig,

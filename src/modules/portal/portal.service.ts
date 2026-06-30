@@ -106,6 +106,18 @@ export interface PortalChallenge {
   completed_at: string | null;
 }
 
+export interface PortalMission {
+  id: string;
+  title: string;
+  description: string | null;
+  target: number;
+  bonus_points: number;
+  ends_at: string | null;
+  progress: number;
+  completed_at: string | null;
+  program_type: 'points' | 'stamp' | 'visit' | 'cashback';
+}
+
 export interface PortalEnrollment {
   enrollment_id: string;
   program_id: string;
@@ -177,6 +189,8 @@ export interface PortalData {
   /** Referral system — tenant-level config */
   referral_enabled: boolean;
   referral_program_configs: Record<string, { referrer_bonus: number; referred_bonus: number }>;
+  /** All active tenant missions (regardless of program enrollment) */
+  missions: PortalMission[];
 }
 
 // ── Helpers ───────────────────────────────────────────────────────────
@@ -359,6 +373,8 @@ export async function getPortalData(
     }
   }
 
+  const portalMissions: PortalMission[] = [];
+
   const enrollments: PortalEnrollment[] = rawEnrollments.map((e) => {
     const program  = e.reward_programs!;
     const allProgramRewards = rewardsMap.get(program.id) ?? [];
@@ -421,19 +437,19 @@ export async function getPortalData(
     };
   });
 
-  // ── 5. Fetch active challenges + customer progress ───────────────
-  if (programIds.length > 0) {
+  // ── 5. Fetch ALL active tenant missions + customer progress ─────────
+  {
     const now = new Date().toISOString();
 
     const [challengesRes, progressRes] = await Promise.all([
       (db as any)
         .from('challenges')
-        .select('id, program_id, title, description, target, bonus_points, ends_at')
+        .select('id, program_id, title, description, target, bonus_points, ends_at, reward_programs!inner(type)')
         .eq('tenant_id', tenantId)
-        .in('program_id', programIds)
         .eq('is_active', true) as Promise<{ data: Array<{
           id: string; program_id: string; title: string; description: string | null;
           target: number; bonus_points: number; ends_at: string | null;
+          reward_programs: { type: string };
         }> | null }>,
       (db as any)
         .from('customer_challenge_progress')
@@ -454,6 +470,7 @@ export async function getPortalData(
       !c.ends_at || c.ends_at >= now
     );
 
+    // Populate per-enrollment challenges (for enrolled programs only)
     for (const enrollment of enrollments) {
       enrollment.challenges = allChallenges
         .filter((c: { program_id: string }) => c.program_id === enrollment.program_id)
@@ -471,6 +488,24 @@ export async function getPortalData(
           };
         });
     }
+
+    // Top-level missions: ALL active tenant missions (regardless of enrollment)
+    portalMissions.push(
+      ...allChallenges.map((c: { id: string; title: string; description: string | null; target: number; bonus_points: number; ends_at: string | null; reward_programs: { type: string } }) => {
+        const prog = progressMap.get(c.id);
+        return {
+          id:           c.id,
+          title:        c.title,
+          description:  c.description,
+          target:       c.target,
+          bonus_points: c.bonus_points,
+          ends_at:      c.ends_at,
+          progress:     prog?.progress ?? 0,
+          completed_at: prog?.completed_at ?? null,
+          program_type: (c.reward_programs?.type ?? 'points') as PortalMission['program_type'],
+        };
+      })
+    );
   }
 
   // ── 7. Parse transactions ─────────────────────────────────────────
@@ -599,5 +634,6 @@ export async function getPortalData(
     tenant_tiers: tenantTiers,
     referral_enabled:          settings?.referral_enabled ?? false,
     referral_program_configs:  settings?.referral_program_configs ?? {},
+    missions: portalMissions,
   };
 }
