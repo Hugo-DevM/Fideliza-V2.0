@@ -108,8 +108,8 @@ export default function PortalTabsClient({
   return (
     <>
       {/* ── Tab bar ────────────────────────────────────────────────── */}
-      <div className="sticky top-0 z-20 bg-white dark:bg-[#0f1222] px-4 py-2">
-        <div className="mx-auto max-w-lg flex gap-1 rounded-2xl bg-gray-100 dark:bg-[#1a1f35] p-1">
+      <div className="sticky top-0 z-20 bg-gray-100 dark:bg-[#07090f] px-4 py-2">
+        <div className="mx-auto max-w-lg flex gap-1 rounded-2xl bg-white/70 dark:bg-[#0f1222]/80 backdrop-blur-sm p-1">
           {((['points', 'rewards', 'history', 'ranking'] as Tab[])).map((key) => {
             const active = activeTab === key;
             return (
