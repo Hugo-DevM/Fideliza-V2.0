@@ -109,7 +109,19 @@ export default function PortalTabsClient({
     <>
       {/* ── Tab bar ────────────────────────────────────────────────── */}
       <div className="sticky top-0 z-20 bg-gray-100 dark:bg-[#07090f] px-4 py-2">
-        <div className="mx-auto max-w-lg flex gap-1 rounded-2xl bg-white/70 dark:bg-[#0f1222]/80 backdrop-blur-sm p-1">
+        <div className="relative mx-auto max-w-lg flex gap-1 rounded-2xl bg-white/70 dark:bg-[#0f1222]/80 backdrop-blur-sm p-1">
+          {/* Sliding pill */}
+          <div
+            aria-hidden
+            className="pointer-events-none absolute top-1 bottom-1 rounded-xl shadow-sm"
+            style={{
+              width: 'calc(25% - 3px)',
+              left: '4px',
+              backgroundColor: ACCENT,
+              transform: `translateX(calc(${(['points', 'rewards', 'history', 'ranking'] as Tab[]).indexOf(activeTab)} * (100% + 4px)))`,
+              transition: 'transform 240ms cubic-bezier(0.34, 1.56, 0.64, 1)',
+            }}
+          />
           {((['points', 'rewards', 'history', 'ranking'] as Tab[])).map((key) => {
             const active = activeTab === key;
             return (
@@ -117,10 +129,9 @@ export default function PortalTabsClient({
                 key={key}
                 type="button"
                 onClick={() => switchTab(key)}
-                className={`flex flex-1 flex-col items-center gap-0.5 py-2 text-[11px] font-semibold rounded-xl transition-colors ${
+                className={`relative z-10 flex flex-1 flex-col items-center gap-0.5 py-2 text-[11px] font-semibold rounded-xl ${
                   active ? 'text-white' : 'text-gray-400 dark:text-gray-500'
                 }`}
-                style={active ? { backgroundColor: ACCENT } : {}}
               >
                 {TAB_ICONS[key]}
                 {TAB_LABELS[key]}
