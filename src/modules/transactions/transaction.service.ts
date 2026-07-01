@@ -427,7 +427,7 @@ export async function processTransaction(
             .eq('id', input.customer_id)
             .eq('whatsapp_opt_in', true)
             .maybeSingle() as Promise<{ data: { name: string; phone: string | null } | null }>,
-          db2
+          (db2 as any)
             .from('tenants')
             .select('name')
             .eq('id', tenantId)
