@@ -419,6 +419,21 @@ export async function processTransaction(
 
         if (!activeChallenges?.length) return;
 
+        // Fetch customer and tenant once — reused for every challenge notification
+        const [{ data: customer }, { data: tenantRow }] = await Promise.all([
+          (db2 as any)
+            .from('customers')
+            .select('name, phone, whatsapp_opt_in')
+            .eq('id', input.customer_id)
+            .eq('whatsapp_opt_in', true)
+            .maybeSingle() as Promise<{ data: { name: string; phone: string | null } | null }>,
+          db2
+            .from('tenants')
+            .select('name')
+            .eq('id', tenantId)
+            .single() as Promise<{ data: { name: string } | null }>,
+        ]);
+
         for (const challenge of activeChallenges) {
           // Fetch or create progress row
           const { data: existing } = await (db2 as any)
@@ -470,20 +485,7 @@ export async function processTransaction(
             });
 
             // WhatsApp notification
-            const { data: customer } = await (db2 as any)
-              .from('customers')
-              .select('name, phone, whatsapp_opt_in')
-              .eq('id', input.customer_id)
-              .eq('whatsapp_opt_in', true)
-              .maybeSingle() as { data: { name: string; phone: string | null } | null };
-
             if (customer?.phone) {
-              const { data: tenantRow } = await db2
-                .from('tenants')
-                .select('name')
-                .eq('id', tenantId)
-                .single() as { data: { name: string } | null };
-
               await sendChallengeCompletedMessage(
                 input.customer_id,
                 tenantId,
