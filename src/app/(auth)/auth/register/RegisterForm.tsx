@@ -208,19 +208,6 @@ export default function RegisterForm() {
               <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">Tus credenciales de acceso personales.</p>
             </div>
 
-            <GoogleAuthButton label="Registrarse con Google" />
-
-            <div className="relative">
-              <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-gray-200 dark:border-[#2a3147]" />
-              </div>
-              <div className="relative flex justify-center text-xs">
-                <span className="bg-white dark:bg-[#161b2e] px-3 text-gray-400 dark:text-gray-500">
-                  o regístrate con email
-                </span>
-              </div>
-            </div>
-
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Nombre completo</label>
               <input
@@ -355,6 +342,19 @@ export default function RegisterForm() {
             >
               {isGoingToStep2 ? 'Verificando…' : 'Continuar →'}
             </button>
+
+            <div className="relative">
+              <div className="absolute inset-0 flex items-center">
+                <div className="w-full border-t border-gray-200 dark:border-[#2a3147]" />
+              </div>
+              <div className="relative flex justify-center text-xs">
+                <span className="bg-white dark:bg-[#161b2e] px-3 text-gray-400 dark:text-gray-500">
+                  o
+                </span>
+              </div>
+            </div>
+
+            <GoogleAuthButton label="Registrarse con Google" />
           </div>
         )}
 
