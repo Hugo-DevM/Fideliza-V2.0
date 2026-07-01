@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { signUpAction, sendConfirmationEmailAction, setupTenantAction, checkSubdomainAction } from './actions';
+import GoogleAuthButton from '@/components/GoogleAuthButton';
 
 type Step = 1 | 2;
 
@@ -205,6 +206,19 @@ export default function RegisterForm() {
             <div>
               <h2 className="text-xl font-bold text-gray-900 dark:text-white">Crea tu cuenta</h2>
               <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">Tus credenciales de acceso personales.</p>
+            </div>
+
+            <GoogleAuthButton label="Registrarse con Google" />
+
+            <div className="relative">
+              <div className="absolute inset-0 flex items-center">
+                <div className="w-full border-t border-gray-200 dark:border-[#2a3147]" />
+              </div>
+              <div className="relative flex justify-center text-xs">
+                <span className="bg-white dark:bg-[#161b2e] px-3 text-gray-400 dark:text-gray-500">
+                  o regístrate con email
+                </span>
+              </div>
             </div>
 
             <div>

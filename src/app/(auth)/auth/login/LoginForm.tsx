@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { createBrowserClient } from '@supabase/ssr';
 import { translateAuthError } from '@/lib/utils/supabase-errors';
 import { useAutoError } from '@/hooks/useAutoError';
+import GoogleAuthButton from '@/components/GoogleAuthButton';
 
 export default function LoginForm() {
   const router = useRouter();
@@ -39,6 +40,19 @@ export default function LoginForm() {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
+      <GoogleAuthButton label="Continuar con Google" />
+
+      <div className="relative">
+        <div className="absolute inset-0 flex items-center">
+          <div className="w-full border-t border-gray-200 dark:border-[#2a3147]" />
+        </div>
+        <div className="relative flex justify-center text-xs">
+          <span className="bg-white dark:bg-[#161b2e] px-3 text-gray-400 dark:text-gray-500">
+            o continúa con email
+          </span>
+        </div>
+      </div>
+
       {mounted && (
         <div style={wrapperStyle}><div style={{ overflow: 'hidden' }}>
           <p style={errorStyle} className="rounded-xl bg-red-50 dark:bg-red-500/10 border border-red-100 dark:border-red-500/20 px-4 py-3 text-sm text-red-600 dark:text-red-400">
