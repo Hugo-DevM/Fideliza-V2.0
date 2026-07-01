@@ -8,6 +8,7 @@ import type { TenantSettings } from '@/lib/types';
 import { useDashboardI18n } from '@/lib/i18n/dashboard-context';
 import type { Locale } from '@/lib/i18n';
 import { formatTimeOnly } from '@/lib/utils/date';
+import AccordionSection from './AccordionSection';
 
 export default function SettingsForm({
   settings,
@@ -143,7 +144,7 @@ export default function SettingsForm({
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6">
+    <form onSubmit={handleSubmit} className="space-y-4">
 
       {/* ── Page header ─────────────────────────────────────────────────────── */}
       <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
@@ -175,10 +176,30 @@ export default function SettingsForm({
       )}
       {success && <p className="rounded-xl bg-green-50 dark:bg-green-500/10 px-4 py-3 text-sm text-green-700 dark:text-green-400">{success} ✓</p>}
 
-      {/* ── Cuenta card ─────────────────────────────────────────────────────── */}
-      <div className="rounded-2xl border border-gray-100 dark:border-[#1e2438] bg-white dark:bg-[#161b2e] shadow-sm p-5 space-y-4">
-        <h2 className="text-sm font-semibold text-gray-800 dark:text-white">{s.account.title}</h2>
+      {/* ── Notification hidden inputs — always in DOM so they submit regardless of accordion state ── */}
+      <input type="hidden" name="notify_new_customer"  value={notifyNewCustomer  ? 'true' : 'false'} />
+      <input type="hidden" name="notify_redemption"    value={notifyRedemption   ? 'true' : 'false'} />
+      <input type="hidden" name="notify_weekly_digest" value={notifyWeeklyDigest ? 'true' : 'false'} />
+      <input type="hidden" name="wa_notify_welcome"          value={waNotifyWelcome         ? 'true' : 'false'} />
+      <input type="hidden" name="wa_notify_voucher_expiry"   value={waNotifyVoucherExpiry   ? 'true' : 'false'} />
+      <input type="hidden" name="wa_notify_balance_reminder" value={waNotifyBalanceReminder ? 'true' : 'false'} />
+      <input type="hidden" name="wa_notify_reactivation"     value={waNotifyReactivation    ? 'true' : 'false'} />
+      <input type="hidden" name="wa_notify_streak_at_risk"   value={waNotifyStreakAtRisk    ? 'true' : 'false'} />
+      <input type="hidden" name="wa_notify_promotion"        value={waNotifyPromotion       ? 'true' : 'false'} />
+      <input type="hidden" name="wa_notify_birthday"         value={waNotifyBirthday        ? 'true' : 'false'} />
+      <input type="hidden" name="wa_notify_milestone_80"     value={waNotifyMilestone80     ? 'true' : 'false'} />
 
+      {/* ── Negocio ─────────────────────────────────────────────────────────── */}
+      <AccordionSection
+        title={s.account.title}
+        description="Nombre, subdominio y logo de tu negocio"
+        defaultOpen
+        icon={
+          <svg className="h-4 w-4 text-indigo-600 dark:text-indigo-400" fill="none" stroke="currentColor" strokeWidth={1.8} viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 21v-7.5a.75.75 0 0 1 .75-.75h3a.75.75 0 0 1 .75.75V21m-4.5 0H2.36m11.14 0H18m0 0h3.64m-1.39 0V9.349M3.75 21V9.349m0 0a3.001 3.001 0 0 0 3.75-.615A2.993 2.993 0 0 0 9.75 9.75c.896 0 1.7-.393 2.25-1.016a2.993 2.993 0 0 0 2.25 1.016c.896 0 1.7-.393 2.25-1.015a3.001 3.001 0 0 0 3.75.614m-16.5 0a3.004 3.004 0 0 1-.621-4.72l1.189-1.19A1.5 1.5 0 0 1 5.378 3h13.243a1.5 1.5 0 0 1 1.06.44l1.19 1.189a3 3 0 0 1-.621 4.72M6.75 18h3.75a.75.75 0 0 0 .75-.75V13.5a.75.75 0 0 0-.75-.75H6.75a.75.75 0 0 0-.75.75v3.75c0 .414.336.75.75.75Z" />
+          </svg>
+        }
+      >
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <div>
             <p className="text-xs text-gray-400 dark:text-gray-500 mb-1">{s.account.businessName}</p>
@@ -220,18 +241,33 @@ export default function SettingsForm({
             </div>
           </div>
         </div>
-      </div>
+      </AccordionSection>
 
-      {/* ── Logo card ───────────────────────────────────────────────────────── */}
-      <LogoCard initialUrl={logoUrl} initialPadding={settings.logo_padding ?? 8} t={s.logo} />
+      {/* ── Logo ────────────────────────────────────────────────────────────── */}
+      <AccordionSection
+        title={s.logo.title}
+        description={s.logo.subtitle}
+        icon={
+          <svg className="h-4 w-4 text-indigo-600 dark:text-indigo-400" fill="none" stroke="currentColor" strokeWidth={1.8} viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" d="m2.25 15.75 5.159-5.159a2.25 2.25 0 0 1 3.182 0l5.159 5.159m-1.5-1.5 1.409-1.409a2.25 2.25 0 0 1 3.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0 0 0 1.5-1.5V6a1.5 1.5 0 0 0-1.5-1.5H3.75A1.5 1.5 0 0 0 2.25 6v12a1.5 1.5 0 0 0 1.5 1.5Zm10.5-11.25h.008v.008h-.008V8.25Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Z" />
+          </svg>
+        }
+      >
+        <LogoCardContent initialUrl={logoUrl} initialPadding={settings.logo_padding ?? 8} t={s.logo} />
+      </AccordionSection>
 
-      {/* ── Apariencia card ──────────────────────────────────────────────────── */}
-      <div className="rounded-2xl border border-gray-100 dark:border-[#1e2438] bg-white dark:bg-[#161b2e] shadow-sm p-5 space-y-4">
+      {/* ── Apariencia ──────────────────────────────────────────────────────── */}
+      <AccordionSection
+        title={s.appearance.title}
+        description="Colores, mensaje de bienvenida y etiqueta de puntos"
+        icon={
+          <svg className="h-4 w-4 text-indigo-600 dark:text-indigo-400" fill="none" stroke="currentColor" strokeWidth={1.8} viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M9.53 16.122a3 3 0 0 0-5.78 1.128 2.25 2.25 0 0 1-2.4 2.245 4.5 4.5 0 0 0 8.4-2.245c0-.399-.078-.78-.22-1.128Zm0 0a15.998 15.998 0 0 0 3.388-1.62m-5.043-.025a15.994 15.994 0 0 1 1.622-3.395m3.42 3.42a15.995 15.995 0 0 0 4.764-4.648l3.876-5.814a1.151 1.151 0 0 0-1.597-1.597L14.146 6.32a15.996 15.996 0 0 0-4.649 4.763m3.42 3.42a6.776 6.776 0 0 0-3.42-3.42" />
+          </svg>
+        }
+      >
         <div className="flex items-start justify-between gap-3">
-          <div>
-            <h2 className="text-sm font-semibold text-gray-800 dark:text-white">{s.appearance.title}</h2>
-            <p className="mt-0.5 text-xs text-gray-400 dark:text-gray-500">{s.appearance.subtitle}</p>
-          </div>
+          <p className="text-xs text-gray-400 dark:text-gray-500">{s.appearance.subtitle}</p>
           <a
             href={portalUrl}
             target="_blank"
@@ -268,17 +304,122 @@ export default function SettingsForm({
           <p className="mt-1 text-xl font-bold">{tenantName}</p>
           <p className="mt-1 text-xs opacity-80">{welcomeMessage || s.appearance.welcomePlaceholder}</p>
         </div>
-      </div>
 
-      {/* ── Región card ─────────────────────────────────────────────────────── */}
-      <div className="rounded-2xl border border-gray-100 dark:border-[#1e2438] bg-white dark:bg-[#161b2e] shadow-sm p-5 space-y-4">
-        <div>
-          <h2 className="text-sm font-semibold text-gray-800 dark:text-white">{s.region.title}</h2>
-          <p className="mt-0.5 text-xs text-gray-400 dark:text-gray-500">
-            {s.region.subtitle}
-          </p>
+        <div className="border-t border-gray-100 dark:border-[#1e2438] pt-4 space-y-4">
+          <div>
+            <p className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-0.5">{s.portal.title}</p>
+            <p className="text-xs text-gray-400 dark:text-gray-500">{s.portal.subtitle}</p>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
+              {s.portal.welcomeLabel}
+            </label>
+            <textarea
+              name="welcome_message"
+              rows={3}
+              maxLength={150}
+              value={welcomeMessage}
+              onChange={(e) => setWelcomeMessage(e.target.value)}
+              placeholder={s.portal.welcomePlaceholder}
+              className={`${inputCls} resize-none`}
+            />
+            <div className="mt-1 flex items-center justify-between">
+              <p className="text-xs text-gray-400 dark:text-gray-500">{s.portal.welcomeHint}</p>
+              <p className={`text-xs tabular-nums ${welcomeMessage.length >= 140 ? 'text-amber-500' : 'text-gray-400 dark:text-gray-500'}`}>
+                {welcomeMessage.length}/150
+              </p>
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
+              {s.portal.currencyLabel}
+            </label>
+            <input
+              name="program_label"
+              type="text"
+              value={programLabel}
+              onChange={handleProgramLabelChange}
+              placeholder="Puntos"
+              maxLength={30}
+              className={inputCls + ' max-w-xs'}
+            />
+            <p className="mt-1 text-xs text-gray-400 dark:text-gray-500">
+              {s.portal.currencyHint}
+            </p>
+            <div className="mt-3 rounded-xl border border-dashed border-gray-200 dark:border-[#1e2438] bg-gray-50 dark:bg-[#1a1f35] p-4 space-y-4">
+              <p className="text-xs font-semibold uppercase tracking-widest text-gray-400 dark:text-gray-500 text-center">
+                {s.portal.previewLabel}
+              </p>
+              <div className="flex flex-col items-center gap-3">
+                <div className="flex items-baseline gap-2">
+                  <span className="text-4xl font-bold text-gray-900 dark:text-white tabular-nums">150</span>
+                  <span className="text-base font-semibold text-indigo-600 dark:text-indigo-400">{programLabel || 'Points'}</span>
+                </div>
+                <div className="w-full h-px bg-gray-200 dark:bg-[#1e2438]" />
+                <div className="w-full space-y-2">
+                  <p className="text-xs text-gray-400 dark:text-gray-500 text-center">{s.portal.examplesLabel}</p>
+                  <div className="flex flex-wrap justify-center gap-1.5">
+                    {['Beans', 'Slices', 'Stars', 'Granos', 'Sellos'].map((ex) => (
+                      <button
+                        key={ex}
+                        type="button"
+                        onClick={() => setProgramLabel(ex)}
+                        className="rounded-full border border-gray-200 dark:border-[#1e2438] bg-white dark:bg-[#161b2e] px-3 py-1 text-xs font-medium text-gray-600 dark:text-gray-300 hover:border-indigo-300 dark:hover:border-indigo-500/50 hover:text-indigo-600 dark:hover:text-indigo-400 transition"
+                      >
+                        {ex}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
 
+        <div className="border-t border-gray-100 dark:border-[#1e2438] pt-4 space-y-3">
+          <div>
+            <p className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-0.5">{s.language.title}</p>
+            <p className="text-xs text-gray-400 dark:text-gray-500">{s.language.subtitle}</p>
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            {(['es', 'en'] as Locale[]).map((lang) => {
+              const isSelected = locale === lang;
+              return (
+                <button
+                  key={lang}
+                  type="button"
+                  onClick={() => setLocale(lang)}
+                  className={[
+                    'inline-flex items-center justify-center gap-2.5 rounded-xl border px-4 py-2.5 text-sm font-medium transition',
+                    isSelected
+                      ? 'border-indigo-500 bg-indigo-50 dark:bg-indigo-500/10 text-indigo-600 dark:text-indigo-400'
+                      : 'border-gray-200 dark:border-[#1e2438] bg-white dark:bg-[#1a1f35] text-gray-600 dark:text-gray-400 hover:border-gray-300 dark:hover:border-gray-600',
+                  ].join(' ')}
+                >
+                  <span className="text-base leading-none">{lang === 'es' ? '🇲🇽' : '🇺🇸'}</span>
+                  <span>{s.language[lang]}</span>
+                  {isSelected && (
+                    <svg className="h-3.5 w-3.5 text-indigo-500 dark:text-indigo-400" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                    </svg>
+                  )}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      </AccordionSection>
+
+      {/* ── Región ──────────────────────────────────────────────────────────── */}
+      <AccordionSection
+        title={s.region.title}
+        description={s.region.subtitle}
+        icon={
+          <GlobeIcon className="h-4 w-4 text-indigo-600 dark:text-indigo-400" />
+        }
+      >
         <div>
           <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
             {s.region.countryLabel}
@@ -320,263 +461,87 @@ export default function SettingsForm({
             {s.region.currencyHint}
           </p>
         </div>
-      </div>
+      </AccordionSection>
 
-      {/* ── Portal del cliente card ──────────────────────────────────────────── */}
-      <div className="rounded-2xl border border-gray-100 dark:border-[#1e2438] bg-white dark:bg-[#161b2e] shadow-sm p-5 space-y-4">
+      {/* ── Notificaciones ──────────────────────────────────────────────────── */}
+      <AccordionSection
+        title={s.notifications.title}
+        description="Alertas por email y mensajes automáticos a tus clientes por WhatsApp"
+        icon={
+          <svg className="h-4 w-4 text-indigo-600 dark:text-indigo-400" fill="none" stroke="currentColor" strokeWidth={1.8} viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M14.857 17.082a23.848 23.848 0 0 0 5.454-1.31A8.967 8.967 0 0 1 18 9.75V9A6 6 0 0 0 6 9v.75a8.967 8.967 0 0 1-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 0 1-5.714 0m5.714 0a3 3 0 1 1-5.714 0" />
+          </svg>
+        }
+      >
+        {/* Email */}
         <div>
-          <h2 className="text-sm font-semibold text-gray-800 dark:text-white">{s.portal.title}</h2>
-          <p className="mt-0.5 text-xs text-gray-400 dark:text-gray-500">
-            {s.portal.subtitle}
+          <p className="text-xs font-semibold uppercase tracking-widest text-gray-400 dark:text-gray-500 mb-3">
+            {s.notifications.subtitle}
           </p>
-        </div>
-
-        <div className="rounded-xl border border-gray-100 dark:border-[#1e2438] bg-gray-50 dark:bg-[#1a1f35] px-3 py-2.5 space-y-2">
-          <div className="flex items-center gap-2">
-            <svg className="h-4 w-4 shrink-0 text-indigo-400" fill="none" stroke="currentColor" strokeWidth={1.8} viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 6H5.25A2.25 2.25 0 003 8.25v10.5A2.25 2.25 0 005.25 21h10.5A2.25 2.25 0 0018 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25" />
-            </svg>
-            <span className="font-mono text-xs text-indigo-600 dark:text-indigo-400 break-all">
-              {portalUrl}
-            </span>
+          <div className="space-y-3">
+            <NotifToggle
+              label={s.notifications.newCustomer}
+              hint={s.notifications.newCustomerHint}
+              checked={notifyNewCustomer}
+              onChange={setNotifyNewCustomer}
+            />
+            <NotifToggle
+              label={s.notifications.redemption}
+              hint={s.notifications.redemptionHint}
+              checked={notifyRedemption}
+              onChange={setNotifyRedemption}
+            />
+            <NotifToggle
+              label={s.notifications.weeklyDigest}
+              hint={s.notifications.weeklyDigestHint}
+              checked={notifyWeeklyDigest}
+              onChange={setNotifyWeeklyDigest}
+            />
           </div>
         </div>
 
-        <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
-            {s.portal.welcomeLabel}
-          </label>
-          <textarea
-            name="welcome_message"
-            rows={3}
-            maxLength={150}
-            value={welcomeMessage}
-            onChange={(e) => setWelcomeMessage(e.target.value)}
-            placeholder={s.portal.welcomePlaceholder}
-            className={`${inputCls} resize-none`}
-          />
-          <div className="mt-1 flex items-center justify-between">
-            <p className="text-xs text-gray-400 dark:text-gray-500">{s.portal.welcomeHint}</p>
-            <p className={`text-xs tabular-nums ${welcomeMessage.length >= 140 ? 'text-amber-500' : 'text-gray-400 dark:text-gray-500'}`}>
-              {welcomeMessage.length}/150
-            </p>
-          </div>
-        </div>
-
-        <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
-            {s.portal.currencyLabel}
-          </label>
-          <input
-            name="program_label"
-            type="text"
-            value={programLabel}
-            onChange={handleProgramLabelChange}
-            placeholder="Puntos"
-            maxLength={30}
-            className={inputCls + ' max-w-xs'}
-          />
-          <p className="mt-1 text-xs text-gray-400 dark:text-gray-500">
-            {s.portal.currencyHint}
-          </p>
-
-          <div className="mt-3 rounded-xl border border-dashed border-gray-200 dark:border-[#1e2438] bg-gray-50 dark:bg-[#1a1f35] p-4 space-y-4">
-            <p className="text-xs font-semibold uppercase tracking-widest text-gray-400 dark:text-gray-500 text-center">
-              {s.portal.previewLabel}
-            </p>
-            <div className="flex flex-col items-center gap-3">
-              <div className="flex items-baseline gap-2">
-                <span className="text-4xl font-bold text-gray-900 dark:text-white tabular-nums">150</span>
-                <span className="text-base font-semibold text-indigo-600 dark:text-indigo-400">{programLabel || 'Points'}</span>
-              </div>
-              <div className="w-full h-px bg-gray-200 dark:bg-[#1e2438]" />
-              <div className="w-full space-y-2">
-                <p className="text-xs text-gray-400 dark:text-gray-500 text-center">{s.portal.examplesLabel}</p>
-                <div className="flex flex-wrap justify-center gap-1.5">
-                  {['Beans', 'Slices', 'Stars', 'Granos', 'Sellos'].map((ex) => (
-                    <button
-                      key={ex}
-                      type="button"
-                      onClick={() => setProgramLabel(ex)}
-                      className="rounded-full border border-gray-200 dark:border-[#1e2438] bg-white dark:bg-[#161b2e] px-3 py-1 text-xs font-medium text-gray-600 dark:text-gray-300 hover:border-indigo-300 dark:hover:border-indigo-500/50 hover:text-indigo-600 dark:hover:text-indigo-400 transition"
-                    >
-                      {ex}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* ── Idioma card ──────────────────────────────────────────────────────── */}
-      <div className="rounded-2xl border border-gray-100 dark:border-[#1e2438] bg-white dark:bg-[#161b2e] shadow-sm p-5 space-y-4">
-        <div>
-          <h2 className="text-sm font-semibold text-gray-800 dark:text-white">{s.language.title}</h2>
-          <p className="mt-0.5 text-xs text-gray-400 dark:text-gray-500">{s.language.subtitle}</p>
-        </div>
-
-        <div className="grid grid-cols-2 gap-3">
-          {(['es', 'en'] as Locale[]).map((lang) => {
-            const isSelected = locale === lang;
-            return (
-              <button
-                key={lang}
-                type="button"
-                onClick={() => setLocale(lang)}
-                className={[
-                  'inline-flex items-center justify-center gap-2.5 rounded-xl border px-4 py-2.5 text-sm font-medium transition',
-                  isSelected
-                    ? 'border-indigo-500 bg-indigo-50 dark:bg-indigo-500/10 text-indigo-600 dark:text-indigo-400'
-                    : 'border-gray-200 dark:border-[#1e2438] bg-white dark:bg-[#1a1f35] text-gray-600 dark:text-gray-400 hover:border-gray-300 dark:hover:border-gray-600',
-                ].join(' ')}
-              >
-                <span className="text-base leading-none">{lang === 'es' ? '🇲🇽' : '🇺🇸'}</span>
-                <span>{s.language[lang]}</span>
-                {isSelected && (
-                  <svg className="h-3.5 w-3.5 text-indigo-500 dark:text-indigo-400" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                  </svg>
-                )}
-              </button>
-            );
-          })}
-        </div>
-      </div>
-
-      {/* ── Notificaciones card ─────────────────────────────────────────────── */}
-      <input type="hidden" name="notify_new_customer"  value={notifyNewCustomer  ? 'true' : 'false'} />
-      <input type="hidden" name="notify_redemption"    value={notifyRedemption   ? 'true' : 'false'} />
-      <input type="hidden" name="notify_weekly_digest" value={notifyWeeklyDigest ? 'true' : 'false'} />
-      <div className="rounded-2xl border border-gray-100 dark:border-[#1e2438] bg-white dark:bg-[#161b2e] shadow-sm p-5 space-y-4">
-        <div>
-          <h2 className="text-sm font-semibold text-gray-800 dark:text-white">{s.notifications.title}</h2>
-          <p className="mt-0.5 text-xs text-gray-400 dark:text-gray-500">{s.notifications.subtitle}</p>
-        </div>
-
-        <div className="space-y-3">
-          <NotifToggle
-            label={s.notifications.newCustomer}
-            hint={s.notifications.newCustomerHint}
-            checked={notifyNewCustomer}
-            onChange={setNotifyNewCustomer}
-          />
-          <NotifToggle
-            label={s.notifications.redemption}
-            hint={s.notifications.redemptionHint}
-            checked={notifyRedemption}
-            onChange={setNotifyRedemption}
-          />
-          <NotifToggle
-            label={s.notifications.weeklyDigest}
-            hint={s.notifications.weeklyDigestHint}
-            checked={notifyWeeklyDigest}
-            onChange={setNotifyWeeklyDigest}
-          />
-        </div>
-      </div>
-
-      {/* ── WhatsApp notifications card ──────────────────────────────────────── */}
-      <input type="hidden" name="wa_notify_welcome"          value={waNotifyWelcome         ? 'true' : 'false'} />
-      <input type="hidden" name="wa_notify_voucher_expiry"   value={waNotifyVoucherExpiry   ? 'true' : 'false'} />
-      <input type="hidden" name="wa_notify_balance_reminder" value={waNotifyBalanceReminder ? 'true' : 'false'} />
-      <input type="hidden" name="wa_notify_reactivation"     value={waNotifyReactivation    ? 'true' : 'false'} />
-      <input type="hidden" name="wa_notify_streak_at_risk"   value={waNotifyStreakAtRisk    ? 'true' : 'false'} />
-      <input type="hidden" name="wa_notify_promotion"        value={waNotifyPromotion       ? 'true' : 'false'} />
-      <input type="hidden" name="wa_notify_birthday"         value={waNotifyBirthday        ? 'true' : 'false'} />
-      <input type="hidden" name="wa_notify_milestone_80"    value={waNotifyMilestone80     ? 'true' : 'false'} />
-      <div className="rounded-2xl border border-gray-100 dark:border-[#1e2438] bg-white dark:bg-[#161b2e] shadow-sm p-5 space-y-4">
-        <div className="flex items-center justify-between gap-2">
-          <div className="flex items-center gap-2">
-            <WhatsAppIcon className="h-4 w-4 text-green-500 shrink-0" />
-            <div>
-              <h2 className="text-sm font-semibold text-gray-800 dark:text-white">Notificaciones por WhatsApp</h2>
-              <p className="mt-0.5 text-xs text-gray-400 dark:text-gray-500">
-                Mensajes automáticos enviados a tus clientes vía WhatsApp Business API.
+        {/* WhatsApp */}
+        <div className="border-t border-gray-100 dark:border-[#1e2438] pt-4">
+          <div className="flex items-center justify-between gap-2 mb-3">
+            <div className="flex items-center gap-2">
+              <WhatsAppIcon className="h-4 w-4 text-green-500 shrink-0" />
+              <p className="text-xs font-semibold uppercase tracking-widest text-gray-400 dark:text-gray-500">
+                WhatsApp
               </p>
             </div>
+            {plan === 'free' && (
+              <a
+                href="/dashboard/settings#billing"
+                className="shrink-0 rounded-lg bg-indigo-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-indigo-700 transition"
+              >
+                Actualizar plan
+              </a>
+            )}
           </div>
+
           {plan === 'free' && (
-            <a
-              href="/dashboard/settings#billing"
-              className="shrink-0 rounded-lg bg-indigo-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-indigo-700 transition"
-            >
-              Actualizar plan
-            </a>
+            <div className="flex items-start gap-2.5 rounded-xl border border-indigo-200 dark:border-indigo-500/30 bg-indigo-50 dark:bg-indigo-500/10 px-3.5 py-3 mb-3">
+              <svg className="h-4 w-4 shrink-0 mt-0.5 text-indigo-500" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 1 0-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 0 0 2.25-2.25v-6.75a2.25 2.25 0 0 0-2.25-2.25H6.75a2.25 2.25 0 0 0-2.25 2.25v6.75a2.25 2.25 0 0 0 2.25 2.25Z" />
+              </svg>
+              <p className="text-xs text-indigo-700 dark:text-indigo-300 leading-relaxed">
+                Las notificaciones por WhatsApp están disponibles en el <span className="font-semibold">Plan Starter</span> y superiores.
+              </p>
+            </div>
           )}
-        </div>
 
-        {plan === 'free' && (
-          <div className="flex items-start gap-2.5 rounded-xl border border-indigo-200 dark:border-indigo-500/30 bg-indigo-50 dark:bg-indigo-500/10 px-3.5 py-3">
-            <svg className="h-4 w-4 shrink-0 mt-0.5 text-indigo-500" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 1 0-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 0 0 2.25-2.25v-6.75a2.25 2.25 0 0 0-2.25-2.25H6.75a2.25 2.25 0 0 0-2.25 2.25v6.75a2.25 2.25 0 0 0 2.25 2.25Z" />
-            </svg>
-            <p className="text-xs text-indigo-700 dark:text-indigo-300 leading-relaxed">
-              Las notificaciones por WhatsApp están disponibles en el <span className="font-semibold">Plan Starter</span> y superiores. Actualiza tu plan para activarlas.
-            </p>
+          <div className="space-y-3">
+            <NotifToggle label="Bienvenida al registrarse" hint="Mensaje de bienvenida cuando un cliente se une al programa." checked={waNotifyWelcome} onChange={setWaNotifyWelcome} disabled={plan === 'free'} />
+            <NotifToggle label="Recordatorio de voucher por vencer" hint="Aviso 3 días antes de que un voucher expire sin ser canjeado." checked={waNotifyVoucherExpiry} onChange={setWaNotifyVoucherExpiry} disabled={plan === 'free'} />
+            <NotifToggle label="Recordatorio de saldo acumulado" hint="Recuerda a clientes inactivos que tienen puntos/sellos disponibles." checked={waNotifyBalanceReminder} onChange={setWaNotifyBalanceReminder} disabled={plan === 'free'} />
+            <NotifToggle label="Reactivación de clientes inactivos" hint="Mensaje semanal para clientes sin visitas en los últimos 21 días." checked={waNotifyReactivation} onChange={setWaNotifyReactivation} disabled={plan === 'free'} />
+            <NotifToggle label="Racha en riesgo" hint="Alerta cuando un cliente está a punto de perder su racha de visitas." checked={waNotifyStreakAtRisk} onChange={setWaNotifyStreakAtRisk} disabled={plan === 'free'} />
+            <NotifToggle label="Mensajes promocionales" hint="Envía promociones y ofertas especiales a tus clientes (costo más alto)." checked={waNotifyPromotion} onChange={setWaNotifyPromotion} disabled={plan === 'free'} />
+            <NotifToggle label="Felicitación de cumpleaños" hint="Mensaje automático el día del cumpleaños del cliente con puntos de regalo." checked={waNotifyBirthday} onChange={setWaNotifyBirthday} disabled={plan === 'free'} />
+            <NotifToggle label="Cerca de su recompensa (80%)" hint="Avisa al cliente cuando le falta poco para completar su meta y obtener su recompensa." checked={waNotifyMilestone80} onChange={setWaNotifyMilestone80} disabled={plan === 'free'} />
           </div>
-        )}
-
-        <div className="space-y-3">
-          <NotifToggle
-            label="Bienvenida al registrarse"
-            hint="Mensaje de bienvenida cuando un cliente se une al programa."
-            checked={waNotifyWelcome}
-            onChange={setWaNotifyWelcome}
-            disabled={plan === 'free'}
-          />
-          <NotifToggle
-            label="Recordatorio de voucher por vencer"
-            hint="Aviso 3 días antes de que un voucher expire sin ser canjeado."
-            checked={waNotifyVoucherExpiry}
-            onChange={setWaNotifyVoucherExpiry}
-            disabled={plan === 'free'}
-          />
-          <NotifToggle
-            label="Recordatorio de saldo acumulado"
-            hint="Recuerda a clientes inactivos que tienen puntos/sellos disponibles."
-            checked={waNotifyBalanceReminder}
-            onChange={setWaNotifyBalanceReminder}
-            disabled={plan === 'free'}
-          />
-          <NotifToggle
-            label="Reactivación de clientes inactivos"
-            hint="Mensaje semanal para clientes sin visitas en los últimos 21 días."
-            checked={waNotifyReactivation}
-            onChange={setWaNotifyReactivation}
-            disabled={plan === 'free'}
-          />
-          <NotifToggle
-            label="Racha en riesgo"
-            hint="Alerta cuando un cliente está a punto de perder su racha de visitas."
-            checked={waNotifyStreakAtRisk}
-            onChange={setWaNotifyStreakAtRisk}
-            disabled={plan === 'free'}
-          />
-          <NotifToggle
-            label="Mensajes promocionales"
-            hint="Envía promociones y ofertas especiales a tus clientes (costo más alto)."
-            checked={waNotifyPromotion}
-            onChange={setWaNotifyPromotion}
-            disabled={plan === 'free'}
-          />
-          <NotifToggle
-            label="Felicitación de cumpleaños"
-            hint="Mensaje automático el día del cumpleaños del cliente con puntos de regalo."
-            checked={waNotifyBirthday}
-            onChange={setWaNotifyBirthday}
-            disabled={plan === 'free'}
-          />
-          <NotifToggle
-            label="Cerca de su recompensa (80%)"
-            hint="Avisa al cliente cuando le falta poco para completar su meta y obtener su recompensa."
-            checked={waNotifyMilestone80}
-            onChange={setWaNotifyMilestone80}
-            disabled={plan === 'free'}
-          />
         </div>
-      </div>
+      </AccordionSection>
 
     </form>
   );
@@ -881,7 +846,8 @@ const PADDING_PRESETS = [
   { key: 'spaced',  value: 16 },
 ] as const;
 
-function LogoCard({
+// LogoCardContent — the inner content without the card shell (used inside AccordionSection)
+function LogoCardContent({
   initialUrl,
   initialPadding,
   t,
@@ -889,6 +855,20 @@ function LogoCard({
   initialUrl: string | null;
   initialPadding: number;
   t: LogoStrings;
+}) {
+  return <LogoCard initialUrl={initialUrl} initialPadding={initialPadding} t={t} bare />;
+}
+
+function LogoCard({
+  initialUrl,
+  initialPadding,
+  t,
+  bare = false,
+}: {
+  initialUrl: string | null;
+  initialPadding: number;
+  t: LogoStrings;
+  bare?: boolean;
 }) {
   const [url,     setUrl]     = useState<string | null>(initialUrl);
   const [padding, setPadding] = useState(initialPadding);
@@ -953,13 +933,8 @@ function LogoCard({
     spaced:  t.paddingSpaced,
   };
 
-  return (
-    <div className="rounded-2xl border border-gray-100 dark:border-[#1e2438] bg-white dark:bg-[#161b2e] shadow-sm p-5 space-y-4">
-      <div>
-        <h2 className="text-sm font-semibold text-gray-800 dark:text-white">{t.title}</h2>
-        <p className="mt-0.5 text-xs text-gray-400 dark:text-gray-500">{t.subtitle}</p>
-      </div>
-
+  const inner = (
+    <div className="space-y-4">
       <div className="flex items-start gap-5">
         {/* Preview — same size as the entry screen logo */}
         <div
@@ -1037,6 +1012,14 @@ function LogoCard({
           </p>
         </div></div>
       )}
+    </div>
+  );
+
+  if (bare) return inner;
+
+  return (
+    <div className="rounded-2xl border border-gray-100 dark:border-[#1e2438] bg-white dark:bg-[#161b2e] shadow-sm p-5">
+      {inner}
     </div>
   );
 }
