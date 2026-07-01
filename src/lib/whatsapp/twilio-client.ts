@@ -42,6 +42,7 @@ const TEMPLATE_SID_MAP: Record<string, string> = {
   fideliza_streak_at_risk_v2:     process.env.TWILIO_TMPL_STREAK_AT_RISK     ?? '',
   fideliza_promotion_v2:          process.env.TWILIO_TMPL_PROMOTION          ?? '',
   fideliza_birthday_v2:           process.env.TWILIO_TMPL_BIRTHDAY           ?? '',
+  fideliza_birthday_no_age_v2:   process.env.TWILIO_TMPL_BIRTHDAY_NO_AGE   ?? '',
   fideliza_milestone_80_v2:       process.env.TWILIO_TMPL_MILESTONE_80       ?? '',
   fideliza_tier_upgrade_v2:       process.env.TWILIO_TMPL_TIER_UPGRADE       ?? '',
   fideliza_surprise_v2:           process.env.TWILIO_TMPL_SURPRISE           ?? '',
