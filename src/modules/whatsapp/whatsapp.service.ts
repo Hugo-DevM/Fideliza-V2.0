@@ -289,7 +289,7 @@ export async function sendBirthdayMessage(
       tenantId,
       customerId,
       phone,
-      template: hasAge ? 'fideliza_birthday_v2' : 'fideliza_birthday_no_age_v2',
+      template: hasAge ? 'fideliza_birthday_v3' : 'fideliza_birthday_no_age_v2',
       category: 'marketing',
       params: hasAge
         ? {
