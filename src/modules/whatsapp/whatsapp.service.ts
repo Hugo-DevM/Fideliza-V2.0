@@ -264,9 +264,14 @@ export async function sendStreakAtRiskMessage(
 
 /**
  * Sent on the customer's birthday by the daily birthday-rewards cron.
- * Template: fideliza_birthday_v2 (marketing)
- * Params: [customer_name, business_name, bonus_points, age_years]
- * age_years is empty string when birth_year is not set.
+ *
+ * Two templates depending on whether we know the customer's birth year:
+ *
+ * fideliza_birthday_v2 (with age) — {{1}} name, {{2}} business, {{3}} bonus,
+ *   {{4}} age, {{5}} unit_label
+ *
+ * fideliza_birthday_no_age_v2 (without age) — {{1}} name, {{2}} business,
+ *   {{3}} bonus, {{4}} unit_label
  */
 export async function sendBirthdayMessage(
   customerId:   UUID,
@@ -275,21 +280,31 @@ export async function sendBirthdayMessage(
   businessName: string,
   phone:        string,
   bonusPoints:  number,
-  age:          number | null = null,
+  age:          number | null,
+  unitLabel:    string,
 ): Promise<void> {
   try {
+    const hasAge = age !== null;
     await enqueueMessage({
       tenantId,
       customerId,
       phone,
-      template: 'fideliza_birthday_v2',
+      template: hasAge ? 'fideliza_birthday_v2' : 'fideliza_birthday_no_age_v2',
       category: 'marketing',
-      params: {
-        '1': customerName,
-        '2': businessName,
-        '3': String(bonusPoints),
-        '4': age !== null ? String(age) : '',
-      },
+      params: hasAge
+        ? {
+            '1': customerName,
+            '2': businessName,
+            '3': String(bonusPoints),
+            '4': String(age),
+            '5': unitLabel,
+          }
+        : {
+            '1': customerName,
+            '2': businessName,
+            '3': String(bonusPoints),
+            '4': unitLabel,
+          },
       priority: 2,
     });
   } catch { /* best-effort */ }

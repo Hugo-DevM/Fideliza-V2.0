@@ -12,7 +12,8 @@
  *
  * On match:
  *   - Logs the reward in birthday_reward_log (prevents duplicates)
- *   - Enqueues a WhatsApp birthday message with 50 bonus points
+ *   - Enqueues a WhatsApp birthday message with the bonus and the
+ *     unit label of the program the customer is closest to completing
  */
 
 import { NextResponse }                from 'next/server';
@@ -42,6 +43,78 @@ interface TenantSettingsRow {
   birthday_bonus_points:      number;
   birthday_bonus_expiry_days: number;
   tenants: { name: string; plan: string; subscription_status: string | null } | null;
+}
+
+interface EnrollmentRow {
+  customer_id:  string;
+  current_points: number;
+  stamp_count:  number;
+  visit_count:  number;
+  program_id:   string;
+  reward_programs: {
+    type:   string;
+    config: Record<string, unknown>;
+  } | null;
+}
+
+interface MinCostRow {
+  program_id: string;
+  min_cost:   number;
+}
+
+/** Maps program type to a human-readable Spanish unit label. */
+function unitLabelFromType(type: string): string {
+  switch (type) {
+    case 'stamp':    return 'Sellos';
+    case 'visit':    return 'Visitas';
+    case 'cashback': return 'Cashback';
+    default:         return 'Puntos';
+  }
+}
+
+/**
+ * For a set of enrollments belonging to one customer, pick the one that is
+ * closest to 100% completion (highest progress ratio) and return its unit label.
+ * Falls back to 'Puntos' when there are no active enrollments.
+ */
+function pickClosestUnitLabel(
+  enrollments: EnrollmentRow[],
+  minCostByProgram: Map<string, number>,
+): string {
+  if (enrollments.length === 0) return 'Puntos';
+  if (enrollments.length === 1) {
+    return unitLabelFromType(enrollments[0].reward_programs?.type ?? 'points');
+  }
+
+  let bestRatio = -1;
+  let bestType  = 'points';
+
+  for (const e of enrollments) {
+    const type   = e.reward_programs?.type ?? 'points';
+    const config = e.reward_programs?.config ?? {};
+    let goal     = 0;
+    let current  = 0;
+
+    if (type === 'stamp') {
+      goal    = typeof config.stamps_needed === 'number' ? config.stamps_needed : 0;
+      current = e.stamp_count;
+    } else if (type === 'visit') {
+      goal    = typeof config.visits_needed === 'number' ? config.visits_needed : 0;
+      current = e.visit_count;
+    } else {
+      // points / cashback: use cheapest available reward as goal
+      goal    = minCostByProgram.get(e.program_id) ?? 0;
+      current = e.current_points;
+    }
+
+    const ratio = goal > 0 ? current / goal : 0;
+    if (ratio > bestRatio) {
+      bestRatio = ratio;
+      bestType  = type;
+    }
+  }
+
+  return unitLabelFromType(bestType);
 }
 
 export async function GET(request: Request) {
@@ -92,7 +165,8 @@ export async function GET(request: Request) {
   }
 
   // ── Step 3: Check tenant settings ────────────────────────────────────────
-  const tenantIds = [...new Set(eligible.map((c) => c.tenant_id))];
+  const eligibleIds = eligible.map((c) => c.id);
+  const tenantIds   = [...new Set(eligible.map((c) => c.tenant_id))];
 
   const { data: settingsRows } = await db
     .from('tenant_settings')
@@ -122,7 +196,53 @@ export async function GET(request: Request) {
     }]),
   );
 
-  // ── Step 4: Send and log ──────────────────────────────────────────────────
+  // ── Step 4: Batch-fetch enrollments for all eligible customers ───────────
+  // Used to determine which program each customer is closest to completing
+  // so we can personalise the unit label in the birthday WhatsApp message.
+  const { data: enrollmentRows } = await db
+    .from('customer_program_enrollments')
+    .select('customer_id, current_points, stamp_count, visit_count, program_id, reward_programs!inner(type, config)')
+    .in('customer_id', eligibleIds)
+    .eq('reward_programs.status', 'active') as { data: EnrollmentRow[] | null };
+
+  // Group enrollments by customer
+  const enrollmentsByCustomer = new Map<string, EnrollmentRow[]>();
+  for (const row of enrollmentRows ?? []) {
+    const arr = enrollmentsByCustomer.get(row.customer_id) ?? [];
+    arr.push(row);
+    enrollmentsByCustomer.set(row.customer_id, arr);
+  }
+
+  // Collect program IDs that are points/cashback (need cheapest reward to calc %)
+  const pointsProgramIds = [
+    ...new Set(
+      (enrollmentRows ?? [])
+        .filter((e) => {
+          const t = e.reward_programs?.type;
+          return t === 'points' || t === 'cashback';
+        })
+        .map((e) => e.program_id),
+    ),
+  ];
+
+  // Batch-fetch cheapest reward cost per points/cashback program
+  const minCostByProgram = new Map<string, number>();
+  if (pointsProgramIds.length > 0) {
+    const { data: costRows } = await db
+      .from('rewards')
+      .select('program_id, cost_points')
+      .in('program_id', pointsProgramIds)
+      .eq('is_active', true) as { data: { program_id: string; cost_points: number }[] | null };
+
+    for (const row of costRows ?? []) {
+      const existing = minCostByProgram.get(row.program_id);
+      if (existing === undefined || row.cost_points < existing) {
+        minCostByProgram.set(row.program_id, row.cost_points);
+      }
+    }
+  }
+
+  // ── Step 5: Send and log ──────────────────────────────────────────────────
   let queued  = 0;
   let skipped = 0;
 
@@ -133,8 +253,12 @@ export async function GET(request: Request) {
     }
 
     const businessName = tenantNames.get(customer.tenant_id) ?? '';
-    const age = customer.birth_year ? thisYear - customer.birth_year : null;
     const bonusCfg = tenantBonusConfig.get(customer.tenant_id) ?? { units: DEFAULT_BIRTHDAY_BONUS, expiry_days: 30 };
+    const age = customer.birth_year ? thisYear - customer.birth_year : null;
+
+    // Determine unit label from the program the customer is closest to completing
+    const customerEnrollments = enrollmentsByCustomer.get(customer.id) ?? [];
+    const unitLabel = pickClosestUnitLabel(customerEnrollments, minCostByProgram);
 
     // Log first (idempotency — prevents double send if cron retries)
     const { error: logError } = await db
@@ -171,6 +295,7 @@ export async function GET(request: Request) {
       customer.phone!,
       bonusCfg.units,
       age,
+      unitLabel,
     );
 
     queued++;
