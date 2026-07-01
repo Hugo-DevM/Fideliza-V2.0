@@ -54,9 +54,12 @@ export async function processTransaction(
         .single(),
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       (db.from('tenant_settings') as any)
-        .select('tiers_enabled, tiers, tier_score_per_stamp, tier_score_per_visit, tier_score_per_point, tier_score_per_cashback_cent')
+        .select('tiers_enabled, tiers, tier_score_per_stamp, tier_score_per_visit, tier_score_per_point, tier_score_per_cashback_cent, birthday_bonus_points, birthday_bonus_stamps, birthday_bonus_visits, reactivation_bonus_points, reactivation_bonus_stamps, reactivation_bonus_visits')
         .eq('tenant_id', tenantId)
-        .maybeSingle() as Promise<{ data: TenantTierSettings | null }>,
+        .maybeSingle() as Promise<{ data: (TenantTierSettings & {
+          birthday_bonus_points?: number; birthday_bonus_stamps?: number; birthday_bonus_visits?: number;
+          reactivation_bonus_points?: number; reactivation_bonus_stamps?: number; reactivation_bonus_visits?: number;
+        }) | null }>,
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       (db.from('customers') as any)
         .select('loyalty_score, tier_label, tier_color')
@@ -134,10 +137,34 @@ export async function processTransaction(
       .maybeSingle() as { data: { id: string; units: number; bonus_type: string } | null };
 
     if (pendingBonus) {
-      effectiveDelta += pendingBonus.units;
+      // Resolve the correct bonus amount for this program type from tenant config.
+      // Each type has its own configured amount so the business controls how many
+      // stamps/visits/points to give per campaign independently.
+      const isBirthday = pendingBonus.bonus_type === 'birthday';
+      let bonusUnits: number;
+      if (programType === 'stamp') {
+        bonusUnits = isBirthday
+          ? (tierSettingsRes.data?.birthday_bonus_stamps     ?? 1)
+          : (tierSettingsRes.data?.reactivation_bonus_stamps ?? 1);
+      } else if (programType === 'visit') {
+        bonusUnits = isBirthday
+          ? (tierSettingsRes.data?.birthday_bonus_visits     ?? 1)
+          : (tierSettingsRes.data?.reactivation_bonus_visits ?? 1);
+      } else {
+        // points & cashback — use the stored units (set by cron from tenant config)
+        bonusUnits = isBirthday
+          ? (tierSettingsRes.data?.birthday_bonus_points     ?? pendingBonus.units)
+          : (tierSettingsRes.data?.reactivation_bonus_points ?? pendingBonus.units);
+      }
+
+      const bonusLabel = isBirthday ? 'cumpleaños' : 'reactivación';
+      const unitLabel  = programType === 'stamp' ? 'sello' : programType === 'visit' ? 'visita' : 'pts';
+
+      effectiveDelta += bonusUnits;
       effectiveNote   = effectiveNote
-        ? `${effectiveNote} · +${pendingBonus.units} bono ${pendingBonus.bonus_type === 'birthday' ? 'cumpleaños' : 'reactivación'}`
-        : `+${pendingBonus.units} bono ${pendingBonus.bonus_type === 'birthday' ? 'cumpleaños' : 'reactivación'}`;
+        ? `${effectiveNote} · +${bonusUnits} ${unitLabel} bono ${bonusLabel}`
+        : `+${bonusUnits} ${unitLabel} bono ${bonusLabel}`;
+
       // Mark claimed immediately (before rpc_earn_points so it's already done if RPC fails)
       void dbAny.from('customer_bonus_credits')
         .update({ claimed_at: new Date().toISOString(), claimed_program_id: input.program_id })

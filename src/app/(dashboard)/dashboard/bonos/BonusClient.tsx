@@ -4,10 +4,14 @@ import { useRef, useState, useTransition } from 'react';
 import { updateBonusConfigAction } from './actions';
 
 interface BonusCfg {
-  birthday_bonus_units:             number;
-  birthday_bonus_expiry_days:       number;
-  reactivation_bonus_units:         number;
-  reactivation_bonus_expiry_days:   number;
+  birthday_bonus_points:         number;
+  birthday_bonus_stamps:         number;
+  birthday_bonus_visits:         number;
+  birthday_bonus_expiry_days:    number;
+  reactivation_bonus_points:     number;
+  reactivation_bonus_stamps:     number;
+  reactivation_bonus_visits:     number;
+  reactivation_bonus_expiry_days: number;
 }
 
 interface PendingRow {
@@ -18,6 +22,69 @@ interface PendingRow {
   expires_at:  string;
   created_at:  string;
   customers: { name: string; access_code: string } | null;
+}
+
+const INPUT_CLS = 'w-full rounded-xl border border-gray-200 dark:border-[#2a3147] bg-gray-50 dark:bg-[#161b2e] px-3 py-2 text-sm text-gray-900 dark:text-white';
+const LABEL_CLS = 'text-xs text-gray-500 dark:text-gray-400 mb-1 block';
+
+function BonusSection({
+  emoji,
+  title,
+  prefix,
+  cfg,
+}: {
+  emoji: string;
+  title: string;
+  prefix: 'birthday' | 'reactivation';
+  cfg: BonusCfg;
+}) {
+  return (
+    <div className="space-y-3">
+      <p className="text-sm font-medium text-gray-700 dark:text-gray-300">{emoji} {title}</p>
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+        <label className="block">
+          <span className={LABEL_CLS}>Puntos / Cashback</span>
+          <input
+            type="number"
+            name={`${prefix}_bonus_points`}
+            min={1} max={10000}
+            defaultValue={cfg[`${prefix}_bonus_points`]}
+            className={INPUT_CLS}
+          />
+        </label>
+        <label className="block">
+          <span className={LABEL_CLS}>Sellos</span>
+          <input
+            type="number"
+            name={`${prefix}_bonus_stamps`}
+            min={1} max={50}
+            defaultValue={cfg[`${prefix}_bonus_stamps`]}
+            className={INPUT_CLS}
+          />
+        </label>
+        <label className="block">
+          <span className={LABEL_CLS}>Visitas</span>
+          <input
+            type="number"
+            name={`${prefix}_bonus_visits`}
+            min={1} max={50}
+            defaultValue={cfg[`${prefix}_bonus_visits`]}
+            className={INPUT_CLS}
+          />
+        </label>
+        <label className="block">
+          <span className={LABEL_CLS}>Vigencia (días)</span>
+          <input
+            type="number"
+            name={`${prefix}_bonus_expiry_days`}
+            min={1} max={365}
+            defaultValue={cfg[`${prefix}_bonus_expiry_days`]}
+            className={INPUT_CLS}
+          />
+        </label>
+      </div>
+    </div>
+  );
 }
 
 export default function BonusClient({
@@ -51,62 +118,16 @@ export default function BonusClient({
     <div className="space-y-6">
       {/* ── Config form ───────────────────────────────────────────────── */}
       <section className="rounded-2xl border border-gray-200 dark:border-[#1e2538] bg-white dark:bg-[#0f1222] p-6 space-y-5">
-        <h2 className="text-base font-semibold text-gray-900 dark:text-white">Configuración de bonos</h2>
+        <div className="space-y-1">
+          <h2 className="text-base font-semibold text-gray-900 dark:text-white">Configuración de bonos</h2>
+          <p className="text-xs text-gray-500 dark:text-gray-400">
+            Configura cuánto se regala por tipo de programa. Los bonos se acreditan cuando el cliente realiza su próxima visita.
+          </p>
+        </div>
 
         <form ref={formRef} onSubmit={handleSubmit} className="space-y-5">
-          {/* Birthday */}
-          <div className="space-y-3">
-            <p className="text-sm font-medium text-gray-700 dark:text-gray-300">🎂 Bono de cumpleaños</p>
-            <div className="grid grid-cols-2 gap-4">
-              <label className="block">
-                <span className="text-xs text-gray-500 dark:text-gray-400 mb-1 block">Puntos a regalar</span>
-                <input
-                  type="number"
-                  name="birthday_bonus_units"
-                  min={1} max={10000}
-                  defaultValue={cfg.birthday_bonus_units}
-                  className="w-full rounded-xl border border-gray-200 dark:border-[#2a3147] bg-gray-50 dark:bg-[#161b2e] px-3 py-2 text-sm text-gray-900 dark:text-white"
-                />
-              </label>
-              <label className="block">
-                <span className="text-xs text-gray-500 dark:text-gray-400 mb-1 block">Vigencia (días)</span>
-                <input
-                  type="number"
-                  name="birthday_bonus_expiry_days"
-                  min={1} max={365}
-                  defaultValue={cfg.birthday_bonus_expiry_days}
-                  className="w-full rounded-xl border border-gray-200 dark:border-[#2a3147] bg-gray-50 dark:bg-[#161b2e] px-3 py-2 text-sm text-gray-900 dark:text-white"
-                />
-              </label>
-            </div>
-          </div>
-
-          {/* Reactivation */}
-          <div className="space-y-3">
-            <p className="text-sm font-medium text-gray-700 dark:text-gray-300">🔔 Bono de reactivación</p>
-            <div className="grid grid-cols-2 gap-4">
-              <label className="block">
-                <span className="text-xs text-gray-500 dark:text-gray-400 mb-1 block">Puntos a regalar</span>
-                <input
-                  type="number"
-                  name="reactivation_bonus_units"
-                  min={1} max={10000}
-                  defaultValue={cfg.reactivation_bonus_units}
-                  className="w-full rounded-xl border border-gray-200 dark:border-[#2a3147] bg-gray-50 dark:bg-[#161b2e] px-3 py-2 text-sm text-gray-900 dark:text-white"
-                />
-              </label>
-              <label className="block">
-                <span className="text-xs text-gray-500 dark:text-gray-400 mb-1 block">Vigencia (días)</span>
-                <input
-                  type="number"
-                  name="reactivation_bonus_expiry_days"
-                  min={1} max={365}
-                  defaultValue={cfg.reactivation_bonus_expiry_days}
-                  className="w-full rounded-xl border border-gray-200 dark:border-[#2a3147] bg-gray-50 dark:bg-[#161b2e] px-3 py-2 text-sm text-gray-900 dark:text-white"
-                />
-              </label>
-            </div>
-          </div>
+          <BonusSection emoji="🎂" title="Bono de cumpleaños"  prefix="birthday"     cfg={cfg} />
+          <BonusSection emoji="🔔" title="Bono de reactivación" prefix="reactivation" cfg={cfg} />
 
           {msg && (
             <p className={`text-sm ${msg.ok ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>

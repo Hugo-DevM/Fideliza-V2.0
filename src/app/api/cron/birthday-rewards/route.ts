@@ -39,7 +39,7 @@ interface CustomerRow {
 interface TenantSettingsRow {
   tenant_id:                  string;
   wa_notify_birthday:         boolean;
-  birthday_bonus_units:       number;
+  birthday_bonus_points:      number;
   birthday_bonus_expiry_days: number;
   tenants: { name: string; plan: string; subscription_status: string | null } | null;
 }
@@ -96,7 +96,7 @@ export async function GET(request: Request) {
 
   const { data: settingsRows } = await db
     .from('tenant_settings')
-    .select('tenant_id, wa_notify_birthday, birthday_bonus_units, birthday_bonus_expiry_days, tenants!inner(name, plan, subscription_status)')
+    .select('tenant_id, wa_notify_birthday, birthday_bonus_points, birthday_bonus_expiry_days, tenants!inner(name, plan, subscription_status)')
     .in('tenant_id', tenantIds)
     .eq('wa_notify_birthday', true) as { data: TenantSettingsRow[] | null };
 
@@ -117,7 +117,7 @@ export async function GET(request: Request) {
   );
   const tenantBonusConfig = new Map(
     (settingsRows ?? []).map((s) => [s.tenant_id, {
-      units:       s.birthday_bonus_units       ?? DEFAULT_BIRTHDAY_BONUS,
+      units:       s.birthday_bonus_points      ?? DEFAULT_BIRTHDAY_BONUS,
       expiry_days: s.birthday_bonus_expiry_days ?? 30,
     }]),
   );

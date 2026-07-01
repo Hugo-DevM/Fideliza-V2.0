@@ -70,12 +70,16 @@ export interface TenantSettings {
   wa_notify_milestone_80: boolean;
   referral_enabled:          boolean;
   referral_program_configs:  Record<string, { referrer_bonus: number; referred_bonus: number }>;
-  // Configurable bonus amounts & expiry (Pro — birthday & reactivation crons)
-  // Optional: added in migration 034; DB defaults to 50 / 30
-  birthday_bonus_units?:              number;
-  birthday_bonus_expiry_days?:        number;
-  reactivation_bonus_units?:          number;
-  reactivation_bonus_expiry_days?:    number;
+  // Configurable bonus amounts per program type (Pro — birthday & reactivation crons)
+  // Optional: added in migrations 034+036; DB defaults shown below
+  birthday_bonus_points?:       number;  // default 50 — points & cashback programs
+  birthday_bonus_stamps?:       number;  // default 1  — stamp programs
+  birthday_bonus_visits?:       number;  // default 1  — visit programs
+  birthday_bonus_expiry_days?:  number;  // default 30
+  reactivation_bonus_points?:   number;  // default 50
+  reactivation_bonus_stamps?:   number;  // default 1
+  reactivation_bonus_visits?:   number;  // default 1
+  reactivation_bonus_expiry_days?: number; // default 30
   created_at: string;
   updated_at: string;
 }

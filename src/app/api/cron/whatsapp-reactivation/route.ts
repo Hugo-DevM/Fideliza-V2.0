@@ -35,10 +35,10 @@ interface CustomerRow {
 }
 
 interface TenantSettingsRow {
-  tenant_id:                       string;
-  wa_notify_reactivation:          boolean;
-  reactivation_bonus_units:        number;
-  reactivation_bonus_expiry_days:  number;
+  tenant_id:                        string;
+  wa_notify_reactivation:           boolean;
+  reactivation_bonus_points:        number;
+  reactivation_bonus_expiry_days:   number;
   tenants: { name: string; plan: string; subscription_status: string | null } | null;
 }
 
@@ -100,7 +100,7 @@ export async function GET(request: Request) {
 
   const { data: settingsRows } = await db
     .from('tenant_settings')
-    .select('tenant_id, wa_notify_reactivation, reactivation_bonus_units, reactivation_bonus_expiry_days, tenants!inner(name, plan, subscription_status)')
+    .select('tenant_id, wa_notify_reactivation, reactivation_bonus_points, reactivation_bonus_expiry_days, tenants!inner(name, plan, subscription_status)')
     .in('tenant_id', tenantIds)
     .eq('wa_notify_reactivation', true) as {
       data: TenantSettingsRow[] | null;
@@ -123,7 +123,7 @@ export async function GET(request: Request) {
   );
   const tenantBonusConfig = new Map(
     (settingsRows ?? []).map((s) => [s.tenant_id, {
-      units:       s.reactivation_bonus_units       ?? DEFAULT_REACTIVATION_BONUS,
+      units:       s.reactivation_bonus_points      ?? DEFAULT_REACTIVATION_BONUS,
       expiry_days: s.reactivation_bonus_expiry_days ?? 30,
     }]),
   );
