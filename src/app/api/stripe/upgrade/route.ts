@@ -8,8 +8,8 @@ import { NextResponse } from 'next/server';
 import { createServerClient, createServiceRoleClient } from '@/lib/supabase/server';
 import { stripe, STRIPE_PRICE_IDS } from '@/lib/stripe';
 import { syncSubscriptionToTenant } from '@/lib/stripe/sync';
-import { rateLimiters, rateLimitExceededResponse, rateLimitKey } from '@/lib/middleware/rate-limit';
-import { getClientIp } from '@/lib/middleware/api-context';
+import { rateLimiters, rateLimitExceededResponse } from '@/lib/middleware/rate-limit';
+import { getClientIp, rateLimitKey } from '@/lib/middleware/api-context';
 
 export const dynamic = 'force-dynamic';
 

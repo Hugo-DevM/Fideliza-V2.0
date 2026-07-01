@@ -5,8 +5,8 @@
 import { NextResponse } from 'next/server';
 import { getAuthenticatedTenant } from '@/lib/auth/get-tenant';
 import { createServiceRoleClient } from '@/lib/supabase/server';
-import { rateLimiters, rateLimitExceededResponse, rateLimitKey } from '@/lib/middleware/rate-limit';
-import { getClientIp } from '@/lib/middleware/api-context';
+import { rateLimiters, rateLimitExceededResponse } from '@/lib/middleware/rate-limit';
+import { getClientIp, rateLimitKey } from '@/lib/middleware/api-context';
 
 export async function GET(request: Request) {
   const { tenantId, planLimits } = await getAuthenticatedTenant();
