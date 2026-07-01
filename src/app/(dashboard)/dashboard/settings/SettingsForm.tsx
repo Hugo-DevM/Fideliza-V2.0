@@ -192,7 +192,7 @@ export default function SettingsForm({
       {/* ── Negocio ─────────────────────────────────────────────────────────── */}
       <AccordionSection
         title={s.account.title}
-        description="Nombre, subdominio y logo de tu negocio"
+        description="Nombre, subdominio, URL del portal y logo"
         defaultOpen
         icon={
           <svg className="h-4 w-4 text-indigo-600 dark:text-indigo-400" fill="none" stroke="currentColor" strokeWidth={1.8} viewBox="0 0 24 24">
@@ -241,19 +241,11 @@ export default function SettingsForm({
             </div>
           </div>
         </div>
-      </AccordionSection>
 
-      {/* ── Logo ────────────────────────────────────────────────────────────── */}
-      <AccordionSection
-        title={s.logo.title}
-        description={s.logo.subtitle}
-        icon={
-          <svg className="h-4 w-4 text-indigo-600 dark:text-indigo-400" fill="none" stroke="currentColor" strokeWidth={1.8} viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" d="m2.25 15.75 5.159-5.159a2.25 2.25 0 0 1 3.182 0l5.159 5.159m-1.5-1.5 1.409-1.409a2.25 2.25 0 0 1 3.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0 0 0 1.5-1.5V6a1.5 1.5 0 0 0-1.5-1.5H3.75A1.5 1.5 0 0 0 2.25 6v12a1.5 1.5 0 0 0 1.5 1.5Zm10.5-11.25h.008v.008h-.008V8.25Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Z" />
-          </svg>
-        }
-      >
-        <LogoCardContent initialUrl={logoUrl} initialPadding={settings.logo_padding ?? 8} t={s.logo} />
+        <div className="border-t border-gray-100 dark:border-[#1e2438] pt-4">
+          <p className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">{s.logo.title}</p>
+          <LogoCardContent initialUrl={logoUrl} initialPadding={settings.logo_padding ?? 8} t={s.logo} />
+        </div>
       </AccordionSection>
 
       {/* ── Apariencia ──────────────────────────────────────────────────────── */}
