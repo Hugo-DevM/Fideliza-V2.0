@@ -29,13 +29,13 @@ const NAV_STRUCTURE = [
       { href: '/dashboard/programs',   key: 'programs'   as const, icon: GiftIcon     },
       { href: '/dashboard/referidos',  key: 'referidos'  as const, icon: ReferralIcon },
       { href: '/dashboard/tiers',      key: 'tiers'      as const, icon: TierIcon     },
+      { href: '/dashboard/bonos',      key: 'bonos'      as const, icon: BonusIcon    },
       { href: '/dashboard/analytics',  key: 'analytics'  as const, icon: ChartIcon    },
     ],
   },
   {
     key: 'account' as const,
     items: [
-      { href: '/dashboard/bonos',    key: 'bonos'    as const, icon: BonusIcon   },
       { href: '/dashboard/soporte',  key: 'soporte'  as const, icon: SupportIcon },
       { href: '/dashboard/settings', key: 'settings' as const, icon: SettingsIcon },
     ],
