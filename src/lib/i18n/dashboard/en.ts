@@ -14,6 +14,8 @@ export const dashboardEn: DashboardDictionary = {
       '/dashboard/referidos':   'Referrals',
       '/dashboard/tiers':       'VIP Tiers',
       '/dashboard/analytics':   'Analytics',
+      '/dashboard/bonos':       'Bonuses',
+      '/dashboard/soporte':     'Support',
       '/dashboard/settings':    'Settings',
     },
     subSegmentLabels: {
@@ -34,6 +36,8 @@ export const dashboardEn: DashboardDictionary = {
       referidos: 'Referrals',
       tiers:     'VIP Tiers',
       analytics: 'Analytics',
+      bonos:     'Bonuses',
+      soporte:   'Support',
       settings:  'Settings',
     },
     closeMenu:  'Close menu',

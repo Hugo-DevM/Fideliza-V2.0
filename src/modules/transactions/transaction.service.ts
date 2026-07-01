@@ -119,6 +119,31 @@ export async function processTransaction(
         : `+${initialBonus} bienvenida`;
     }
 
+    // Pending Bonus Credit: claim the oldest unclaimed birthday/reactivation bonus
+    // for this customer. Only one bonus is claimed per transaction (program-specific).
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const dbAny = db as any;
+    const { data: pendingBonus } = await dbAny.from('customer_bonus_credits')
+      .select('id, units, bonus_type')
+      .eq('customer_id', input.customer_id)
+      .eq('tenant_id', tenantId)
+      .is('claimed_at', null)
+      .gt('expires_at', new Date().toISOString())
+      .order('created_at', { ascending: true })
+      .limit(1)
+      .maybeSingle() as { data: { id: string; units: number; bonus_type: string } | null };
+
+    if (pendingBonus) {
+      effectiveDelta += pendingBonus.units;
+      effectiveNote   = effectiveNote
+        ? `${effectiveNote} · +${pendingBonus.units} bono ${pendingBonus.bonus_type === 'birthday' ? 'cumpleaños' : 'reactivación'}`
+        : `+${pendingBonus.units} bono ${pendingBonus.bonus_type === 'birthday' ? 'cumpleaños' : 'reactivación'}`;
+      // Mark claimed immediately (before rpc_earn_points so it's already done if RPC fails)
+      void dbAny.from('customer_bonus_credits')
+        .update({ claimed_at: new Date().toISOString(), claimed_program_id: input.program_id })
+        .eq('id', pendingBonus.id);
+    }
+
     // Surprise & Delight: random multiplier with configured probability (Pro only)
     let surpriseFired = false;
     const surpriseMult = Number(cfg.surprise_multiplier ?? 2);

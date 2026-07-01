@@ -22,11 +22,9 @@ import { getPlanLimits, getEffectivePlanFromTenant } from '@/lib/config/plans';
 export const dynamic     = 'force-dynamic';
 export const maxDuration = 60;
 
-const INACTIVITY_DAYS  = 21;
-const MAX_PER_RUN      = 100;
-// Default bonus points advertised in the reactivation message.
-// Future: make this configurable per tenant in tenant_settings.
-const DEFAULT_BONUS_PTS = 50;
+const INACTIVITY_DAYS       = 21;
+const MAX_PER_RUN           = 100;
+const DEFAULT_REACTIVATION_BONUS = 50;
 
 interface CustomerRow {
   id:         string;
@@ -37,8 +35,10 @@ interface CustomerRow {
 }
 
 interface TenantSettingsRow {
-  tenant_id:              string;
-  wa_notify_reactivation: boolean;
+  tenant_id:                       string;
+  wa_notify_reactivation:          boolean;
+  reactivation_bonus_units:        number;
+  reactivation_bonus_expiry_days:  number;
   tenants: { name: string; plan: string; subscription_status: string | null } | null;
 }
 
@@ -100,7 +100,7 @@ export async function GET(request: Request) {
 
   const { data: settingsRows } = await db
     .from('tenant_settings')
-    .select('tenant_id, wa_notify_reactivation, tenants!inner(name, plan, subscription_status)')
+    .select('tenant_id, wa_notify_reactivation, reactivation_bonus_units, reactivation_bonus_expiry_days, tenants!inner(name, plan, subscription_status)')
     .in('tenant_id', tenantIds)
     .eq('wa_notify_reactivation', true) as {
       data: TenantSettingsRow[] | null;
@@ -121,6 +121,12 @@ export async function GET(request: Request) {
   const tenantNames    = new Map(
     (settingsRows ?? []).map((s) => [s.tenant_id, s.tenants?.name ?? '']),
   );
+  const tenantBonusConfig = new Map(
+    (settingsRows ?? []).map((s) => [s.tenant_id, {
+      units:       s.reactivation_bonus_units       ?? DEFAULT_REACTIVATION_BONUS,
+      expiry_days: s.reactivation_bonus_expiry_days ?? 30,
+    }]),
+  );
 
   // ── Step 4: Enqueue reactivation messages ────────────────────────────────
   let queued  = 0;
@@ -133,6 +139,23 @@ export async function GET(request: Request) {
     }
 
     const businessName = tenantNames.get(customer.tenant_id) ?? '';
+    const bonusCfg = tenantBonusConfig.get(customer.tenant_id) ?? { units: DEFAULT_REACTIVATION_BONUS, expiry_days: 30 };
+
+    // Insert pending bonus credit — claimed on customer's next transaction
+    // ON CONFLICT DO NOTHING: customer may already have an unclaimed reactivation bonus
+    const expiresAt = new Date(now.getTime() + bonusCfg.expiry_days * 24 * 60 * 60 * 1000);
+    await db
+      .from('customer_bonus_credits')
+      .upsert(
+        {
+          tenant_id:   customer.tenant_id,
+          customer_id: customer.id,
+          bonus_type:  'reactivation',
+          units:       bonusCfg.units,
+          expires_at:  expiresAt.toISOString(),
+        },
+        { onConflict: 'customer_id,bonus_type', ignoreDuplicates: true }
+      );
 
     // Fire-and-forget — frequency cap in whatsapp.service.ts prevents
     // sending more than 2 marketing messages per month per customer
@@ -142,7 +165,7 @@ export async function GET(request: Request) {
       customer.name,
       businessName,
       customer.phone,
-      DEFAULT_BONUS_PTS,
+      bonusCfg.units,
     );
 
     queued++;

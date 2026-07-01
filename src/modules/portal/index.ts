@@ -12,4 +12,5 @@ export type {
   PortalLeaderboardEntry,
   PortalProgramRanking,
   PortalTierConfig,
+  PortalPendingBonus,
 } from './portal.service';

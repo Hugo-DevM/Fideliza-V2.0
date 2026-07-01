@@ -23,7 +23,7 @@ import { getPlanLimits, getEffectivePlanFromTenant } from '@/lib/config/plans';
 export const dynamic     = 'force-dynamic';
 export const maxDuration = 60;
 
-const BIRTHDAY_BONUS_POINTS = 50;
+const DEFAULT_BIRTHDAY_BONUS = 50;
 const MAX_PER_RUN = 200;
 
 interface CustomerRow {
@@ -37,8 +37,10 @@ interface CustomerRow {
 }
 
 interface TenantSettingsRow {
-  tenant_id:          string;
-  wa_notify_birthday: boolean;
+  tenant_id:                  string;
+  wa_notify_birthday:         boolean;
+  birthday_bonus_units:       number;
+  birthday_bonus_expiry_days: number;
   tenants: { name: string; plan: string; subscription_status: string | null } | null;
 }
 
@@ -94,7 +96,7 @@ export async function GET(request: Request) {
 
   const { data: settingsRows } = await db
     .from('tenant_settings')
-    .select('tenant_id, wa_notify_birthday, tenants!inner(name, plan, subscription_status)')
+    .select('tenant_id, wa_notify_birthday, birthday_bonus_units, birthday_bonus_expiry_days, tenants!inner(name, plan, subscription_status)')
     .in('tenant_id', tenantIds)
     .eq('wa_notify_birthday', true) as { data: TenantSettingsRow[] | null };
 
@@ -113,6 +115,12 @@ export async function GET(request: Request) {
   const tenantNames    = new Map(
     (settingsRows ?? []).map((s) => [s.tenant_id, s.tenants?.name ?? '']),
   );
+  const tenantBonusConfig = new Map(
+    (settingsRows ?? []).map((s) => [s.tenant_id, {
+      units:       s.birthday_bonus_units       ?? DEFAULT_BIRTHDAY_BONUS,
+      expiry_days: s.birthday_bonus_expiry_days ?? 30,
+    }]),
+  );
 
   // ── Step 4: Send and log ──────────────────────────────────────────────────
   let queued  = 0;
@@ -126,6 +134,7 @@ export async function GET(request: Request) {
 
     const businessName = tenantNames.get(customer.tenant_id) ?? '';
     const age = customer.birth_year ? thisYear - customer.birth_year : null;
+    const bonusCfg = tenantBonusConfig.get(customer.tenant_id) ?? { units: DEFAULT_BIRTHDAY_BONUS, expiry_days: 30 };
 
     // Log first (idempotency — prevents double send if cron retries)
     const { error: logError } = await db
@@ -138,13 +147,29 @@ export async function GET(request: Request) {
       continue;
     }
 
+    // Insert pending bonus credit — claimed on next transaction
+    // ON CONFLICT DO NOTHING: if customer already has an unclaimed birthday bonus, skip
+    const expiresAt = new Date(now.getTime() + bonusCfg.expiry_days * 24 * 60 * 60 * 1000);
+    await db
+      .from('customer_bonus_credits')
+      .upsert(
+        {
+          tenant_id:   customer.tenant_id,
+          customer_id: customer.id,
+          bonus_type:  'birthday',
+          units:       bonusCfg.units,
+          expires_at:  expiresAt.toISOString(),
+        },
+        { onConflict: 'customer_id,bonus_type', ignoreDuplicates: true }
+      );
+
     await sendBirthdayMessage(
       customer.id,
       customer.tenant_id,
       customer.name,
       businessName,
       customer.phone!,
-      BIRTHDAY_BONUS_POINTS,
+      bonusCfg.units,
       age,
     );
 

@@ -70,8 +70,45 @@ export interface TenantSettings {
   wa_notify_milestone_80: boolean;
   referral_enabled:          boolean;
   referral_program_configs:  Record<string, { referrer_bonus: number; referred_bonus: number }>;
+  // Configurable bonus amounts & expiry (Pro — birthday & reactivation crons)
+  // Optional: added in migration 034; DB defaults to 50 / 30
+  birthday_bonus_units?:              number;
+  birthday_bonus_expiry_days?:        number;
+  reactivation_bonus_units?:          number;
+  reactivation_bonus_expiry_days?:    number;
   created_at: string;
   updated_at: string;
+}
+
+// ── Bonus Credits ─────────────────────────────────────────────────────
+export type BonusType = 'birthday' | 'reactivation';
+
+export interface CustomerBonusCredit {
+  id:                 UUID;
+  tenant_id:          UUID;
+  customer_id:        UUID;
+  bonus_type:         BonusType;
+  units:              number;
+  claimed_at:         string | null;
+  claimed_program_id: UUID | null;
+  expires_at:         string;
+  created_at:         string;
+}
+
+// ── Support Tickets ────────────────────────────────────────────────────
+export type TicketStatus = 'open' | 'in_progress' | 'resolved';
+
+export interface SupportTicket {
+  id:          UUID;
+  tenant_id:   UUID;
+  tenant_name: string;
+  subject:     string;
+  message:     string;
+  status:      TicketStatus;
+  admin_reply: string | null;
+  replied_at:  string | null;
+  created_at:  string;
+  updated_at:  string;
 }
 
 // ── Reward Program ────────────────────────────

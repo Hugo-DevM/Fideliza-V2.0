@@ -15,6 +15,7 @@ import type {
   PortalChallenge,
   PortalMission,
   PortalProgramRanking,
+  PortalPendingBonus,
 } from '@/modules/portal';
 
 type Tab = 'points' | 'rewards' | 'history' | 'ranking';
@@ -81,7 +82,7 @@ export default function PortalTabsClient({
   code: string;
   initialTab: Tab;
 }) {
-  const { tenant, customer, enrollments, recent_transactions, pending_vouchers, rankings } = data;
+  const { tenant, customer, enrollments, recent_transactions, pending_vouchers, rankings, pending_bonuses } = data;
 
   const [activeTab, setActiveTab] = useState<Tab>(initialTab);
   const [visible,   setVisible]   = useState(true);
@@ -160,6 +161,7 @@ export default function PortalTabsClient({
             referralEnabled={data.referral_enabled}
             referralProgramConfigs={data.referral_program_configs}
             missions={data.missions}
+            pendingBonuses={pending_bonuses ?? []}
           />
         )}
         {activeTab === 'rewards' && (
@@ -202,6 +204,7 @@ function PointsTab({
   referralEnabled,
   referralProgramConfigs,
   missions,
+  pendingBonuses,
 }: {
   enrollments: PortalEnrollment[];
   pendingVouchers: PortalVoucher[];
@@ -211,6 +214,7 @@ function PointsTab({
   referralEnabled: boolean;
   referralProgramConfigs: Record<string, { referrer_bonus: number; referred_bonus: number }>;
   missions: PortalMission[];
+  pendingBonuses: PortalPendingBonus[];
 }) {
   const affordableCount = enrollments.reduce(
     (sum, e) => sum + e.rewards.filter((r) => r.is_affordable).length,
@@ -267,6 +271,24 @@ function PointsTab({
           </div>
         );
       })()}
+
+      {/* Pending bonus credits — claimed automatically on next visit */}
+      {pendingBonuses.length > 0 && (
+        <div className="rounded-2xl border border-amber-200 dark:border-amber-500/30 bg-amber-50 dark:bg-amber-500/10 px-4 py-3 space-y-1">
+          <div className="flex items-center gap-2">
+            <span className="text-lg">🎁</span>
+            <p className="text-sm font-semibold text-amber-700 dark:text-amber-400">
+              Tienes {pendingBonuses.reduce((s, b) => s + b.units, 0)} puntos de bono pendientes
+            </p>
+          </div>
+          <p className="text-xs text-amber-600 dark:text-amber-500">
+            Se acreditarán automáticamente en tu próxima visita.{' '}
+            {pendingBonuses.map((b) =>
+              b.bonus_type === 'birthday' ? '🎂 Bono de cumpleaños' : '🔔 Bono de bienvenida'
+            ).join(' · ')}
+          </p>
+        </div>
+      )}
 
       {/* Pending vouchers */}
       {pendingVouchers.length > 0 && (

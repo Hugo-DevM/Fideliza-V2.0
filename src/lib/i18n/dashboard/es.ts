@@ -12,6 +12,8 @@ export const dashboardEs = {
       '/dashboard/referidos':   'Referidos',
       '/dashboard/tiers':       'Niveles VIP',
       '/dashboard/analytics':   'Analíticas',
+      '/dashboard/bonos':       'Bonos',
+      '/dashboard/soporte':     'Soporte',
       '/dashboard/settings':    'Configuración',
     } as Record<string, string>,
     subSegmentLabels: {
@@ -32,6 +34,8 @@ export const dashboardEs = {
       referidos:     'Referidos',
       tiers:         'Niveles VIP',
       analytics:     'Analíticas',
+      bonos:         'Bonos',
+      soporte:       'Soporte',
       settings:      'Configuración',
     },
     closeMenu:   'Cerrar menú',

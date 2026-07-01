@@ -181,6 +181,13 @@ export interface PortalTierConfig {
   color:        string;
 }
 
+export interface PortalPendingBonus {
+  id:         string;
+  bonus_type: 'birthday' | 'reactivation';
+  units:      number;
+  expires_at: string;
+}
+
 export interface PortalData {
   tenant: PortalTenant;
   customer: PortalCustomer;
@@ -195,6 +202,8 @@ export interface PortalData {
   referral_program_configs: Record<string, { referrer_bonus: number; referred_bonus: number }>;
   /** All active tenant missions (regardless of program enrollment) */
   missions: PortalMission[];
+  /** Pending bonus credits waiting to be claimed on next transaction */
+  pending_bonuses: PortalPendingBonus[];
 }
 
 // ── Helpers ───────────────────────────────────────────────────────────
@@ -617,6 +626,27 @@ export async function getPortalData(
     created_at:       v.created_at,
   }));
 
+  // ── 8. Fetch pending bonus credits for this customer ─────────────────
+  const now8 = new Date().toISOString();
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const dbAny8 = db as any;
+  const { data: rawBonuses } = await dbAny8.from('customer_bonus_credits')
+    .select('id, bonus_type, units, expires_at')
+    .eq('customer_id', customer.id)
+    .eq('tenant_id', tenantId)
+    .is('claimed_at', null)
+    .gt('expires_at', now8)
+    .order('created_at', { ascending: true }) as {
+      data: Array<{ id: string; bonus_type: string; units: number; expires_at: string }> | null
+    };
+
+  const pending_bonuses: PortalPendingBonus[] = (rawBonuses ?? []).map((b) => ({
+    id:         b.id,
+    bonus_type: b.bonus_type as 'birthday' | 'reactivation',
+    units:      b.units,
+    expires_at: b.expires_at,
+  }));
+
   const rawCustomer = customer as unknown as {
     id: string; name: string; access_code: string; referral_code: string; created_at: string;
     loyalty_score: number; tier_label: string | null; tier_color: string | null;
@@ -647,5 +677,6 @@ export async function getPortalData(
     referral_enabled:          settings?.referral_enabled ?? false,
     referral_program_configs:  settings?.referral_program_configs ?? {},
     missions: portalMissions,
+    pending_bonuses,
   };
 }

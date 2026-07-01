@@ -141,17 +141,6 @@ export async function enforceClientPortal(tenantId: UUID): Promise<void> {
   }
 }
 
-/** Throws if the tenant's plan does not include Artificial Head Start. */
-export async function enforceArtificialHeadStart(tenantId: UUID): Promise<void> {
-  const plan = await getTenantPlan(tenantId);
-  const limits = getPlanLimits(plan);
-  if (!limits.artificialHeadStart) {
-    throw new ForbiddenError(
-      'El inicio con ventaja está disponible en el plan Starter o Pro.'
-    );
-  }
-}
-
 /** Throws if the tenant's plan does not include Birthday Rewards. */
 export async function enforceBirthdayRewards(tenantId: UUID): Promise<void> {
   const plan = await getTenantPlan(tenantId);
