@@ -343,18 +343,19 @@ export default function RegisterForm() {
               {isGoingToStep2 ? 'Verificando…' : 'Continuar →'}
             </button>
 
-            <div className="relative">
-              <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-gray-200 dark:border-[#2a3147]" />
+            <div className="hidden">
+              <div className="relative">
+                <div className="absolute inset-0 flex items-center">
+                  <div className="w-full border-t border-gray-200 dark:border-[#2a3147]" />
+                </div>
+                <div className="relative flex justify-center text-xs">
+                  <span className="bg-white dark:bg-[#161b2e] px-3 text-gray-400 dark:text-gray-500">
+                    o
+                  </span>
+                </div>
               </div>
-              <div className="relative flex justify-center text-xs">
-                <span className="bg-white dark:bg-[#161b2e] px-3 text-gray-400 dark:text-gray-500">
-                  o
-                </span>
-              </div>
+              <GoogleAuthButton label="Registrarse con Google" />
             </div>
-
-            <GoogleAuthButton label="Registrarse con Google" />
           </div>
         )}
 

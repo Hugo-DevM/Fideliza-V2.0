@@ -116,7 +116,7 @@ export default function LoginForm() {
         </div>
       </div>
 
-      <GoogleAuthButton label="Continuar con Google" />
+      <div className="hidden"><GoogleAuthButton label="Continuar con Google" /></div>
     </form>
   );
 }
