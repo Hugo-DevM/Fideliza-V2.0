@@ -10,8 +10,11 @@ export default async function OnboardPage() {
 
   if (!user) redirect('/auth/login');
 
-  // Already onboarded → go straight to dashboard
-  if (user.user_metadata?.tenant_id) redirect('/dashboard');
+  // If already onboarded, go to dashboard — but only when NOT coming from
+  // the dashboard redirect (which would create a loop). We detect this by
+  // checking if the tenant actually exists via the action, not just metadata.
+  // To be safe, we never redirect back to dashboard from here; the form
+  // submission action handles that redirect after verifying the tenant.
 
   const displayName = (user.user_metadata?.full_name as string | undefined)
     ?? (user.user_metadata?.name as string | undefined)
