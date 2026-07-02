@@ -44,11 +44,19 @@ export async function GET(request: Request) {
   // ── 1. PKCE flow (same-device: code verifier exists in cookies) ──
   if (code) {
     const { data, error } = await supabase.auth.exchangeCodeForSession(code);
-    if (!error) {
-      // OAuth returning user who already has a tenant → skip onboarding
-      if (next === '/auth/onboard' && data.user?.user_metadata?.tenant_id) {
+    if (!error && data.user) {
+      const isOAuth = data.user.app_metadata?.provider !== 'email';
+      const hasTenant = !!data.user.user_metadata?.tenant_id;
+
+      // OAuth user already onboarded → dashboard
+      if (isOAuth && hasTenant) {
         return NextResponse.redirect(`${origin}/dashboard`);
       }
+      // OAuth new user → onboarding
+      if (isOAuth && !hasTenant) {
+        return NextResponse.redirect(`${origin}/auth/onboard`);
+      }
+      // Email/magic-link flows → use next param
       return NextResponse.redirect(`${origin}${next}`);
     }
   }

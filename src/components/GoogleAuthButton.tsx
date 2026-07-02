@@ -12,7 +12,7 @@ export default function GoogleAuthButton({ label = 'Continuar con Google' }: { l
     await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: {
-        redirectTo: `${window.location.origin}/auth/callback?next=/auth/onboard`,
+        redirectTo: `${window.location.origin}/auth/callback`,
       },
     });
   }
