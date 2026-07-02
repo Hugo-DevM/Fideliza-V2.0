@@ -30,9 +30,10 @@ export async function getAuthenticatedTenant(): Promise<AuthenticatedContext> {
   if (!user) redirect('/auth/login');
 
   const tenantId = user.user_metadata?.tenant_id as string | undefined;
-  // Redirect to register (not login) to avoid a loop: an authenticated user
-  // without a tenant_id would bounce login→dashboard→login infinitely.
-  if (!tenantId) redirect('/auth/register');
+  // Redirect to onboard if no tenant yet (OAuth or incomplete registration).
+  // /auth/onboard shows the business setup form and does NOT redirect back to dashboard
+  // unless the user already has a tenant_id, so there is no redirect loop.
+  if (!tenantId) redirect('/auth/onboard');
 
   let tenant: Tenant;
   let settings: TenantSettings;
