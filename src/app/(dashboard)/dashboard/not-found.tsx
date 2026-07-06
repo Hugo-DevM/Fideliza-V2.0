@@ -66,8 +66,8 @@ export default function DashboardNotFound() {
           {tx.backToDashboard}
         </Link>
 
-        <a
-          href="mailto:hola@fideliza.app"
+        <Link
+          href="/dashboard/soporte"
           className="inline-flex items-center justify-center gap-2 rounded-lg px-5 py-2.5
                      border border-gray-300 dark:border-indigo-500/40 hover:border-gray-400 dark:hover:border-indigo-400/70
                      text-gray-700 dark:text-indigo-300 hover:text-gray-900 dark:hover:text-indigo-200
@@ -75,7 +75,7 @@ export default function DashboardNotFound() {
                      focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-500"
         >
           {tx.contactSupport}
-        </a>
+        </Link>
       </div>
     </div>
   );
