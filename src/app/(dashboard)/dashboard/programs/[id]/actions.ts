@@ -275,8 +275,28 @@ export async function createRewardAction(programId: string, formData: FormData) 
 }
 
 export async function toggleRewardAction(programId: string, rewardId: string, isActive: boolean) {
-  const { tenantId } = await getAuthenticatedTenant();
+  const { tenantId, effectivePlan } = await getAuthenticatedTenant();
   try {
+    // Re-activating a reward must respect the same plan rules as creating one
+    if (isActive) {
+      const limits = getPlanLimits(effectivePlan);
+      if (!limits.rewardCatalog) {
+        return { error: 'El catálogo de recompensas no está disponible en tu plan.' };
+      }
+      if (limits.maxRewardsPerProgram !== null) {
+        const db = createServiceRoleClient();
+        const { count } = await db
+          .from('rewards')
+          .select('id', { count: 'exact', head: true })
+          .eq('program_id', programId)
+          .eq('tenant_id', tenantId)
+          .eq('is_active', true);
+        if ((count ?? 0) >= limits.maxRewardsPerProgram) {
+          return { error: `Límite alcanzado: máximo ${limits.maxRewardsPerProgram} recompensas activas por programa.` };
+        }
+      }
+    }
+
     await updateReward(tenantId, rewardId, { is_active: isActive });
     revalidateTag('rewards', 'max');
     revalidatePath(`/dashboard/programs/${programId}`);

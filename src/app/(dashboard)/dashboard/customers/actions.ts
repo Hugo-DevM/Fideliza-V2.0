@@ -98,7 +98,10 @@ export async function updateCustomerAction(formData: FormData) {
 }
 
 export async function sendPromotionBlastAction() {
-  const { tenantId, settings } = await getAuthenticatedTenant();
+  const { tenantId, settings, planLimits } = await getAuthenticatedTenant();
+  if (!planLimits.whatsappMarketing) {
+    return { error: 'Los mensajes de promoción requieren el plan Pro.' };
+  }
   const db = createServiceRoleClient();
 
   const { data: customers } = await db

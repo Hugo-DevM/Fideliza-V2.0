@@ -17,9 +17,16 @@ export async function loadMoreCustomerTransactions(
   customerId: string,
   offset: number,
 ): Promise<{ rows: CustomerTxRow[]; hasMore: boolean }> {
-  const { tenantId } = await getAuthenticatedTenant();
+  const { tenantId, planLimits } = await getAuthenticatedTenant();
   const db = createServiceRoleClient();
   const LIMIT = 10;
+
+  // Plan cap: FREE only sees the most recent N transactions
+  const historyCap = planLimits.transactionHistoryLimit;
+  if (historyCap !== null && offset >= historyCap) return { rows: [], hasMore: false };
+  const end = historyCap !== null
+    ? Math.min(offset + LIMIT, historyCap - 1) // inclusive range end, capped at plan limit
+    : offset + LIMIT;
 
   const { data } = await db
     .from('transactions')
@@ -27,11 +34,11 @@ export async function loadMoreCustomerTransactions(
     .eq('tenant_id', tenantId)
     .eq('customer_id', customerId)
     .order('created_at', { ascending: false })
-    .range(offset, offset + LIMIT); // fetch LIMIT+1 to detect hasMore
+    .range(offset, end); // fetch LIMIT+1 to detect hasMore
 
   const rows = (data ?? []) as CustomerTxRow[];
-  const hasMore = rows.length > LIMIT;
-  const slice = hasMore ? rows.slice(0, LIMIT) : rows;
+  const hasMore = rows.length > LIMIT && (historyCap === null || offset + LIMIT < historyCap);
+  const slice = rows.length > LIMIT ? rows.slice(0, LIMIT) : rows;
 
   // Resolve program names
   const programIds = [...new Set(slice.map((r) => r.program_id).filter(Boolean))];

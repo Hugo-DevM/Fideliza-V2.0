@@ -87,7 +87,7 @@ export default async function CustomerDetailPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const { tenantId, settings } = await getAuthenticatedTenant();
+  const { tenantId, settings, planLimits } = await getAuthenticatedTenant();
 
   let data: Awaited<ReturnType<typeof loadCustomerDetail>>;
   try {
@@ -267,7 +267,7 @@ export default async function CustomerDetailPage({
                             <p className="text-xs text-gray-400 dark:text-gray-500">
                               {Math.max(0, minRedeem - e.current_points)} pts para el próximo premio
                             </p>
-                            {customer.whatsapp_opt_in && customer.phone && (
+                            {planLimits.whatsappMonthlyLimit !== 0 && customer.whatsapp_opt_in && customer.phone && (
                               <BalanceReminderButton customerId={customer.id} programId={e.program_id} />
                             )}
                           </div>

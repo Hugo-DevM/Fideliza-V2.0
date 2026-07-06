@@ -149,7 +149,10 @@ export async function addMissionProgressAction(customerId: string, challengeId: 
 }
 
 export async function sendBalanceReminderAction(customerId: string, programId: string) {
-  const { tenantId, settings } = await getAuthenticatedTenant();
+  const { tenantId, settings, planLimits } = await getAuthenticatedTenant();
+  if (planLimits.whatsappMonthlyLimit === 0) {
+    return { error: 'Los mensajes de WhatsApp no están disponibles en el plan Gratis.' };
+  }
   const db = createServiceRoleClient();
 
   // Get customer

@@ -16,9 +16,16 @@ export async function loadMoreProgramTransactions(
   programId: string,
   offset: number,
 ): Promise<{ rows: ProgramTxRow[]; hasMore: boolean }> {
-  const { tenantId } = await getAuthenticatedTenant();
+  const { tenantId, planLimits } = await getAuthenticatedTenant();
   const db = createServiceRoleClient();
   const LIMIT = 10;
+
+  // Plan cap: FREE only sees the most recent N transactions
+  const historyCap = planLimits.transactionHistoryLimit;
+  if (historyCap !== null && offset >= historyCap) return { rows: [], hasMore: false };
+  const end = historyCap !== null
+    ? Math.min(offset + LIMIT, historyCap - 1) // inclusive range end, capped at plan limit
+    : offset + LIMIT;
 
   const { data } = await db
     .from('transactions')
@@ -26,11 +33,11 @@ export async function loadMoreProgramTransactions(
     .eq('tenant_id', tenantId)
     .eq('program_id', programId)
     .order('created_at', { ascending: false })
-    .range(offset, offset + LIMIT);
+    .range(offset, end);
 
   const raw = (data ?? []) as Record<string, unknown>[];
-  const hasMore = raw.length > LIMIT;
-  const slice = hasMore ? raw.slice(0, LIMIT) : raw;
+  const hasMore = raw.length > LIMIT && (historyCap === null || offset + LIMIT < historyCap);
+  const slice = raw.length > LIMIT ? raw.slice(0, LIMIT) : raw;
 
   return {
     rows: slice.map((r) => ({

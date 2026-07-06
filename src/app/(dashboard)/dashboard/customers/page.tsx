@@ -102,7 +102,7 @@ export default async function CustomersPage({
           </p>
         </div>
         <div className="flex items-center gap-2 sm:shrink-0">
-          {effectivePlan !== 'free' && <PromotionBlastButton />}
+          {planLimits.whatsappMarketing && <PromotionBlastButton />}
           {!atCustomerLimit && <NewCustomerModal phonePrefix={settings.phone_prefix ?? null} plan={effectivePlan} />}
         </div>
       </div>
