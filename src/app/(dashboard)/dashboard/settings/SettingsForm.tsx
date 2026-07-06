@@ -9,6 +9,7 @@ import { useDashboardI18n } from '@/lib/i18n/dashboard-context';
 import type { Locale } from '@/lib/i18n';
 import { formatTimeOnly } from '@/lib/utils/date';
 import AccordionSection from './AccordionSection';
+import LogoEditorModal from './LogoEditorModal';
 
 export default function SettingsForm({
   settings,
@@ -244,7 +245,7 @@ export default function SettingsForm({
 
         <div className="border-t border-gray-100 dark:border-[#1e2438] pt-4">
           <p className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">{s.logo.title}</p>
-          <LogoCardContent initialUrl={logoUrl} initialPadding={settings.logo_padding ?? 8} t={s.logo} />
+          <LogoCardContent initialUrl={logoUrl} t={s.logo} />
         </div>
       </AccordionSection>
 
@@ -829,67 +830,78 @@ const PHONE_PREFIXES = [
 type LogoStrings = {
   title: string; subtitle: string; upload: string; change: string;
   remove: string; sizeHint: string; uploading: string; removing: string; noLogo: string;
-  paddingLabel: string; paddingCompact: string; paddingNormal: string; paddingSpaced: string;
+  editorTitle: string; editorHint: string; zoom: string; cancel: string; save: string;
 };
-
-const PADDING_PRESETS = [
-  { key: 'compact', value: 0  },
-  { key: 'normal',  value: 8  },
-  { key: 'spaced',  value: 16 },
-] as const;
 
 // LogoCardContent — the inner content without the card shell (used inside AccordionSection)
 function LogoCardContent({
   initialUrl,
-  initialPadding,
   t,
 }: {
   initialUrl: string | null;
-  initialPadding: number;
   t: LogoStrings;
 }) {
-  return <LogoCard initialUrl={initialUrl} initialPadding={initialPadding} t={t} bare />;
+  return <LogoCard initialUrl={initialUrl} t={t} bare />;
 }
 
 function LogoCard({
   initialUrl,
-  initialPadding,
   t,
   bare = false,
 }: {
   initialUrl: string | null;
-  initialPadding: number;
   t: LogoStrings;
   bare?: boolean;
 }) {
   const [url,     setUrl]     = useState<string | null>(initialUrl);
-  const [padding, setPadding] = useState(initialPadding);
-  const [status,  setStatus]  = useState<'idle' | 'uploading' | 'removing' | 'saving-padding'>('idle');
+  const [status,  setStatus]  = useState<'idle' | 'uploading' | 'removing'>('idle');
+  const [editorSrc, setEditorSrc] = useState<string | null>(null);
+  const [editorOpen, setEditorOpen] = useState(false);
   const { setError: setLogoError, mounted: logoMounted, displayText: logoDisplayText, wrapperStyle: logoWrapperStyle, errorStyle: logoErrorStyle } = useAutoError();
   const fileRef = useRef<HTMLInputElement>(null);
   const router  = useRouter();
 
-  async function handleFile(e: React.ChangeEvent<HTMLInputElement>) {
+  function handleFile(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
     if (!file) return;
     e.target.value = '';
     setLogoError('');
+    // Open the editor with a local preview; upload happens on save
+    setEditorSrc((prev) => {
+      if (prev) URL.revokeObjectURL(prev);
+      return URL.createObjectURL(file);
+    });
+    setEditorOpen(true);
+  }
+
+  function closeEditor() {
+    setEditorOpen(false);
+  }
+
+  async function handleEditorSave(blob: Blob) {
     setStatus('uploading');
 
     const form = new FormData();
-    form.append('logo', file);
+    form.append('logo', new File([blob], 'logo.png', { type: 'image/png' }));
 
     const res  = await fetch('/api/tenants/logo', { method: 'POST', body: form });
     const json = await res.json();
 
     if (!res.ok) {
-      setLogoError(json.error ?? 'Error al subir el logo.');
       setStatus('idle');
+      setEditorOpen(false);
+      setLogoError(json.error ?? 'Error al subir el logo.');
       return;
     }
 
+    // The editor already bakes the desired margin into the image
+    const padData = new FormData();
+    padData.set('logo_padding', '0');
+    await fetch('/api/tenants/logo/padding', { method: 'PATCH', body: padData });
+
     setUrl(json.url);
     setStatus('idle');
+    setEditorOpen(false);
     router.refresh();
   }
 
@@ -907,23 +919,7 @@ function LogoCard({
     router.refresh();
   }
 
-  async function handlePadding(value: number) {
-    setPadding(value);
-    setStatus('saving-padding');
-    const data = new FormData();
-    data.set('logo_padding', String(value));
-    await fetch('/api/tenants/logo/padding', { method: 'PATCH', body: data });
-    setStatus('idle');
-    router.refresh();
-  }
-
   const busy = status !== 'idle';
-
-  const paddingLabels: Record<string, string> = {
-    compact: t.paddingCompact,
-    normal:  t.paddingNormal,
-    spaced:  t.paddingSpaced,
-  };
 
   const inner = (
     <div className="space-y-4">
@@ -938,7 +934,6 @@ function LogoCard({
               src={url}
               alt="Logo"
               className="h-full w-full object-contain transition-all"
-              style={{ padding }}
             />
           ) : (
             <span className="text-xs text-gray-400 dark:text-gray-500">{t.noLogo}</span>
@@ -969,33 +964,24 @@ function LogoCard({
             )}
           </div>
           <p className="text-[11px] text-gray-400 dark:text-gray-500">{t.sizeHint}</p>
-
-          {/* Padding presets — only shown when a logo is uploaded */}
-          {url && (
-            <div>
-              <p className="mb-1.5 text-xs font-medium text-gray-500 dark:text-gray-400">{t.paddingLabel}</p>
-              <div className="flex gap-2">
-                {PADDING_PRESETS.map(({ key, value }) => (
-                  <button
-                    key={key}
-                    type="button"
-                    disabled={busy}
-                    onClick={() => handlePadding(value)}
-                    className={[
-                      'rounded-lg border px-3 py-1.5 text-xs font-medium transition',
-                      padding === value
-                        ? 'border-indigo-500 bg-indigo-50 dark:bg-indigo-500/10 text-indigo-600 dark:text-indigo-400'
-                        : 'border-gray-200 dark:border-[#1e2438] bg-white dark:bg-[#1a1f35] text-gray-600 dark:text-gray-400 hover:border-gray-300',
-                    ].join(' ')}
-                  >
-                    {paddingLabels[key]}
-                  </button>
-                ))}
-              </div>
-            </div>
-          )}
         </div>
       </div>
+
+      <LogoEditorModal
+        open={editorOpen}
+        imageSrc={editorSrc}
+        saving={status === 'uploading'}
+        t={{
+          editorTitle: t.editorTitle,
+          editorHint:  t.editorHint,
+          zoom:        t.zoom,
+          cancel:      t.cancel,
+          save:        t.save,
+          saving:      t.uploading,
+        }}
+        onCancel={closeEditor}
+        onSave={handleEditorSave}
+      />
 
       {logoMounted && (
         <div style={logoWrapperStyle}><div style={{ overflow: 'hidden' }}>
