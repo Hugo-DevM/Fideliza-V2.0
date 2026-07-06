@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import Image from 'next/image';
 import { usePathname } from 'next/navigation';
 import { createBrowserClient } from '@supabase/ssr';
 import { useRouter } from 'next/navigation';
@@ -84,8 +85,8 @@ export default function Sidebar({ tenantName, tenantPlan, isOpen = false, onClos
       {/* Logo + mobile close */}
       <div className="flex h-16 items-center justify-between px-5 border-b border-gray-100 dark:border-[#1e2438]">
         <div className="flex flex-1 items-center justify-center">
-          <img src="/logofidelizalight.svg" alt="Fideliza" className="block dark:hidden h-12 w-auto" />
-          <img src="/logofideliza.svg" alt="Fideliza" className="hidden dark:block h-12 w-auto" />
+          <Image src="/logofidelizalight.svg" alt="Fideliza" width={144} height={48} className="block dark:hidden h-12 w-auto" />
+          <Image src="/logofideliza.svg" alt="Fideliza" width={144} height={48} className="hidden dark:block h-12 w-auto" />
         </div>
         <button
           onClick={onClose}

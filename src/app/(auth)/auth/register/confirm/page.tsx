@@ -1,3 +1,5 @@
+import Image from 'next/image';
+
 export const metadata = { title: 'Revisa tu correo — Fideliza+' };
 
 interface Props {
@@ -12,8 +14,8 @@ export default async function ConfirmPage({ searchParams }: Props) {
       <div className="w-full max-w-sm space-y-8 text-center">
 
         {/* Logo */}
-        <img src="/logofidelizalight.svg" alt="Fideliza+" className="block dark:hidden h-24 mx-auto" />
-        <img src="/logofideliza.svg" alt="Fideliza+" className="hidden dark:block h-24 mx-auto" />
+        <Image src="/logofidelizalight.svg" alt="Fideliza+" width={288} height={96} className="block dark:hidden h-24 w-auto mx-auto" />
+        <Image src="/logofideliza.svg" alt="Fideliza+" width={288} height={96} className="hidden dark:block h-24 w-auto mx-auto" />
 
         {/* Icon + heading */}
         <div className="space-y-4">

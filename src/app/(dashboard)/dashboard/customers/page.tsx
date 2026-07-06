@@ -133,8 +133,6 @@ export default async function CustomersPage({
       {!!filtered.length && (
         <div className="sm:hidden space-y-2">
           {filtered.map((c) => {
-            const initials = c.name.split(' ').slice(0, 2).map((w: string) => w[0]).join('').toUpperCase();
-            const color = AVATAR_COLORS[initials.charCodeAt(0) % AVATAR_COLORS.length];
             const customerTier = tierMap.get(c.id);
             return (
               <Link

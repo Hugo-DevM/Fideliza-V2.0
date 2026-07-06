@@ -1,6 +1,8 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useSyncExternalStore } from 'react';
+import Link from 'next/link';
+import Image from 'next/image';
 import { Container } from '@/components/ui/Container';
 import { ScrollReveal } from '@/components/ui/ScrollReveal';
 
@@ -18,13 +20,6 @@ function H3({ children }: { children: React.ReactNode }) {
 }
 function P({ children }: { children: React.ReactNode }) {
   return <p className="text-gray-300 text-sm leading-relaxed mb-3">{children}</p>;
-}
-function UL({ items }: { items: string[] }) {
-  return (
-    <ul className="list-disc pl-5 space-y-1.5 mb-3">
-      {items.map((i) => <li key={i} className="text-gray-300 text-sm leading-relaxed">{i}</li>)}
-    </ul>
-  );
 }
 function Highlight({ children }: { children: React.ReactNode }) {
   return <span className="text-white font-medium">{children}</span>;
@@ -92,7 +87,7 @@ function SupportEs() {
       <H3>¿Cómo cancelo mi suscripción?</H3>
       <P>
         Ve a <Highlight>Dashboard → Configuración → Facturación</Highlight> y haz clic en
-        "Gestionar suscripción". Desde ahí podrás cancelar en cualquier momento. El acceso
+        “Gestionar suscripción”. Desde ahí podrás cancelar en cualquier momento. El acceso
         al plan se mantiene hasta el final del período pagado.
       </P>
 
@@ -105,7 +100,7 @@ function SupportEs() {
 
       <H3>Olvidé mi contraseña, ¿qué hago?</H3>
       <P>
-        En la pantalla de inicio de sesión, haz clic en <Highlight>"¿Olvidaste tu contraseña?"</Highlight>.
+        En la pantalla de inicio de sesión, haz clic en <Highlight>“¿Olvidaste tu contraseña?”</Highlight>.
         Te enviaremos un enlace de recuperación a tu correo registrado.
       </P>
 
@@ -133,7 +128,7 @@ function SupportEs() {
       <H3>¿Cómo elimino mi cuenta?</H3>
       <P>
         Ve a <Highlight>Dashboard → Configuración → Zona de peligro</Highlight> y selecciona
-        "Eliminar cuenta". Esta acción es irreversible. Si tienes problemas para acceder,
+        “Eliminar cuenta”. Esta acción es irreversible. Si tienes problemas para acceder,
         escríbenos a <Highlight>support@fideliza.app</Highlight>.
       </P>
 
@@ -159,8 +154,8 @@ function SupportEn() {
   return (
     <>
       <P>
-        At <Brand /> we're here to help. Browse the FAQs below or contact us directly
-        and we'll get back to you as soon as possible.
+        At <Brand /> we’re here to help. Browse the FAQs below or contact us directly
+        and we’ll get back to you as soon as possible.
       </P>
 
       {/* Contact channels */}
@@ -198,7 +193,7 @@ function SupportEn() {
       <H3>How do I cancel my subscription?</H3>
       <P>
         Go to <Highlight>Dashboard → Settings → Billing</Highlight> and click
-        "Manage subscription". You can cancel at any time. Access to the plan continues
+        “Manage subscription”. You can cancel at any time. Access to the plan continues
         until the end of the paid period.
       </P>
 
@@ -211,14 +206,14 @@ function SupportEn() {
 
       <H3>I forgot my password. What do I do?</H3>
       <P>
-        On the login screen, click <Highlight>"Forgot your password?"</Highlight>. We'll
+        On the login screen, click <Highlight>“Forgot your password?”</Highlight>. We’ll
         send a recovery link to your registered email address.
       </P>
 
       <H3>How do my customers access the loyalty portal?</H3>
       <P>
         Customers access via your unique subdomain (<Highlight>your-business.fideliza.app</Highlight>)
-        and enter the access code you assigned them. They don't need to create an account
+        and enter the access code you assigned them. They don’t need to create an account
         or remember a password.
       </P>
 
@@ -238,7 +233,7 @@ function SupportEn() {
       <H3>How do I delete my account?</H3>
       <P>
         Go to <Highlight>Dashboard → Settings → Danger zone</Highlight> and select
-        "Delete account". This action is irreversible. If you have trouble accessing
+        “Delete account”. This action is irreversible. If you have trouble accessing
         your account, email us at <Highlight>support@fideliza.app</Highlight>.
       </P>
 
@@ -260,17 +255,26 @@ function SupportEn() {
   );
 }
 
+function subscribeNoop() {
+  return () => {};
+}
+function getClientSnapshot() {
+  return true;
+}
+function getServerSnapshot() {
+  return false;
+}
+
 /* ─── Page shell ─────────────────────────────────────────────────────────── */
 
 export default function SupportPage() {
-  const [lang, setLang] = useState<'es' | 'en'>('es');
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => {
+  const [lang, setLang] = useState<'es' | 'en'>(() => {
+    if (typeof window === 'undefined') return 'es';
     const saved = localStorage.getItem('landing-lang');
-    if (saved === 'en' || saved === 'es') setLang(saved);
-    setMounted(true);
-  }, []);
+    return saved === 'en' || saved === 'es' ? saved : 'es';
+  });
+  // false during SSR and hydration render, true once mounted on the client
+  const mounted = useSyncExternalStore(subscribeNoop, getClientSnapshot, getServerSnapshot);
 
   function handleLangChange(newLang: 'es' | 'en') {
     setLang(newLang);
@@ -291,12 +295,12 @@ export default function SupportPage() {
       {/* ── Top bar ── */}
       <header className="sticky top-0 z-50 bg-gray-950/95 backdrop-blur-md border-b border-white/10">
         <Container className="flex items-center justify-between h-14">
-          <a href="/" className="flex items-center gap-1.5 text-sm text-gray-400 hover:text-white transition-colors">
+          <Link href="/" className="flex items-center gap-1.5 text-sm text-gray-400 hover:text-white transition-colors">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} className="w-4 h-4" aria-hidden="true">
               <path strokeLinecap="round" strokeLinejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18" />
             </svg>
             {backLabel}
-          </a>
+          </Link>
           <button
             type="button"
             onClick={() => handleLangChange(isEs ? 'en' : 'es')}
@@ -319,7 +323,7 @@ export default function SupportPage() {
               <h1 className="animate-fade-in text-3xl sm:text-4xl font-bold text-white mb-2">{title}</h1>
               <p className="animate-fade-in-delay-1 text-gray-500 text-sm">{updated}</p>
             </div>
-            <img src="/logofideliza.svg" alt="Fideliza" className="hidden sm:block h-24 opacity-80" />
+            <Image src="/logofideliza.svg" alt="Fideliza" width={96} height={96} className="hidden sm:block h-24 w-auto opacity-80" />
           </div>
         </Container>
       </div>

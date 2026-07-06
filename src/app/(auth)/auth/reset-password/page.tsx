@@ -1,4 +1,5 @@
 import { Suspense } from 'react';
+import Image from 'next/image';
 import ResetPasswordForm from './ResetPasswordForm';
 
 export const metadata = { title: 'Nueva contraseña — Fideliza+' };
@@ -9,8 +10,8 @@ export default function ResetPasswordPage() {
       <div className="w-full max-w-md space-y-6">
 
         <div className="text-center space-y-1.5">
-          <img src="/logofidelizalight.svg" alt="Fideliza+" className="block dark:hidden h-24 mx-auto" />
-          <img src="/logofideliza.svg" alt="Fideliza+" className="hidden dark:block h-24 mx-auto" />
+          <Image src="/logofidelizalight.svg" alt="Fideliza+" width={288} height={96} className="block dark:hidden h-24 w-auto mx-auto" />
+          <Image src="/logofideliza.svg" alt="Fideliza+" width={288} height={96} className="hidden dark:block h-24 w-auto mx-auto" />
           <p className="text-sm text-gray-500 dark:text-gray-400">Panel de negocios</p>
         </div>
 

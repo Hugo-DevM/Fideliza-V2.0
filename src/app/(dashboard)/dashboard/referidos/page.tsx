@@ -16,11 +16,11 @@ export default async function ReferidosPage() {
   ] = await Promise.all([
     db.from('reward_programs').select('id, name, type, status')
       .eq('tenant_id', tenantId).eq('status', 'active'),
-    (db as any).from('referrals').select('id', { count: 'exact', head: true })
+    db.from('referrals').select('id', { count: 'exact', head: true })
       .eq('tenant_id', tenantId).eq('status', 'pending'),
-    (db as any).from('referrals').select('id', { count: 'exact', head: true })
+    db.from('referrals').select('id', { count: 'exact', head: true })
       .eq('tenant_id', tenantId).eq('status', 'completed'),
-    (db as any).from('referrals')
+    db.from('referrals')
       .select('referrer_id, customers!referrals_referrer_id_fkey(name)')
       .eq('tenant_id', tenantId).eq('status', 'completed').limit(200),
   ]);

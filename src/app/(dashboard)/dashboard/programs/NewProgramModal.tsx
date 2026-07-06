@@ -53,7 +53,7 @@ export default function NewProgramModal({
   function setOpen(v: boolean) { if (onClose && !v) onClose(); else setInternalOpen(v); }
   const [type, setType]       = useState(() => PROGRAM_TYPES[0]?.value ?? 'points');
   const { mounted: modalMounted, visible: modalVisible } = useModalTransition(open);
-  const { error, setError, mounted, displayText, wrapperStyle, errorStyle } = useAutoError();
+  const { setError, mounted, displayText, wrapperStyle, errorStyle } = useAutoError();
   const [nameLen, setNameLen] = useState(0);
   const [descLen, setDescLen] = useState(0);
   const [isPending, startTransition] = useTransition();

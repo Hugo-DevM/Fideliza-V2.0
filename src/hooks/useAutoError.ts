@@ -39,9 +39,21 @@ export function useAutoError(duration = 3000) {
   const clearRef   = useRef<ReturnType<typeof setTimeout> | null>(null);
   const unmountRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
+  // Adjust state during render when `error` changes
+  // (react.dev "You Might Not Need an Effect").
+  const [prevError, setPrevError] = useState(error);
+  if (prevError !== error) {
+    setPrevError(error);
+    if (error) {
+      setDisplayText(error);
+      setMounted(true);
+    } else {
+      setVisible(false);
+    }
+  }
+
   useEffect(() => {
     if (!error) {
-      setVisible(false);
       if (unmountRef.current) clearTimeout(unmountRef.current);
       // Keep element mounted until height animation finishes, then remove
       unmountRef.current = setTimeout(() => {
@@ -52,8 +64,6 @@ export function useAutoError(duration = 3000) {
     }
 
     if (unmountRef.current) clearTimeout(unmountRef.current);
-    setDisplayText(error);
-    setMounted(true);
     requestAnimationFrame(() => setVisible(true));
 
     if (autoRef.current) clearTimeout(autoRef.current);

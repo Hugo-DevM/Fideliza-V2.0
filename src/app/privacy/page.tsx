@@ -1,6 +1,8 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useSyncExternalStore } from 'react';
+import Link from 'next/link';
+import Image from 'next/image';
 import { Container } from '@/components/ui/Container';
 import { ScrollReveal } from '@/components/ui/ScrollReveal';
 
@@ -40,8 +42,8 @@ function PrivacyEs() {
     <>
       <P>
         <Highlight>Fecha de entrada en vigor: 19 de junio de 2026.</Highlight>{' '}
-        Esta Política de Privacidad describe cómo <Brand /> ("<Brand />",
-        "nosotros" o "nuestro") recopila, usa, almacena y protege la información personal
+        Esta Política de Privacidad describe cómo <Brand /> (“<Brand />”,
+        “nosotros” o “nuestro”) recopila, usa, almacena y protege la información personal
         de quienes usan nuestra plataforma. Al acceder o usar los servicios de <Brand />,
         aceptas las prácticas descritas en este documento.
       </P>
@@ -265,8 +267,8 @@ function PrivacyEn() {
     <>
       <P>
         <Highlight>Effective date: June 19, 2026.</Highlight>{' '}
-        This Privacy Policy describes how <Brand /> ("<Brand />",
-        "we", "us" or "our") collects, uses, stores and protects personal information of
+        This Privacy Policy describes how <Brand /> (“<Brand />”,
+        “we”, “us” or “our”) collects, uses, stores and protects personal information of
         those who use our platform. By accessing or using <Brand /> services, you agree to
         the practices described in this document.
       </P>
@@ -280,7 +282,7 @@ function PrivacyEn() {
       <H2 id="responsable">1. Data controller</H2>
       <P>
         <Brand /> acts as <Highlight>data controller</Highlight> with respect to admin
-        users' (businesses') data. With respect to end-customer data entered by businesses,
+        users’ (businesses’) data. With respect to end-customer data entered by businesses,
         <Brand /> acts as a <Highlight>data processor</Highlight> under the instructions of
         the respective business, which is the controller.
       </P>
@@ -304,7 +306,7 @@ function PrivacyEn() {
       <H3>2.2 End-customer data (entered by the business)</H3>
       <P>
         Businesses register their customers on the platform. <Brand /> stores the following
-        information at the business's instruction:
+        information at the business’s instruction:
       </P>
       <UL items={[
         'Customer name',
@@ -443,7 +445,7 @@ function PrivacyEn() {
         subject to the Meta Pixel.
       </P>
 
-      <H2 id="menores">9. Children's privacy</H2>
+      <H2 id="menores">9. Children’s privacy</H2>
       <P>
         <Brand /> is intended exclusively for businesses and professionals. We do not
         intentionally collect data from children under 16. If you are aware that a minor
@@ -479,17 +481,26 @@ function PrivacyEn() {
   );
 }
 
+function subscribeNoop() {
+  return () => {};
+}
+function getClientSnapshot() {
+  return true;
+}
+function getServerSnapshot() {
+  return false;
+}
+
 /* ─── Page shell ─────────────────────────────────────────────────────────── */
 
 export default function PrivacyPage() {
-  const [lang, setLang] = useState<'es' | 'en'>('es');
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => {
+  const [lang, setLang] = useState<'es' | 'en'>(() => {
+    if (typeof window === 'undefined') return 'es';
     const saved = localStorage.getItem('landing-lang');
-    if (saved === 'en' || saved === 'es') setLang(saved);
-    setMounted(true);
-  }, []);
+    return saved === 'en' || saved === 'es' ? saved : 'es';
+  });
+  // false during SSR and hydration render, true once mounted on the client
+  const mounted = useSyncExternalStore(subscribeNoop, getClientSnapshot, getServerSnapshot);
 
   function handleLangChange(newLang: 'es' | 'en') {
     setLang(newLang);
@@ -510,12 +521,12 @@ export default function PrivacyPage() {
       {/* ── Top bar ── */}
       <header className="sticky top-0 z-50 bg-gray-950/95 backdrop-blur-md border-b border-white/10">
         <Container className="flex items-center justify-between h-14">
-          <a href="/" className="flex items-center gap-1.5 text-sm text-gray-400 hover:text-white transition-colors">
+          <Link href="/" className="flex items-center gap-1.5 text-sm text-gray-400 hover:text-white transition-colors">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} className="w-4 h-4" aria-hidden="true">
               <path strokeLinecap="round" strokeLinejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18" />
             </svg>
             {backLabel}
-          </a>
+          </Link>
           <button
             type="button"
             onClick={() => handleLangChange(isEs ? 'en' : 'es')}
@@ -538,7 +549,7 @@ export default function PrivacyPage() {
               <h1 className="animate-fade-in text-3xl sm:text-4xl font-bold text-white mb-2">{title}</h1>
               <p className="animate-fade-in-delay-1 text-gray-500 text-sm">{updated}</p>
             </div>
-            <img src="/logofideliza.svg" alt="Fideliza" className="hidden sm:block h-24 opacity-80" />
+            <Image src="/logofideliza.svg" alt="Fideliza" width={96} height={96} className="hidden sm:block h-24 w-auto opacity-80" />
           </div>
         </Container>
       </div>

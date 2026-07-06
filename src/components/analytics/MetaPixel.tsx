@@ -1,21 +1,24 @@
 'use client';
 
 import Script from 'next/script';
-import { useEffect, useState } from 'react';
+import { useSyncExternalStore } from 'react';
 
 const PIXEL_ID = '873790189097649';
 
+function subscribeToConsent(onChange: () => void) {
+  window.addEventListener('cookie_consent_accepted', onChange);
+  return () => window.removeEventListener('cookie_consent_accepted', onChange);
+}
+
 export function MetaPixel() {
-  const [consented, setConsented] = useState(false);
-
-  useEffect(() => {
-    const stored = localStorage.getItem('cookie_consent');
-    if (stored === 'accepted') setConsented(true);
-
-    const handler = () => setConsented(true);
-    window.addEventListener('cookie_consent_accepted', handler);
-    return () => window.removeEventListener('cookie_consent_accepted', handler);
-  }, []);
+  // External store: localStorage consent flag, updated via the
+  // 'cookie_consent_accepted' event dispatched by CookieBanner.
+  // Server snapshot is false so nothing renders during SSR.
+  const consented = useSyncExternalStore(
+    subscribeToConsent,
+    () => localStorage.getItem('cookie_consent') === 'accepted',
+    () => false,
+  );
 
   if (!consented) return null;
 
@@ -34,6 +37,7 @@ export function MetaPixel() {
         fbq('track','PageView');
       `}</Script>
       <noscript>
+        {/* eslint-disable-next-line @next/next/no-img-element -- 1x1 Meta tracking pixel for no-JS fallback; must hit facebook.com directly, next/image optimization would break tracking */}
         <img
           height="1"
           width="1"

@@ -14,19 +14,10 @@ function daysAgoIso(days: number) {
 function pct(num: number, denom: number) {
   return denom === 0 ? 0 : Math.round((num / denom) * 100);
 }
-function trendLabel(curr: number, prev: number) {
-  if (prev === 0) return null;
-  const diff = curr - prev;
-  const p = Math.round(Math.abs(diff / prev) * 100);
-  return { up: diff >= 0, label: `${diff >= 0 ? '+' : '-'}${p}%` };
-}
 function trendDelta(curr: number, prev: number, suffix = '') {
   if (curr === 0 && prev === 0) return null;
   const diff = Math.round((curr - prev) * 10) / 10;
   return { up: diff >= 0, label: `${diff >= 0 ? '+' : ''}${diff}${suffix}` };
-}
-function monthKey(iso: string) {
-  return iso.slice(0, 7); // "YYYY-MM"
 }
 function monthLabel(key: string) {
   const [y, m] = key.split('-');
@@ -200,11 +191,12 @@ export default async function AnalyticsPage({
     txCountByKey[k] = (txCountByKey[k] ?? 0) + 1;
   }
 
+  const growthData: { key: string; label: string; inscritos: number; tx: number }[] = [];
   let cumulativeBase = baseEnrollmentCount ?? 0;
-  const growthData = chartKeys.map((k) => {
+  for (const k of chartKeys) {
     cumulativeBase += enrollmentsByKey[k] ?? 0;
-    return { key: k, label: toChartLabel(k, granularity), inscritos: cumulativeBase, tx: txCountByKey[k] ?? 0 };
-  });
+    growthData.push({ key: k, label: toChartLabel(k, granularity), inscritos: cumulativeBase, tx: txCountByKey[k] ?? 0 });
+  }
 
   // ── Top 5 customers ───────────────────────────────────────────────────────
 
@@ -421,7 +413,6 @@ function GrowthChart({ data, period }: { data: GrowthPoint[]; period: string }) 
     return `M ${pts} L ${last} L ${first} Z`;
   };
 
-  const lastInscritos = data[data.length - 1]?.inscritos ?? 0;
   const lastTx = data[data.length - 1]?.tx ?? 0;
   const txDelta = lastTx - (data[data.length - 2]?.tx ?? 0);
 

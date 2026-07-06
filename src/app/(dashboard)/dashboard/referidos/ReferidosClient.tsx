@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useTransition } from 'react';
+import Link from 'next/link';
 import { updateReferralSettingsAction } from './actions';
 
 interface Props {
@@ -205,9 +206,9 @@ export default function ReferidosClient({
           <p className="text-sm text-gray-400 dark:text-gray-500">
             No tienes programas activos. Crea un programa para configurar bonos de referido.
           </p>
-          <a href="/dashboard/programs" className="mt-2 inline-block text-sm text-indigo-500 hover:underline">
+          <Link href="/dashboard/programs" className="mt-2 inline-block text-sm text-indigo-500 hover:underline">
             Crear programa →
-          </a>
+          </Link>
         </div>
       )}
 

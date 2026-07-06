@@ -93,7 +93,7 @@ export default function BillingSection({
 }: Props) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
-  const { error, setError, mounted, displayText, wrapperStyle, errorStyle } = useAutoError();
+  const { setError, mounted, displayText, wrapperStyle, errorStyle } = useAutoError();
 
   const [billing, setBilling]               = useState<'monthly' | 'annual'>('monthly');
   const [upgradeModal, setUpgradeModal]     = useState(false);

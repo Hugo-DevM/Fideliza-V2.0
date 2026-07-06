@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useSyncExternalStore } from 'react';
 import Link from 'next/link';
 import type { AlertItem } from '@/lib/alerts/get-alerts';
 
@@ -18,28 +18,52 @@ const TYPE_CONFIG = {
 
 const DISMISS_KEY = 'dismissed-alerts';
 
+// ── External store for the dismissed set (backed by localStorage) ──
+// The snapshot is cached by the raw string so Set identity stays stable
+// across renders (required by useSyncExternalStore).
+const EMPTY_DISMISSED: Set<string> = new Set();
+let dismissedCacheRaw: string | null = null;
+let dismissedCache: Set<string> = EMPTY_DISMISSED;
+const dismissedListeners = new Set<() => void>();
+
 function getDismissed(): Set<string> {
+  let raw: string | null;
   try {
-    const raw = localStorage.getItem(DISMISS_KEY);
-    return new Set(raw ? JSON.parse(raw) : []);
+    raw = localStorage.getItem(DISMISS_KEY);
   } catch {
-    return new Set();
+    return EMPTY_DISMISSED;
   }
+  if (raw !== dismissedCacheRaw) {
+    dismissedCacheRaw = raw;
+    try {
+      dismissedCache = new Set(raw ? JSON.parse(raw) : []);
+    } catch {
+      dismissedCache = EMPTY_DISMISSED;
+    }
+  }
+  return dismissedCache;
+}
+
+function getServerDismissed(): Set<string> {
+  return EMPTY_DISMISSED;
+}
+
+function subscribeDismissed(onChange: () => void) {
+  dismissedListeners.add(onChange);
+  return () => {
+    dismissedListeners.delete(onChange);
+  };
 }
 
 function saveDismissed(set: Set<string>) {
   localStorage.setItem(DISMISS_KEY, JSON.stringify([...set]));
+  dismissedListeners.forEach((l) => l());
 }
 
 export default function AlertsBell({ initialAlerts }: Props) {
-  const [open, setOpen]           = useState(false);
-  const [dismissed, setDismissed] = useState<Set<string>>(new Set());
+  const [open, setOpen] = useState(false);
+  const dismissed = useSyncExternalStore(subscribeDismissed, getDismissed, getServerDismissed);
   const ref = useRef<HTMLDivElement>(null);
-
-  // Hydrate dismissed set from localStorage after mount
-  useEffect(() => {
-    setDismissed(getDismissed());
-  }, []);
 
   useEffect(() => {
     function handleOutside(e: MouseEvent) {
@@ -62,12 +86,9 @@ export default function AlertsBell({ initialAlerts }: Props) {
   const count   = visible.length;
 
   function dismiss(id: string) {
-    setDismissed((prev) => {
-      const next = new Set(prev);
-      next.add(id);
-      saveDismissed(next);
-      return next;
-    });
+    const next = new Set(dismissed);
+    next.add(id);
+    saveDismissed(next);
   }
 
   return (

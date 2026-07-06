@@ -14,7 +14,7 @@
 import { Resend } from 'resend';
 import { passwordResetTemplate }    from './templates/password-reset';
 import { emailConfirmationTemplate } from './templates/email-confirmation';
-import { newCustomerTemplate, milestoneTemplate } from './templates/new-customer';
+import { milestoneTemplate } from './templates/new-customer';
 import { redemptionAlertTemplate }   from './templates/redemption-alert';
 import { weeklyDigestTemplate, type WeeklyDigestStats } from './templates/weekly-digest';
 import { welcomeTenantTemplate }     from './templates/welcome-tenant';

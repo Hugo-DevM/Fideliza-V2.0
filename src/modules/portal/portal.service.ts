@@ -247,7 +247,7 @@ export async function getPortalData(
   if (customerRaw && !referralCode) {
     const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; // no 0/O/1/I to avoid confusion
     referralCode = Array.from({ length: 6 }, () => chars[Math.floor(Math.random() * chars.length)]).join('');
-    await (db as any).from('customers').update({ referral_code: referralCode }).eq('id', customerRaw.id).eq('tenant_id', tenantId);
+    await db.from('customers').update({ referral_code: referralCode }).eq('id', customerRaw.id).eq('tenant_id', tenantId);
   }
 
   const customer = customerRaw ? {
@@ -463,31 +463,23 @@ export async function getPortalData(
     const now = new Date().toISOString();
 
     const [challengesRes, progressRes] = await Promise.all([
-      (db as any)
+      db
         .from('challenges')
         .select('id, program_id, title, description, target, bonus_points, ends_at, reward_programs!inner(type)')
         .eq('tenant_id', tenantId)
-        .eq('is_active', true) as Promise<{ data: Array<{
-          id: string; program_id: string; title: string; description: string | null;
-          target: number; bonus_points: number; ends_at: string | null;
-          reward_programs: { type: string };
-        }> | null }>,
-      (db as any)
+        .eq('is_active', true),
+      db
         .from('customer_challenge_progress')
         .select('challenge_id, progress, completed_at')
         .eq('tenant_id', tenantId)
-        .eq('customer_id', customer.id) as Promise<{ data: Array<{
-          challenge_id: string; progress: number; completed_at: string | null;
-        }> | null }>,
+        .eq('customer_id', customer.id),
     ]);
 
     const progressMap = new Map<string, { challenge_id: string; progress: number; completed_at: string | null }>(
-      ((progressRes as any).data ?? []).map((p: { challenge_id: string; progress: number; completed_at: string | null }) =>
-        [p.challenge_id, p]
-      )
+      (progressRes.data ?? []).map((p) => [p.challenge_id, p])
     );
 
-    const allChallenges = ((challengesRes as any).data ?? []).filter((c: { ends_at: string | null }) =>
+    const allChallenges = (challengesRes.data ?? []).filter((c) =>
       !c.ends_at || c.ends_at >= now
     );
 
@@ -560,7 +552,7 @@ export async function getPortalData(
       const myLifetime = e.lifetime_points;
 
       const [top10Res, aboveRes, totalRes] = await Promise.all([
-        (db as any)
+        db
           .from('customer_program_enrollments')
           .select('customer_id, lifetime_points, customers(name)')
           .eq('tenant_id', tenantId)

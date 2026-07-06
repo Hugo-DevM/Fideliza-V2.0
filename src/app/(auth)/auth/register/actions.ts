@@ -42,8 +42,7 @@ export async function signUpAction(input: {
     return { error: translateAuthError(error.message) };
   }
 
-  const properties  = (data as any).properties as Record<string, string> | undefined;
-  const hashedToken = properties?.hashed_token;
+  const hashedToken = data.properties?.hashed_token;
   const userId      = data.user?.id;
 
   if (!hashedToken || !userId) {

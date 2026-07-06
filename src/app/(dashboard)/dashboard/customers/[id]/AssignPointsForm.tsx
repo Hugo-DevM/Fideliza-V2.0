@@ -18,7 +18,7 @@ export default function AssignPointsForm({ customerId, enrollments, programLabel
   const [amountStr, setAmountStr] = useState('');
   const [manualDelta, setManualDelta] = useState('');
   const [note, setNote] = useState('');
-  const { error, setError, mounted, displayText, wrapperStyle, errorStyle } = useAutoError();
+  const { setError, mounted, displayText, wrapperStyle, errorStyle } = useAutoError();
   const [success, setSuccess] = useState('');
   const [isPending, startTransition] = useTransition();
   const router = useRouter();

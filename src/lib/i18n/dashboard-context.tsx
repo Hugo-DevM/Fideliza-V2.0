@@ -4,7 +4,7 @@ import {
   createContext,
   useContext,
   useState,
-  useEffect,
+  useSyncExternalStore,
   type ReactNode,
 } from 'react';
 import { dashboardEs, type DashboardDictionary } from './dashboard/es';
@@ -39,24 +39,48 @@ interface ProviderProps {
   defaultTimezone: string;
 }
 
-export function DashboardI18nProvider({ children, defaultTimezone }: ProviderProps) {
-  const [locale,   setLocaleState] = useState<Locale>(DEFAULT_LOCALE);
-  const [timezone, setTimezone]    = useState<string>(defaultTimezone);
+const LOCALE_CHANGE_EVENT = 'dashboard-locale-change';
 
-  // Hydrate locale from localStorage after mount (avoids SSR mismatch)
-  useEffect(() => {
-    const stored = localStorage.getItem(LOCALE_KEY);
-    if (stored === 'en' || stored === 'es') setLocaleState(stored);
-  }, []);
+function subscribeToLocale(callback: () => void) {
+  window.addEventListener(LOCALE_CHANGE_EVENT, callback);
+  window.addEventListener('storage', callback);
+  return () => {
+    window.removeEventListener(LOCALE_CHANGE_EVENT, callback);
+    window.removeEventListener('storage', callback);
+  };
+}
+
+function getLocaleSnapshot(): Locale {
+  const stored = localStorage.getItem(LOCALE_KEY);
+  return stored === 'en' || stored === 'es' ? stored : DEFAULT_LOCALE;
+}
+
+function getServerLocaleSnapshot(): Locale {
+  return DEFAULT_LOCALE;
+}
+
+export function DashboardI18nProvider({ children, defaultTimezone }: ProviderProps) {
+  // Locale is persisted in localStorage; useSyncExternalStore hydrates it
+  // safely (server snapshot avoids SSR mismatch) and stays in sync.
+  const locale = useSyncExternalStore(
+    subscribeToLocale,
+    getLocaleSnapshot,
+    getServerLocaleSnapshot,
+  );
+
+  const [timezone, setTimezone] = useState<string>(defaultTimezone);
 
   // Sync timezone when the server re-renders with new settings
-  useEffect(() => {
+  // (state adjusted during render — see react.dev "You Might Not Need an Effect")
+  const [prevDefaultTimezone, setPrevDefaultTimezone] = useState(defaultTimezone);
+  if (prevDefaultTimezone !== defaultTimezone) {
+    setPrevDefaultTimezone(defaultTimezone);
     setTimezone(defaultTimezone);
-  }, [defaultTimezone]);
+  }
 
   function setLocale(next: Locale) {
-    setLocaleState(next);
     localStorage.setItem(LOCALE_KEY, next);
+    window.dispatchEvent(new Event(LOCALE_CHANGE_EVENT));
   }
 
   return (

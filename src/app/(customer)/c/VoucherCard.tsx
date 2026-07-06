@@ -25,9 +25,12 @@ export default function VoucherCard({ voucher: v, primaryColor }: Props) {
   const qrCanvasRef     = useRef<HTMLCanvasElement>(null);
   const barcodeSvgRef   = useRef<SVGSVGElement>(null);
 
+  // Captured once on mount so the render stays pure (day-level granularity).
+  const [now] = useState(() => Date.now());
+
   const expiresAt = v.expires_at ? new Date(v.expires_at) : null;
   const daysLeft  = expiresAt
-    ? Math.ceil((expiresAt.getTime() - Date.now()) / 86_400_000)
+    ? Math.ceil((expiresAt.getTime() - now) / 86_400_000)
     : null;
 
   useEffect(() => {

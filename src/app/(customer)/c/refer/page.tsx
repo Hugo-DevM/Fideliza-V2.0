@@ -9,7 +9,8 @@
  */
 
 import { headers } from 'next/headers';
-import { notFound, redirect } from 'next/navigation';
+import Image from 'next/image';
+import { notFound } from 'next/navigation';
 import { getTenantBySubdomainPublic } from '@/modules/portal';
 import { TenantNotFoundError } from '@/lib/middleware/errors';
 import { createServiceRoleClient } from '@/lib/supabase/server';
@@ -95,8 +96,8 @@ export default async function ReferralPage({ searchParams }: PageProps) {
               </div>
             ) : (
               <>
-                <img src="/logofidelizalight.svg" alt="Fideliza" className="block dark:hidden h-14 w-auto" />
-                <img src="/logofideliza.svg"      alt="Fideliza" className="hidden dark:block h-14 w-auto" />
+                <Image src="/logofidelizalight.svg" alt="Fideliza" width={168} height={56} className="block dark:hidden h-14 w-auto" />
+                <Image src="/logofideliza.svg" alt="Fideliza" width={168} height={56} className="hidden dark:block h-14 w-auto" />
               </>
             )}
             <p className="text-[11px] font-bold uppercase tracking-widest text-emerald-500 dark:text-emerald-400">

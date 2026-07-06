@@ -25,7 +25,7 @@ export default function SettingsForm({
   year: number;
   plan: string;
 }) {
-  const { t, locale, setLocale, timezone } = useDashboardI18n();
+  const { t, locale, setLocale } = useDashboardI18n();
   const s = t.settings;
 
   const [primaryColor,   setPrimaryColor]   = useState(settings.primary_color);
@@ -94,7 +94,7 @@ export default function SettingsForm({
     setProgramLabel(raw.replace(/(?:^|\s)\S/g, (c) => c.toUpperCase()));
   }
 
-  const { error, setError, mounted, displayText, wrapperStyle, errorStyle } = useAutoError();
+  const { setError, mounted, displayText, wrapperStyle, errorStyle } = useAutoError();
   const [success, setSuccess] = useState('');
   const [isPending, startTransition] = useTransition();
   const router = useRouter();
@@ -865,7 +865,7 @@ function LogoCard({
   const [url,     setUrl]     = useState<string | null>(initialUrl);
   const [padding, setPadding] = useState(initialPadding);
   const [status,  setStatus]  = useState<'idle' | 'uploading' | 'removing' | 'saving-padding'>('idle');
-  const { error: logoError, setError: setLogoError, mounted: logoMounted, displayText: logoDisplayText, wrapperStyle: logoWrapperStyle, errorStyle: logoErrorStyle } = useAutoError();
+  const { setError: setLogoError, mounted: logoMounted, displayText: logoDisplayText, wrapperStyle: logoWrapperStyle, errorStyle: logoErrorStyle } = useAutoError();
   const fileRef = useRef<HTMLInputElement>(null);
   const router  = useRouter();
 

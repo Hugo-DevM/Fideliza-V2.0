@@ -17,7 +17,7 @@ export default function EditProgramModal({
 }) {
   const [open, setOpen] = useState(false);
   const { mounted: modalMounted, visible: modalVisible } = useModalTransition(open);
-  const { error, setError, mounted, displayText, wrapperStyle, errorStyle } = useAutoError();
+  const { setError, mounted, displayText, wrapperStyle, errorStyle } = useAutoError();
   const [nameLen, setNameLen] = useState(currentName.length);
   const [descLen, setDescLen] = useState(currentDescription?.length ?? 0);
   const NAME_MAX = 60;

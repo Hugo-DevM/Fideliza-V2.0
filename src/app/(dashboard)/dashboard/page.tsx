@@ -7,7 +7,7 @@ import PortalCard from '@/components/dashboard/PortalCard';
 export const metadata = { title: 'Resumen — Fideliza+' };
 
 export default async function DashboardPage() {
-  const { tenantId, tenant, settings, planLimits, effectivePlan } = await getAuthenticatedTenant();
+  const { tenantId, tenant, effectivePlan } = await getAuthenticatedTenant();
   const db = createServiceRoleClient();
 
   // ── Date boundaries ──────────────────────────────────────────────

@@ -76,7 +76,7 @@ export function ContentEn() {
         </SubSection>
 
         <SubSection id="primer-ingreso" title="2.2 First login">
-          <p>When you first log in you'll see the dashboard with all stats at zero and suggested actions to get started.</p>
+          <p>When you first log in you’ll see the dashboard with all stats at zero and suggested actions to get started.</p>
           <p className="font-medium text-white">Recommended setup flow:</p>
           <StepList steps={[
             'Go to Settings → customize your colors and welcome message',
@@ -167,7 +167,7 @@ export function ContentEn() {
           ]} />
           <Note>
             The system automatically generates a unique access code. That code is the
-            customer's identifier in the portal — no password needed.
+            customer’s identifier in the portal — no password needed.
           </Note>
         </SubSection>
 
@@ -366,7 +366,7 @@ export function ContentEn() {
         </p>
         <Note>
           If payment fails, the system automatically reverts to the Free plan until the
-          payment is resolved. You'll see an orange banner on the dashboard.
+          payment is resolved. You’ll see an orange banner on the dashboard.
         </Note>
         <GuiddeBox>
           <StepList steps={[

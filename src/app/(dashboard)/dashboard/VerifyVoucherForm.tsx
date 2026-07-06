@@ -29,19 +29,19 @@ export default function VerifyVoucherForm() {
   const [error, setError]            = useState('');
   const [info, setInfo]              = useState<RedemptionInfo | null>(null);
   // Keep last info content visible during modal exit animation
-  const displayInfoRef               = useRef<RedemptionInfo | null>(null);
-  if (info) displayInfoRef.current   = info;
+  const [displayInfo, setDisplayInfo] = useState<RedemptionInfo | null>(null);
+  if (info && info !== displayInfo) setDisplayInfo(info);
   const [isPending, startTransition] = useTransition();
   const [scanning, setScanning]      = useState(false);
   const [cameraLoading, setCameraLoading] = useState(false);
   const { mounted: scanMounted, visible: scanVisible } = useModalTransition(scanning);
   const { mounted: infoMounted, visible: infoVisible } = useModalTransition(!!info);
-  const [errorVisible,   setErrorVisible]   = useState(false);
-  const [errorMounted,   setErrorMounted]   = useState(false);
-  const [errorDisplayText, setErrorDisplayText] = useState('');
-  const errorTimerRef                = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const unmountTimerRef              = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [scanError, setScanError]    = useState('');
+  const activeError = error || scanError;
+  const { mounted: errorMounted, visible: errorVisible } = useModalTransition(!!activeError, 400);
+  // Keep last error text visible during exit animation
+  const [errorDisplayText, setErrorDisplayText] = useState('');
+  if (activeError && activeError !== errorDisplayText) setErrorDisplayText(activeError);
   const inputRef    = useRef<HTMLInputElement>(null);
   const canvasRef   = useRef<HTMLCanvasElement>(null);
   const streamRef   = useRef<MediaStream | null>(null);
@@ -117,30 +117,15 @@ export default function VerifyVoucherForm() {
   // Cleanup on unmount
   useEffect(() => () => stopCamera(), [stopCamera]);
 
-  // Animate in/out and auto-clear errors after 3 seconds (except permission errors)
+  // Auto-clear errors after a few seconds (except permission errors,
+  // which the user needs time to read). Enter/exit animation is handled
+  // by useModalTransition above.
   useEffect(() => {
     const active = error || scanError;
-    if (!active) {
-      setErrorVisible(false);
-      if (unmountTimerRef.current) clearTimeout(unmountTimerRef.current);
-      unmountTimerRef.current = setTimeout(() => {
-        setErrorMounted(false);
-        setErrorDisplayText('');
-      }, 400);
-      return;
-    }
-    if (unmountTimerRef.current) clearTimeout(unmountTimerRef.current);
-    setErrorDisplayText(active);
-    setErrorMounted(true);
-    requestAnimationFrame(() => setErrorVisible(true));
     // Don't auto-dismiss permission errors — user needs to read the instructions
-    if (active === 'PERMISSION_DENIED') return;
-    if (errorTimerRef.current) clearTimeout(errorTimerRef.current);
-    errorTimerRef.current = setTimeout(() => {
-      setErrorVisible(false);
-      setTimeout(() => { setError(''); setScanError(''); }, 350);
-    }, 4000);
-    return () => { if (errorTimerRef.current) clearTimeout(errorTimerRef.current); };
+    if (!active || active === 'PERMISSION_DENIED') return;
+    const timer = setTimeout(() => { setError(''); setScanError(''); }, 4000);
+    return () => clearTimeout(timer);
   }, [error, scanError]);
 
   function handleChange(e: React.ChangeEvent<HTMLInputElement>) {
@@ -175,7 +160,6 @@ export default function VerifyVoucherForm() {
     setTimeout(() => inputRef.current?.focus(), 50);
   }
 
-  const displayInfo = displayInfoRef.current;
   const usedTime = displayInfo ? formatTimeOnly(displayInfo.usedAt, timezone, locale) : '';
 
   return (
@@ -311,8 +295,6 @@ export default function VerifyVoucherForm() {
 
             {/* Camera viewfinder */}
             <div className="relative bg-black aspect-square overflow-hidden">
-              {/* eslint-disable-next-line jsx-a11y/media-has-caption */}
-              {/* eslint-disable-next-line jsx-a11y/media-has-caption */}
               <video
                 ref={videoCallbackRef}
                 muted

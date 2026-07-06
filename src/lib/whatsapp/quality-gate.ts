@@ -50,8 +50,10 @@ export function invalidateQualityCache(): void {
  * Category is kept for interface compatibility — both categories check the same gate.
  */
 export async function isSendingAllowed(
-  _category: 'utility' | 'marketing' = 'utility',
+  category: 'utility' | 'marketing' = 'utility',
 ): Promise<boolean> {
+  // Both categories currently share the same account-level pause gate.
+  void category;
   const state = await getState();
   return !state.is_paused;
 }

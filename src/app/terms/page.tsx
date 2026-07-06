@@ -1,6 +1,8 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useSyncExternalStore } from 'react';
+import Link from 'next/link';
+import Image from 'next/image';
 import { Container } from '@/components/ui/Container';
 import { ScrollReveal } from '@/components/ui/ScrollReveal';
 
@@ -47,9 +49,9 @@ function TermsEs() {
     <>
       <P>
         <Highlight>Fecha de entrada en vigor: 19 de junio de 2026.</Highlight>{' '}
-        Estos Términos de Servicio (en adelante, "los Términos") regulan el acceso y uso
-        de la plataforma <Brand /> operada por <Brand /> ("<Brand />",
-        "nosotros" o "nuestro"). Al registrarte o usar el servicio, aceptas estos Términos
+        Estos Términos de Servicio (en adelante, “los Términos”) regulan el acceso y uso
+        de la plataforma <Brand /> operada por <Brand /> (“<Brand />”,
+        “nosotros” o “nuestro”). Al registrarte o usar el servicio, aceptas estos Términos
         en su totalidad. Si no estás de acuerdo, no uses el servicio.
       </P>
 
@@ -171,7 +173,7 @@ function TermsEs() {
         El historial de transacciones es <strong>inmutable por diseño del sistema</strong>.
         Esto significa que las transacciones registradas no pueden eliminarse individualmente
         una vez creadas, aunque sí puedes realizar ajustes de balance. Si necesitas corregir
-        un error, usa el tipo de transacción "Ajuste". Al eliminar completamente tu cuenta,
+        un error, usa el tipo de transacción “Ajuste”. Al eliminar completamente tu cuenta,
         todos los datos asociados serán eliminados.
       </Warning>
 
@@ -289,8 +291,8 @@ function TermsEn() {
     <>
       <P>
         <Highlight>Effective date: June 19, 2026.</Highlight>{' '}
-        These Terms of Service ("Terms") govern access to and use of the <Brand /> platform
-        operated by <Brand /> ("<Brand />", "we", "us" or "our").
+        These Terms of Service (“Terms”) govern access to and use of the <Brand /> platform
+        operated by <Brand /> (“<Brand />”, “we”, “us” or “our”).
         By registering or using the service, you agree to these Terms in full. If you
         disagree, do not use the service.
       </P>
@@ -398,7 +400,7 @@ function TermsEn() {
 
       <H2 id="datos-clientes">5. End-customer data and responsibility</H2>
       <P>
-        Regarding your end customers' data that you enter into <Brand />:
+        Regarding your end customers’ data that you enter into <Brand />:
       </P>
       <UL items={[
         'You are the data controller for such data under GDPR and applicable law',
@@ -411,7 +413,7 @@ function TermsEn() {
       <Warning>
         The transaction history is <strong>immutable by system design</strong>. This means
         individual transactions cannot be deleted once created, though you can make balance
-        adjustments. If you need to correct an error, use the "Adjustment" transaction type.
+        adjustments. If you need to correct an error, use the “Adjustment” transaction type.
         Upon full account deletion, all associated data will be permanently removed.
       </Warning>
 
@@ -460,7 +462,7 @@ function TermsEn() {
         collaborators against any claims, damages, losses or expenses (including reasonable
         legal fees) arising from: (a) your use of the service in breach of these Terms;
         (b) the data you enter into the platform; (c) any breach of applicable data
-        protection law by you as data controller for your customers' data.
+        protection law by you as data controller for your customers’ data.
       </P>
 
       <H2 id="terminacion">10. Termination</H2>
@@ -489,7 +491,7 @@ function TermsEn() {
 
       <H2 id="ley-aplicable">11. Governing law and dispute resolution</H2>
       <P>
-        These Terms are governed by the applicable law in <Brand />'s operating jurisdiction.
+        These Terms are governed by the applicable law in <Brand />’s operating jurisdiction.
         In the event of any dispute, the parties commit to attempting amicable resolution
         within 30 days. If no agreement is reached, the dispute shall be submitted to the
         competent courts of that jurisdiction.
@@ -522,17 +524,26 @@ function TermsEn() {
   );
 }
 
+function subscribeNoop() {
+  return () => {};
+}
+function getClientSnapshot() {
+  return true;
+}
+function getServerSnapshot() {
+  return false;
+}
+
 /* ─── Page shell ─────────────────────────────────────────────────────────── */
 
 export default function TermsPage() {
-  const [lang, setLang] = useState<'es' | 'en'>('es');
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => {
+  const [lang, setLang] = useState<'es' | 'en'>(() => {
+    if (typeof window === 'undefined') return 'es';
     const saved = localStorage.getItem('landing-lang');
-    if (saved === 'en' || saved === 'es') setLang(saved);
-    setMounted(true);
-  }, []);
+    return saved === 'en' || saved === 'es' ? saved : 'es';
+  });
+  // false during SSR and hydration render, true once mounted on the client
+  const mounted = useSyncExternalStore(subscribeNoop, getClientSnapshot, getServerSnapshot);
 
   function handleLangChange(newLang: 'es' | 'en') {
     setLang(newLang);
@@ -553,12 +564,12 @@ export default function TermsPage() {
       {/* ── Top bar ── */}
       <header className="sticky top-0 z-50 bg-gray-950/95 backdrop-blur-md border-b border-white/10">
         <Container className="flex items-center justify-between h-14">
-          <a href="/" className="flex items-center gap-1.5 text-sm text-gray-400 hover:text-white transition-colors">
+          <Link href="/" className="flex items-center gap-1.5 text-sm text-gray-400 hover:text-white transition-colors">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} className="w-4 h-4" aria-hidden="true">
               <path strokeLinecap="round" strokeLinejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18" />
             </svg>
             {backLabel}
-          </a>
+          </Link>
           <button
             type="button"
             onClick={() => handleLangChange(isEs ? 'en' : 'es')}
@@ -581,7 +592,7 @@ export default function TermsPage() {
               <h1 className="animate-fade-in text-3xl sm:text-4xl font-bold text-white mb-2">{title}</h1>
               <p className="animate-fade-in-delay-1 text-gray-500 text-sm">{updated}</p>
             </div>
-            <img src="/logofideliza.svg" alt="Fideliza" className="hidden sm:block h-24 opacity-80" />
+            <Image src="/logofideliza.svg" alt="Fideliza" width={96} height={96} className="hidden sm:block h-24 w-auto opacity-80" />
           </div>
         </Container>
       </div>

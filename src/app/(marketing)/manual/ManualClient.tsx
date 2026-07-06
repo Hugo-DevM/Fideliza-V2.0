@@ -1,6 +1,8 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
+import Image from "next/image";
 import { Container } from "@/components/ui/Container";
 import { ScrollReveal } from "@/components/ui/ScrollReveal";
 import { TocNav } from "./TocNav";
@@ -31,7 +33,7 @@ export function ManualClient() {
       {/* ── Top bar ── */}
       <header className="sticky top-0 z-50 bg-gray-950/95 backdrop-blur-md border-b border-white/10">
         <Container className="flex items-center justify-between h-14">
-          <a
+          <Link
             href="/"
             className="flex items-center gap-1.5 text-sm text-gray-400 hover:text-white transition-colors"
           >
@@ -50,7 +52,7 @@ export function ManualClient() {
               />
             </svg>
             {backLabel}
-          </a>
+          </Link>
 
           <div className="flex items-center gap-4">
             <span className="text-xs text-gray-500 hidden sm:block">
@@ -95,7 +97,7 @@ export function ManualClient() {
               </h1>
               <p className="animate-fade-in-delay-2 text-gray-400 max-w-xl">{isEs ? descriptionEs : descriptionEn}</p>
             </div>
-            <img src="/logofideliza.svg" alt="Fideliza" className="hidden sm:block h-24 opacity-80" />
+            <Image src="/logofideliza.svg" alt="Fideliza" width={288} height={96} className="hidden sm:block h-24 w-auto opacity-80" />
           </div>
         </Container>
       </div>
@@ -110,9 +112,9 @@ export function ManualClient() {
 
             <div className="pt-10 pb-4 text-center text-xs text-gray-600">
               <strong className="text-indigo-400 font-bold">Fideliza</strong> · v1.0 ·{" "}
-              <a href="/" className="hover:text-gray-400 transition-colors">
+              <Link href="/" className="hover:text-gray-400 transition-colors">
                 {backLabel}
-              </a>
+              </Link>
             </div>
           </main>
         </div>

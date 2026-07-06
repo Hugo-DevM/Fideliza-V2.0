@@ -1,7 +1,5 @@
 import type { NextConfig } from 'next';
 
-const ROOT_DOMAIN = process.env.NEXT_PUBLIC_ROOT_DOMAIN ?? 'fideliza.app';
-
 // ── Content Security Policy ─────────────────────────────────────────────────
 //
 // Approach: strict opt-in (deny by default, explicit allows).

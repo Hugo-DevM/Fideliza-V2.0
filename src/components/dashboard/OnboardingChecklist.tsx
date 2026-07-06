@@ -1,7 +1,9 @@
 'use client';
 
-import { useLayoutEffect, useState } from 'react';
+import { useEffect, useState, useSyncExternalStore } from 'react';
 import Link from 'next/link';
+
+const emptySubscribe = () => () => {};
 
 export interface OnboardingStep {
   label: string;
@@ -18,19 +20,24 @@ export default function OnboardingChecklist({ tenantId, steps }: Props) {
   const storageKey   = `fideliza_onboarding_dismissed_${tenantId}`;
   const collapsedKey = `fideliza_onboarding_collapsed_${tenantId}`;
 
-  // Start hidden to avoid flash — useLayoutEffect runs before paint
-  const [dismissed, setDismissed] = useState(true);
-  const [collapsed, setCollapsed] = useState(false);
-  const [visible,   setVisible]   = useState(false); // drives entrance animation
+  // false during SSR/hydration render, true afterwards — lets us read
+  // localStorage during render. Component stays hidden until hydrated,
+  // matching the previous "start dismissed" behavior (no flash).
+  const hydrated = useSyncExternalStore(emptySubscribe, () => true, () => false);
 
-  useLayoutEffect(() => {
-    const isDismissed = localStorage.getItem(storageKey) === '1';
-    const isCollapsed = localStorage.getItem(collapsedKey) === '1';
-    setDismissed(isDismissed);
-    setCollapsed(isCollapsed);
-    // Trigger entrance on next frame so CSS transition fires
-    if (!isDismissed) requestAnimationFrame(() => setVisible(true));
-  }, [storageKey, collapsedKey]);
+  const [dismissedOverride, setDismissedOverride] = useState<boolean | null>(null);
+  const [collapsedOverride, setCollapsedOverride] = useState<boolean | null>(null);
+  const [visible, setVisible] = useState(false); // drives entrance animation
+
+  const dismissed = dismissedOverride ?? (!hydrated || localStorage.getItem(storageKey) === '1');
+  const collapsed = collapsedOverride ?? (hydrated && localStorage.getItem(collapsedKey) === '1');
+
+  // Trigger entrance on the next frame so the CSS transition fires
+  useEffect(() => {
+    if (dismissed) return;
+    const id = requestAnimationFrame(() => setVisible(true));
+    return () => cancelAnimationFrame(id);
+  }, [dismissed]);
 
   const completed = steps.filter((s) => s.done).length;
   const total     = steps.length;
@@ -41,15 +48,17 @@ export default function OnboardingChecklist({ tenantId, steps }: Props) {
 
   function dismiss() {
     localStorage.setItem(storageKey, '1');
+    // Pin dismissed=false so the component stays mounted during the exit animation
+    setDismissedOverride(false);
     setVisible(false);
     // Wait for exit animation before unmounting
-    setTimeout(() => setDismissed(true), 350);
+    setTimeout(() => setDismissedOverride(true), 350);
   }
 
   function toggleCollapse() {
     const next = !collapsed;
     localStorage.setItem(collapsedKey, next ? '1' : '0');
-    setCollapsed(next);
+    setCollapsedOverride(next);
   }
 
   return (

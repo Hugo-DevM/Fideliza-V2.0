@@ -1,6 +1,8 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import Link from "next/link";
+import Image from "next/image";
 import { Container } from "@/components/ui/Container";
 import { LinkButton } from "@/components/ui/Button";
 import type { Dictionary, Locale } from "@/lib/i18n";
@@ -31,9 +33,9 @@ export function Navbar({ t, lang, onLangChange }: NavbarProps) {
     >
       <Container className="flex items-center justify-between h-16">
         {/* Logo */}
-        <a href="/">
-          <img src="/logofideliza.svg" alt="Fideliza+" className="h-12" />
-        </a>
+        <Link href="/">
+          <Image src="/logofideliza.svg" alt="Fideliza+" width={144} height={48} className="h-12 w-auto" />
+        </Link>
 
         {/* Desktop nav */}
         <nav

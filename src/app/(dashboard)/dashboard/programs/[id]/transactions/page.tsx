@@ -23,11 +23,19 @@ export default async function ProgramTransactionsPage({
   const { id } = await params;
   const { tenantId, settings } = await getAuthenticatedTenant();
 
-  try {
-    const program = await getProgramById(tenantId, id);
-    const { rows: initialRows, hasMore } = await loadMoreProgramTransactions(id, 0);
+  let program: Awaited<ReturnType<typeof getProgramById>>;
+  let initialRows: Awaited<ReturnType<typeof loadMoreProgramTransactions>>['rows'];
+  let hasMore: boolean;
 
-    return (
+  try {
+    program = await getProgramById(tenantId, id);
+    ({ rows: initialRows, hasMore } = await loadMoreProgramTransactions(id, 0));
+  } catch (err) {
+    if (err instanceof NotFoundError) notFound();
+    throw err;
+  }
+
+  return (
       <div className="space-y-5">
         <Link href={`/dashboard/programs/${id}`} className="inline-flex items-center gap-1.5 text-sm text-gray-500 dark:text-gray-400 hover:text-indigo-600 dark:hover:text-indigo-400 transition">
           <svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
@@ -50,8 +58,4 @@ export default async function ProgramTransactionsPage({
         </div>
       </div>
     );
-  } catch (err) {
-    if (err instanceof NotFoundError) notFound();
-    throw err;
-  }
 }

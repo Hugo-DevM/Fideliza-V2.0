@@ -6,6 +6,7 @@
  */
 
 import { headers } from 'next/headers';
+import Image from 'next/image';
 import { notFound } from 'next/navigation';
 import CodeEntryForm from './CodeEntryForm';
 import AutoRefresh from './AutoRefresh';
@@ -14,7 +15,6 @@ import AuthThemeToggle from '@/app/(auth)/ThemeToggle';
 import PortalTabsClient from './PortalTabsClient';
 import { getPortalData, getTenantBySubdomainPublic } from '@/modules/portal';
 import { NotFoundError, TenantNotFoundError } from '@/lib/middleware/errors';
-import { getPlanLimits, getEffectivePlan } from '@/lib/config/plans';
 import type { PortalData } from '@/modules/portal';
 
 export const dynamic = 'force-dynamic';
@@ -76,23 +76,31 @@ export default async function CustomerPortalPage({ searchParams }: PageProps) {
     return <EntryScreen tenantName={tenantName} logoUrl={tenantLogoUrl} logoPadding={tenantLogoPadding} primaryColor={primaryColor} />;
   }
 
-  let data: PortalData;
+  let data: PortalData | null = null;
+  let portalEnabled = true;
   try {
     const tenant = await getTenantBySubdomainPublic(subdomain);
-    if (!tenant.clientPortal) return <PortalUnavailableScreen />;
-    data = await getPortalData(tenant.id, code);
+    if (tenant.clientPortal) {
+      data = await getPortalData(tenant.id, code);
+    } else {
+      portalEnabled = false;
+    }
   } catch (err) {
     if (err instanceof TenantNotFoundError) notFound();
-    if (err instanceof NotFoundError) {
-      return (
-        <EntryScreen
-          error="Código no encontrado. Verifícalo e inténtalo de nuevo."
-          primaryColor={undefined}
-          tenantName={undefined}
-        />
-      );
-    }
-    throw err;
+    if (!(err instanceof NotFoundError)) throw err;
+    /* Code not found — fall through to the entry screen below */
+  }
+
+  if (!portalEnabled) return <PortalUnavailableScreen />;
+
+  if (!data) {
+    return (
+      <EntryScreen
+        error="Código no encontrado. Verifícalo e inténtalo de nuevo."
+        primaryColor={undefined}
+        tenantName={undefined}
+      />
+    );
   }
 
   return <PortalShell data={data} code={code} tab={tab} />;
@@ -171,8 +179,8 @@ function EntryScreen({
               </div>
             ) : (
               <>
-                <img src="/logofidelizalight.svg" alt="Fideliza" className="block dark:hidden h-16 w-auto" />
-                <img src="/logofideliza.svg" alt="Fideliza" className="hidden dark:block h-16 w-auto" />
+                <Image src="/logofidelizalight.svg" alt="Fideliza" width={192} height={64} className="block dark:hidden h-16 w-auto" />
+                <Image src="/logofideliza.svg" alt="Fideliza" width={192} height={64} className="hidden dark:block h-16 w-auto" />
               </>
             )}
             {tenantName && (

@@ -119,7 +119,6 @@ export async function sendWelcomeMessage(
   customerName: string,
   businessName: string,
   phone:        string,
-  initialPoints: number,
 ): Promise<void> {
   try {
     await enqueueMessage({

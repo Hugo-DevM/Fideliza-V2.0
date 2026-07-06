@@ -90,12 +90,12 @@ export async function addMissionProgressAction(customerId: string, challengeId: 
   const db = createServiceRoleClient();
 
   // Fetch challenge
-  const { data: challenge } = await (db as any)
+  const { data: challenge } = await db
     .from('challenges')
     .select('id, title, target, bonus_points, program_id, is_active, ends_at')
     .eq('id', challengeId)
     .eq('tenant_id', tenantId)
-    .single() as { data: { id: string; title: string; target: number; bonus_points: number; program_id: string; is_active: boolean; ends_at: string | null } | null };
+    .single();
 
   if (!challenge || !challenge.is_active) return { error: 'Misión no disponible.' };
 
@@ -103,37 +103,37 @@ export async function addMissionProgressAction(customerId: string, challengeId: 
   if (challenge.ends_at && challenge.ends_at < now) return { error: 'La misión ya expiró.' };
 
   // Fetch existing progress
-  const { data: existing } = await (db as any)
+  const { data: existing } = await db
     .from('customer_challenge_progress')
     .select('id, progress, completed_at')
     .eq('customer_id', customerId)
     .eq('challenge_id', challengeId)
-    .maybeSingle() as { data: { id: string; progress: number; completed_at: string | null } | null };
+    .maybeSingle();
 
   if (existing?.completed_at) return { error: 'La misión ya fue completada.' };
 
   const newProgress = (existing?.progress ?? 0) + 1;
 
   if (existing) {
-    await (db as any)
+    await db
       .from('customer_challenge_progress')
       .update({ progress: newProgress })
       .eq('id', existing.id);
   } else {
-    await (db as any)
+    await db
       .from('customer_challenge_progress')
       .insert({ tenant_id: tenantId, customer_id: customerId, challenge_id: challengeId, progress: newProgress });
   }
 
   let completed = false;
   if (newProgress >= challenge.target) {
-    await (db as any)
+    await db
       .from('customer_challenge_progress')
       .update({ completed_at: now })
       .eq('customer_id', customerId)
       .eq('challenge_id', challengeId);
 
-    await (db as any).rpc('rpc_earn_points', {
+    await db.rpc('rpc_earn_points', {
       p_tenant_id:    tenantId,
       p_customer_id:  customerId,
       p_program_id:   challenge.program_id,

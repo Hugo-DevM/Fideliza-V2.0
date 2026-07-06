@@ -10,7 +10,7 @@ import type { Dictionary } from '@/lib/i18n';
 import { withBrand } from '@/lib/brand';
 
 /** Animated number that slides up/down when the value changes. */
-function AnimatedPrice({ value, highlight }: { value: string; highlight: boolean }) {
+function AnimatedPrice({ value }: { value: string }) {
   return (
     <AnimatePresence mode="popLayout" initial={false}>
       <motion.span
@@ -147,7 +147,7 @@ export function Pricing({ t }: PricingProps) {
 
                     <div className="flex flex-wrap items-end gap-x-1 gap-y-0.5 mb-1">
                       <span className="overflow-hidden">
-                        <AnimatedPrice value={displayPrice} highlight={plan.highlight} />
+                        <AnimatedPrice value={displayPrice} />
                       </span>
                       <span className={`overflow-hidden ${plan.highlight ? 'text-indigo-300' : plan.comingSoon ? 'text-gray-300' : 'text-gray-400'}`}>
                         <AnimatedPeriod>{displayPeriod}</AnimatedPeriod>

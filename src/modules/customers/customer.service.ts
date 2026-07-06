@@ -8,7 +8,7 @@ import {
   getCustomerById,
   listCustomers,
 } from './customer.repository';
-import { BadRequestError, NotFoundError } from '@/lib/middleware/errors';
+import { BadRequestError } from '@/lib/middleware/errors';
 import { enforceCustomerLimit } from '@/lib/middleware/plan-limits';
 import { generateAccessCode } from '@/lib/utils/crypto';
 import { getNotificationPrefs } from '@/lib/email/notification-prefs';
@@ -119,7 +119,6 @@ export async function createCustomer(
         customer.name,
         prefs.tenantName,
         customer.phone,
-        0,
       );
     })();
   })();

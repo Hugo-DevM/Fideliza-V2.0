@@ -96,6 +96,7 @@ export default function BonusClient({
 }) {
   const [isPending, startTransition] = useTransition();
   const [msg, setMsg] = useState<{ ok: boolean; text: string } | null>(null);
+  const [now] = useState(() => Date.now());
   const formRef = useRef<HTMLFormElement>(null);
 
   function handleSubmit(e: React.FormEvent) {
@@ -160,7 +161,7 @@ export default function BonusClient({
           <div className="divide-y divide-gray-100 dark:divide-[#1e2538]">
             {pendingRows.map((row) => {
               const expiresAt  = new Date(row.expires_at);
-              const daysLeft   = Math.ceil((expiresAt.getTime() - Date.now()) / (1000 * 60 * 60 * 24));
+              const daysLeft   = Math.ceil((expiresAt.getTime() - now) / (1000 * 60 * 60 * 24));
               const isExpiring = daysLeft <= 3;
               return (
                 <div key={row.id} className="px-6 py-3 flex items-center justify-between gap-4">

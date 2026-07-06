@@ -34,7 +34,7 @@ interface Props {
 export default function EditCustomerModal({ customerId, initialName, initialPhone, initialNotes, phonePrefix }: Props) {
   const [open, setOpen]   = useState(false);
   const { mounted: modalMounted, visible: modalVisible } = useModalTransition(open);
-  const { error, setError, mounted, displayText, wrapperStyle, errorStyle } = useAutoError();
+  const { setError, mounted, displayText, wrapperStyle, errorStyle } = useAutoError();
   const [isPending, startTransition] = useTransition();
   const [name,  setName]  = useState(initialName);
   const [phone, setPhone] = useState(extractLocal(initialPhone, phonePrefix));

@@ -24,7 +24,7 @@ const TAB_META: Record<ActionTab, { label: string; buttonLabel: string }> = {
 export default function QuickRegister({ programLabel, currency }: Props) {
   const [query, setQuery]             = useState('');
   const [customer, setCustomer]       = useState<QuickCustomer | null>(null);
-  const { error: lookupError, setError: setLookupError, mounted: lookupMounted, displayText: lookupDisplayText, wrapperStyle: lookupWrapperStyle, errorStyle: lookupErrorStyle } = useAutoError();
+  const { setError: setLookupError, mounted: lookupMounted, displayText: lookupDisplayText, wrapperStyle: lookupWrapperStyle, errorStyle: lookupErrorStyle } = useAutoError();
   const [isLooking, startLookup]              = useTransition();
 
   const [missions, setMissions]       = useState<QuickMission[]>([]);
@@ -32,7 +32,7 @@ export default function QuickRegister({ programLabel, currency }: Props) {
   const [activeTab, setActiveTab]     = useState<ActionTab>('points');
   const [deltaStr, setDeltaStr]       = useState('1');
   const [purchaseStr, setPurchaseStr] = useState('');
-  const { error: txError, setError: setTxError, mounted: txMounted, displayText: txDisplayText, wrapperStyle: txWrapperStyle, errorStyle: txErrorStyle } = useAutoError();
+  const { setError: setTxError, mounted: txMounted, displayText: txDisplayText, wrapperStyle: txWrapperStyle, errorStyle: txErrorStyle } = useAutoError();
   const [lastSuccess, setLastSuccess] = useState<{ name: string; delta: number; unit: string } | null>(null);
   const [isSubmitting, startSubmit]   = useTransition();
 
@@ -40,14 +40,16 @@ export default function QuickRegister({ programLabel, currency }: Props) {
   const deltaRef    = useRef<HTMLInputElement>(null);
   const purchaseRef = useRef<HTMLInputElement>(null);
 
+  const customerAccessCode = customer?.access_code;
+
   useEffect(() => {
-    if (!customer) return;
+    if (!customerAccessCode) return;
     const interval = setInterval(async () => {
-      const refreshed = await lookupCustomerAction(customer.access_code);
+      const refreshed = await lookupCustomerAction(customerAccessCode);
       if ('customer' in refreshed) setCustomer(refreshed.customer);
     }, 10_000);
     return () => clearInterval(interval);
-  }, [customer?.access_code]);
+  }, [customerAccessCode]);
 
   function handleLookup(e: React.FormEvent) {
     e.preventDefault();
@@ -180,13 +182,6 @@ export default function QuickRegister({ programLabel, currency }: Props) {
 
   function getInitials(name: string) {
     return name.split(' ').slice(0, 2).map((w) => w[0]).join('').toUpperCase();
-  }
-
-  function balanceLabel(p: QuickProgram): string {
-    if (p.current_points === null) return 'Nuevo';
-    if (p.type === 'stamp')  return `${p.stamp_count} sellos`;
-    if (p.type === 'visit')  return `${p.visit_count} visitas`;
-    return `${p.current_points} ${programLabel}`;
   }
 
   return (

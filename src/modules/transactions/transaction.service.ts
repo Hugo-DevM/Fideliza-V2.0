@@ -367,7 +367,7 @@ export async function processTransaction(
           const db2 = createServiceRoleClient();
 
           // Atomically complete the referral: UPDATE WHERE status='pending' prevents double-fire
-          const { data: referral } = await (db2 as any)
+          const { data: referral } = await db2
             .from('referrals')
             .update({
               status:       'completed',
@@ -379,10 +379,7 @@ export async function processTransaction(
             .eq('status',      'pending')
             .is('program_id',  null)
             .select('id, referrer_id, referred_id')
-            .maybeSingle() as {
-              data:  { id: string; referrer_id: string; referred_id: string } | null;
-              error: unknown;
-            };
+            .maybeSingle();
 
           if (!referral) return; // No pending referral or already completed
 
@@ -399,7 +396,7 @@ export async function processTransaction(
 
           // Credit referrer bonus
           if (referrerBonus > 0) {
-            await (db2 as any).rpc('rpc_earn_points', {
+            await db2.rpc('rpc_earn_points', {
               p_tenant_id:    tenantId,
               p_customer_id:  referral.referrer_id,
               p_program_id:   input.program_id,
@@ -410,7 +407,7 @@ export async function processTransaction(
 
           // Credit referred bonus (on top of their normal earn)
           if (referredBonus > 0) {
-            await (db2 as any).rpc('rpc_earn_points', {
+            await db2.rpc('rpc_earn_points', {
               p_tenant_id:    tenantId,
               p_customer_id:  referral.referred_id,
               p_program_id:   input.program_id,
@@ -420,18 +417,18 @@ export async function processTransaction(
           }
 
           // WhatsApp notification to referrer
-          const { data: referrerCustomer } = await (db2.from('customers') as any)
+          const { data: referrerCustomer } = await db2.from('customers')
             .select('name, phone, whatsapp_opt_in')
             .eq('id', referral.referrer_id)
             .eq('whatsapp_opt_in', true)
-            .maybeSingle() as { data: { name: string; phone: string | null } | null };
+            .maybeSingle();
 
           if (!referrerCustomer?.phone) return;
 
-          const { data: referredCustomer } = await (db2.from('customers') as any)
+          const { data: referredCustomer } = await db2.from('customers')
             .select('name')
             .eq('id', referral.referred_id)
-            .maybeSingle() as { data: { name: string } | null };
+            .maybeSingle();
 
           const { data: tenantRow } = await db2
             .from('tenants')
@@ -458,44 +455,40 @@ export async function processTransaction(
         const now  = new Date().toISOString();
 
         // Fetch active challenges for this program within their time window
-        const { data: activeChallenges } = await (db2 as any)
+        const { data: activeChallenges } = await db2
           .from('challenges')
           .select('id, title, target, bonus_points')
           .eq('tenant_id', tenantId)
           .eq('program_id', input.program_id)
           .eq('is_active', true)
           .or(`starts_at.is.null,starts_at.lte.${now}`)
-          .or(`ends_at.is.null,ends_at.gte.${now}`) as {
-            data: Array<{ id: string; title: string; target: number; bonus_points: number }> | null;
-          };
+          .or(`ends_at.is.null,ends_at.gte.${now}`);
 
         if (!activeChallenges?.length) return;
 
         // Fetch customer and tenant once — reused for every challenge notification
         const [{ data: customer }, { data: tenantRow }] = await Promise.all([
-          (db2 as any)
+          db2
             .from('customers')
             .select('name, phone, whatsapp_opt_in')
             .eq('id', input.customer_id)
             .eq('whatsapp_opt_in', true)
-            .maybeSingle() as Promise<{ data: { name: string; phone: string | null } | null }>,
-          (db2 as any)
+            .maybeSingle(),
+          db2
             .from('tenants')
             .select('name')
             .eq('id', tenantId)
-            .single() as Promise<{ data: { name: string } | null }>,
+            .single(),
         ]);
 
         for (const challenge of activeChallenges) {
           // Fetch or create progress row
-          const { data: existing } = await (db2 as any)
+          const { data: existing } = await db2
             .from('customer_challenge_progress')
             .select('id, progress, completed_at')
             .eq('customer_id', input.customer_id)
             .eq('challenge_id', challenge.id)
-            .maybeSingle() as {
-              data: { id: string; progress: number; completed_at: string | null } | null;
-            };
+            .maybeSingle();
 
           // Skip if already completed
           if (existing?.completed_at) continue;
@@ -503,12 +496,12 @@ export async function processTransaction(
           const newProgress = (existing?.progress ?? 0) + 1;
 
           if (existing) {
-            await (db2 as any)
+            await db2
               .from('customer_challenge_progress')
               .update({ progress: newProgress })
               .eq('id', existing.id);
           } else {
-            await (db2 as any)
+            await db2
               .from('customer_challenge_progress')
               .insert({
                 tenant_id:    tenantId,
@@ -521,14 +514,14 @@ export async function processTransaction(
           // Check completion
           if (newProgress >= challenge.target) {
             // Mark completed
-            await (db2 as any)
+            await db2
               .from('customer_challenge_progress')
               .update({ completed_at: now })
               .eq('customer_id', input.customer_id)
               .eq('challenge_id', challenge.id);
 
             // Credit bonus points
-            await (db2 as any).rpc('rpc_earn_points', {
+            await db2.rpc('rpc_earn_points', {
               p_tenant_id:    tenantId,
               p_customer_id:  input.customer_id,
               p_program_id:   input.program_id,

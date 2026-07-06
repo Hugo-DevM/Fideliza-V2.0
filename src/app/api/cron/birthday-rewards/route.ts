@@ -57,11 +57,6 @@ interface EnrollmentRow {
   } | null;
 }
 
-interface MinCostRow {
-  program_id: string;
-  min_cost:   number;
-}
-
 /** Maps program type to a human-readable Spanish unit label. */
 function unitLabelFromType(type: string): string {
   switch (type) {

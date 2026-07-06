@@ -7,6 +7,7 @@ import EditProgramModal from './EditProgramModal';
 import ProgramDetailTabs from './ProgramDetailTabs';
 import { NotFoundError } from '@/lib/middleware/errors';
 import type { ProgramStatus } from '@/lib/types';
+import type { SupabaseClient } from '@supabase/supabase-js';
 
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -54,16 +55,23 @@ export default async function ProgramDetailPage({
   const initialTab = (await searchParams).tab ?? 'programa';
   const { tenantId, settings, planLimits, effectivePlan } = await getAuthenticatedTenant();
 
+  let program: Awaited<ReturnType<typeof getProgramById>>;
+  let rewards: Awaited<ReturnType<typeof listRewardsByProgram>>;
+  let challenges: Array<{ id: string; title: string; description: string | null; target: number; bonus_points: number; ends_at: string | null; is_active: boolean }>;
+  let enrollmentCount: number | null;
+  let totalRedemptions: number | null;
+  let txTotal: number | null;
+  let recentTx: unknown[] | null;
+
   try {
-    const [program, rewards] = await Promise.all([
+    [program, rewards] = await Promise.all([
       getProgramById(tenantId, id),
       listRewardsByProgram(tenantId, id),
     ]);
 
     const db = createServiceRoleClient();
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const challengesRes = await (db as any)
+    const challengesRes = await (db as unknown as SupabaseClient)
       .from('challenges')
       .select('id, title, description, target, bonus_points, ends_at, is_active')
       .eq('tenant_id', tenantId)
@@ -73,9 +81,9 @@ export default async function ProgramDetailPage({
         data: Array<{ id: string; title: string; description: string | null; target: number; bonus_points: number; ends_at: string | null; is_active: boolean }> | null;
       };
 
-    const challenges = challengesRes.data ?? [];
+    challenges = challengesRes.data ?? [];
 
-    const [{ count: enrollmentCount }, { count: totalRedemptions }, { count: txTotal }, { data: recentTx }] = await Promise.all([
+    [{ count: enrollmentCount }, { count: totalRedemptions }, { count: txTotal }, { data: recentTx }] = await Promise.all([
       db.from('customer_program_enrollments').select('id', { count: 'exact', head: true }).eq('program_id', id).eq('tenant_id', tenantId),
       db.from('customer_reward_redemptions').select('id', { count: 'exact', head: true }).eq('tenant_id', tenantId).in('reward_id', rewards.map((r) => r.id)),
       db.from('transactions').select('id', { count: 'exact', head: true }).eq('program_id', id).eq('tenant_id', tenantId),
@@ -85,18 +93,22 @@ export default async function ProgramDetailPage({
         .order('created_at', { ascending: false })
         .limit(5),
     ]);
+  } catch (err) {
+    if (err instanceof NotFoundError) notFound();
+    throw err;
+  }
 
-    const config = program.config as unknown as Record<string, unknown>;
-    const conversion = conversionLabel(program.type, config);
+  const config = program.config as unknown as Record<string, unknown>;
+  const conversion = conversionLabel(program.type, config);
 
-    const stats = [
-      { label: 'Inscritos',      value: enrollmentCount ?? 0 },
-      { label: 'Recompensas',    value: rewards.length },
-      { label: 'Canjes totales', value: totalRedemptions ?? 0 },
-      { label: 'Conversión',     value: conversion, isText: true },
-    ];
+  const stats = [
+    { label: 'Inscritos',      value: enrollmentCount ?? 0 },
+    { label: 'Recompensas',    value: rewards.length },
+    { label: 'Canjes totales', value: totalRedemptions ?? 0 },
+    { label: 'Conversión',     value: conversion, isText: true },
+  ];
 
-    return (
+  return (
       <div className="space-y-5">
 
         {/* Hero card */}
@@ -170,10 +182,6 @@ export default async function ProgramDetailPage({
         />
       </div>
     );
-  } catch (err) {
-    if (err instanceof NotFoundError) notFound();
-    throw err;
-  }
 }
 
 // ── Icons ─────────────────────────────────────────────────────────

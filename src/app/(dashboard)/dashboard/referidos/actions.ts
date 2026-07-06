@@ -47,11 +47,11 @@ export async function getReferralStatsAction() {
     { count: completed },
     { data: topReferrers },
   ] = await Promise.all([
-    (db as any).from('referrals').select('id', { count: 'exact', head: true })
+    db.from('referrals').select('id', { count: 'exact', head: true })
       .eq('tenant_id', tenantId).eq('status', 'pending'),
-    (db as any).from('referrals').select('id', { count: 'exact', head: true })
+    db.from('referrals').select('id', { count: 'exact', head: true })
       .eq('tenant_id', tenantId).eq('status', 'completed'),
-    (db as any).from('referrals')
+    db.from('referrals')
       .select('referrer_id, customers!referrals_referrer_id_fkey(name)')
       .eq('tenant_id', tenantId)
       .eq('status', 'completed')

@@ -90,7 +90,7 @@ export const POST = withPublicContext<{ message: string }>(
         const expiresAt = new Date(Date.now() + TOKEN_TTL_MS).toISOString();
 
         // Persist token
-        const { error: insertError } = await (db as any)
+        const { error: insertError } = await db
           .from('password_reset_tokens')
           .insert({ user_id: user.id, token, expires_at: expiresAt });
 

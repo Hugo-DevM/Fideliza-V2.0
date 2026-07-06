@@ -84,14 +84,14 @@ export async function lookupCustomerAction(query: string): Promise<
   const [{ data: programRows }, { data: enrollRows }, { data: missionRows }] = await Promise.all([
     db.from('reward_programs').select('id, name, type, config').eq('tenant_id', tenantId).eq('status', 'active').order('name'),
     db.from('customer_program_enrollments').select('program_id, current_points, lifetime_points, stamp_count, visit_count').eq('tenant_id', tenantId).eq('customer_id', customerData.id),
-    (db as any)
+    db
       .from('challenges')
       .select(`id, title, description, target, bonus_points, ends_at,
         reward_programs!inner(type),
         customer_challenge_progress!left(progress, completed_at, customer_id)`)
       .eq('tenant_id', tenantId)
       .eq('is_active', true)
-      .or(`ends_at.is.null,ends_at.gte.${now}`) as Promise<{ data: Array<{
+      .or(`ends_at.is.null,ends_at.gte.${now}`) as unknown as Promise<{ data: Array<{
         id: string; title: string; description: string | null;
         target: number; bonus_points: number; ends_at: string | null;
         reward_programs: { type: string };
@@ -120,8 +120,8 @@ export async function lookupCustomerAction(query: string): Promise<
       };
     });
 
-  const missions: QuickMission[] = ((missionRows ?? []) as any[]).map((c) => {
-    const prog = c.customer_challenge_progress?.find((p: any) => p.customer_id === customerData!.id);
+  const missions: QuickMission[] = (missionRows ?? []).map((c) => {
+    const prog = c.customer_challenge_progress?.find((p) => p.customer_id === customerData!.id);
     return {
       challengeId: c.id,
       title:       c.title,
@@ -154,40 +154,40 @@ export async function quickMissionProgressAction(
   const { tenantId } = await getAuthenticatedTenant();
   const db = createServiceRoleClient();
 
-  const { data: challenge } = await (db as any)
+  const { data: challenge } = await db
     .from('challenges')
     .select('id, title, target, bonus_points, program_id, ends_at')
     .eq('id', challengeId)
     .eq('tenant_id', tenantId)
     .eq('is_active', true)
-    .single() as { data: { id: string; title: string; target: number; bonus_points: number; program_id: string; ends_at: string | null } | null };
+    .single();
 
   if (!challenge) return { error: 'Misión no disponible.' };
 
   const now = new Date().toISOString();
   if (challenge.ends_at && challenge.ends_at < now) return { error: 'La misión ya expiró.' };
 
-  const { data: existing } = await (db as any)
+  const { data: existing } = await db
     .from('customer_challenge_progress')
     .select('id, progress, completed_at')
     .eq('customer_id', customerId)
     .eq('challenge_id', challengeId)
-    .maybeSingle() as { data: { id: string; progress: number; completed_at: string | null } | null };
+    .maybeSingle();
 
   if (existing?.completed_at) return { error: 'La misión ya fue completada.' };
 
   const newProgress = (existing?.progress ?? 0) + 1;
 
   if (existing) {
-    await (db as any).from('customer_challenge_progress').update({ progress: newProgress }).eq('id', existing.id);
+    await db.from('customer_challenge_progress').update({ progress: newProgress }).eq('id', existing.id);
   } else {
-    await (db as any).from('customer_challenge_progress').insert({ tenant_id: tenantId, customer_id: customerId, challenge_id: challengeId, progress: newProgress });
+    await db.from('customer_challenge_progress').insert({ tenant_id: tenantId, customer_id: customerId, challenge_id: challengeId, progress: newProgress });
   }
 
   let completed = false;
   if (newProgress >= challenge.target) {
-    await (db as any).from('customer_challenge_progress').update({ completed_at: now }).eq('customer_id', customerId).eq('challenge_id', challengeId);
-    await (db as any).rpc('rpc_earn_points', {
+    await db.from('customer_challenge_progress').update({ completed_at: now }).eq('customer_id', customerId).eq('challenge_id', challengeId);
+    await db.rpc('rpc_earn_points', {
       p_tenant_id:    tenantId,
       p_customer_id:  customerId,
       p_program_id:   challenge.program_id,

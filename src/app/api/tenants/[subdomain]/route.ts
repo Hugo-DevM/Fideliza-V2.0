@@ -28,7 +28,8 @@ export const GET = withPublicContext<{ tenant: PublicTenant; settings: TenantSet
     const result = await getTenantBySubdomainPublic(subdomain.toLowerCase());
 
     // Strip sensitive fields before returning to the public
-    const { email: _email, ...publicTenant } = result.tenant;
+    const publicTenant: PublicTenant & { email?: string } = { ...result.tenant };
+    delete publicTenant.email;
 
     return NextResponse.json<ApiResponse<{ tenant: PublicTenant; settings: TenantSettings }>>(
       { data: { tenant: publicTenant, settings: result.settings }, error: null },

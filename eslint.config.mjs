@@ -12,6 +12,8 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // Vendored third-party scripts (minified, not our code):
+    ".agents/**",
   ]),
 ]);
 

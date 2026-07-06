@@ -22,7 +22,7 @@ interface Props {
 export default function NewCustomerModal({ phonePrefix, plan }: Props) {
   const [open, setOpen] = useState(false);
   const { mounted: modalMounted, visible: modalVisible } = useModalTransition(open);
-  const { error, setError, mounted, displayText, wrapperStyle, errorStyle } = useAutoError();
+  const { setError, mounted, displayText, wrapperStyle, errorStyle } = useAutoError();
   const [isPending, startTransition] = useTransition();
   const [name, setName]   = useState("");
   const [phone, setPhone] = useState("");

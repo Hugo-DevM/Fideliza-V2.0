@@ -22,6 +22,65 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
   return { title: `${data?.name ?? 'Cliente'} — Fideliza+` };
 }
 
+async function loadCustomerDetail(tenantId: string, id: string) {
+  const db = createServiceRoleClient();
+
+  const now = new Date().toISOString();
+  const [{ customer, enrollments }, { transactions }, { count: txTotal }, { data: vouchers }, { data: rawMissions }] = await Promise.all([
+    getCustomerPoints(tenantId, id),
+    getCustomerTransactionHistory(tenantId, id, undefined, 1, 8),
+    db.from('transactions').select('id', { count: 'exact', head: true }).eq('tenant_id', tenantId).eq('customer_id', id),
+    db.from('customer_reward_redemptions')
+      .select('id, redemption_code, status, expires_at, created_at, rewards(name)')
+      .eq('tenant_id', tenantId)
+      .eq('customer_id', id)
+      .order('created_at', { ascending: false })
+      .limit(10),
+    db
+      .from('challenges')
+      .select(`id, title, description, target, bonus_points, ends_at,
+        reward_programs!inner(type),
+        customer_challenge_progress!left(progress, completed_at, customer_id)`)
+      .eq('tenant_id', tenantId)
+      .eq('is_active', true)
+      .or(`ends_at.is.null,ends_at.gte.${now}`) as unknown as Promise<{ data: Array<{
+        id: string; title: string; description: string | null;
+        target: number; bonus_points: number; ends_at: string | null;
+        reward_programs: { type: string };
+        customer_challenge_progress: Array<{ progress: number; completed_at: string | null; customer_id: string }>;
+      }> | null }>,
+  ]);
+
+  const missions = (rawMissions ?? []).map((c) => {
+    const prog = c.customer_challenge_progress?.find((p) => p.customer_id === id);
+    return {
+      challengeId:  c.id,
+      title:        c.title,
+      description:  c.description,
+      target:       c.target,
+      bonusPoints:  c.bonus_points,
+      programType:  c.reward_programs?.type ?? 'points',
+      endsAt:       c.ends_at,
+      progress:     prog?.progress ?? 0,
+      completedAt:  prog?.completed_at ?? null,
+    };
+  });
+
+  const { data: programs } = enrollments.length
+    ? await db.from('reward_programs').select('id, type, config').in('id', enrollments.map((e) => e.program_id))
+    : { data: [] };
+
+  // Build program config map
+  const programConfigMap = new Map<string, { type: string; config: ProgramConfig }>(
+    (programs ?? []).map((p) => [p.id, { type: p.type, config: p.config as unknown as ProgramConfig }])
+  );
+
+  // Build program name map for transactions
+  const programNameMap = new Map(enrollments.map((e) => [e.program_id, e.program_name]));
+
+  return { customer, enrollments, transactions, txTotal, vouchers, missions, programConfigMap, programNameMap };
+}
+
 export default async function CustomerDetailPage({
   params,
 }: {
@@ -30,71 +89,25 @@ export default async function CustomerDetailPage({
   const { id } = await params;
   const { tenantId, settings } = await getAuthenticatedTenant();
 
+  let data: Awaited<ReturnType<typeof loadCustomerDetail>>;
   try {
-    const db = createServiceRoleClient();
+    data = await loadCustomerDetail(tenantId, id);
+  } catch (err) {
+    if (err instanceof NotFoundError) notFound();
+    throw err;
+  }
 
-    const now = new Date().toISOString();
-    const [{ customer, enrollments }, { transactions }, { count: txTotal }, { data: vouchers }, { data: rawMissions }] = await Promise.all([
-      getCustomerPoints(tenantId, id),
-      getCustomerTransactionHistory(tenantId, id, undefined, 1, 8),
-      db.from('transactions').select('id', { count: 'exact', head: true }).eq('tenant_id', tenantId).eq('customer_id', id),
-      db.from('customer_reward_redemptions')
-        .select('id, redemption_code, status, expires_at, created_at, rewards(name)')
-        .eq('tenant_id', tenantId)
-        .eq('customer_id', id)
-        .order('created_at', { ascending: false })
-        .limit(10),
-      (db as any)
-        .from('challenges')
-        .select(`id, title, description, target, bonus_points, ends_at,
-          reward_programs!inner(type),
-          customer_challenge_progress!left(progress, completed_at, customer_id)`)
-        .eq('tenant_id', tenantId)
-        .eq('is_active', true)
-        .or(`ends_at.is.null,ends_at.gte.${now}`) as Promise<{ data: Array<{
-          id: string; title: string; description: string | null;
-          target: number; bonus_points: number; ends_at: string | null;
-          reward_programs: { type: string };
-          customer_challenge_progress: Array<{ progress: number; completed_at: string | null; customer_id: string }>;
-        }> | null }>,
-    ]);
+  const { customer, enrollments, transactions, txTotal, vouchers, missions, programConfigMap, programNameMap } = data;
 
-    const missions = (rawMissions ?? []).map((c) => {
-      const prog = c.customer_challenge_progress?.find((p) => p.customer_id === id);
-      return {
-        challengeId:  c.id,
-        title:        c.title,
-        description:  c.description,
-        target:       c.target,
-        bonusPoints:  c.bonus_points,
-        programType:  c.reward_programs?.type ?? 'points',
-        endsAt:       c.ends_at,
-        progress:     prog?.progress ?? 0,
-        completedAt:  prog?.completed_at ?? null,
-      };
-    });
+  // Aggregate stats
+  const totalPoints    = enrollments.reduce((s, e) => s + e.current_points, 0);
+  const totalVisits    = enrollments.reduce((s, e) => s + (e.visit_count ?? 0), 0);
+  const totalLifetime  = enrollments.reduce((s, e) => s + e.lifetime_points, 0);
 
-    const { data: programs } = enrollments.length
-      ? await db.from('reward_programs').select('id, type, config').in('id', enrollments.map((e) => e.program_id))
-      : { data: [] };
+  const initials = customer.name.split(' ').slice(0, 2).map((w: string) => w[0]).join('').toUpperCase();
+  const avatarColor = AVATAR_COLORS[initials.charCodeAt(0) % AVATAR_COLORS.length];
 
-    // Build program config map
-    const programConfigMap = new Map<string, { type: string; config: ProgramConfig }>(
-      (programs ?? []).map((p) => [p.id, { type: p.type, config: p.config as unknown as ProgramConfig }])
-    );
-
-    // Build program name map for transactions
-    const programNameMap = new Map(enrollments.map((e) => [e.program_id, e.program_name]));
-
-    // Aggregate stats
-    const totalPoints    = enrollments.reduce((s, e) => s + e.current_points, 0);
-    const totalVisits    = enrollments.reduce((s, e) => s + (e.visit_count ?? 0), 0);
-    const totalLifetime  = enrollments.reduce((s, e) => s + e.lifetime_points, 0);
-
-    const initials = customer.name.split(' ').slice(0, 2).map((w: string) => w[0]).join('').toUpperCase();
-    const avatarColor = AVATAR_COLORS[initials.charCodeAt(0) % AVATAR_COLORS.length];
-
-    return (
+  return (
       <div className="space-y-5">
 
         {/* Back button */}
@@ -410,11 +423,7 @@ export default async function CustomerDetailPage({
           </div>
         )}
       </div>
-    );
-  } catch (err) {
-    if (err instanceof NotFoundError) notFound();
-    throw err;
-  }
+  );
 }
 
 // ── Helpers ───────────────────────────────────────────────────────

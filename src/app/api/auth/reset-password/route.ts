@@ -83,7 +83,7 @@ export const POST = withPublicContext<{ message: string }>(
     const db = createServiceRoleClient();
 
     // Look up token
-    const { data: tokenRow, error: fetchError } = await (db as any)
+    const { data: tokenRow, error: fetchError } = await db
       .from('password_reset_tokens')
       .select('id, user_id, expires_at, used')
       .eq('token', token)
@@ -142,7 +142,7 @@ export const POST = withPublicContext<{ message: string }>(
     }
 
     // Invalidate token immediately (single-use)
-    await (db as any)
+    await db
       .from('password_reset_tokens')
       .update({ used: true })
       .eq('id', tokenRow.id);

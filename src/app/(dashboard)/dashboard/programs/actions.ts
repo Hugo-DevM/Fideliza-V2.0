@@ -6,7 +6,7 @@ import { createProgram } from '@/modules/rewards';
 import type { ProgramType } from '@/lib/types';
 
 export async function createProgramAction(formData: FormData) {
-  const { tenantId, effectivePlan, planLimits } = await getAuthenticatedTenant();
+  const { tenantId, planLimits } = await getAuthenticatedTenant();
 
   const name        = (formData.get('name')        as string).trim();
   const description = (formData.get('description') as string | null)?.trim() || null;

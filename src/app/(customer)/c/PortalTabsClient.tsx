@@ -321,7 +321,6 @@ function PointsTab({
               key={e.program_id}
               enrollment={e}
               referralCode={customer.referral_code ?? ''}
-              tenantSubdomain={tenant.subdomain}
               programConfig={referralProgramConfigs[e.program_id]}
             />
           ))}
@@ -976,10 +975,9 @@ function TransactionRow({ tx, programLabel, primaryColor }: { tx: PortalTransact
   );
 }
 
-function ReferralShareCard({ enrollment: e, referralCode, tenantSubdomain, programConfig }: {
+function ReferralShareCard({ enrollment: e, referralCode, programConfig }: {
   enrollment: PortalEnrollment;
   referralCode: string;
-  tenantSubdomain: string;
   programConfig?: { referrer_bonus: number; referred_bonus: number };
 }) {
   const referrerBonus = programConfig?.referrer_bonus ?? 100;

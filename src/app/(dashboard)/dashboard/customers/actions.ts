@@ -31,26 +31,26 @@ export async function createCustomerAction(formData: FormData) {
       const db = createServiceRoleClient();
 
       // Find referrer by referral_code in same tenant
-      const { data: referrer } = await (db as any)
+      const { data: referrer } = await db
         .from('customers')
         .select('id')
         .eq('tenant_id', tenantId)
         .eq('referral_code', referralCode)
         .eq('is_active', true)
         .neq('id', customer.id) // can't refer yourself
-        .maybeSingle() as { data: { id: string } | null };
+        .maybeSingle();
 
       if (referrer) {
         // Only create if no referral already exists for this customer in this tenant
-        const { data: existing } = await (db as any)
+        const { data: existing } = await db
           .from('referrals')
           .select('id')
           .eq('tenant_id', tenantId)
           .eq('referred_id', customer.id)
-          .maybeSingle() as { data: { id: string } | null };
+          .maybeSingle();
 
         if (!existing) {
-          await (db as any).from('referrals').insert({
+          await db.from('referrals').insert({
             tenant_id:   tenantId,
             referrer_id: referrer.id,
             referred_id: customer.id,
@@ -101,13 +101,13 @@ export async function sendPromotionBlastAction() {
   const { tenantId, settings } = await getAuthenticatedTenant();
   const db = createServiceRoleClient();
 
-  const { data: customers } = await (db as any)
+  const { data: customers } = await db
     .from('customers')
     .select('id, name, phone')
     .eq('tenant_id', tenantId)
     .eq('is_active', true)
     .eq('whatsapp_opt_in', true)
-    .not('phone', 'is', null) as { data: { id: string; name: string; phone: string }[] | null };
+    .not('phone', 'is', null);
 
   if (!customers?.length) return { queued: 0 };
 

@@ -1,6 +1,8 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useState, useSyncExternalStore } from 'react';
+
+const emptySubscribe = () => () => {};
 
 const copy = {
   es: {
@@ -20,25 +22,29 @@ const copy = {
 };
 
 export function CookieBanner({ lang }: { lang: string }) {
-  const [visible, setVisible] = useState(false);
+  const [dismissed, setDismissed] = useState(false);
+  // SSR-safe read of stored consent: 'ssr' on the server / first hydration
+  // render (banner hidden), then the real value on the client.
+  const storedConsent = useSyncExternalStore(
+    emptySubscribe,
+    () => localStorage.getItem('cookie_consent'),
+    () => 'ssr',
+  );
+  const visible = !dismissed && !storedConsent;
   const t = lang === 'es' ? copy.es : copy.en;
   const privacyHref = `/${lang}/privacy`;
-
-  useEffect(() => {
-    if (!localStorage.getItem('cookie_consent')) setVisible(true);
-  }, []);
 
   if (!visible) return null;
 
   function accept() {
     localStorage.setItem('cookie_consent', 'accepted');
     window.dispatchEvent(new Event('cookie_consent_accepted'));
-    setVisible(false);
+    setDismissed(true);
   }
 
   function decline() {
     localStorage.setItem('cookie_consent', 'declined');
-    setVisible(false);
+    setDismissed(true);
   }
 
   return (

@@ -22,7 +22,6 @@ import { NextResponse } from 'next/server';
 import { withTenantContext, type RouteContext } from '@/lib/middleware/api-context';
 import { getPortalData } from '@/modules/portal';
 import { verifyPortalSignature } from '@/lib/utils/crypto';
-import { NotFoundError } from '@/lib/middleware/errors';
 import type { ApiResponse } from '@/lib/types';
 import type { PortalData } from '@/modules/portal';
 

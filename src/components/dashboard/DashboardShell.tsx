@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useSyncExternalStore } from 'react';
 import { usePathname } from 'next/navigation';
 import Link from 'next/link';
 import Sidebar from './Sidebar';
@@ -10,6 +10,20 @@ import {
   useDashboardI18n,
 } from '@/lib/i18n/dashboard-context';
 import type { AlertItem } from '@/lib/alerts/get-alerts';
+
+const emptySubscribe = () => () => {};
+
+function extractLeafLabel() {
+  return document.title.replace(/\s*[—–-]\s*Fideliza\+?.*$/i, '').trim();
+}
+
+// External store: the document title. Observing <head> (subtree) also
+// survives Next.js replacing the <title> element on navigation.
+function subscribeToTitle(onChange: () => void) {
+  const observer = new MutationObserver(onChange);
+  observer.observe(document.head, { childList: true, subtree: true, characterData: true });
+  return () => observer.disconnect();
+}
 
 interface DashboardShellProps {
   tenantName: string;
@@ -30,36 +44,20 @@ export default function DashboardShell(props: DashboardShellProps) {
 function DashboardShellContent({ tenantName, tenantPlan, alerts = [], children }: DashboardShellProps) {
   const { t } = useDashboardI18n();
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [isDark, setIsDark] = useState(false);
-  const [leafLabel, setLeafLabel] = useState('');
   const pathname = usePathname();
 
-  useEffect(() => {
-    setIsDark(document.documentElement.classList.contains('dark'));
-  }, []);
+  // false during SSR/hydration render, true afterwards — lets us read
+  // document state during render without a setState-in-effect.
+  const hydrated = useSyncExternalStore(emptySubscribe, () => true, () => false);
+  const [themeOverride, setThemeOverride] = useState<boolean | null>(null);
+  const isDark = themeOverride ?? (hydrated && document.documentElement.classList.contains('dark'));
 
-  // Track document.title changes via MutationObserver for sub-page leaf label
-  useEffect(() => {
-    function extractLabel() {
-      return document.title.replace(/\s*[—–-]\s*Fideliza\+?.*$/i, '').trim();
-    }
-
-    setLeafLabel(extractLabel());
-
-    const titleEl = document.querySelector('title');
-    if (!titleEl) return;
-
-    const observer = new MutationObserver(() => {
-      setLeafLabel(extractLabel());
-    });
-    observer.observe(titleEl, { childList: true });
-
-    return () => observer.disconnect();
-  }, [pathname]);
+  // Track document.title changes for the sub-page leaf label
+  const leafLabel = useSyncExternalStore(subscribeToTitle, extractLeafLabel, () => '');
 
   function toggleTheme() {
     const next = !isDark;
-    setIsDark(next);
+    setThemeOverride(next);
     document.documentElement.classList.toggle('dark', next);
     localStorage.setItem('theme', next ? 'dark' : 'light');
   }

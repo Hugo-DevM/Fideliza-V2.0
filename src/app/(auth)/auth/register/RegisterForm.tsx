@@ -42,19 +42,6 @@ export default function RegisterForm() {
 
   const [globalError, setGlobalError] = useState('');
 
-  useEffect(() => {
-    if (!subdomainTouched && businessName) {
-      const generated = businessName
-        .toLowerCase()
-        .replace(/[^a-z0-9\s-]/g, '')
-        .trim()
-        .replace(/\s+/g, '-')
-        .replace(/-+/g, '-')
-        .slice(0, 40);
-      setSubdomain(generated);
-    }
-  }, [businessName, subdomainTouched]);
-
   const checkSubdomain = useCallback(async (value: string) => {
     if (!value || value.length < 3) { setSubdomainStatus('idle'); return; }
     setSubdomainStatus('checking');
@@ -72,8 +59,7 @@ export default function RegisterForm() {
   }, []);
 
   useEffect(() => {
-    if (!subdomain) { setSubdomainStatus('idle'); return; }
-    const timer = setTimeout(() => checkSubdomain(subdomain), 500);
+    const timer = setTimeout(() => checkSubdomain(subdomain), subdomain ? 500 : 0);
     return () => clearTimeout(timer);
   }, [subdomain, checkSubdomain]);
 
@@ -377,6 +363,17 @@ export default function RegisterForm() {
                   const raw = e.target.value;
                   if (raw !== '' && !/^[a-zA-ZáéíóúÁÉÍÓÚàèìòùÀÈÌÒÙäëïöüÄËÏÖÜñÑçÇ0-9 .,'&\-]*$/.test(raw)) return;
                   setBusinessName(raw);
+                  if (!subdomainTouched && raw) {
+                    setSubdomain(
+                      raw
+                        .toLowerCase()
+                        .replace(/[^a-z0-9\s-]/g, '')
+                        .trim()
+                        .replace(/\s+/g, '-')
+                        .replace(/-+/g, '-')
+                        .slice(0, 40),
+                    );
+                  }
                 }}
                 placeholder="ej. Café Central"
                 className={inputCls()}

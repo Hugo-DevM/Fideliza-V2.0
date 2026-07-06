@@ -9,7 +9,7 @@ export default function DeleteAccountSection({ subdomain }: { subdomain: string 
   const [open, setOpen]                 = useState(false);
   const [confirmation, setConfirmation] = useState('');
   const [reason, setReason]             = useState('');
-  const { error, setError, mounted, displayText, wrapperStyle, errorStyle } = useAutoError();
+  const { setError, mounted, displayText, wrapperStyle, errorStyle } = useAutoError();
   const { mounted: modalMounted, visible: modalVisible } = useModalTransition(open);
   const [isPending, startTransition]    = useTransition();
 

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useSyncExternalStore } from 'react';
 import type { Dictionary, Locale } from '@/lib/i18n';
 import { Navbar } from './Navbar';
 import { Hero } from './Hero';
@@ -19,19 +19,19 @@ interface Props {
   dictEs: Dictionary;
 }
 
-export function LandingShell({ dictEn, dictEs }: Props) {
-  // Default to Spanish (primary market); override from localStorage after hydration
-  const [lang, setLang] = useState<Locale>('es');
-  const [mounted, setMounted] = useState(false);
+const emptySubscribe = () => () => {};
 
-  useEffect(() => {
-    const saved = localStorage.getItem('landing-lang') as Locale | null;
-    if (saved === 'en' || saved === 'es') setLang(saved);
-    setMounted(true);
-  }, []);
+export function LandingShell({ dictEn, dictEs }: Props) {
+  // false during SSR/hydration render, true afterwards
+  const mounted = useSyncExternalStore(emptySubscribe, () => true, () => false);
+  const [langOverride, setLangOverride] = useState<Locale | null>(null);
+
+  // Default to Spanish (primary market); override from localStorage after hydration
+  const saved = mounted ? (localStorage.getItem('landing-lang') as Locale | null) : null;
+  const lang: Locale = langOverride ?? (saved === 'en' || saved === 'es' ? saved : 'es');
 
   function handleLangChange(newLang: Locale) {
-    setLang(newLang);
+    setLangOverride(newLang);
     localStorage.setItem('landing-lang', newLang);
   }
 

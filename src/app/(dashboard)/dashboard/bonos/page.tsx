@@ -2,6 +2,7 @@ import { redirect } from 'next/navigation';
 import { getAuthenticatedTenant } from '@/lib/auth/get-tenant';
 import { createServiceRoleClient } from '@/lib/supabase/server';
 import { getPlanLimits } from '@/lib/config/plans';
+import type { SupabaseClient } from '@supabase/supabase-js';
 import BonusClient from './BonusClient';
 
 export const metadata = { title: 'Bonos — Fideliza' };
@@ -16,8 +17,7 @@ export default async function BonusPage() {
     redirect('/dashboard/settings');
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const db = createServiceRoleClient() as any;
+  const db = createServiceRoleClient() as unknown as SupabaseClient;
 
   // Fetch pending (unclaimed, non-expired) bonus credits for this tenant
   const { data: pendingRows } = await db
@@ -39,7 +39,7 @@ export default async function BonusPage() {
       }> | null;
     };
 
-  const s = settings as any;
+  const s = settings;
   const cfg = {
     birthday_bonus_points:          s.birthday_bonus_points          ?? 50,
     birthday_bonus_stamps:          s.birthday_bonus_stamps          ?? 1,

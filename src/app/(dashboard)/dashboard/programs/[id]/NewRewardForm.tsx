@@ -18,7 +18,7 @@ interface Props {
 export default function NewRewardForm({ programId, programType, programConfig, compact }: Props) {
   const [open, setOpen]   = useState(false);
   const { mounted: modalMounted, visible: modalVisible } = useModalTransition(open);
-  const { error, setError, mounted, displayText, wrapperStyle, errorStyle } = useAutoError();
+  const { setError, mounted, displayText, wrapperStyle, errorStyle } = useAutoError();
   const [isPending, startTransition] = useTransition();
   const formRef = useRef<HTMLFormElement>(null);
   const router  = useRouter();
@@ -73,7 +73,6 @@ export default function NewRewardForm({ programId, programType, programConfig, c
                 programType={programType}
                 stampThreshold={stampThreshold}
                 visitThreshold={visitThreshold}
-                error={error}
                 errorStyle={errorStyle}
                 mounted={mounted}
                 displayText={displayText}
@@ -100,7 +99,6 @@ export default function NewRewardForm({ programId, programType, programConfig, c
         programType={programType}
         stampThreshold={stampThreshold}
         visitThreshold={visitThreshold}
-        error={error}
         errorStyle={errorStyle}
         mounted={mounted}
         displayText={displayText}
@@ -115,14 +113,13 @@ export default function NewRewardForm({ programId, programType, programConfig, c
 // ── Shared form body ──────────────────────────────────────────────
 
 function RewardFormBody({
-  formRef, onSubmit, programType, stampThreshold, visitThreshold, error, errorStyle, mounted, displayText, wrapperStyle, isPending, onCancel,
+  formRef, onSubmit, programType, stampThreshold, visitThreshold, errorStyle, mounted, displayText, wrapperStyle, isPending, onCancel,
 }: {
   formRef: React.RefObject<HTMLFormElement | null>;
   onSubmit: (e: React.FormEvent<HTMLFormElement>) => void;
   programType: ProgramType;
   stampThreshold: number | null;
   visitThreshold: number | null;
-  error: string;
   errorStyle: React.CSSProperties;
   mounted: boolean;
   displayText: string;
