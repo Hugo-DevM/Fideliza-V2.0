@@ -27,7 +27,7 @@ function buildCsp(): string {
       ...(isDev ? ["'unsafe-eval'"] : []),
     ],
     'style-src':   ["'self'", "'unsafe-inline'"],   // Tailwind inline styles
-    'img-src':     ["'self'", 'data:', 'https:'],   // Allow HTTPS images (logo uploads, reward images)
+    'img-src':     ["'self'", 'data:', 'blob:', 'https:'],   // HTTPS images + blob: for local previews (logo editor)
     'font-src':    ["'self'", 'data:'],
     'connect-src': [
       "'self'",
