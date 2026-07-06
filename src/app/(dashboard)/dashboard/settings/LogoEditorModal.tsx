@@ -34,8 +34,7 @@ export default function LogoEditorModal({ open, imageSrc, saving, t, onCancel, o
 
   const [scale,  setScale]  = useState(1);
   const [offset, setOffset] = useState({ x: 0, y: 0 });
-  const [imgDims, setImgDims] = useState<{ w: number; h: number } | null>(null);
-  const [vpSize, setVpSize] = useState(340);
+  const [ready,  setReady]  = useState(false);
 
   // Reset editing state each time the modal opens with a new image
   const [prevSrc, setPrevSrc] = useState(imageSrc);
@@ -43,14 +42,17 @@ export default function LogoEditorModal({ open, imageSrc, saving, t, onCancel, o
     setPrevSrc(imageSrc);
     setScale(1);
     setOffset({ x: 0, y: 0 });
-    setImgDims(null);
+    setReady(false);
   }
 
   // "Contain" fit of the image inside the viewport at scale 1
   function baseFit(viewportSize: number) {
-    if (!imgDims) return { w: viewportSize, h: viewportSize };
-    const ratio = Math.min(viewportSize / imgDims.w, viewportSize / imgDims.h);
-    return { w: imgDims.w * ratio, h: imgDims.h * ratio };
+    const img = imgRef.current;
+    if (!img || !img.naturalWidth || !img.naturalHeight) {
+      return { w: viewportSize, h: viewportSize };
+    }
+    const ratio = Math.min(viewportSize / img.naturalWidth, viewportSize / img.naturalHeight);
+    return { w: img.naturalWidth * ratio, h: img.naturalHeight * ratio };
   }
 
   function clampOffset(next: { x: number; y: number }, s: number) {
@@ -107,7 +109,7 @@ export default function LogoEditorModal({ open, imageSrc, saving, t, onCancel, o
   function handleSave() {
     const vp  = viewportRef.current;
     const img = imgRef.current;
-    if (!vp || !img || !imgDims) return;
+    if (!vp || !img || !img.naturalWidth) return;
 
     const size  = vp.clientWidth;
     const ratio = EXPORT_SIZE / size;
@@ -176,21 +178,9 @@ export default function LogoEditorModal({ open, imageSrc, saving, t, onCancel, o
               src={imageSrc}
               alt=""
               draggable={false}
-              onLoad={(e) => {
-                const el = e.currentTarget;
-                setImgDims({ w: el.naturalWidth, h: el.naturalHeight });
-                if (viewportRef.current) setVpSize(viewportRef.current.clientWidth);
-              }}
-              className="absolute left-1/2 top-1/2 max-w-none pointer-events-none"
-              style={
-                imgDims
-                  ? {
-                      width:  baseFit(vpSize).w,
-                      height: baseFit(vpSize).h,
-                      transform: `translate(calc(-50% + ${offset.x}px), calc(-50% + ${offset.y}px)) scale(${scale})`,
-                    }
-                  : { opacity: 0 }
-              }
+              onLoad={() => setReady(true)}
+              className="absolute inset-0 h-full w-full object-contain pointer-events-none"
+              style={{ transform: `translate(${offset.x}px, ${offset.y}px) scale(${scale})` }}
             />
             {/* Center guides */}
             <div aria-hidden className="pointer-events-none absolute inset-0">
@@ -232,7 +222,7 @@ export default function LogoEditorModal({ open, imageSrc, saving, t, onCancel, o
           </button>
           <button
             type="button"
-            disabled={saving || !imgDims}
+            disabled={saving || !ready}
             onClick={handleSave}
             className="rounded-xl bg-indigo-600 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-700 disabled:opacity-50 transition"
           >

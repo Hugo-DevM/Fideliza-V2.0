@@ -867,10 +867,8 @@ function LogoCard({
     e.target.value = '';
     setLogoError('');
     // Open the editor with a local preview; upload happens on save
-    setEditorSrc((prev) => {
-      if (prev) URL.revokeObjectURL(prev);
-      return URL.createObjectURL(file);
-    });
+    if (editorSrc) URL.revokeObjectURL(editorSrc);
+    setEditorSrc(URL.createObjectURL(file));
     setEditorOpen(true);
   }
 
