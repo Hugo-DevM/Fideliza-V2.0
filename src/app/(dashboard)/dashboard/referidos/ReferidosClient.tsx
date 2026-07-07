@@ -5,7 +5,6 @@ import Link from 'next/link';
 import { updateReferralSettingsAction } from './actions';
 
 interface Props {
-  isPro: boolean;
   programs: { id: string; name: string; type: string; status: string }[];
   referralEnabled: boolean;
   referralProgramConfigs: Record<string, { referrer_bonus: number; referred_bonus: number }>;
@@ -26,7 +25,6 @@ function bonusLimits(type: string): { max: number; step: number; defaultReferrer
 }
 
 export default function ReferidosClient({
-  isPro,
   programs,
   referralEnabled: initialEnabled,
   referralProgramConfigs: initialConfigs,
@@ -78,24 +76,6 @@ export default function ReferidosClient({
         </p>
       </div>
 
-      {/* Pro gate */}
-      {!isPro && (
-        <div className="rounded-2xl border border-amber-200 dark:border-amber-700/50 bg-amber-50 dark:bg-amber-950/30 p-6 text-center">
-          <p className="text-sm font-semibold text-amber-800 dark:text-amber-300">
-            El programa de referidos requiere el plan Pro
-          </p>
-          <p className="mt-1 text-xs text-amber-700 dark:text-amber-400">
-            Actualiza tu plan para habilitar referidos y configurar bonos por programa.
-          </p>
-          <a
-            href="/dashboard/settings"
-            className="mt-3 inline-block rounded-xl bg-amber-500 px-4 py-2 text-sm font-semibold text-white hover:bg-amber-600 transition"
-          >
-            Actualizar plan
-          </a>
-        </div>
-      )}
-
       {/* Stats row */}
       <div className="grid grid-cols-3 gap-4">
         <StatCard label="Pendientes" value={stats.pending} color="text-amber-600 dark:text-amber-400" />
@@ -119,12 +99,10 @@ export default function ReferidosClient({
           </div>
           <button
             type="button"
-            disabled={!isPro}
             onClick={() => setEnabled((v) => !v)}
             className={[
               'relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200',
               enabled ? 'bg-emerald-500' : 'bg-gray-200 dark:bg-[#2a3147]',
-              !isPro ? 'opacity-50 cursor-not-allowed' : '',
             ].join(' ')}
           >
             <span
@@ -172,7 +150,6 @@ export default function ReferidosClient({
                       max={max}
                       step={step}
                       value={cfg.referrer_bonus}
-                      disabled={!isPro}
                       onChange={(e) => handleBonusChange(p.id, 'referrer_bonus', e.target.value, p.type)}
                       className="w-full rounded-xl border border-gray-200 dark:border-[#2a3147] bg-white dark:bg-[#0d0f17] px-3 py-2 text-sm text-gray-900 dark:text-white outline-none transition focus:border-emerald-400 dark:focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100 dark:focus:ring-emerald-500/20 disabled:opacity-50"
                     />
@@ -188,7 +165,6 @@ export default function ReferidosClient({
                       max={max}
                       step={step}
                       value={cfg.referred_bonus}
-                      disabled={!isPro}
                       onChange={(e) => handleBonusChange(p.id, 'referred_bonus', e.target.value, p.type)}
                       className="w-full rounded-xl border border-gray-200 dark:border-[#2a3147] bg-white dark:bg-[#0d0f17] px-3 py-2 text-sm text-gray-900 dark:text-white outline-none transition focus:border-emerald-400 dark:focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100 dark:focus:ring-emerald-500/20 disabled:opacity-50"
                     />
@@ -201,7 +177,7 @@ export default function ReferidosClient({
         </div>
       )}
 
-      {programs.length === 0 && isPro && (
+      {programs.length === 0 && (
         <div className="rounded-2xl border border-dashed border-gray-200 dark:border-[#2a3147] p-8 text-center">
           <p className="text-sm text-gray-400 dark:text-gray-500">
             No tienes programas activos. Crea un programa para configurar bonos de referido.
@@ -242,18 +218,16 @@ export default function ReferidosClient({
       )}
 
       {/* Save button */}
-      {isPro && (
-        <div className="flex justify-end">
-          <button
-            type="button"
-            disabled={isPending}
-            onClick={handleSave}
-            className="rounded-xl bg-emerald-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-emerald-700 disabled:opacity-50 transition"
-          >
-            {isPending ? 'Guardando…' : saved ? 'Guardado ✓' : 'Guardar configuración'}
-          </button>
-        </div>
-      )}
+      <div className="flex justify-end">
+        <button
+          type="button"
+          disabled={isPending}
+          onClick={handleSave}
+          className="rounded-xl bg-emerald-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-emerald-700 disabled:opacity-50 transition"
+        >
+          {isPending ? 'Guardando…' : saved ? 'Guardado ✓' : 'Guardar configuración'}
+        </button>
+      </div>
     </div>
   );
 }

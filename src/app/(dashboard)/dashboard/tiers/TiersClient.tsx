@@ -13,10 +13,9 @@ const MULTIPLIER_OPTIONS = [
 
 interface TiersClientProps {
   settings: TenantTierSettings;
-  canUse: boolean; // false = Free plan, show upgrade wall
 }
 
-export default function TiersClient({ settings, canUse }: TiersClientProps) {
+export default function TiersClient({ settings }: TiersClientProps) {
   const [enabled,    setEnabled]    = useState(settings.tiers_enabled);
   const [tiers,      setTiers]      = useState<TierConfig[]>(
     settings.tiers.length > 0 ? settings.tiers : DEFAULT_TENANT_TIERS,
@@ -52,23 +51,6 @@ export default function TiersClient({ settings, canUse }: TiersClientProps) {
         setTimeout(() => setSaved(false), 2500);
       }
     });
-  }
-
-  if (!canUse) {
-    return (
-      <div className="rounded-2xl border border-gray-100 dark:border-[#1e2438] bg-white dark:bg-[#161b2e] shadow-sm px-5 py-10 text-center space-y-2">
-        <p className="text-sm text-gray-500 dark:text-gray-400">
-          Niveles VIP está disponible desde el plan{' '}
-          <span className="font-semibold text-gray-700 dark:text-gray-200">Starter</span>.
-        </p>
-        <a
-          href="/dashboard/settings"
-          className="inline-block text-sm font-medium text-indigo-600 dark:text-indigo-400 hover:underline"
-        >
-          Actualizar plan →
-        </a>
-      </div>
-    );
   }
 
   return (

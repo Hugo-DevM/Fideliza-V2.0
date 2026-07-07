@@ -3,8 +3,9 @@ import { getAuthenticatedTenant } from '@/lib/auth/get-tenant';
 import { createServiceRoleClient } from '@/lib/supabase/server';
 import ExportPanel from './ExportPanel';
 import PeriodSelector from './PeriodSelector';
+import ProUpgradeOverlay from '@/components/dashboard/ProUpgradeOverlay';
 
-export const metadata = { title: 'Analíticas — Fideliza+' };
+export const metadata = { title: 'Analíticas — Fideliza' };
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
@@ -83,19 +84,13 @@ export default async function AnalyticsPage({
 
   if (!planLimits.analytics) {
     return (
-      <div className="flex flex-col items-center justify-center py-24 text-center gap-4">
-        <div className="rounded-full bg-indigo-50 dark:bg-indigo-500/10 p-5">
-          <ChartBarIcon className="h-10 w-10 text-indigo-400" />
-        </div>
-        <h1 className="text-xl font-bold text-gray-900 dark:text-white">Analíticas — Plan Pro</h1>
-        <p className="max-w-sm text-sm text-gray-500 dark:text-gray-400">
-          Obtén métricas de retención, canjes mensuales y distribución de clientes. Disponible en el plan Pro.
-        </p>
-        <Link href="/dashboard/settings"
-          className="rounded-xl bg-indigo-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-indigo-700 transition">
-          Actualizar a Pro
-        </Link>
-      </div>
+      <ProUpgradeOverlay
+        title="Analíticas"
+        description="Obtén métricas de retención, canjes mensuales y distribución de clientes. Disponible en el plan Pro."
+        icon={<ChartBarIcon className="h-10 w-10 text-indigo-400" />}
+      >
+        <AnalyticsPreview year={now.getFullYear()} />
+      </ProUpgradeOverlay>
     );
   }
 
@@ -378,6 +373,64 @@ export default async function AnalyticsPage({
           )}
         </div>
       </div>
+    </div>
+  );
+}
+
+// ── Blurred preview shown behind the Pro upgrade wall ────────────────────────
+
+const PREVIEW_GROWTH: GrowthPoint[] = [
+  { key: 'w1', label: '2 jun',  inscritos: 18, tx: 6  },
+  { key: 'w2', label: '9 jun',  inscritos: 26, tx: 11 },
+  { key: 'w3', label: '16 jun', inscritos: 35, tx: 9  },
+  { key: 'w4', label: '23 jun', inscritos: 47, tx: 14 },
+  { key: 'w5', label: '30 jun', inscritos: 58, tx: 19 },
+];
+
+function AnalyticsPreview({ year }: { year: number }) {
+  return (
+    <div className="space-y-6">
+      <div>
+        <p className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-widest text-indigo-500 mb-2">
+          <ChartBarIcon className="h-3.5 w-3.5" />
+          Insights
+        </p>
+        <h1 className="text-2xl font-bold text-gray-900 dark:text-white tracking-tight">
+          Analíticas <span className="text-gray-300 dark:text-gray-600">{year}</span>
+        </h1>
+        <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+          Exporta tus datos y revisa cómo se comporta tu base de clientes.
+        </p>
+      </div>
+
+      <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+        <KpiCard
+          icon={<RetentionIcon className="h-4 w-4" />}
+          iconBg="bg-indigo-100 dark:bg-indigo-500/20 text-indigo-600 dark:text-indigo-400"
+          label="Tasa de retención" value="64%" valueColor="text-indigo-600 dark:text-indigo-400"
+          trend={{ up: true, label: '+8pts' }} sub="37 de 58 activos"
+        />
+        <KpiCard
+          icon={<UsersIcon className="h-4 w-4" />}
+          iconBg="bg-emerald-100 dark:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400"
+          label="Visita promedio / cliente" value={2.4} valueColor="text-emerald-600 dark:text-emerald-400"
+          trend={{ up: true, label: '+0.3' }} sub="sobre 37 clientes activos"
+        />
+        <KpiCard
+          icon={<ActivityIcon className="h-4 w-4" />}
+          iconBg="bg-blue-100 dark:bg-blue-500/20 text-blue-600 dark:text-blue-400"
+          label="Valor por canje" value="120 pts" valueColor="text-blue-600 dark:text-blue-400"
+          trend={{ up: true, label: '+15 pts' }} sub="promedio por canje"
+        />
+        <KpiCard
+          icon={<WarningIcon className="h-4 w-4" />}
+          iconBg="bg-rose-100 dark:bg-rose-500/20 text-rose-600 dark:text-rose-400"
+          label="Clientes en riesgo" value={21} valueColor="text-rose-600 dark:text-rose-400"
+          trend={{ up: false, label: '-4' }} sub="sin actividad en 30d"
+        />
+      </div>
+
+      <GrowthChart data={PREVIEW_GROWTH} period="30" />
     </div>
   );
 }
