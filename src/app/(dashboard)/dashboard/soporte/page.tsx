@@ -1,6 +1,6 @@
-import { redirect } from 'next/navigation';
 import { getAuthenticatedTenant } from '@/lib/auth/get-tenant';
 import { createServiceRoleClient } from '@/lib/supabase/server';
+import { getPlanLimits } from '@/lib/config/plans';
 import TicketForm from './TicketForm';
 
 export const metadata = { title: 'Soporte — Fideliza' };
@@ -20,10 +20,8 @@ const STATUS_COLORS: Record<string, string> = {
 export default async function SoportePage() {
   const { tenantId, effectivePlan } = await getAuthenticatedTenant();
 
-  // Pro-only
-  if (effectivePlan !== 'pro' && effectivePlan !== 'enterprise') {
-    redirect('/dashboard/settings');
-  }
+  // Support is available on all plans; Pro/Enterprise tickets get priority handling.
+  const isPriority = getPlanLimits(effectivePlan).prioritySupport;
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const db = createServiceRoleClient() as any;
@@ -48,9 +46,20 @@ export default async function SoportePage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-xl font-bold text-gray-900 dark:text-white">Soporte prioritario</h1>
+        <div className="flex items-center gap-2.5">
+          <h1 className="text-xl font-bold text-gray-900 dark:text-white">
+            {isPriority ? 'Soporte prioritario' : 'Soporte'}
+          </h1>
+          {isPriority && (
+            <span className="rounded-full bg-indigo-50 dark:bg-indigo-500/15 px-2.5 py-0.5 text-xs font-semibold text-indigo-700 dark:text-indigo-400">
+              Respuesta prioritaria
+            </span>
+          )}
+        </div>
         <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-          Envíanos un mensaje y te responderemos directamente.
+          {isPriority
+            ? 'Envíanos un mensaje y te responderemos directamente, con prioridad sobre el resto.'
+            : 'Envíanos un mensaje y te responderemos directamente.'}
         </p>
       </div>
 

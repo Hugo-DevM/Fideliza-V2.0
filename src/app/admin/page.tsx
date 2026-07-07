@@ -2,11 +2,13 @@
  * Admin panel — /admin
  *
  * Only accessible to the email set in ADMIN_EMAIL env var.
- * Shows support tickets from all Pro tenants + pending bonus credits overview.
+ * Shows support tickets from all tenants (Pro first — priority support)
+ * + pending bonus credits overview.
  */
 
 import { redirect } from 'next/navigation';
 import { createServerClient, createServiceRoleClient } from '@/lib/supabase/server';
+import { getEffectivePlan } from '@/lib/config/plans';
 import TicketReplyForm from './TicketReplyForm';
 
 export const dynamic = 'force-dynamic';
@@ -55,6 +57,29 @@ export default async function AdminPage() {
         created_at: string;
       }> | null;
     };
+
+  // ── Plan per tenant (Pro = soporte prioritario, se atiende primero) ───
+  const tenantIds = [...new Set((tickets ?? []).map((t) => t.tenant_id))];
+  const { data: tenantRows } = tenantIds.length > 0
+    ? await db
+        .from('tenants')
+        .select('id, plan, subscription_status')
+        .in('id', tenantIds) as {
+          data: Array<{ id: string; plan: string; subscription_status: string | null }> | null;
+        }
+    : { data: [] };
+
+  const planByTenant = new Map(
+    (tenantRows ?? []).map((r) => [r.id, getEffectivePlan(r.plan, r.subscription_status)])
+  );
+  const isPriorityPlan = (p: string | undefined) => p === 'pro' || p === 'enterprise';
+
+  // Priority tickets first, then newest first (list already comes date-desc)
+  const sortedTickets = [...(tickets ?? [])].sort((a, b) => {
+    const prioA = isPriorityPlan(planByTenant.get(a.tenant_id)) ? 1 : 0;
+    const prioB = isPriorityPlan(planByTenant.get(b.tenant_id)) ? 1 : 0;
+    return prioB - prioA;
+  });
 
   // ── Pending bonuses summary ───────────────────────────────────────────
   const { data: bonusSummary } = await db
@@ -106,12 +131,24 @@ export default async function AdminPage() {
             <p className="px-6 py-8 text-center text-sm text-gray-400">Sin tickets.</p>
           ) : (
             <div className="divide-y divide-gray-100 dark:divide-[#1e2538]">
-              {tickets!.map((ticket) => (
+              {sortedTickets.map((ticket) => {
+                const plan = planByTenant.get(ticket.tenant_id) ?? 'free';
+                const priority = isPriorityPlan(plan);
+                return (
                 <div key={ticket.id} className="px-6 py-4 space-y-2">
                   <div className="flex items-start justify-between gap-4">
                     <div className="min-w-0">
                       <p className="text-sm font-semibold text-gray-900 dark:text-white">{ticket.subject}</p>
-                      <p className="text-xs text-indigo-500">{ticket.tenant_name}</p>
+                      <p className="text-xs text-indigo-500">
+                        {ticket.tenant_name}
+                        <span className={`ml-2 rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide ${
+                          priority
+                            ? 'bg-indigo-100 text-indigo-700 dark:bg-indigo-500/20 dark:text-indigo-300'
+                            : 'bg-gray-100 text-gray-500 dark:bg-gray-500/15 dark:text-gray-400'
+                        }`}>
+                          {priority ? `${plan} · prioritario` : plan}
+                        </span>
+                      </p>
                     </div>
                     <span className={`shrink-0 rounded-full px-2 py-0.5 text-xs font-semibold ${STATUS_COLORS[ticket.status] ?? ''}`}>
                       {STATUS_LABELS[ticket.status] ?? ticket.status}
@@ -130,7 +167,8 @@ export default async function AdminPage() {
                     currentReply={ticket.admin_reply}
                   />
                 </div>
-              ))}
+                );
+              })}
             </div>
           )}
         </section>

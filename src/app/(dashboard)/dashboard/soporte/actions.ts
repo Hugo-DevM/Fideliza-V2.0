@@ -3,7 +3,6 @@
 import { revalidatePath } from 'next/cache';
 import { getAuthenticatedTenant } from '@/lib/auth/get-tenant';
 import { createServiceRoleClient } from '@/lib/supabase/server';
-import { getPlanLimits } from '@/lib/config/plans';
 
 // Note: Supabase uses parameterized queries so SQL injection is already prevented
 // at the driver level. These helpers add a second layer against stored XSS and
@@ -28,11 +27,8 @@ const MESSAGE_MIN =   20;
 const MESSAGE_MAX = 5000;
 
 export async function submitSupportTicketAction(formData: FormData) {
-  const { tenantId, tenant, effectivePlan } = await getAuthenticatedTenant();
-
-  if (!getPlanLimits(effectivePlan).prioritySupport) {
-    return { error: 'El soporte prioritario está disponible en el plan Pro.' };
-  }
+  // Support is available on all plans — Pro tickets get priority handling.
+  const { tenantId, tenant } = await getAuthenticatedTenant();
 
   const subject = sanitizeText((formData.get('subject') as string | null) ?? '');
   const message = sanitizeText((formData.get('message') as string | null) ?? '');
