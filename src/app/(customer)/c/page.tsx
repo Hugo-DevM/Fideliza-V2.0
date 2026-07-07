@@ -68,7 +68,8 @@ export default async function CustomerPortalPage({ searchParams }: PageProps) {
     try {
       const tenant      = await getTenantBySubdomainPublic(subdomain);
       tenantName        = tenant.name;
-      tenantLogoUrl     = tenant.logo_url;
+      // Free plan: neutral Fideliza branding — tenant logo is not shown
+      tenantLogoUrl     = tenant.customBranding ? tenant.logo_url : null;
       tenantLogoPadding = tenant.logo_padding;
       portalAllowed     = tenant.clientPortal;
     } catch { /* Tenant not found */ }
@@ -260,6 +261,18 @@ function PortalShell({ data, code, tab }: { data: PortalData; code: string; tab:
 
       {/* Tab bar + content — client component for instant switching */}
       <PortalTabsClient data={data} code={code} initialTab={tab} />
+
+      {/* Free plan: Fideliza attribution */}
+      {tenant.powered_by && (
+        <footer className="py-4 text-center">
+          <span className="inline-flex items-center gap-1.5 rounded-full bg-white dark:bg-[#161b2e] px-3 py-1.5 text-xs text-gray-400 dark:text-gray-500 ring-1 ring-black/5 dark:ring-white/10 shadow-sm">
+            <svg viewBox="0 0 24 24" fill="currentColor" className="h-3.5 w-3.5 text-indigo-400">
+              <path fillRule="evenodd" d="M14.615 1.595a.75.75 0 01.359.852L12.982 9.75h7.268a.75.75 0 01.548 1.262l-10.5 11.25a.75.75 0 01-1.272-.71l1.992-7.302H3.75a.75.75 0 01-.548-1.262l10.5-11.25a.75.75 0 01.913-.145z" clipRule="evenodd" />
+            </svg>
+            Powered by <strong className="font-semibold text-indigo-400">Fideliza</strong>
+          </span>
+        </footer>
+      )}
     </div>
   );
 }

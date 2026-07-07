@@ -64,8 +64,9 @@ export async function updateSettingsAction(formData: FormData) {
 
   try {
     await updateTenantSettings(tenantId, {
-      ...(primary_color   && { primary_color }),
-      ...(secondary_color && { secondary_color }),
+      // Plan-gated: portal branding colors (Starter+)
+      ...(limits.portalCustomBranding && primary_color   && { primary_color }),
+      ...(limits.portalCustomBranding && secondary_color && { secondary_color }),
       welcome_message,
       ...(program_label   && { program_label }),
       phone_prefix,

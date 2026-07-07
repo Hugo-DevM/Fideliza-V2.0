@@ -130,13 +130,13 @@ export async function getTransactionHistoryLimit(
   return limits.transactionHistoryLimit;
 }
 
-/** Throws if the tenant's plan does not include the customer portal. */
-export async function enforceClientPortal(tenantId: UUID): Promise<void> {
+/** Throws if the tenant's plan does not include portal custom branding (logo/colors). */
+export async function enforcePortalBranding(tenantId: UUID): Promise<void> {
   const plan = await getTenantPlan(tenantId);
   const limits = getPlanLimits(plan);
-  if (!limits.clientPortal) {
+  if (!limits.portalCustomBranding) {
     throw new ForbiddenError(
-      'El portal del cliente está disponible en el plan Starter o Pro.'
+      'La personalización del portal (logo y colores) está disponible desde el plan Starter.'
     );
   }
 }

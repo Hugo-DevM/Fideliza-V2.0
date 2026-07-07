@@ -28,7 +28,7 @@ import type { UUID } from '@/lib/types';
  */
 export async function getTenantBySubdomainPublic(
   subdomain: string
-): Promise<{ id: UUID; name: string; is_active: boolean; logo_url: string | null; logo_padding: number; clientPortal: boolean }> {
+): Promise<{ id: UUID; name: string; is_active: boolean; logo_url: string | null; logo_padding: number; clientPortal: boolean; customBranding: boolean }> {
   const db = createServiceRoleClient();
 
   const { data, error } = await db
@@ -49,14 +49,16 @@ export async function getTenantBySubdomainPublic(
   };
   const settings = Array.isArray(raw.tenant_settings) ? raw.tenant_settings[0] : raw.tenant_settings;
   const effectivePlan = getEffectivePlan(raw.plan, raw.subscription_status);
+  const limits = getPlanLimits(effectivePlan);
 
   return {
-    id:           raw.id,
-    name:         raw.name,
-    is_active:    raw.is_active,
-    logo_url:     raw.logo_url,
-    logo_padding: settings?.logo_padding ?? 8,
-    clientPortal: getPlanLimits(effectivePlan).clientPortal,
+    id:             raw.id,
+    name:           raw.name,
+    is_active:      raw.is_active,
+    logo_url:       raw.logo_url,
+    logo_padding:   settings?.logo_padding ?? 8,
+    clientPortal:   limits.clientPortal,
+    customBranding: limits.portalCustomBranding,
   };
 }
 
@@ -72,6 +74,8 @@ export interface PortalTenant {
   secondary_color: string;
   welcome_message: string | null;
   program_label: string;
+  /** true = Free plan: neutral Fideliza branding + "Powered by Fideliza" badge */
+  powered_by: boolean;
 }
 
 export interface PortalCustomer {
@@ -264,11 +268,11 @@ export async function getPortalData(
 
   // ── 2. Parallel data fetch ────────────────────────────────────────
   const [tenantRes, enrollRes, txRes, voucherRes] = await Promise.all([
-    // Tenant name + branding settings + tier config (no email, no plan)
+    // Tenant name + branding settings + tier config (plan only used internally — never exposed)
     db
       .from('tenants')
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      .select('name, subdomain, logo_url, tenant_settings(primary_color, secondary_color, welcome_message, program_label, logo_padding, tiers_enabled, tiers, referral_enabled, referral_program_configs)' as any)
+      .select('name, subdomain, logo_url, plan, subscription_status, tenant_settings(primary_color, secondary_color, welcome_message, program_label, logo_padding, tiers_enabled, tiers, referral_enabled, referral_program_configs)' as any)
       .eq('id', tenantId)
       .single(),
 
@@ -310,6 +314,8 @@ export async function getPortalData(
     name: string;
     subdomain: string;
     logo_url: string | null;
+    plan: string;
+    subscription_status: string | null;
     tenant_settings: Array<{
       primary_color: string;
       secondary_color: string;
@@ -327,16 +333,22 @@ export async function getPortalData(
     ? raw.tenant_settings[0]
     : raw.tenant_settings;
 
+  // Free plan → neutral Fideliza branding (no tenant logo/colors) + "Powered by" badge
+  const customBranding = getPlanLimits(
+    getEffectivePlan(raw.plan, raw.subscription_status)
+  ).portalCustomBranding;
+
   const tenant: PortalTenant = {
     id:              tenantId,
     name:            raw.name,
     subdomain:       raw.subdomain,
-    logo_url:        raw.logo_url ?? null,
-    logo_padding:    settings?.logo_padding    ?? 8,
-    primary_color:   settings?.primary_color   ?? '#6366F1',
-    secondary_color: settings?.secondary_color ?? '#A5B4FC',
+    logo_url:        customBranding ? (raw.logo_url ?? null) : null,
+    logo_padding:    settings?.logo_padding ?? 8,
+    primary_color:   customBranding ? (settings?.primary_color   ?? '#6366F1') : '#6366F1',
+    secondary_color: customBranding ? (settings?.secondary_color ?? '#A5B4FC') : '#A5B4FC',
     welcome_message: settings?.welcome_message ?? null,
     program_label:   settings?.program_label   ?? 'Points',
+    powered_by:      !customBranding,
   };
 
   // ── 4. Parse enrollments + fetch affordable rewards ───────────────

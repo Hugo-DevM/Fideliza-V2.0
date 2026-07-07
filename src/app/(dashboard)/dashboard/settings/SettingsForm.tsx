@@ -1,12 +1,14 @@
 'use client';
 
 import { useState, useTransition, useRef, useEffect } from 'react';
+import Link from 'next/link';
 import { useAutoError } from '@/hooks/useAutoError';
 import { useRouter } from 'next/navigation';
 import { updateSettingsAction } from './actions';
 import type { TenantSettings } from '@/lib/types';
 import { useDashboardI18n } from '@/lib/i18n/dashboard-context';
 import type { Locale } from '@/lib/i18n';
+import { getPlanLimits } from '@/lib/config/plans';
 import { formatTimeOnly } from '@/lib/utils/date';
 import AccordionSection from './AccordionSection';
 import LogoEditorModal from './LogoEditorModal';
@@ -28,6 +30,7 @@ export default function SettingsForm({
 }) {
   const { t, locale, setLocale } = useDashboardI18n();
   const s = t.settings;
+  const brandingLocked = !getPlanLimits(plan).portalCustomBranding;
 
   const [primaryColor,   setPrimaryColor]   = useState(settings.primary_color);
   const [secondaryColor, setSecondaryColor] = useState(settings.secondary_color);
@@ -245,7 +248,11 @@ export default function SettingsForm({
 
         <div className="border-t border-gray-100 dark:border-[#1e2438] pt-4">
           <p className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">{s.logo.title}</p>
-          <LogoCardContent initialUrl={logoUrl} t={s.logo} />
+          {brandingLocked ? (
+            <BrandingLockedNotice text="El logo personalizado en el portal del cliente está disponible desde el" />
+          ) : (
+            <LogoCardContent initialUrl={logoUrl} t={s.logo} />
+          )}
         </div>
       </AccordionSection>
 
@@ -274,24 +281,32 @@ export default function SettingsForm({
           </a>
         </div>
 
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-          <ColorField
-            label={s.appearance.primaryColor}
-            name="primary_color"
-            value={primaryColor}
-            onChange={setPrimaryColor}
-          />
-          <ColorField
-            label={s.appearance.secondaryColor}
-            name="secondary_color"
-            value={secondaryColor}
-            onChange={setSecondaryColor}
-          />
-        </div>
+        {brandingLocked ? (
+          <BrandingLockedNotice text="Los colores personalizados del portal están disponibles desde el" />
+        ) : (
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <ColorField
+              label={s.appearance.primaryColor}
+              name="primary_color"
+              value={primaryColor}
+              onChange={setPrimaryColor}
+            />
+            <ColorField
+              label={s.appearance.secondaryColor}
+              name="secondary_color"
+              value={secondaryColor}
+              onChange={setSecondaryColor}
+            />
+          </div>
+        )}
 
         <div
           className="rounded-xl p-5 text-white"
-          style={{ background: `linear-gradient(135deg, ${primaryColor} 0%, ${secondaryColor} 100%)` }}
+          style={{
+            background: brandingLocked
+              ? 'linear-gradient(135deg, #6366F1 0%, #A5B4FC 100%)'
+              : `linear-gradient(135deg, ${primaryColor} 0%, ${secondaryColor} 100%)`,
+          }}
         >
           <p className="text-xs opacity-70 uppercase tracking-widest">{s.appearance.preview}</p>
           <p className="mt-1 text-xl font-bold">{tenantName}</p>
@@ -537,6 +552,29 @@ export default function SettingsForm({
       </AccordionSection>
 
     </form>
+  );
+}
+
+// ── Branding locked notice (Free plan) ────────────────────────────────────────
+
+function BrandingLockedNotice({ text }: { text: string }) {
+  return (
+    <div className="flex items-start justify-between gap-3 rounded-xl border border-indigo-200 dark:border-indigo-500/30 bg-indigo-50 dark:bg-indigo-500/10 px-3.5 py-3">
+      <div className="flex items-start gap-2.5 min-w-0">
+        <svg className="h-4 w-4 shrink-0 mt-0.5 text-indigo-500" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 1 0-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 0 0 2.25-2.25v-6.75a2.25 2.25 0 0 0-2.25-2.25H6.75a2.25 2.25 0 0 0-2.25 2.25v6.75a2.25 2.25 0 0 0 2.25 2.25Z" />
+        </svg>
+        <p className="text-xs text-indigo-700 dark:text-indigo-300 leading-relaxed">
+          {text} <span className="font-semibold">Plan Starter</span>. En el plan Gratis el portal usa la marca Fideliza.
+        </p>
+      </div>
+      <Link
+        href="/dashboard/settings#billing"
+        className="shrink-0 rounded-lg bg-indigo-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-indigo-700 transition"
+      >
+        Actualizar plan
+      </Link>
+    </div>
   );
 }
 

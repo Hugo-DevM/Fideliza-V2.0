@@ -19,7 +19,8 @@ export interface PlanLimits {
   whatsappMonthlyLimit: number | null;    // null = unlimited; Starter = 500
   whatsappMarketing: boolean;             // true = can send marketing category templates
   // ── Retention features ───────────────────────────────────────────────
-  clientPortal: boolean;                  // /c customer portal (Starter+)
+  clientPortal: boolean;                  // /c customer portal (all plans; kill-switch)
+  portalCustomBranding: boolean;          // tenant logo/colors on portal; false = Fideliza branding + "Powered by" (Starter+)
   flashOffers: boolean;                   // flash point multiplier windows (Starter+)
   artificialHeadStart: boolean;           // initial_bonus on program enrollment (Starter+)
   birthdayRewards: boolean;               // birthday WhatsApp + points cron (Pro)
@@ -42,7 +43,8 @@ export const PLAN_CONFIG: Record<string, PlanLimits> = {
     prioritySupport:        false,
     whatsappMonthlyLimit:   0,
     whatsappMarketing:      false,
-    clientPortal:           false,
+    clientPortal:           true,   // Free gets the portal WITH Fideliza branding (acquisition channel)
+    portalCustomBranding:   false,
     flashOffers:            false,
     artificialHeadStart:    false,
     birthdayRewards:        false,
@@ -64,6 +66,7 @@ export const PLAN_CONFIG: Record<string, PlanLimits> = {
     whatsappMonthlyLimit:   500,
     whatsappMarketing:      false,
     clientPortal:           true,
+    portalCustomBranding:   true,
     flashOffers:            true,
     artificialHeadStart:    true,
     birthdayRewards:        false,
@@ -85,6 +88,7 @@ export const PLAN_CONFIG: Record<string, PlanLimits> = {
     whatsappMonthlyLimit:   3000,   // ~$24 USD max Twilio cost/tenant at avg $0.008/msg
     whatsappMarketing:      true,
     clientPortal:           true,
+    portalCustomBranding:   true,
     flashOffers:            true,
     artificialHeadStart:    true,
     birthdayRewards:        true,
@@ -107,6 +111,7 @@ export const PLAN_CONFIG: Record<string, PlanLimits> = {
     whatsappMonthlyLimit:   3000,   // same as pro
     whatsappMarketing:      true,
     clientPortal:           true,
+    portalCustomBranding:   true,
     flashOffers:            true,
     artificialHeadStart:    true,
     birthdayRewards:        true,

@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server';
 import { createServerClient, createServiceRoleClient } from '@/lib/supabase/server';
 import { updateTenant } from '@/modules/tenants/tenant.repository';
+import { enforcePortalBranding } from '@/lib/middleware/plan-limits';
+import { ForbiddenError } from '@/lib/middleware/errors';
 
 const BUCKET         = 'logos';
 const MAX_BYTES      = 2 * 1024 * 1024; // 2 MB
@@ -19,6 +21,15 @@ async function getAuthenticatedTenantId(): Promise<string | null> {
 export async function POST(request: Request) {
   const tenantId = await getAuthenticatedTenantId();
   if (!tenantId) return NextResponse.json({ error: 'No autorizado.' }, { status: 401 });
+
+  try {
+    await enforcePortalBranding(tenantId);
+  } catch (err) {
+    if (err instanceof ForbiddenError) {
+      return NextResponse.json({ error: err.message }, { status: 403 });
+    }
+    throw err;
+  }
 
   const formData = await request.formData();
   const file = formData.get('logo') as File | null;
