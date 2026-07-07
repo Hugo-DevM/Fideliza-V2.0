@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { Fragment, useState } from 'react';
 import { AnimatePresence, motion } from 'motion/react';
 import { Container } from '@/components/ui/Container';
 import { LinkButton } from '@/components/ui/Button';
@@ -51,6 +51,8 @@ interface PricingProps {
 
 export function Pricing({ t }: PricingProps) {
   const [annual, setAnnual] = useState(false);
+  const [showCompare, setShowCompare] = useState(false);
+  const highlightIdx = t.plans.findIndex((p) => p.highlight);
 
   return (
     <section id="pricing" className="py-20 sm:py-28 bg-gray-50">
@@ -187,24 +189,23 @@ export function Pricing({ t }: PricingProps) {
                   </div>
 
                   {/* Features */}
-                  <ul className="space-y-2.5 mb-8 flex-1">
-                    {plan.features.map((f) => (
-                      <li key={f} className="flex items-start gap-2.5 text-sm">
-                        <svg viewBox="0 0 24 24" fill="currentColor" className={`w-4 h-4 flex-shrink-0 mt-0.5 ${plan.highlight ? 'text-indigo-300' : plan.comingSoon ? 'text-gray-300' : 'text-indigo-500'}`}>
-                          <path fillRule="evenodd" d="M2.25 12c0-5.385 4.365-9.75 9.75-9.75s9.75 4.365 9.75 9.75-4.365 9.75-9.75 9.75S2.25 17.385 2.25 12zm13.36-1.814a.75.75 0 10-1.22-.872l-3.236 4.53L9.53 12.22a.75.75 0 00-1.06 1.06l2.25 2.25a.75.75 0 001.14-.094l3.75-5.25z" clipRule="evenodd" />
-                        </svg>
-                        <span className={plan.highlight ? 'text-indigo-100' : plan.comingSoon ? 'text-gray-400' : 'text-gray-700'}>{f}</span>
-                      </li>
-                    ))}
-                    {plan.missing.map((f) => (
-                      <li key={f} className="flex items-start gap-2.5 text-sm opacity-40">
-                        <svg viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4 flex-shrink-0 mt-0.5 text-gray-400">
-                          <path fillRule="evenodd" d="M12 2.25c-5.385 0-9.75 4.365-9.75 9.75s4.365 9.75 9.75 9.75 9.75-4.365 9.75-9.75S17.385 2.25 12 2.25zm-1.72 6.97a.75.75 0 10-1.06 1.06L10.94 12l-1.72 1.72a.75.75 0 101.06 1.06L12 13.06l1.72 1.72a.75.75 0 101.06-1.06L13.06 12l1.72-1.72a.75.75 0 10-1.06-1.06L12 10.94l-1.72-1.72z" clipRule="evenodd" />
-                        </svg>
-                        <span className="text-gray-400">{f}</span>
-                      </li>
-                    ))}
-                  </ul>
+                  <div className="flex-1 mb-8">
+                    {plan.featuresIntro && (
+                      <p className={`text-xs font-semibold uppercase tracking-wide mb-3 ${plan.highlight ? 'text-indigo-200' : plan.comingSoon ? 'text-gray-400' : 'text-gray-500'}`}>
+                        {plan.featuresIntro}
+                      </p>
+                    )}
+                    <ul className="space-y-2.5">
+                      {plan.features.map((f) => (
+                        <li key={f} className="flex items-start gap-2.5 text-sm">
+                          <svg viewBox="0 0 24 24" fill="currentColor" className={`w-4 h-4 flex-shrink-0 mt-0.5 ${plan.highlight ? 'text-indigo-300' : plan.comingSoon ? 'text-gray-300' : 'text-indigo-500'}`}>
+                            <path fillRule="evenodd" d="M2.25 12c0-5.385 4.365-9.75 9.75-9.75s9.75 4.365 9.75 9.75-4.365 9.75-9.75 9.75S2.25 17.385 2.25 12zm13.36-1.814a.75.75 0 10-1.22-.872l-3.236 4.53L9.53 12.22a.75.75 0 00-1.06 1.06l2.25 2.25a.75.75 0 001.14-.094l3.75-5.25z" clipRule="evenodd" />
+                          </svg>
+                          <span className={plan.highlight ? 'text-indigo-100' : plan.comingSoon ? 'text-gray-400' : 'text-gray-700'}>{f}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
 
                   {plan.comingSoon ? (
                     <button disabled className="w-full justify-center inline-flex items-center rounded-xl border border-gray-200 bg-gray-100 px-4 py-2.5 text-sm font-medium text-gray-400 cursor-not-allowed">
@@ -220,6 +221,95 @@ export function Pricing({ t }: PricingProps) {
             );
           })}
         </RevealGroup>
+
+        {/* Full feature comparison */}
+        <Reveal delay={0.1} className="text-center mt-10">
+          <button
+            onClick={() => setShowCompare((v) => !v)}
+            className="inline-flex items-center gap-2 rounded-xl border border-gray-200 bg-white px-5 py-2.5 text-sm font-medium text-gray-700 shadow-sm hover:border-indigo-300 hover:text-indigo-600 transition-colors"
+          >
+            {showCompare ? t.comparison.hide : t.comparison.show}
+            <motion.svg
+              animate={{ rotate: showCompare ? 180 : 0 }}
+              transition={{ duration: 0.2 }}
+              viewBox="0 0 20 20"
+              fill="currentColor"
+              className="w-4 h-4"
+            >
+              <path fillRule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z" clipRule="evenodd" />
+            </motion.svg>
+          </button>
+        </Reveal>
+
+        <AnimatePresence initial={false}>
+          {showCompare && (
+            <motion.div
+              initial={{ height: 0, opacity: 0 }}
+              animate={{ height: 'auto', opacity: 1 }}
+              exit={{ height: 0, opacity: 0 }}
+              transition={{ duration: 0.3, ease: 'easeOut' }}
+              className="overflow-hidden"
+            >
+              <div className="mt-8 overflow-x-auto rounded-2xl border border-gray-200 bg-white shadow-sm">
+                <table className="w-full min-w-[760px] border-collapse text-sm">
+                  <thead>
+                    <tr className="border-b border-gray-200">
+                      <th className="sticky left-0 z-10 bg-white px-4 py-4 text-left text-xs font-semibold uppercase tracking-wider text-gray-500 w-56">
+                        {t.comparison.featureCol}
+                      </th>
+                      {t.plans.map((plan, i) => (
+                        <th
+                          key={plan.name}
+                          className={`px-4 py-4 text-center font-semibold ${
+                            i === highlightIdx
+                              ? 'bg-indigo-50 text-indigo-700'
+                              : plan.comingSoon
+                                ? 'text-gray-400'
+                                : 'text-gray-900'
+                          }`}
+                        >
+                          {plan.name}
+                        </th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {t.comparison.groups.map((group) => (
+                      <Fragment key={group.name}>
+                        <tr>
+                          <td className="sticky left-0 z-10 bg-gray-50 px-4 py-2.5 text-xs font-semibold uppercase tracking-wider text-gray-500">
+                            {group.name}
+                          </td>
+                          {t.plans.map((plan, i) => (
+                            <td key={plan.name} className={`py-2.5 ${i === highlightIdx ? 'bg-indigo-50/70' : 'bg-gray-50'}`} />
+                          ))}
+                        </tr>
+                        {group.rows.map((row) => (
+                          <tr key={row.label} className="border-t border-gray-100">
+                            <td className="sticky left-0 z-10 bg-white px-4 py-3 text-gray-700">{row.label}</td>
+                            {row.values.map((value, i) => (
+                              <td key={i} className={`px-4 py-3 text-center ${i === highlightIdx ? 'bg-indigo-50/40' : ''}`}>
+                                {value === true ? (
+                                  <svg viewBox="0 0 24 24" fill="currentColor" className="mx-auto w-5 h-5 text-indigo-500">
+                                    <path fillRule="evenodd" d="M2.25 12c0-5.385 4.365-9.75 9.75-9.75s9.75 4.365 9.75 9.75-4.365 9.75-9.75 9.75S2.25 17.385 2.25 12zm13.36-1.814a.75.75 0 10-1.22-.872l-3.236 4.53L9.53 12.22a.75.75 0 00-1.06 1.06l2.25 2.25a.75.75 0 001.14-.094l3.75-5.25z" clipRule="evenodd" />
+                                  </svg>
+                                ) : value === false ? (
+                                  <span className="text-gray-300">—</span>
+                                ) : (
+                                  <span className="text-gray-700">{value}</span>
+                                )}
+                              </td>
+                            ))}
+                          </tr>
+                        ))}
+                      </Fragment>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
 
         <Reveal delay={0.2} className="text-center mt-8">
           <p className="text-sm text-gray-400">{t.footnote}</p>
