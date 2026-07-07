@@ -268,58 +268,60 @@ export default function NewCustomerModal({ phonePrefix, plan }: Props) {
                       ].join(" ")}
                     />
                   </div>
-                  {/* Hints */}
-                  {phonePrefix && PHONE_WA_HINTS[prefix] && (
-                    <p className="mt-1 flex items-start gap-1.5 text-xs text-green-600 dark:text-green-400">
-                      <WhatsAppIcon className="h-3.5 w-3.5 shrink-0 mt-px" />
-                      <span>{PHONE_WA_HINTS[prefix]}</span>
-                    </p>
-                  )}
-                  {prefixOverridden && (
-                    <p className="mt-1 text-xs text-indigo-500 dark:text-indigo-400">
-                      Prefijo temporal solo para este cliente.{" "}
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setPrefix(phonePrefix!);
-                          const { max } = getLocalLimits(phonePrefix);
-                          setPhone((p) => p.slice(0, max));
-                        }}
-                        className="font-semibold underline hover:text-indigo-700 dark:hover:text-indigo-300 transition"
-                      >
-                        Volver a {phonePrefix}
-                      </button>
-                    </p>
-                  )}
-                  {phone.length === 0 && phonePrefix && (
-                    <p className="mt-1 text-xs text-gray-400 dark:text-gray-500">
-                      Se esperan{" "}
-                      <span className="font-medium">{localHint}</span>
-                    </p>
-                  )}
-                  {phone.length > 0 && phone.length < localMin && (
-                    <p className="mt-1 text-xs text-amber-600 dark:text-amber-400">
-                      {localMin - phone.length} dígito
-                      {localMin - phone.length !== 1 ? "s" : ""} más · se
-                      esperan {localHint}
-                    </p>
-                  )}
-                  {phone.length >= localMin && (
-                    <p className="mt-1 text-xs text-gray-400 dark:text-gray-500">
-                      {phonePrefix ? (
-                        <>
-                          Se guardará como{" "}
+                  {/* Hints — orden: estado del prefijo, estado del número, nota WhatsApp */}
+                  <div className="mt-1.5 space-y-1">
+                    {prefixOverridden && (
+                      <p className="text-xs text-indigo-500 dark:text-indigo-400">
+                        Prefijo temporal solo para este cliente ·{" "}
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setPrefix(phonePrefix!);
+                            const { max } = getLocalLimits(phonePrefix);
+                            setPhone((p) => p.slice(0, max));
+                          }}
+                          className="font-semibold underline hover:text-indigo-700 dark:hover:text-indigo-300 transition"
+                        >
+                          Volver a {phonePrefix}
+                        </button>
+                      </p>
+                    )}
+                    {phone.length === 0 && phonePrefix && (
+                      <p className="text-xs text-gray-400 dark:text-gray-500">
+                        Se esperan{" "}
+                        <span className="font-medium">{localHint}</span>
+                      </p>
+                    )}
+                    {phone.length > 0 && phone.length < localMin && (
+                      <p className="text-xs text-amber-600 dark:text-amber-400">
+                        {localMin - phone.length} dígito
+                        {localMin - phone.length !== 1 ? "s" : ""} más · se
+                        esperan {localHint}
+                      </p>
+                    )}
+                    {phone.length >= localMin && (
+                      <p className="text-xs text-gray-400 dark:text-gray-500">
+                        {phonePrefix ? (
+                          <>
+                            Se guardará como{" "}
+                            <span className="font-mono text-gray-600 dark:text-gray-300">
+                              {fullPhone}
+                            </span>
+                          </>
+                        ) : (
                           <span className="font-mono text-gray-600 dark:text-gray-300">
-                            {fullPhone}
+                            {phone}
                           </span>
-                        </>
-                      ) : (
-                        <span className="font-mono text-gray-600 dark:text-gray-300">
-                          {phone}
-                        </span>
-                      )}
-                    </p>
-                  )}
+                        )}
+                      </p>
+                    )}
+                    {phonePrefix && PHONE_WA_HINTS[prefix] && (
+                      <p className="flex items-start gap-1.5 text-xs text-green-600 dark:text-green-400 leading-relaxed">
+                        <WhatsAppIcon className="h-3.5 w-3.5 shrink-0 mt-px" />
+                        <span>{PHONE_WA_HINTS[prefix]}</span>
+                      </p>
+                    )}
+                  </div>
                 </div>
 
                 <div>

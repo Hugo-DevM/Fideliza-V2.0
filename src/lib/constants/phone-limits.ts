@@ -62,7 +62,7 @@ export const PHONE_PREFIXES = [
  * Shown when capturing a customer's phone so messages actually deliver.
  */
 export const PHONE_WA_HINTS: Record<string, string> = {
-  '+54': 'Para WhatsApp en Argentina incluye el 9 al inicio (ej. 9 11 23456789), si no el mensaje no se entrega.',
+  '+54': 'WhatsApp Argentina: los móviles llevan 9 al inicio (ej. 9 11 23456789).',
 };
 
 const FALLBACK = { min: 6, max: 15, hint: '6–15 dígitos' };
