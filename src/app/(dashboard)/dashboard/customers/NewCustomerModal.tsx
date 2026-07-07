@@ -2,8 +2,13 @@
 
 import { useState, useTransition, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { createCustomerAction } from "./actions";
-import { getLocalLimits } from "@/lib/constants/phone-limits";
+import {
+  getLocalLimits,
+  PHONE_PREFIXES,
+  PHONE_WA_HINTS,
+} from "@/lib/constants/phone-limits";
 import { useAutoError } from "@/hooks/useAutoError";
 import { useModalTransition } from "@/hooks/useModalTransition";
 
@@ -21,16 +26,21 @@ interface Props {
 
 export default function NewCustomerModal({ phonePrefix, plan }: Props) {
   const [open, setOpen] = useState(false);
-  const { mounted: modalMounted, visible: modalVisible } = useModalTransition(open);
-  const { setError, mounted, displayText, wrapperStyle, errorStyle } = useAutoError();
+  const { mounted: modalMounted, visible: modalVisible } =
+    useModalTransition(open);
+  const { setError, mounted, displayText, wrapperStyle, errorStyle } =
+    useAutoError();
   const [isPending, startTransition] = useTransition();
-  const [name, setName]   = useState("");
+  const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
+  // Temporary prefix override — only editable when a prefix IS configured.
+  // Resets to the configured prefix on create/close.
+  const [prefix, setPrefix] = useState(phonePrefix ?? "");
   const [notesLen, setNotesLen] = useState(0);
   const [whatsappOptIn, setWhatsappOptIn] = useState(false);
   const [birthMonth, setBirthMonth] = useState("");
-  const [birthDay,   setBirthDay]   = useState("");
-  const [birthYear,  setBirthYear]  = useState("");
+  const [birthDay, setBirthDay] = useState("");
+  const [birthYear, setBirthYear] = useState("");
   const NOTES_MAX = 300;
   const formRef = useRef<HTMLFormElement>(null);
   const router = useRouter();
@@ -39,8 +49,16 @@ export default function NewCustomerModal({ phonePrefix, plan }: Props) {
     min: localMin,
     max: localMax,
     hint: localHint,
-  } = getLocalLimits(phonePrefix);
-  const fullPhone = phonePrefix ? phonePrefix + phone : phone;
+  } = getLocalLimits(phonePrefix ? prefix : null);
+  const fullPhone = phonePrefix ? prefix + phone : phone;
+  const prefixOverridden = phonePrefix !== null && prefix !== phonePrefix;
+
+  function handlePrefixSelect(code: string) {
+    setPrefix(code);
+    // Trim the local number if the new country allows fewer digits
+    const { max } = getLocalLimits(code);
+    setPhone((p) => p.slice(0, max));
+  }
 
   function handleNameChange(e: React.ChangeEvent<HTMLInputElement>) {
     const raw = e.target.value;
@@ -76,6 +94,7 @@ export default function NewCustomerModal({ phonePrefix, plan }: Props) {
         formRef.current?.reset();
         setName("");
         setPhone("");
+        setPrefix(phonePrefix ?? "");
         setNotesLen(0);
         setWhatsappOptIn(false);
         setBirthMonth("");
@@ -90,6 +109,7 @@ export default function NewCustomerModal({ phonePrefix, plan }: Props) {
   function handleClose() {
     setName("");
     setPhone("");
+    setPrefix(phonePrefix ?? "");
     setNotesLen(0);
     setWhatsappOptIn(false);
     setBirthMonth("");
@@ -113,11 +133,20 @@ export default function NewCustomerModal({ phonePrefix, plan }: Props) {
       {modalMounted && (
         <div
           className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6"
-          style={{ backgroundColor: modalVisible ? 'rgba(0,0,0,0.6)' : 'rgba(0,0,0,0)', transition: 'background-color 220ms ease' }}
+          style={{
+            backgroundColor: modalVisible ? "rgba(0,0,0,0.6)" : "rgba(0,0,0,0)",
+            transition: "background-color 220ms ease",
+          }}
         >
           <div
             className="w-full max-w-md rounded-2xl bg-white dark:bg-[#161b2e] shadow-2xl flex flex-col max-h-[90dvh]"
-            style={{ opacity: modalVisible ? 1 : 0, transform: modalVisible ? 'translateY(0) scale(1)' : 'translateY(12px) scale(0.97)', transition: 'opacity 220ms ease, transform 220ms ease' }}
+            style={{
+              opacity: modalVisible ? 1 : 0,
+              transform: modalVisible
+                ? "translateY(0) scale(1)"
+                : "translateY(12px) scale(0.97)",
+              transition: "opacity 220ms ease, transform 220ms ease",
+            }}
           >
             {/* Header — fijo */}
             <div className="flex items-center justify-between px-6 pt-6 pb-4 shrink-0">
@@ -132,225 +161,328 @@ export default function NewCustomerModal({ phonePrefix, plan }: Props) {
               </button>
             </div>
 
-            <form ref={formRef} onSubmit={handleSubmit} className="flex flex-col flex-1 min-h-0">
-            <div className="flex-1 overflow-y-auto px-6 pb-2 space-y-4 [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-gray-200 dark:[&::-webkit-scrollbar-thumb]:bg-[#2a3147]">
-              {mounted && (
-                <div style={wrapperStyle}>
-                  <div style={{ overflow: 'hidden' }}>
-                    <p style={errorStyle} className="rounded-xl bg-red-50 dark:bg-red-950/30 border border-red-100 dark:border-red-900/30 px-3 py-2 text-sm text-red-600 dark:text-red-400">
-                      {displayText}
+            <form
+              ref={formRef}
+              onSubmit={handleSubmit}
+              className="flex flex-col flex-1 min-h-0"
+            >
+              <div className="flex-1 overflow-y-auto px-6 pb-2 space-y-4 [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-gray-200 dark:[&::-webkit-scrollbar-thumb]:bg-[#2a3147]">
+                {mounted && (
+                  <div style={wrapperStyle}>
+                    <div style={{ overflow: "hidden" }}>
+                      <p
+                        style={errorStyle}
+                        className="rounded-xl bg-red-50 dark:bg-red-950/30 border border-red-100 dark:border-red-900/30 px-3 py-2 text-sm text-red-600 dark:text-red-400"
+                      >
+                        {displayText}
+                      </p>
+                    </div>
+                  </div>
+                )}
+
+                <div>
+                  <div className="flex items-center justify-between mb-1.5">
+                    <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                      Nombre completo *
+                    </label>
+                    <span
+                      className={`text-xs ${name.length >= Math.floor(NAME_MAX * 0.85) ? "text-amber-500" : "text-gray-400 dark:text-gray-500"}`}
+                    >
+                      {name.length} / {NAME_MAX}
+                    </span>
+                  </div>
+                  <input
+                    name="name"
+                    type="text"
+                    placeholder="Alice Méndez"
+                    required
+                    value={name}
+                    onChange={handleNameChange}
+                    className={inputCls}
+                  />
+                </div>
+
+                {!phonePrefix && (
+                  <div className="flex items-start gap-3 rounded-xl border border-amber-200 dark:border-amber-500/30 bg-amber-50 dark:bg-amber-500/10 px-3 py-2.5">
+                    <svg
+                      className="h-4 w-4 shrink-0 mt-0.5 text-amber-500"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth={2}
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z"
+                      />
+                    </svg>
+                    <p className="text-xs text-amber-700 dark:text-amber-400 leading-relaxed">
+                      No tienes un prefijo telefónico configurado. Los teléfonos
+                      se guardarán sin prefijo de país.{" "}
+                      <Link
+                        href="/dashboard/settings"
+                        className="font-semibold underline hover:text-amber-900 dark:hover:text-amber-300 transition"
+                      >
+                        Configurar en Ajustes →
+                      </Link>
                     </p>
                   </div>
-                </div>
-              )}
-
-              <div>
-                <div className="flex items-center justify-between mb-1.5">
-                  <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Nombre completo *</label>
-                  <span className={`text-xs ${name.length >= Math.floor(NAME_MAX * 0.85) ? 'text-amber-500' : 'text-gray-400 dark:text-gray-500'}`}>
-                    {name.length} / {NAME_MAX}
-                  </span>
-                </div>
-                <input
-                  name="name"
-                  type="text"
-                  placeholder="Alice Méndez"
-                  required
-                  value={name}
-                  onChange={handleNameChange}
-                  className={inputCls}
-                />
-              </div>
-
-              {!phonePrefix && (
-                <div className="flex items-start gap-3 rounded-xl border border-amber-200 dark:border-amber-500/30 bg-amber-50 dark:bg-amber-500/10 px-3 py-2.5">
-                  <svg className="h-4 w-4 shrink-0 mt-0.5 text-amber-500" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z" />
-                  </svg>
-                  <p className="text-xs text-amber-700 dark:text-amber-400 leading-relaxed">
-                    No tienes un prefijo telefónico configurado. Los teléfonos se guardarán sin prefijo de país.{' '}
-                    <a href="/dashboard/settings" className="font-semibold underline hover:text-amber-900 dark:hover:text-amber-300 transition">
-                      Configurar en Ajustes →
-                    </a>
-                  </p>
-                </div>
-              )}
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
-                  Teléfono *
-                </label>
-                <div className="flex">
-                  {phonePrefix && (
-                    <span className="inline-flex items-center rounded-l-xl border border-r-0 border-gray-200 dark:border-[#2a3147] bg-gray-100 dark:bg-[#1a1f35] px-3 text-sm font-medium text-gray-600 dark:text-gray-400 select-none shrink-0">
-                      {phonePrefix}
-                    </span>
-                  )}
-                  {/* Hidden input carries the full phone value to the server */}
-                  <input type="hidden" name="phone" value={fullPhone} />
-                  <input
-                    type="tel"
-                    placeholder={phonePrefix ? "8134529076" : "Configura un prefijo primero"}
-                    required
-                    disabled={!phonePrefix}
-                    value={phone}
-                    onChange={handlePhoneChange}
-                    maxLength={localMax}
-                    className={[
-                      inputCls,
-                      phonePrefix ? "rounded-l-none" : "",
-                      !phonePrefix ? "opacity-50 cursor-not-allowed bg-gray-100 dark:bg-[#1a1f35]" : "",
-                      phone.length > 0 && phone.length < localMin
-                        ? "border-amber-400 focus:border-amber-400 dark:focus:border-amber-500 focus:ring-amber-100 dark:focus:ring-amber-500/20"
-                        : "",
-                    ].join(" ")}
-                  />
-                </div>
-                {/* Hints */}
-                {phone.length === 0 && phonePrefix && (
-                  <p className="mt-1 text-xs text-gray-400 dark:text-gray-500">
-                    Se esperan <span className="font-medium">{localHint}</span>
-                  </p>
                 )}
-                {phone.length > 0 && phone.length < localMin && (
-                  <p className="mt-1 text-xs text-amber-600 dark:text-amber-400">
-                    {localMin - phone.length} dígito
-                    {localMin - phone.length !== 1 ? "s" : ""} más · se esperan{" "}
-                    {localHint}
-                  </p>
-                )}
-                {phone.length >= localMin && (
-                  <p className="mt-1 text-xs text-gray-400 dark:text-gray-500">
-                    {phonePrefix ? (
-                      <>
-                        Se guardará como{" "}
-                        <span className="font-mono text-gray-600 dark:text-gray-300">
-                          {fullPhone}
-                        </span>
-                      </>
-                    ) : (
-                      <span className="font-mono text-gray-600 dark:text-gray-300">
-                        {phone}
-                      </span>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
+                    Teléfono *
+                  </label>
+                  <div className="flex">
+                    {phonePrefix && (
+                      <PrefixSelect
+                        value={prefix}
+                        overridden={prefixOverridden}
+                        onSelect={handlePrefixSelect}
+                      />
                     )}
+                    {/* Hidden input carries the full phone value to the server */}
+                    <input type="hidden" name="phone" value={fullPhone} />
+                    <input
+                      type="tel"
+                      placeholder={
+                        phonePrefix
+                          ? "8134529076"
+                          : "Configura un prefijo primero"
+                      }
+                      required
+                      disabled={!phonePrefix}
+                      value={phone}
+                      onChange={handlePhoneChange}
+                      maxLength={localMax}
+                      className={[
+                        inputCls,
+                        phonePrefix ? "rounded-l-none" : "",
+                        !phonePrefix
+                          ? "opacity-50 cursor-not-allowed bg-gray-100 dark:bg-[#1a1f35]"
+                          : "",
+                        phone.length > 0 && phone.length < localMin
+                          ? "border-amber-400 focus:border-amber-400 dark:focus:border-amber-500 focus:ring-amber-100 dark:focus:ring-amber-500/20"
+                          : "",
+                      ].join(" ")}
+                    />
+                  </div>
+                  {/* Hints */}
+                  {phonePrefix && PHONE_WA_HINTS[prefix] && (
+                    <p className="mt-1 flex items-start gap-1.5 text-xs text-green-600 dark:text-green-400">
+                      <WhatsAppIcon className="h-3.5 w-3.5 shrink-0 mt-px" />
+                      <span>{PHONE_WA_HINTS[prefix]}</span>
+                    </p>
+                  )}
+                  {prefixOverridden && (
+                    <p className="mt-1 text-xs text-indigo-500 dark:text-indigo-400">
+                      Prefijo temporal solo para este cliente.{" "}
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setPrefix(phonePrefix!);
+                          const { max } = getLocalLimits(phonePrefix);
+                          setPhone((p) => p.slice(0, max));
+                        }}
+                        className="font-semibold underline hover:text-indigo-700 dark:hover:text-indigo-300 transition"
+                      >
+                        Volver a {phonePrefix}
+                      </button>
+                    </p>
+                  )}
+                  {phone.length === 0 && phonePrefix && (
+                    <p className="mt-1 text-xs text-gray-400 dark:text-gray-500">
+                      Se esperan{" "}
+                      <span className="font-medium">{localHint}</span>
+                    </p>
+                  )}
+                  {phone.length > 0 && phone.length < localMin && (
+                    <p className="mt-1 text-xs text-amber-600 dark:text-amber-400">
+                      {localMin - phone.length} dígito
+                      {localMin - phone.length !== 1 ? "s" : ""} más · se
+                      esperan {localHint}
+                    </p>
+                  )}
+                  {phone.length >= localMin && (
+                    <p className="mt-1 text-xs text-gray-400 dark:text-gray-500">
+                      {phonePrefix ? (
+                        <>
+                          Se guardará como{" "}
+                          <span className="font-mono text-gray-600 dark:text-gray-300">
+                            {fullPhone}
+                          </span>
+                        </>
+                      ) : (
+                        <span className="font-mono text-gray-600 dark:text-gray-300">
+                          {phone}
+                        </span>
+                      )}
+                    </p>
+                  )}
+                </div>
+
+                <div>
+                  <div className="flex items-center justify-between mb-1.5">
+                    <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                      Notas
+                    </label>
+                    <span
+                      className={`text-xs ${notesLen >= Math.floor(NOTES_MAX * 0.85) ? "text-amber-500" : "text-gray-400 dark:text-gray-500"}`}
+                    >
+                      {notesLen} / {NOTES_MAX}
+                    </span>
+                  </div>
+                  <textarea
+                    name="notes"
+                    rows={5}
+                    maxLength={NOTES_MAX}
+                    placeholder="Notas internas (no visibles al cliente)"
+                    onChange={(e) => setNotesLen(e.target.value.length)}
+                    className={`${inputCls} resize-none`}
+                  />
+                </div>
+
+                {/* Birthday */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
+                    Fecha de cumpleaños{" "}
+                    <span className="text-gray-400 dark:text-gray-500 font-normal">
+                      (opcional)
+                    </span>
+                  </label>
+                  <div className="grid grid-cols-3 gap-2">
+                    <CustomSelect
+                      name="birth_day"
+                      value={birthDay}
+                      onChange={setBirthDay}
+                      placeholder="Día"
+                      options={Array.from({ length: 31 }, (_, i) => ({
+                        value: String(i + 1),
+                        label: String(i + 1),
+                      }))}
+                    />
+                    <CustomSelect
+                      name="birth_month"
+                      value={birthMonth}
+                      onChange={(v) => {
+                        setBirthMonth(v);
+                        if (!v) setBirthDay("");
+                      }}
+                      placeholder="Mes"
+                      options={[
+                        "Enero",
+                        "Febrero",
+                        "Marzo",
+                        "Abril",
+                        "Mayo",
+                        "Junio",
+                        "Julio",
+                        "Agosto",
+                        "Septiembre",
+                        "Octubre",
+                        "Noviembre",
+                        "Diciembre",
+                      ].map((m, i) => ({ value: String(i + 1), label: m }))}
+                    />
+                    <CustomSelect
+                      name="birth_year"
+                      value={birthYear}
+                      onChange={setBirthYear}
+                      placeholder="Año"
+                      options={Array.from({ length: 100 }, (_, i) => {
+                        const y = new Date().getFullYear() - i;
+                        return { value: String(y), label: String(y) };
+                      })}
+                    />
+                  </div>
+                </div>
+
+                {/* Referral code */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
+                    Código de referido{" "}
+                    <span className="text-gray-400 dark:text-gray-500 font-normal">
+                      (opcional)
+                    </span>
+                  </label>
+                  <input
+                    name="referral_code"
+                    type="text"
+                    placeholder="Ej. AB3X7K"
+                    maxLength={8}
+                    className={`${inputCls} uppercase`}
+                    onChange={(e) => {
+                      e.target.value = e.target.value.toUpperCase();
+                    }}
+                  />
+                  <p className="mt-1 text-xs text-gray-400 dark:text-gray-500">
+                    Si un cliente existente refirió a esta persona, ingresa su
+                    código.
+                  </p>
+                </div>
+
+                {/* WhatsApp opt-in */}
+                <button
+                  type="button"
+                  onClick={() => setWhatsappOptIn((v) => !v)}
+                  className={[
+                    "w-full flex items-center gap-3 rounded-xl border px-3 py-2.5 text-left transition",
+                    whatsappOptIn
+                      ? "border-green-300 dark:border-green-700 bg-green-50 dark:bg-green-950/30"
+                      : "border-gray-200 dark:border-[#2a3147] bg-white dark:bg-[#0d0f17] hover:border-gray-300 dark:hover:border-[#3a4160]",
+                  ].join(" ")}
+                >
+                  <span
+                    className={[
+                      "flex h-5 w-5 shrink-0 items-center justify-center rounded border-2 transition",
+                      whatsappOptIn
+                        ? "border-green-500 bg-green-500"
+                        : "border-gray-300 dark:border-gray-600",
+                    ].join(" ")}
+                  >
+                    {whatsappOptIn && (
+                      <svg
+                        className="h-3 w-3 text-white"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth={3}
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          d="m4.5 12.75 6 6 9-13.5"
+                        />
+                      </svg>
+                    )}
+                  </span>
+                  <span className="flex-1 min-w-0">
+                    <span className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                      Notificaciones por WhatsApp
+                    </span>
+                    <span className="block text-xs text-gray-400 dark:text-gray-500 mt-0.5">
+                      El cliente acepta recibir avisos de puntos, recompensas y
+                      promociones
+                    </span>
+                  </span>
+                  <WhatsAppIcon className="h-5 w-5 shrink-0 text-green-500" />
+                </button>
+                {plan === "free" && (
+                  <p className="text-xs text-gray-400 dark:text-gray-500 -mt-2 px-1">
+                    El consentimiento se guarda ahora.{" "}
+                    <Link
+                      href="/dashboard/settings"
+                      className="text-indigo-500 hover:underline"
+                    >
+                      Activa las notificaciones con Plan Starter
+                    </Link>
                   </p>
                 )}
               </div>
 
-              <div>
-                <div className="flex items-center justify-between mb-1.5">
-                  <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Notas</label>
-                  <span className={`text-xs ${notesLen >= Math.floor(NOTES_MAX * 0.85) ? 'text-amber-500' : 'text-gray-400 dark:text-gray-500'}`}>
-                    {notesLen} / {NOTES_MAX}
-                  </span>
-                </div>
-                <textarea
-                  name="notes"
-                  rows={5}
-                  maxLength={NOTES_MAX}
-                  placeholder="Notas internas (no visibles al cliente)"
-                  onChange={(e) => setNotesLen(e.target.value.length)}
-                  className={`${inputCls} resize-none`}
-                />
-              </div>
-
-              {/* Birthday */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
-                  Fecha de cumpleaños <span className="text-gray-400 dark:text-gray-500 font-normal">(opcional)</span>
-                </label>
-                <div className="grid grid-cols-3 gap-2">
-                  <CustomSelect
-                    name="birth_day"
-                    value={birthDay}
-                    onChange={setBirthDay}
-                    placeholder="Día"
-                    options={Array.from({ length: 31 }, (_, i) => ({ value: String(i + 1), label: String(i + 1) }))}
-                  />
-                  <CustomSelect
-                    name="birth_month"
-                    value={birthMonth}
-                    onChange={(v) => { setBirthMonth(v); if (!v) setBirthDay(""); }}
-                    placeholder="Mes"
-                    options={['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'].map((m, i) => ({ value: String(i + 1), label: m }))}
-                  />
-                  <CustomSelect
-                    name="birth_year"
-                    value={birthYear}
-                    onChange={setBirthYear}
-                    placeholder="Año"
-                    options={Array.from({ length: 100 }, (_, i) => {
-                      const y = new Date().getFullYear() - i;
-                      return { value: String(y), label: String(y) };
-                    })}
-                  />
-                </div>
-              </div>
-
-              {/* Referral code */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
-                  Código de referido <span className="text-gray-400 dark:text-gray-500 font-normal">(opcional)</span>
-                </label>
-                <input
-                  name="referral_code"
-                  type="text"
-                  placeholder="Ej. AB3X7K"
-                  maxLength={8}
-                  className={`${inputCls} uppercase`}
-                  onChange={(e) => { e.target.value = e.target.value.toUpperCase(); }}
-                />
-                <p className="mt-1 text-xs text-gray-400 dark:text-gray-500">
-                  Si un cliente existente refirió a esta persona, ingresa su código.
-                </p>
-              </div>
-
-              {/* WhatsApp opt-in */}
-              <button
-                type="button"
-                onClick={() => setWhatsappOptIn((v) => !v)}
-                className={[
-                  "w-full flex items-center gap-3 rounded-xl border px-3 py-2.5 text-left transition",
-                  whatsappOptIn
-                    ? "border-green-300 dark:border-green-700 bg-green-50 dark:bg-green-950/30"
-                    : "border-gray-200 dark:border-[#2a3147] bg-white dark:bg-[#0d0f17] hover:border-gray-300 dark:hover:border-[#3a4160]",
-                ].join(" ")}
-              >
-                <span className={[
-                  "flex h-5 w-5 shrink-0 items-center justify-center rounded border-2 transition",
-                  whatsappOptIn
-                    ? "border-green-500 bg-green-500"
-                    : "border-gray-300 dark:border-gray-600",
-                ].join(" ")}>
-                  {whatsappOptIn && (
-                    <svg className="h-3 w-3 text-white" fill="none" stroke="currentColor" strokeWidth={3} viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" d="m4.5 12.75 6 6 9-13.5" />
-                    </svg>
-                  )}
-                </span>
-                <span className="flex-1 min-w-0">
-                  <span className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                    Notificaciones por WhatsApp
-                  </span>
-                  <span className="block text-xs text-gray-400 dark:text-gray-500 mt-0.5">
-                    El cliente acepta recibir avisos de puntos, recompensas y promociones
-                  </span>
-                </span>
-                <WhatsAppIcon className="h-5 w-5 shrink-0 text-green-500" />
-              </button>
-              {plan === 'free' && (
-                <p className="text-xs text-gray-400 dark:text-gray-500 -mt-2 px-1">
-                  El consentimiento se guarda ahora.{' '}
-                  <a href="/dashboard/settings" className="text-indigo-500 hover:underline">
-                    Activa las notificaciones con Plan Starter →
-                  </a>
-                </p>
-              )}
-
-            </div>
-
-            {/* Footer — fijo */}
-            <div className="flex justify-end gap-3 px-6 py-4 border-t border-gray-100 dark:border-[#1e2438] shrink-0">
+              {/* Footer — fijo */}
+              <div className="flex justify-end gap-3 px-6 py-4 border-t border-gray-100 dark:border-[#1e2438] shrink-0">
                 <button
                   type="button"
                   onClick={handleClose}
@@ -377,7 +509,13 @@ export default function NewCustomerModal({ phonePrefix, plan }: Props) {
 const inputCls =
   "w-full rounded-xl border border-gray-200 dark:border-[#2a3147] bg-white dark:bg-[#0d0f17] px-3 py-2.5 text-sm text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-600 outline-none transition focus:border-indigo-400 dark:focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 dark:focus:ring-indigo-500/20";
 
-function CustomSelect({ name, value, onChange, placeholder, options }: {
+function CustomSelect({
+  name,
+  value,
+  onChange,
+  placeholder,
+  options,
+}: {
   name: string;
   value: string;
   onChange: (v: string) => void;
@@ -391,10 +529,11 @@ function CustomSelect({ name, value, onChange, placeholder, options }: {
   // Close on outside click
   useEffect(() => {
     function handler(e: MouseEvent) {
-      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+      if (ref.current && !ref.current.contains(e.target as Node))
+        setOpen(false);
     }
-    if (open) document.addEventListener('mousedown', handler);
-    return () => document.removeEventListener('mousedown', handler);
+    if (open) document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
   }, [open]);
 
   return (
@@ -408,18 +547,31 @@ function CustomSelect({ name, value, onChange, placeholder, options }: {
         onClick={() => setOpen((v) => !v)}
         className={`w-full flex items-center justify-between rounded-xl border px-3 py-2.5 text-sm transition outline-none ${
           open
-            ? 'border-indigo-400 dark:border-indigo-500 ring-2 ring-indigo-100 dark:ring-indigo-500/20'
-            : 'border-gray-200 dark:border-[#2a3147] hover:border-gray-300 dark:hover:border-[#3a4157]'
+            ? "border-indigo-400 dark:border-indigo-500 ring-2 ring-indigo-100 dark:ring-indigo-500/20"
+            : "border-gray-200 dark:border-[#2a3147] hover:border-gray-300 dark:hover:border-[#3a4157]"
         } bg-white dark:bg-[#0d0f17]`}
       >
-        <span className={selected ? 'text-gray-900 dark:text-white' : 'text-gray-400 dark:text-gray-500'}>
+        <span
+          className={
+            selected
+              ? "text-gray-900 dark:text-white"
+              : "text-gray-400 dark:text-gray-500"
+          }
+        >
           {selected ? selected.label : placeholder}
         </span>
         <svg
-          className={`h-4 w-4 text-gray-400 dark:text-gray-500 transition-transform shrink-0 ${open ? 'rotate-180' : ''}`}
-          fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"
+          className={`h-4 w-4 text-gray-400 dark:text-gray-500 transition-transform shrink-0 ${open ? "rotate-180" : ""}`}
+          fill="none"
+          stroke="currentColor"
+          strokeWidth={2}
+          viewBox="0 0 24 24"
         >
-          <path strokeLinecap="round" strokeLinejoin="round" d="m19 9-7 7-7-7" />
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            d="m19 9-7 7-7-7"
+          />
         </svg>
       </button>
 
@@ -431,17 +583,137 @@ function CustomSelect({ name, value, onChange, placeholder, options }: {
               <li key={o.value}>
                 <button
                   type="button"
-                  onClick={() => { onChange(o.value); setOpen(false); }}
+                  onClick={() => {
+                    onChange(o.value);
+                    setOpen(false);
+                  }}
                   className={`w-full text-left px-3 py-2 text-sm transition ${
                     o.value === value
-                      ? 'bg-indigo-50 dark:bg-indigo-500/15 text-indigo-600 dark:text-indigo-400 font-medium'
-                      : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-[#1e2438]'
+                      ? "bg-indigo-50 dark:bg-indigo-500/15 text-indigo-600 dark:text-indigo-400 font-medium"
+                      : "text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-[#1e2438]"
                   }`}
                 >
                   {o.label}
                 </button>
               </li>
             ))}
+          </ul>
+        </div>
+      )}
+    </div>
+  );
+}
+
+/**
+ * Compact country-prefix selector for the phone field.
+ * Trigger shows only the code (e.g. +52); the panel lists countries
+ * like the Settings selector but sized to fit inside the modal.
+ */
+function PrefixSelect({
+  value,
+  overridden,
+  onSelect,
+}: {
+  value: string;
+  overridden: boolean;
+  onSelect: (code: string) => void;
+}) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+
+  // Close on outside click
+  useEffect(() => {
+    function handler(e: MouseEvent) {
+      if (ref.current && !ref.current.contains(e.target as Node))
+        setOpen(false);
+    }
+    if (open) document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, [open]);
+
+  return (
+    <div ref={ref} className="relative shrink-0">
+      {/* Trigger — compact chip showing only the code */}
+      <button
+        type="button"
+        aria-label="Prefijo de país"
+        title="Puedes cambiar el prefijo solo para este cliente"
+        onClick={() => setOpen((v) => !v)}
+        className={[
+          "h-full flex items-center gap-1 rounded-l-xl border border-r-0 pl-2.5 pr-1.5 text-sm font-medium outline-none transition",
+          "bg-gray-100 dark:bg-[#1a1f35]",
+          overridden
+            ? "border-indigo-300 dark:border-indigo-500/50 text-indigo-600 dark:text-indigo-400"
+            : "border-gray-200 dark:border-[#2a3147] text-gray-600 dark:text-gray-400",
+          open
+            ? "border-indigo-400 dark:border-indigo-500 ring-2 ring-indigo-100 dark:ring-indigo-500/20"
+            : "",
+        ].join(" ")}
+      >
+        {value}
+        <svg
+          className={`h-3.5 w-3.5 text-gray-400 dark:text-gray-500 transition-transform shrink-0 ${open ? "rotate-180" : ""}`}
+          fill="none"
+          stroke="currentColor"
+          strokeWidth={2}
+          viewBox="0 0 24 24"
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            d="m19 9-7 7-7-7"
+          />
+        </svg>
+      </button>
+
+      {/* Dropdown — country list like Settings, but compact */}
+      {open && (
+        <div className="absolute z-50 top-full mt-1.5 w-60 rounded-xl border border-gray-200 dark:border-[#2a3147] bg-white dark:bg-[#161b2e] shadow-lg overflow-hidden">
+          <ul className="max-h-56 overflow-y-auto py-1 [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-gray-200 dark:[&::-webkit-scrollbar-thumb]:bg-[#2a3147]">
+            {PHONE_PREFIXES.map((c) => {
+              const selected = c.code === value;
+              return (
+                <li key={c.code}>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      onSelect(c.code);
+                      setOpen(false);
+                    }}
+                    className={`w-full flex items-center gap-2 px-3 py-2 text-left text-sm transition ${
+                      selected
+                        ? "bg-indigo-50 dark:bg-indigo-500/15 text-indigo-600 dark:text-indigo-400 font-medium"
+                        : "text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-[#1e2438]"
+                    }`}
+                  >
+                    <span className="flex h-5 w-8 shrink-0 items-center justify-center rounded-md bg-gray-100 dark:bg-[#2a3147] text-[10px] font-bold text-gray-500 dark:text-gray-400">
+                      {c.iso}
+                    </span>
+                    <span className="flex-1 truncate">{c.name}</span>
+                    <span
+                      className={`shrink-0 text-xs ${selected ? "" : "text-gray-400 dark:text-gray-500"}`}
+                    >
+                      {c.code}
+                    </span>
+                    {selected && (
+                      <svg
+                        className="h-4 w-4 shrink-0"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth={2.5}
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          d="m4.5 12.75 6 6 9-13.5"
+                        />
+                      </svg>
+                    )}
+                  </button>
+                </li>
+              );
+            })}
           </ul>
         </div>
       )}

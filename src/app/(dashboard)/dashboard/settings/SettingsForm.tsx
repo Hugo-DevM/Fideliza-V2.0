@@ -9,6 +9,7 @@ import type { TenantSettings } from '@/lib/types';
 import { useDashboardI18n } from '@/lib/i18n/dashboard-context';
 import type { Locale } from '@/lib/i18n';
 import { getPlanLimits } from '@/lib/config/plans';
+import { PHONE_PREFIXES } from '@/lib/constants/phone-limits';
 import { formatTimeOnly } from '@/lib/utils/date';
 import AccordionSection from './AccordionSection';
 import LogoEditorModal from './LogoEditorModal';
@@ -518,12 +519,12 @@ export default function SettingsForm({
               </p>
             </div>
             {plan === 'free' && (
-              <a
+              <Link
                 href="/dashboard/settings#billing"
                 className="shrink-0 rounded-lg bg-indigo-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-indigo-700 transition"
               >
                 Actualizar plan
-              </a>
+              </Link>
             )}
           </div>
 
@@ -835,33 +836,6 @@ function ChevronDownIcon({ className }: { className?: string }) {
     </svg>
   );
 }
-
-const PHONE_PREFIXES = [
-  { code: '+52',  iso: 'MX', name: 'México'            },
-  { code: '+54',  iso: 'AR', name: 'Argentina'          },
-  { code: '+1',   iso: 'US', name: 'EE.UU. / Canadá'   },
-  { code: '+57',  iso: 'CO', name: 'Colombia'           },
-  { code: '+56',  iso: 'CL', name: 'Chile'              },
-  { code: '+55',  iso: 'BR', name: 'Brasil'             },
-  { code: '+51',  iso: 'PE', name: 'Perú'               },
-  { code: '+598', iso: 'UY', name: 'Uruguay'            },
-  { code: '+595', iso: 'PY', name: 'Paraguay'           },
-  { code: '+591', iso: 'BO', name: 'Bolivia'            },
-  { code: '+593', iso: 'EC', name: 'Ecuador'            },
-  { code: '+502', iso: 'GT', name: 'Guatemala'          },
-  { code: '+503', iso: 'SV', name: 'El Salvador'        },
-  { code: '+504', iso: 'HN', name: 'Honduras'           },
-  { code: '+505', iso: 'NI', name: 'Nicaragua'          },
-  { code: '+506', iso: 'CR', name: 'Costa Rica'         },
-  { code: '+507', iso: 'PA', name: 'Panamá'             },
-  { code: '+509', iso: 'HT', name: 'Haití'              },
-  { code: '+53',  iso: 'CU', name: 'Cuba'               },
-  { code: '+34',  iso: 'ES', name: 'España'             },
-  { code: '+44',  iso: 'GB', name: 'Reino Unido'        },
-  { code: '+49',  iso: 'DE', name: 'Alemania'           },
-  { code: '+33',  iso: 'FR', name: 'Francia'            },
-  { code: '+39',  iso: 'IT', name: 'Italia'             },
-];
 
 // ── Logo card ─────────────────────────────────────────────────────────────────
 

@@ -29,6 +29,42 @@ export const PHONE_LOCAL_LIMITS: Record<string, { min: number; max: number; hint
   '+509': { min: 8,  max: 8,  hint: '8 dígitos'       }, // Haití
 };
 
+/** Country prefixes selectable in Settings and in the new-customer modal. */
+export const PHONE_PREFIXES = [
+  { code: '+52',  iso: 'MX', name: 'México'            },
+  { code: '+54',  iso: 'AR', name: 'Argentina'          },
+  { code: '+1',   iso: 'US', name: 'EE.UU. / Canadá'   },
+  { code: '+57',  iso: 'CO', name: 'Colombia'           },
+  { code: '+56',  iso: 'CL', name: 'Chile'              },
+  { code: '+55',  iso: 'BR', name: 'Brasil'             },
+  { code: '+51',  iso: 'PE', name: 'Perú'               },
+  { code: '+598', iso: 'UY', name: 'Uruguay'            },
+  { code: '+595', iso: 'PY', name: 'Paraguay'           },
+  { code: '+591', iso: 'BO', name: 'Bolivia'            },
+  { code: '+593', iso: 'EC', name: 'Ecuador'            },
+  { code: '+502', iso: 'GT', name: 'Guatemala'          },
+  { code: '+503', iso: 'SV', name: 'El Salvador'        },
+  { code: '+504', iso: 'HN', name: 'Honduras'           },
+  { code: '+505', iso: 'NI', name: 'Nicaragua'          },
+  { code: '+506', iso: 'CR', name: 'Costa Rica'         },
+  { code: '+507', iso: 'PA', name: 'Panamá'             },
+  { code: '+509', iso: 'HT', name: 'Haití'              },
+  { code: '+53',  iso: 'CU', name: 'Cuba'               },
+  { code: '+34',  iso: 'ES', name: 'España'             },
+  { code: '+44',  iso: 'GB', name: 'Reino Unido'        },
+  { code: '+49',  iso: 'DE', name: 'Alemania'           },
+  { code: '+33',  iso: 'FR', name: 'Francia'            },
+  { code: '+39',  iso: 'IT', name: 'Italia'             },
+];
+
+/**
+ * Country-specific WhatsApp formatting warnings.
+ * Shown when capturing a customer's phone so messages actually deliver.
+ */
+export const PHONE_WA_HINTS: Record<string, string> = {
+  '+54': 'Para WhatsApp en Argentina incluye el 9 al inicio (ej. 9 11 23456789), si no el mensaje no se entrega.',
+};
+
 const FALLBACK = { min: 6, max: 15, hint: '6–15 dígitos' };
 
 export function getLocalLimits(prefix: string | null) {
