@@ -9,6 +9,7 @@ import { createServerClient, createServiceRoleClient } from '@/lib/supabase/serv
 import { stripe, STRIPE_PRICE_IDS } from '@/lib/stripe';
 import { rateLimiters, rateLimitExceededResponse } from '@/lib/middleware/rate-limit';
 import { getClientIp, rateLimitKey } from '@/lib/middleware/api-context';
+import { revalidateTenantCache } from '@/lib/cache/tenant-cache';
 
 export const dynamic = 'force-dynamic';
 
@@ -101,6 +102,7 @@ export async function POST(request: Request) {
         stripe_customer_id: customerId,
         updated_at:         new Date().toISOString(),
       }).eq('id', tenantId);
+      revalidateTenantCache(tenantId, (tenant as { subdomain: string }).subdomain);
     }
 
     // ── 6. Create Checkout Session ────────────────────────────────────

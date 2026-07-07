@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { createServerClient, createServiceRoleClient } from '@/lib/supabase/server';
 import { updateTenant } from '@/modules/tenants/tenant.repository';
+import { revalidateTenantCache } from '@/lib/cache/tenant-cache';
 import { enforcePortalBranding } from '@/lib/middleware/plan-limits';
 import { ForbiddenError } from '@/lib/middleware/errors';
 
@@ -74,7 +75,8 @@ export async function POST(request: Request) {
   const { data: { publicUrl } } = admin.storage.from(BUCKET).getPublicUrl(path);
   const urlWithBust = `${publicUrl}?t=${Date.now()}`;
 
-  await updateTenant(tenantId, { logo_url: urlWithBust });
+  const updated = await updateTenant(tenantId, { logo_url: urlWithBust });
+  revalidateTenantCache(tenantId, updated.subdomain);
 
   return NextResponse.json({ url: urlWithBust });
 }
@@ -89,7 +91,8 @@ export async function DELETE() {
   const paths = Object.values(EXT_MAP).map((ext) => `${tenantId}/logo.${ext}`);
   await admin.storage.from(BUCKET).remove(paths);
 
-  await updateTenant(tenantId, { logo_url: null });
+  const updated = await updateTenant(tenantId, { logo_url: null });
+  revalidateTenantCache(tenantId, updated.subdomain);
 
   return NextResponse.json({ success: true });
 }

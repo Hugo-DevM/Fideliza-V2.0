@@ -6,9 +6,10 @@ import { getAuthenticatedTenant } from '@/lib/auth/get-tenant';
 import { updateTenantSettings, softDeleteTenant } from '@/modules/tenants/tenant.repository';
 import { createServerClient, createServiceRoleClient } from '@/lib/supabase/server';
 import { getPlanLimits } from '@/lib/config/plans';
+import { revalidateTenantCache } from '@/lib/cache/tenant-cache';
 
 export async function updateSettingsAction(formData: FormData) {
-  const { tenantId, effectivePlan } = await getAuthenticatedTenant();
+  const { tenantId, tenant, effectivePlan } = await getAuthenticatedTenant();
   const limits = getPlanLimits(effectivePlan);
 
   const primary_color   = (formData.get('primary_color')   as string | null)?.trim();
@@ -84,6 +85,7 @@ export async function updateSettingsAction(formData: FormData) {
       wa_notify_birthday,
       wa_notify_milestone_80,
     });
+    revalidateTenantCache(tenantId, tenant.subdomain);
     revalidatePath('/dashboard/settings');
     revalidatePath('/dashboard');
     return { success: true };
@@ -93,7 +95,7 @@ export async function updateSettingsAction(formData: FormData) {
 }
 
 export async function updateWhatsappSenderAction(formData: FormData) {
-  const { tenantId, effectivePlan } = await getAuthenticatedTenant();
+  const { tenantId, tenant, effectivePlan } = await getAuthenticatedTenant();
 
   if (effectivePlan !== 'pro') {
     return { error: 'Esta función solo está disponible en el Plan Pro.' };
@@ -106,6 +108,7 @@ export async function updateWhatsappSenderAction(formData: FormData) {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const db = createServiceRoleClient() as any;
     await db.from('tenants').update({ whatsapp_from: null }).eq('id', tenantId);
+    revalidateTenantCache(tenantId, tenant.subdomain);
     revalidatePath('/dashboard/settings');
     return { success: true };
   }
@@ -121,6 +124,7 @@ export async function updateWhatsappSenderAction(formData: FormData) {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const db = createServiceRoleClient() as any;
   await db.from('tenants').update({ whatsapp_from: normalized }).eq('id', tenantId);
+  revalidateTenantCache(tenantId, tenant.subdomain);
   revalidatePath('/dashboard/settings');
   return { success: true };
 }
@@ -143,6 +147,7 @@ export async function deleteAccountAction(formData: FormData) {
   try {
     // 1. Soft-delete the tenant record — data stays for developer visibility
     await softDeleteTenant(tenantId, reason);
+    revalidateTenantCache(tenantId, tenant.subdomain);
 
     // 2. Delete the Supabase Auth user so the email is free to register again
     const adminClient = createServiceRoleClient();

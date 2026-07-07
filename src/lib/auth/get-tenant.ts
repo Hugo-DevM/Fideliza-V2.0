@@ -6,9 +6,10 @@
  * Redirects to /auth/login if the user is not authenticated or has no tenant.
  */
 
+import { cache } from 'react';
 import { redirect } from 'next/navigation';
 import { createServerClient } from '@/lib/supabase/server';
-import { getTenantById, getTenantSettings } from '@/modules/tenants/tenant.repository';
+import { getTenantByIdCached, getTenantSettingsCached } from '@/modules/tenants/tenant.repository';
 import { getPlanLimits, getEffectivePlanFromTenant } from '@/lib/config/plans';
 import type { Tenant, TenantSettings } from '@/lib/types';
 import type { PlanLimits } from '@/lib/config/plans';
@@ -23,7 +24,11 @@ export interface AuthenticatedContext {
   effectivePlan: string;
 }
 
-export async function getAuthenticatedTenant(): Promise<AuthenticatedContext> {
+// React.cache() dedupes calls within the same request (layout + page + actions
+// all call this), and the underlying tenant/settings reads use unstable_cache
+// (tag `tenant:{id}`, TTL 5 min) so repeated dashboard navigations don't hit
+// the DB. Mutations invalidate via revalidateTenantCache().
+export const getAuthenticatedTenant = cache(async (): Promise<AuthenticatedContext> => {
   const supabase = await createServerClient();
   const { data: { user } } = await supabase.auth.getUser();
 
@@ -40,8 +45,8 @@ export async function getAuthenticatedTenant(): Promise<AuthenticatedContext> {
 
   try {
     [tenant, settings] = await Promise.all([
-      getTenantById(tenantId),
-      getTenantSettings(tenantId),
+      getTenantByIdCached(tenantId),
+      getTenantSettingsCached(tenantId),
     ]);
   } catch {
     // Tenant not found or inactive (e.g. deleted account, stale session).
@@ -55,4 +60,4 @@ export async function getAuthenticatedTenant(): Promise<AuthenticatedContext> {
   const planLimits    = getPlanLimits(effectivePlan);
 
   return { tenantId, tenant: tenant!, settings: settings!, planLimits, effectivePlan };
-}
+});

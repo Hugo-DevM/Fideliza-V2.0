@@ -3,7 +3,9 @@
  * Never call this from client components. Server-only.
  */
 
+import { unstable_cache } from 'next/cache';
 import { createServerClient, createServiceRoleClient } from '@/lib/supabase/server';
+import { tenantTag } from '@/lib/cache/tenant-cache';
 import type { Tenant, TenantSettings, UUID } from '@/lib/types';
 import { NotFoundError, TenantNotFoundError } from '@/lib/middleware/errors';
 
@@ -60,6 +62,64 @@ export async function getTenantSettings(tenantId: UUID): Promise<TenantSettings>
     ...data,
     referral_program_configs: data.referral_program_configs as TenantSettings['referral_program_configs'],
   };
+}
+
+/**
+ * Cached variants — used on hot read paths (dashboard layout, every server
+ * action via getAuthenticatedTenant). Keyed per tenant, invalidated with
+ * revalidateTenantCache() on every tenants/tenant_settings mutation, and
+ * self-healing via a 5-minute TTL.
+ *
+ * Uses the service-role client: the tenantId is always taken from a trusted
+ * source (authenticated user metadata), and cached entries must not depend
+ * on per-request cookies/session.
+ */
+export async function getTenantByIdCached(id: UUID): Promise<Tenant> {
+  return unstable_cache(
+    async () => {
+      const db = createServiceRoleClient();
+
+      const { data, error } = await db
+        .from('tenants')
+        .select('*')
+        .eq('id', id)
+        .eq('is_active', true)
+        .single();
+
+      if (error || !data) {
+        throw new NotFoundError('Negocio');
+      }
+
+      return data as Tenant;
+    },
+    ['tenant-by-id', id],
+    { revalidate: 300, tags: [tenantTag(id)] },
+  )();
+}
+
+export async function getTenantSettingsCached(tenantId: UUID): Promise<TenantSettings> {
+  return unstable_cache(
+    async () => {
+      const db = createServiceRoleClient();
+
+      const { data, error } = await db
+        .from('tenant_settings')
+        .select('*')
+        .eq('tenant_id', tenantId)
+        .single();
+
+      if (error || !data) {
+        throw new NotFoundError('Configuración del negocio');
+      }
+
+      return {
+        ...data,
+        referral_program_configs: data.referral_program_configs as TenantSettings['referral_program_configs'],
+      };
+    },
+    ['tenant-settings', tenantId],
+    { revalidate: 300, tags: [tenantTag(tenantId)] },
+  )();
 }
 
 export async function createTenant(

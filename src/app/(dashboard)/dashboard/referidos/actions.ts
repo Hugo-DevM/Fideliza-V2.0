@@ -4,12 +4,13 @@ import { revalidatePath } from 'next/cache';
 import { getAuthenticatedTenant } from '@/lib/auth/get-tenant';
 import { createServiceRoleClient } from '@/lib/supabase/server';
 import { getPlanLimits } from '@/lib/config/plans';
+import { revalidateTenantCache } from '@/lib/cache/tenant-cache';
 
 export async function updateReferralSettingsAction(data: {
   referral_enabled: boolean;
   referral_program_configs: Record<string, { referrer_bonus: number; referred_bonus: number }>;
 }) {
-  const { tenantId, effectivePlan } = await getAuthenticatedTenant();
+  const { tenantId, tenant, effectivePlan } = await getAuthenticatedTenant();
 
   if (!getPlanLimits(effectivePlan).referralProgram) {
     return { error: 'El programa de referidos requiere el plan Pro.' };
@@ -34,6 +35,7 @@ export async function updateReferralSettingsAction(data: {
 
   if (error) return { error: 'No se pudo guardar la configuración.' };
 
+  revalidateTenantCache(tenantId, tenant.subdomain);
   revalidatePath('/dashboard/referidos');
   return { success: true };
 }

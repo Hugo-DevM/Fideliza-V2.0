@@ -4,6 +4,7 @@ import { revalidatePath } from 'next/cache';
 import { getAuthenticatedTenant } from '@/lib/auth/get-tenant';
 import { createServiceRoleClient } from '@/lib/supabase/server';
 import { getPlanLimits } from '@/lib/config/plans';
+import { revalidateTenantCache } from '@/lib/cache/tenant-cache';
 
 function parseField(formData: FormData, name: string, min: number, max: number): number | null {
   const val = parseInt((formData.get(name) as string) ?? '', 10);
@@ -12,7 +13,7 @@ function parseField(formData: FormData, name: string, min: number, max: number):
 }
 
 export async function updateBonusConfigAction(formData: FormData) {
-  const { tenantId, effectivePlan } = await getAuthenticatedTenant();
+  const { tenantId, tenant, effectivePlan } = await getAuthenticatedTenant();
 
   if (!getPlanLimits(effectivePlan).birthdayRewards) {
     return { error: 'La configuración de bonos está disponible en el plan Pro.' };
@@ -59,6 +60,7 @@ export async function updateBonusConfigAction(formData: FormData) {
 
   if (error) return { error: 'No se pudo guardar la configuración de bonos.' };
 
+  revalidateTenantCache(tenantId, tenant.subdomain);
   revalidatePath('/dashboard/bonos');
   return { success: true };
 }

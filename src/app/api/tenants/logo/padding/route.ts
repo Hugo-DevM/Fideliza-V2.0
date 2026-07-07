@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { createServerClient } from '@/lib/supabase/server';
-import { updateTenantSettings } from '@/modules/tenants/tenant.repository';
+import { updateTenantSettings, getTenantByIdCached } from '@/modules/tenants/tenant.repository';
+import { revalidateTenantCache } from '@/lib/cache/tenant-cache';
 
 const VALID_PADDING = [0, 8, 16] as const;
 
@@ -29,6 +30,8 @@ export async function PATCH(request: Request) {
   }
 
   await updateTenantSettings(tenantId, { logo_padding: value });
+  const tenant = await getTenantByIdCached(tenantId);
+  revalidateTenantCache(tenantId, tenant.subdomain);
 
   return NextResponse.json({ logo_padding: value });
 }

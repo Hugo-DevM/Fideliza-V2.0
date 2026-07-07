@@ -16,7 +16,9 @@
  *   ✗ Tenant email or billing plan           (business-internal)
  */
 
+import { unstable_cache } from 'next/cache';
 import { createServiceRoleClient } from '@/lib/supabase/server';
+import { tenantTag, tenantSubdomainTag } from '@/lib/cache/tenant-cache';
 import { NotFoundError, TenantNotFoundError } from '@/lib/middleware/errors';
 import { getPlanLimits, getEffectivePlan } from '@/lib/config/plans';
 import type { UUID } from '@/lib/types';
@@ -25,41 +27,52 @@ import type { UUID } from '@/lib/types';
  * Looks up a tenant by subdomain using the service-role client so it works
  * in unauthenticated contexts (e.g. the customer portal) where RLS blocks
  * the anon client from reading the tenants table.
+ *
+ * Cached per subdomain (tag `tenant-sub:{subdomain}`, TTL 5 min): every
+ * customer of the same business hits this on portal entry, so without cache
+ * it produces N identical queries. Invalidated via revalidateTenantCache().
  */
 export async function getTenantBySubdomainPublic(
   subdomain: string
 ): Promise<{ id: UUID; name: string; is_active: boolean; logo_url: string | null; logo_padding: number; clientPortal: boolean; customBranding: boolean }> {
-  const db = createServiceRoleClient();
+  const sub = subdomain.toLowerCase();
+  return unstable_cache(
+    async () => {
+      const db = createServiceRoleClient();
 
-  const { data, error } = await db
-    .from('tenants')
-    .select('id, name, is_active, logo_url, plan, subscription_status, tenant_settings(logo_padding)')
-    .eq('subdomain', subdomain.toLowerCase())
-    .eq('is_active', true)
-    .single();
+      const { data, error } = await db
+        .from('tenants')
+        .select('id, name, is_active, logo_url, plan, subscription_status, tenant_settings(logo_padding)')
+        .eq('subdomain', sub)
+        .eq('is_active', true)
+        .single();
 
-  if (error || !data) {
-    throw new TenantNotFoundError(subdomain);
-  }
+      if (error || !data) {
+        throw new TenantNotFoundError(sub);
+      }
 
-  const raw = data as unknown as {
-    id: UUID; name: string; is_active: boolean; logo_url: string | null;
-    plan: string; subscription_status: string | null;
-    tenant_settings: Array<{ logo_padding: number }> | { logo_padding: number } | null;
-  };
-  const settings = Array.isArray(raw.tenant_settings) ? raw.tenant_settings[0] : raw.tenant_settings;
-  const effectivePlan = getEffectivePlan(raw.plan, raw.subscription_status);
-  const limits = getPlanLimits(effectivePlan);
+      const raw = data as unknown as {
+        id: UUID; name: string; is_active: boolean; logo_url: string | null;
+        plan: string; subscription_status: string | null;
+        tenant_settings: Array<{ logo_padding: number }> | { logo_padding: number } | null;
+      };
+      const settings = Array.isArray(raw.tenant_settings) ? raw.tenant_settings[0] : raw.tenant_settings;
+      const effectivePlan = getEffectivePlan(raw.plan, raw.subscription_status);
+      const limits = getPlanLimits(effectivePlan);
 
-  return {
-    id:             raw.id,
-    name:           raw.name,
-    is_active:      raw.is_active,
-    logo_url:       raw.logo_url,
-    logo_padding:   settings?.logo_padding ?? 8,
-    clientPortal:   limits.clientPortal,
-    customBranding: limits.portalCustomBranding,
-  };
+      return {
+        id:             raw.id,
+        name:           raw.name,
+        is_active:      raw.is_active,
+        logo_url:       raw.logo_url,
+        logo_padding:   settings?.logo_padding ?? 8,
+        clientPortal:   limits.clientPortal,
+        customBranding: limits.portalCustomBranding,
+      };
+    },
+    ['tenant-by-subdomain', sub],
+    { revalidate: 300, tags: [tenantSubdomainTag(sub)] },
+  )();
 }
 
 // ── Response types ────────────────────────────────────────────────────
@@ -218,6 +231,120 @@ function truncateName(name: string): string {
   return `${parts[0]} ${parts[1][0]}.`;
 }
 
+// ── Cached per-tenant reads ───────────────────────────────────────────
+// These queries return the same result for every customer of a tenant, so
+// they are cached under tag `tenant:{id}` (invalidated on every settings /
+// branding / plan mutation via revalidateTenantCache) with a TTL fallback.
+
+interface PortalTenantConfig {
+  tenant: PortalTenant;
+  tiers_enabled: boolean;
+  tiers: PortalTierConfig[] | null;
+  referral_enabled: boolean;
+  referral_program_configs: Record<string, { referrer_bonus: number; referred_bonus: number }>;
+}
+
+async function getPortalTenantConfigCached(tenantId: UUID): Promise<PortalTenantConfig> {
+  return unstable_cache(
+    async () => {
+      const db = createServiceRoleClient();
+
+      const { data } = await db
+        .from('tenants')
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        .select('name, subdomain, logo_url, plan, subscription_status, tenant_settings(primary_color, secondary_color, welcome_message, program_label, logo_padding, tiers_enabled, tiers, referral_enabled, referral_program_configs)' as any)
+        .eq('id', tenantId)
+        .single();
+
+      if (!data) throw new Error('Datos del negocio no disponibles');
+
+      const raw = data as unknown as {
+        name: string;
+        subdomain: string;
+        logo_url: string | null;
+        plan: string;
+        subscription_status: string | null;
+        tenant_settings: Array<{
+          primary_color: string;
+          secondary_color: string;
+          welcome_message: string | null;
+          program_label: string;
+          logo_padding: number;
+          tiers_enabled: boolean;
+          tiers: PortalTierConfig[] | null;
+          referral_enabled: boolean;
+          referral_program_configs: Record<string, { referrer_bonus: number; referred_bonus: number }>;
+        }> | null;
+      };
+
+      const settings = Array.isArray(raw.tenant_settings)
+        ? raw.tenant_settings[0]
+        : raw.tenant_settings;
+
+      // Free plan → neutral Fideliza branding (no tenant logo/colors) + "Powered by" badge
+      const customBranding = getPlanLimits(
+        getEffectivePlan(raw.plan, raw.subscription_status)
+      ).portalCustomBranding;
+
+      const tenant: PortalTenant = {
+        id:              tenantId,
+        name:            raw.name,
+        subdomain:       raw.subdomain,
+        logo_url:        customBranding ? (raw.logo_url ?? null) : null,
+        logo_padding:    settings?.logo_padding ?? 8,
+        primary_color:   customBranding ? (settings?.primary_color   ?? '#6366F1') : '#6366F1',
+        secondary_color: customBranding ? (settings?.secondary_color ?? '#A5B4FC') : '#A5B4FC',
+        welcome_message: settings?.welcome_message ?? null,
+        program_label:   settings?.program_label   ?? 'Points',
+        powered_by:      !customBranding,
+      };
+
+      return {
+        tenant,
+        tiers_enabled:            settings?.tiers_enabled ?? false,
+        tiers:                    settings?.tiers ?? null,
+        referral_enabled:         settings?.referral_enabled ?? false,
+        referral_program_configs: settings?.referral_program_configs ?? {},
+      };
+    },
+    ['portal-tenant-config', tenantId],
+    { revalidate: 300, tags: [tenantTag(tenantId)] },
+  )();
+}
+
+interface PortalRawReward {
+  id: string;
+  name: string;
+  description: string | null;
+  cost_points: number;
+  expiry_days: number | null;
+  program_id: string;
+  stock: number | null;
+}
+
+/**
+ * All active rewards of a tenant. Shorter TTL (60s) because `stock` changes
+ * on redemptions; also tagged 'rewards' so dashboard reward mutations
+ * (which already revalidate that tag) refresh it immediately.
+ */
+async function getActiveRewardsCached(tenantId: UUID): Promise<PortalRawReward[]> {
+  return unstable_cache(
+    async () => {
+      const db = createServiceRoleClient();
+
+      const { data } = await db
+        .from('rewards')
+        .select('id, name, description, cost_points, expiry_days, program_id, stock')
+        .eq('tenant_id', tenantId)
+        .eq('is_active', true);
+
+      return (data ?? []) as unknown as PortalRawReward[];
+    },
+    ['portal-active-rewards', tenantId],
+    { revalidate: 60, tags: [tenantTag(tenantId), 'rewards'] },
+  )();
+}
+
 // ── Service function ──────────────────────────────────────────────────
 
 export async function getPortalData(
@@ -267,14 +394,10 @@ export async function getPortalData(
   }
 
   // ── 2. Parallel data fetch ────────────────────────────────────────
-  const [tenantRes, enrollRes, txRes, voucherRes] = await Promise.all([
-    // Tenant name + branding settings + tier config (plan only used internally — never exposed)
-    db
-      .from('tenants')
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      .select('name, subdomain, logo_url, plan, subscription_status, tenant_settings(primary_color, secondary_color, welcome_message, program_label, logo_padding, tiers_enabled, tiers, referral_enabled, referral_program_configs)' as any)
-      .eq('id', tenantId)
-      .single(),
+  // Tenant branding/config is cached per tenant (see getPortalTenantConfigCached);
+  // the rest is customer-scoped and always fetched live.
+  const [tenantCfg, enrollRes, txRes, voucherRes] = await Promise.all([
+    getPortalTenantConfigCached(tenantId),
 
     // Enrollments with program details
     db
@@ -307,49 +430,8 @@ export async function getPortalData(
       .order('created_at', { ascending: false }),
   ]);
 
-  // ── 3. Parse tenant branding ──────────────────────────────────────
-  if (!tenantRes.data) throw new Error('Datos del negocio no disponibles');
-
-  const raw = tenantRes.data as unknown as {
-    name: string;
-    subdomain: string;
-    logo_url: string | null;
-    plan: string;
-    subscription_status: string | null;
-    tenant_settings: Array<{
-      primary_color: string;
-      secondary_color: string;
-      welcome_message: string | null;
-      program_label: string;
-      logo_padding: number;
-      tiers_enabled: boolean;
-      tiers: PortalTierConfig[] | null;
-      referral_enabled: boolean;
-      referral_program_configs: Record<string, { referrer_bonus: number; referred_bonus: number }>;
-    }> | null;
-  };
-
-  const settings = Array.isArray(raw.tenant_settings)
-    ? raw.tenant_settings[0]
-    : raw.tenant_settings;
-
-  // Free plan → neutral Fideliza branding (no tenant logo/colors) + "Powered by" badge
-  const customBranding = getPlanLimits(
-    getEffectivePlan(raw.plan, raw.subscription_status)
-  ).portalCustomBranding;
-
-  const tenant: PortalTenant = {
-    id:              tenantId,
-    name:            raw.name,
-    subdomain:       raw.subdomain,
-    logo_url:        customBranding ? (raw.logo_url ?? null) : null,
-    logo_padding:    settings?.logo_padding ?? 8,
-    primary_color:   customBranding ? (settings?.primary_color   ?? '#6366F1') : '#6366F1',
-    secondary_color: customBranding ? (settings?.secondary_color ?? '#A5B4FC') : '#A5B4FC',
-    welcome_message: settings?.welcome_message ?? null,
-    program_label:   settings?.program_label   ?? 'Points',
-    powered_by:      !customBranding,
-  };
+  // ── 3. Tenant branding (from per-tenant cache) ────────────────────
+  const tenant = tenantCfg.tenant;
 
   // ── 4. Parse enrollments + fetch affordable rewards ───────────────
   type RawEnrollment = {
@@ -376,31 +458,13 @@ export async function getPortalData(
     .map((e) => e.reward_programs?.id)
     .filter((id): id is string => Boolean(id));
 
-  // Fetch all active rewards for the programs in one query
-  const rewardsMap = new Map<string, Array<{
-    id: string; name: string; description: string | null;
-    cost_points: number; expiry_days: number | null;
-    program_id: string; stock: number | null;
-  }>>();
+  // Rewards catalog comes from the per-tenant cache; filter to the customer's
+  // enrolled programs in memory (the catalog is identical for all customers).
+  const rewardsMap = new Map<string, PortalRawReward[]>();
   if (programIds.length > 0) {
-    const { data: allRewards } = await db
-      .from('rewards')
-      .select('id, name, description, cost_points, expiry_days, program_id, stock')
-      .eq('tenant_id', tenantId)
-      .in('program_id', programIds)
-      .eq('is_active', true);
-
-    type RawReward = {
-      id: string;
-      name: string;
-      description: string | null;
-      cost_points: number;
-      expiry_days: number | null;
-      program_id: string;
-      stock: number | null;
-    };
-
-    for (const r of ((allRewards ?? []) as unknown as RawReward[])) {
+    const programIdSet = new Set(programIds);
+    for (const r of await getActiveRewardsCached(tenantId)) {
+      if (!programIdSet.has(r.program_id)) continue;
       if (!rewardsMap.has(r.program_id)) rewardsMap.set(r.program_id, []);
       rewardsMap.get(r.program_id)!.push(r);
     }
@@ -656,9 +720,8 @@ export async function getPortalData(
     loyalty_score: number; tier_label: string | null; tier_color: string | null;
   };
 
-  const tenantTiersEnabled = settings?.tiers_enabled ?? false;
-  const tenantTiers: PortalTierConfig[] | null = tenantTiersEnabled
-    ? (settings?.tiers ?? null)
+  const tenantTiers: PortalTierConfig[] | null = tenantCfg.tiers_enabled
+    ? tenantCfg.tiers
     : null;
 
   return {
@@ -678,8 +741,8 @@ export async function getPortalData(
     pending_vouchers,
     rankings,
     tenant_tiers: tenantTiers,
-    referral_enabled:          settings?.referral_enabled ?? false,
-    referral_program_configs:  settings?.referral_program_configs ?? {},
+    referral_enabled:          tenantCfg.referral_enabled,
+    referral_program_configs:  tenantCfg.referral_program_configs,
     missions: portalMissions,
     pending_bonuses,
   };

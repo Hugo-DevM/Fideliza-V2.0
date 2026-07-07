@@ -2,6 +2,7 @@
 
 import { getAuthenticatedTenant } from '@/lib/auth/get-tenant';
 import { createServiceRoleClient } from '@/lib/supabase/server';
+import { revalidateTenantCache } from '@/lib/cache/tenant-cache';
 import type { TierConfig } from '@/lib/utils/tiers';
 
 export async function updateTenantTiersAction(payload: {
@@ -13,7 +14,7 @@ export async function updateTenantTiersAction(payload: {
   tier_score_per_cashback_cent: number;
 }): Promise<{ error?: string }> {
   try {
-    const { tenantId, planLimits } = await getAuthenticatedTenant();
+    const { tenantId, tenant, planLimits } = await getAuthenticatedTenant();
     if (!planLimits.universalTiers) {
       return { error: 'Los niveles VIP están disponibles en el plan Pro.' };
     }
@@ -53,6 +54,7 @@ export async function updateTenantTiersAction(payload: {
       .eq('tenant_id', tenantId);
 
     if (error) return { error: error.message };
+    revalidateTenantCache(tenantId, tenant.subdomain);
     return {};
   } catch (e) {
     return { error: (e as Error).message };
