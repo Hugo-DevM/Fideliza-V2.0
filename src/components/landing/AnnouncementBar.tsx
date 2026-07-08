@@ -65,26 +65,27 @@ export function AnnouncementBar({ t, onVisibleChange }: AnnouncementBarProps) {
           transition={{ duration: 0.25, ease: 'easeOut' }}
           className="fixed top-0 left-0 right-0 z-[60] h-10 bg-gradient-to-r from-indigo-600 via-violet-600 to-indigo-600 text-white"
         >
-          <div className="mx-auto flex h-full max-w-7xl items-center justify-center gap-2 sm:gap-3 px-10 text-xs sm:text-sm">
-            <span aria-hidden="true">🎟️</span>
+          <div className="mx-auto flex h-full max-w-7xl items-center justify-center gap-1.5 sm:gap-3 pl-2 pr-9 sm:px-10 text-xs sm:text-sm">
+            <span aria-hidden="true" className="hidden sm:inline">🎟️</span>
 
             {/* Full copy on ≥sm, compact on mobile */}
-            <p className="truncate">
-              <span className="hidden sm:inline">{t.description}</span>
-              <span className="sm:hidden font-medium">{t.introShort}</span>
+            <p className="min-w-0 flex-shrink">
+              <span className="hidden sm:inline truncate">{t.description}</span>
+              <span className="sm:hidden font-medium text-[11px] leading-tight">{t.introShort}</span>
             </p>
 
             <button
               onClick={handleCopy}
               title={copied ? t.copied : t.copy}
-              className="flex-shrink-0 inline-flex items-center gap-1.5 rounded-md bg-white/15 hover:bg-white/25 border border-white/25 px-2.5 py-1 font-mono text-[11px] sm:text-xs font-bold tracking-wide transition-colors"
+              className="flex-shrink-0 inline-flex items-center gap-1.5 rounded-md bg-white/15 hover:bg-white/25 border border-white/25 px-2 sm:px-2.5 py-1 font-mono text-[11px] sm:text-xs font-bold tracking-wide transition-colors"
             >
               {copied ? t.copied : t.code}
             </button>
 
-            {remainingText && (
-              <span className="flex-shrink-0 rounded-full bg-amber-300 px-2 py-0.5 text-[10px] sm:text-[11px] font-bold text-amber-950">
-                {remainingText}
+            {status && status.remaining !== null && status.total !== null && (
+              <span className="flex-shrink-0 rounded-full bg-amber-300 px-1.5 sm:px-2 py-0.5 text-[10px] sm:text-[11px] font-bold text-amber-950 whitespace-nowrap">
+                <span className="hidden sm:inline">{remainingText}</span>
+                <span className="sm:hidden">{status.remaining}/{status.total}</span>
               </span>
             )}
           </div>

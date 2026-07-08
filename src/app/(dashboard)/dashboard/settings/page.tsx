@@ -17,16 +17,33 @@ export default async function SettingsPage({
   const { checkout } = await searchParams;
   const year = new Date().getFullYear();
 
-  let planUsage: { customers: { used: number; max: number }; programs: { used: number; max: number } } | null = null;
-  if (effectivePlan === 'free' || effectivePlan === 'starter') {
+  let planUsage: {
+    customers: { used: number; max: number } | null;
+    programs:  { used: number; max: number } | null;
+    whatsapp:  { used: number; max: number };
+  } | null = null;
+  if (effectivePlan === 'free' || effectivePlan === 'starter' || effectivePlan === 'pro') {
     const db = createServiceRoleClient();
-    const [{ count: customerCount }, { count: programCount }] = await Promise.all([
-      db.from('customers').select('id', { count: 'exact', head: true }).eq('tenant_id', tenant.id).eq('is_active', true),
-      db.from('reward_programs').select('id', { count: 'exact', head: true }).eq('tenant_id', tenant.id).neq('status', 'archived'),
+    const hasLimits = effectivePlan !== 'pro';
+    const waLimit = planLimits.whatsappMonthlyLimit ?? 0;
+    const monthStart = new Date();
+    monthStart.setUTCDate(1);
+    monthStart.setUTCHours(0, 0, 0, 0);
+    const [{ count: customerCount }, { count: programCount }, { count: whatsappCount }] = await Promise.all([
+      hasLimits
+        ? db.from('customers').select('id', { count: 'exact', head: true }).eq('tenant_id', tenant.id).eq('is_active', true)
+        : Promise.resolve({ count: 0 }),
+      hasLimits
+        ? db.from('reward_programs').select('id', { count: 'exact', head: true }).eq('tenant_id', tenant.id).neq('status', 'archived')
+        : Promise.resolve({ count: 0 }),
+      waLimit > 0
+        ? db.from('whatsapp_message_queue').select('id', { count: 'exact', head: true }).eq('tenant_id', tenant.id).neq('status', 'failed').gte('created_at', monthStart.toISOString())
+        : Promise.resolve({ count: 0 }),
     ]);
     planUsage = {
-      customers: { used: customerCount ?? 0, max: planLimits.maxCustomers! },
-      programs:  { used: programCount  ?? 0, max: planLimits.maxPrograms!  },
+      customers: hasLimits ? { used: customerCount ?? 0, max: planLimits.maxCustomers! } : null,
+      programs:  hasLimits ? { used: programCount  ?? 0, max: planLimits.maxPrograms!  } : null,
+      whatsapp:  { used: whatsappCount ?? 0, max: waLimit },
     };
   }
 

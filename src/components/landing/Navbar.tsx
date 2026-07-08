@@ -35,9 +35,17 @@ export function Navbar({ t, lang, onLangChange, offsetTop = false }: NavbarProps
       ].join(" ")}
     >
       <Container className="flex items-center justify-between h-16">
-        {/* Logo */}
-        <Link href="/">
-          <Image src="/logofideliza.svg" alt="Fideliza+" width={144} height={48} className="h-12 w-auto" />
+        {/* Logo — scrolls back to top when already on the landing */}
+        <Link
+          href="/"
+          onClick={(e) => {
+            if (window.location.pathname === "/") {
+              e.preventDefault();
+              window.scrollTo({ top: 0, behavior: "smooth" });
+            }
+          }}
+        >
+          <Image src="/logofideliza.svg" alt="Fideliza" width={144} height={48} className="h-12 w-auto" />
         </Link>
 
         {/* Desktop nav */}

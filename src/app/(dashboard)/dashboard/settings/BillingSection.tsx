@@ -6,8 +6,9 @@ import { useAutoError } from '@/hooks/useAutoError';
 import { useModalTransition } from '@/hooks/useModalTransition';
 
 interface PlanUsage {
-  customers: { used: number; max: number };
-  programs:  { used: number; max: number };
+  customers: { used: number; max: number } | null;
+  programs:  { used: number; max: number } | null;
+  whatsapp:  { used: number; max: number };
 }
 
 interface Props {
@@ -229,7 +230,7 @@ export default function BillingSection({
                   })}
                 </p>
                 <p className="text-xs text-indigo-400 dark:text-indigo-400/70">
-                  A partir del próximo ciclo: MX$699/mes
+                  A partir del próximo ciclo: MX$1,099/mes
                 </p>
               </div>
             )}
@@ -351,12 +352,29 @@ export default function BillingSection({
           )}
         </div>
 
-        {/* Plan usage (free / starter only) */}
+        {/* Plan usage */}
         {planUsage && (
           <div className="rounded-xl border border-gray-100 dark:border-[#1e2438] bg-gray-50 dark:bg-[#1a1f35] px-4 py-3 space-y-3">
             <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Uso del plan</p>
-            <UsageBar label="Clientes activos" used={planUsage.customers.used} max={planUsage.customers.max} />
-            <UsageBar label="Programas"        used={planUsage.programs.used}  max={planUsage.programs.max}  />
+            {planUsage.customers && (
+              <UsageBar label="Clientes activos" used={planUsage.customers.used} max={planUsage.customers.max} />
+            )}
+            {planUsage.programs && (
+              <UsageBar label="Programas" used={planUsage.programs.used} max={planUsage.programs.max} />
+            )}
+            {planUsage.whatsapp.max > 0 ? (
+              <UsageBar label="Mensajes WhatsApp (este mes)" used={planUsage.whatsapp.used} max={planUsage.whatsapp.max} />
+            ) : (
+              <div className="flex items-center justify-between text-sm">
+                <span className="text-gray-400 dark:text-gray-500">Mensajes WhatsApp</span>
+                <span className="inline-flex items-center gap-1.5 rounded-full bg-gray-100 dark:bg-white/10 px-2 py-0.5 text-xs font-medium text-gray-400 dark:text-gray-500">
+                  <svg className="h-3 w-3" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 1 0-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 0 0 2.25-2.25v-6.75a2.25 2.25 0 0 0-2.25-2.25H6.75a2.25 2.25 0 0 0-2.25 2.25v6.75a2.25 2.25 0 0 0 2.25 2.25Z" />
+                  </svg>
+                  Desde Starter
+                </span>
+              </div>
+            )}
           </div>
         )}
 
@@ -385,7 +403,7 @@ export default function BillingSection({
               <span className="text-lg">🎁</span>
               <div>
                 <p className="text-sm font-semibold text-green-800 dark:text-green-400">{trialDays} días gratis — sin cargos hasta que termine el período</p>
-                <p className="text-xs text-green-700 dark:text-green-400/80 mt-0.5">Ingresa tu tarjeta hoy y empieza a usar Fideliza+ sin costo. Cancela cuando quieras antes de que termine el período.</p>
+                <p className="text-xs text-green-700 dark:text-green-400/80 mt-0.5">Ingresa tu tarjeta hoy y empieza a usar Fideliza sin costo. Cancela cuando quieras antes de que termine el período.</p>
               </div>
             </div>
           )}
@@ -401,7 +419,7 @@ export default function BillingSection({
               onClick={() => setBilling('annual')}
               className={`rounded-full px-4 py-1.5 text-xs font-semibold transition ${billing === 'annual' ? 'bg-indigo-600 text-white' : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200'}`}
             >
-              Anual <span className="ml-1 text-green-500 font-bold">−20%</span>
+              Anual <span className="ml-1 text-green-500 font-bold">2 meses gratis</span>
             </button>
           </div>
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
@@ -410,23 +428,16 @@ export default function BillingSection({
               <div className="flex-1">
                 <div className="flex items-center gap-2 mb-1">
                   <p className="font-semibold text-gray-900 dark:text-white">Starter</p>
-                  <span className="rounded-full bg-amber-100 dark:bg-amber-500/20 px-2 py-0.5 text-[10px] font-bold text-amber-700 dark:text-amber-400 uppercase tracking-wide">
-                    🔥 Lanzamiento
-                  </span>
                 </div>
                 <div className="flex items-baseline gap-2">
                   <p className="text-2xl font-bold text-gray-900 dark:text-white">
-                    {billing === 'annual' ? 'MX$291' : 'MX$349'}
+                    {billing === 'annual' ? 'MX$458' : 'MX$549'}
                     <span className="text-sm font-normal text-gray-400 dark:text-gray-500">/mes</span>
                   </p>
-                  <p className="text-sm text-gray-400 dark:text-gray-500 line-through">
-                    {billing === 'annual' ? 'MX$458' : 'MX$549'}
-                  </p>
                 </div>
-                {billing === 'annual'
-                  ? <p className="text-xs text-green-600 dark:text-green-400 font-medium">MX$3,490/año · 2 meses gratis</p>
-                  : <p className="text-xs text-amber-600 dark:text-amber-400 font-medium">Precio de lanzamiento · tiempo limitado</p>
-                }
+                {billing === 'annual' && (
+                  <p className="text-xs text-green-600 dark:text-green-400 font-medium">MX$5,490/año · 2 meses gratis</p>
+                )}
                 <ul className="mt-2 space-y-1 text-xs text-gray-500 dark:text-gray-400">
                   <li>✓ Hasta 300 clientes</li>
                   <li>✓ 3 programas</li>
@@ -452,24 +463,17 @@ export default function BillingSection({
                     <span className="rounded-full bg-indigo-100 dark:bg-indigo-500/20 px-2 py-0.5 text-[10px] font-semibold text-indigo-700 dark:text-indigo-400">
                       MÁS POTENTE
                     </span>
-                    <span className="rounded-full bg-amber-100 dark:bg-amber-500/20 px-2 py-0.5 text-[10px] font-bold text-amber-700 dark:text-amber-400 uppercase tracking-wide">
-                      🔥 Lanzamiento
-                    </span>
                   </div>
                 </div>
                 <div className="flex items-baseline gap-2">
                   <p className="text-2xl font-bold text-gray-900 dark:text-white">
-                    {billing === 'annual' ? 'MX$582' : 'MX$699'}
+                    {billing === 'annual' ? 'MX$916' : 'MX$1,099'}
                     <span className="text-sm font-normal text-gray-400 dark:text-gray-500">/mes</span>
                   </p>
-                  <p className="text-sm text-gray-400 dark:text-gray-500 line-through">
-                    {billing === 'annual' ? 'MX$916' : 'MX$1,099'}
-                  </p>
                 </div>
-                {billing === 'annual'
-                  ? <p className="text-xs text-green-600 dark:text-green-400 font-medium">MX$6,990/año · 2 meses gratis</p>
-                  : <p className="text-xs text-amber-600 dark:text-amber-400 font-medium">Precio de lanzamiento · tiempo limitado</p>
-                }
+                {billing === 'annual' && (
+                  <p className="text-xs text-green-600 dark:text-green-400 font-medium">MX$10,990/año · 2 meses gratis</p>
+                )}
                 <ul className="mt-2 space-y-1 text-xs text-gray-500 dark:text-gray-400">
                   <li>✓ Clientes ilimitados</li>
                   <li>✓ Programas ilimitados</li>
@@ -503,10 +507,8 @@ export default function BillingSection({
             </div>
             <div className="flex items-baseline gap-2">
               <p className="text-2xl font-bold text-gray-900 dark:text-white">
-                MX$699 <span className="text-sm font-normal text-gray-400 dark:text-gray-500">/mes</span>
+                MX$1,099 <span className="text-sm font-normal text-gray-400 dark:text-gray-500">/mes</span>
               </p>
-              <p className="text-sm text-gray-400 dark:text-gray-500 line-through">MX$1,099</p>
-              <span className="rounded-full bg-amber-100 dark:bg-amber-500/20 px-2 py-0.5 text-[10px] font-bold text-amber-700 dark:text-amber-400">🔥 Lanzamiento</span>
             </div>
             <p className="text-xs text-gray-400 dark:text-gray-500">El ciclo de facturación se mantiene igual. Puedes cambiar a anual desde el portal de facturación.</p>
             <ul className="space-y-1 text-xs text-gray-500 dark:text-gray-400">
