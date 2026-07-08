@@ -11,9 +11,11 @@ interface NavbarProps {
   t: Dictionary["navbar"];
   lang: Locale;
   onLangChange: (lang: Locale) => void;
+  /** Shifts the navbar down while the announcement bar is visible. */
+  offsetTop?: boolean;
 }
 
-export function Navbar({ t, lang, onLangChange }: NavbarProps) {
+export function Navbar({ t, lang, onLangChange, offsetTop = false }: NavbarProps) {
   const [scrolled, setScrolled] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   useEffect(() => {
@@ -25,7 +27,8 @@ export function Navbar({ t, lang, onLangChange }: NavbarProps) {
   return (
     <header
       className={[
-        "fixed top-0 left-0 right-0 z-50 transition-all duration-200",
+        "fixed left-0 right-0 z-50 transition-all duration-200",
+        offsetTop ? "top-10" : "top-0",
         scrolled
           ? "bg-gray-950/95 backdrop-blur-md border-b border-white/10"
           : "bg-transparent",

@@ -3,6 +3,7 @@
 import { useState, useSyncExternalStore } from 'react';
 import type { Dictionary, Locale } from '@/lib/i18n';
 import { Navbar } from './Navbar';
+import { AnnouncementBar } from './AnnouncementBar';
 import { Hero } from './Hero';
 import { HowItWorks } from './HowItWorks';
 import { Features } from './Features';
@@ -25,6 +26,7 @@ export function LandingShell({ dictEn, dictEs }: Props) {
   // false during SSR/hydration render, true afterwards
   const mounted = useSyncExternalStore(emptySubscribe, () => true, () => false);
   const [langOverride, setLangOverride] = useState<Locale | null>(null);
+  const [barVisible, setBarVisible] = useState(false);
 
   // Default to Spanish (primary market); override from localStorage after hydration
   const saved = mounted ? (localStorage.getItem('landing-lang') as Locale | null) : null;
@@ -43,7 +45,8 @@ export function LandingShell({ dictEn, dictEs }: Props) {
   return (
     <>
       <ScrollReveal />
-      <Navbar t={dict.navbar} lang={lang} onLangChange={handleLangChange} />
+      <AnnouncementBar t={dict.pricing.coupon} onVisibleChange={setBarVisible} />
+      <Navbar t={dict.navbar} lang={lang} onLangChange={handleLangChange} offsetTop={barVisible} />
       <main>
         <Hero t={dict.hero} />
         <HowItWorks t={dict.howItWorks} />

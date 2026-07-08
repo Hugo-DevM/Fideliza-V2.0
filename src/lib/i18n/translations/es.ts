@@ -15,9 +15,9 @@ export const es: Dictionary = {
 
   hero: {
     badge: "Acceso anticipado disponible",
-    headingPlain: "Programas de fidelización que ",
-    headingGradient: "realmente se usan",
-    body: "Dale a tus clientes una tarjeta de fidelización digital — sin descargar una app, sin crear una cuenta. Solo un código único. Tu negocio obtiene un subdominio propio y un panel completo para gestionar puntos, sellos y premios.",
+    headingPlain: "Haz que tus clientes ",
+    headingGradient: "regresen una y otra vez",
+    body: "Fideliza es el sistema de retención completo para tu negocio: puntos, sellos y cashback, niveles VIP, referidos, misiones, premios de cumpleaños y campañas de WhatsApp. Todo sin que tus clientes descarguen una app — solo un código.",
     cta1: "Acceso anticipado — es gratis",
     cta2: "Ver cómo funciona",
     socialProofCount: "+40 negocios",
@@ -45,7 +45,7 @@ export const es: Dictionary = {
       {
         title: "Diseña tu programa de fidelización",
         description:
-          "Elige tu mecánica de recompensas: puntos por compra, tarjeta de sellos o premios por visitas. Configura qué ganan los clientes y qué pueden canjear.",
+          "Elige tu mecánica de recompensas: puntos por compra, tarjeta de sellos, premios por visitas o cashback. Y cuando estés listo, activa ofertas flash, misiones, niveles VIP y referidos.",
       },
       {
         title: "Agrega clientes — reciben un código único",
@@ -62,36 +62,36 @@ export const es: Dictionary = {
 
   features: {
     label: "Qué incluye",
-    heading: "Todo lo que necesita tu programa de fidelización",
-    body: "Diseñado específicamente para pequeñas y medianas empresas que quieren retención real de clientes — sin la complejidad de una solución empresarial.",
+    heading: "Todo lo que necesitas para que tus clientes regresen",
+    body: "Un sistema de retención completo hecho para pequeñas y medianas empresas — sin la complejidad ni el precio de una solución empresarial.",
     items: [
       {
-        badge: "Multi-programa",
+        badge: "Programas flexibles",
         badgeColor: "indigo" as const,
-        title: "Puntos, sellos y visitas — tú decides",
+        title: "Puntos, sellos, visitas y cashback",
         description:
-          "Ejecuta varios programas de fidelización a la vez. Una tarjeta de café Y un programa de puntos en la misma cuenta. Cada programa tiene su propio saldo, premios y configuración.",
+          "Ejecuta varios programas de fidelización a la vez, cada uno con su propia mecánica, saldo y premios. Configura qué ganan tus clientes, qué pueden canjear y cuánto vale cada compra.",
       },
       {
-        badge: "Sin fricción",
-        badgeColor: "green" as const,
-        title: "Los clientes no necesitan nada — solo su código",
-        description:
-          "Sin app. Sin cuenta. Sin contraseña. Los clientes se identifican con un código de 8 caracteres que tú les das. Pueden ver su saldo en tutienda.fideliza.app en cualquier momento.",
-      },
-      {
-        badge: "Multi-tenant",
-        badgeColor: "indigo" as const,
-        title: "Tu propio subdominio con tu marca",
-        description:
-          "Cada negocio en Fideliza obtiene un subdominio aislado como marios.fideliza.app. Tus datos, tus clientes, tu marca — completamente separados de los demás negocios.",
-      },
-      {
-        badge: "Tiempo real",
+        badge: "Razones para volver",
         badgeColor: "amber" as const,
-        title: "Saldo e historial de transacciones en vivo",
+        title: "Ofertas flash, misiones y premios de cumpleaños",
         description:
-          "Cada punto ganado o canjeado se registra al instante. Libro de transacciones completo para tus registros. Ve qué premios generan más participación y quiénes son tus clientes más leales.",
+          "Crea urgencia con ofertas de tiempo limitado, lanza misiones con premios extra y sorprende a tus clientes en su cumpleaños o cuando llevan tiempo sin visitarte — automáticamente.",
+      },
+      {
+        badge: "Crecimiento automático",
+        badgeColor: "green" as const,
+        title: "Niveles VIP y referidos que trabajan por ti",
+        description:
+          "Tus mejores clientes suben a Plata, Oro y Platino con beneficios crecientes, y cada cliente puede traerte nuevos con su enlace de referido — ambos ganan puntos.",
+      },
+      {
+        badge: "WhatsApp + analíticas",
+        badgeColor: "indigo" as const,
+        title: "Mensajes que traen clientes de vuelta",
+        description:
+          "Envía campañas y recordatorios por WhatsApp — premios por vencer, cumpleaños, reactivación — y mide todo: visitas, canjes y quiénes son tus clientes más leales.",
       },
     ],
     visuals: {
@@ -100,28 +100,35 @@ export const es: Dictionary = {
           { label: "Puntos", active: true },
           { label: "Sellos", active: false },
           { label: "Visitas", active: false },
+          { label: "Cashback", active: false },
         ],
         balance: "350 pts",
         nextReward: "Próximo premio: 150 pts",
       },
-      accessCode: {
-        status: "Activo",
-        hint: "Sin registro — el código es todo lo que necesitan",
-      },
-      subdomain: {
-        hint: "Datos aislados por cliente — sin mezcla entre negocios",
-      },
-      transaction: {
+      engagement: {
         rows: [
-          { label: "Compra $28.00", points: "+280", type: "earn" as const },
-          { label: "Compra $12.50", points: "+125", type: "earn" as const },
-          {
-            label: "Canje: Café Gratis",
-            points: "−250",
-            type: "redeem" as const,
-          },
+          { icon: "flash" as const, title: "Oferta flash: 2x1 en cafés", meta: "Termina en 05:12:44" },
+          { icon: "mission" as const, title: "Misión: visítanos 3 veces esta semana", meta: "+200 pts extra" },
+          { icon: "birthday" as const, title: "Bono de cumpleaños enviado a Alice", meta: "Automático" },
         ],
-        balanceLabel: "Saldo",
+      },
+      growth: {
+        tiers: [
+          { label: "Plata", active: false },
+          { label: "Oro", active: true },
+          { label: "Platino", active: false },
+        ],
+        tierHint: "María llegó a Oro · puntos x2",
+        referral: "María invitó a 3 amigos",
+        referralPoints: "+450 pts",
+      },
+      whatsapp: {
+        sender: "Fideliza · WhatsApp",
+        message: "¡Hola Ana! 🎁 Tu premio de café gratis vence en 3 días. ¡Ven a visitarnos!",
+        time: "10:42",
+        statLabel: "Canjes este mes",
+        statValue: "32",
+        statDelta: "▲ 18%",
       },
     },
   },
@@ -148,18 +155,18 @@ export const es: Dictionary = {
       },
       {
         stat: "∞",
-        unit: "Tipos de programa",
+        unit: "Formas de hacerlos volver",
         description:
-          "Ejecuta un programa de puntos y una tarjeta de sellos simultáneamente. Mecánicas distintas para distintos públicos.",
+          "Puntos, sellos, visitas y cashback — más ofertas flash, misiones, niveles VIP y referidos encima.",
       },
     ],
     label: "Hecho para negocios",
     heading: "Más visitas repetidas, menos incertidumbre",
-    body: "La fidelización no debería requerir un desarrollador, una app dedicada ni seis meses de implementación. Fideliza es la plataforma que los negocios independientes pueden usar y costear.",
+    body: "La retención no debería requerir un desarrollador, una app dedicada ni seis meses de implementación. Fideliza es el sistema de retención que los negocios independientes pueden usar y costear.",
     items: [
       {
         title: "Retén clientes, no solo atráelos",
-        body: "Los programas de fidelización aumentan la frecuencia de visitas al dar a los clientes una razón tangible para volver. Rastrea quién es leal y prémialos antes de que se vayan.",
+        body: "Ofertas flash, misiones y niveles VIP dan a tus clientes razones tangibles para volver — y si alguien deja de visitarte, Fideliza puede enviarle un bono de reactivación por WhatsApp automáticamente.",
       },
       {
         title: "Conoce a tus mejores clientes",
@@ -226,11 +233,11 @@ export const es: Dictionary = {
       },
       {
         name: "Starter",
-        price: "MX$349",
-        originalPrice: "MX$549",
-        annualPrice: "MX$3,490",
-        originalAnnualPrice: "MX$5,490",
-        annualMonthly: "MX$291/mes",
+        price: "MX$549",
+        originalPrice: null,
+        annualPrice: "MX$5,490",
+        originalAnnualPrice: null,
+        annualMonthly: "MX$458/mes",
         period: "/mes",
         description:
           "Para negocios en crecimiento listos para convertir habituales en clientes leales.",
@@ -250,11 +257,11 @@ export const es: Dictionary = {
       },
       {
         name: "Pro",
-        price: "MX$699",
-        originalPrice: "MX$1,099",
-        annualPrice: "MX$6,990",
-        originalAnnualPrice: "MX$10,990",
-        annualMonthly: "MX$582/mes",
+        price: "MX$1,099",
+        originalPrice: null,
+        annualPrice: "MX$10,990",
+        originalAnnualPrice: null,
+        annualMonthly: "MX$916/mes",
         period: "/mes",
         description:
           "Para negocios consolidados con una estrategia de fidelización seria.",
@@ -358,8 +365,18 @@ export const es: Dictionary = {
         },
       ],
     },
+    coupon: {
+      code: "FIDELIZA10",
+      intro: "Cupón de fundadores",
+      introShort: "25% en tu primer pago",
+      description: "25% de descuento en tu primer pago de Starter o Pro — mensual o anual — con el cupón",
+      remaining: "Quedan {n} de {total}",
+      soldOut: "Cupones agotados",
+      copy: "Copiar código",
+      copied: "¡Copiado!",
+    },
     footnote:
-      "Precios previos al lanzamiento. Los miembros de acceso anticipado bloquean tarifas de fundadores.",
+      "Precios en pesos mexicanos (MXN). Cancela o cambia de plan cuando quieras.",
   },
 
   cta: {

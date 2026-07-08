@@ -13,9 +13,9 @@ export const en = {
 
   hero: {
     badge: "Now in early access",
-    headingPlain: "Loyalty programs that ",
-    headingGradient: "actually get used",
-    body: "Give your customers a digital loyalty card — no app download, no account creation. Just a unique code. Your business gets a branded subdomain and a full dashboard to manage points, stamps, and rewards.",
+    headingPlain: "Make your customers ",
+    headingGradient: "come back again and again",
+    body: "Fideliza is the complete retention system for your business: points, stamps and cashback, VIP tiers, referrals, missions, birthday rewards, and WhatsApp campaigns. All without your customers downloading an app — just a code.",
     cta1: "Get early access — it's free",
     cta2: "See how it works",
     socialProofCount: "40+ businesses",
@@ -43,7 +43,7 @@ export const en = {
       {
         title: "Design your loyalty program",
         description:
-          "Choose your reward mechanic — points per purchase, a stamp card, or visit-based rewards. Configure what customers earn and what they can redeem.",
+          "Choose your reward mechanic — points per purchase, a stamp card, visit-based rewards, or cashback. Then switch on flash offers, missions, VIP tiers, and referrals whenever you're ready.",
       },
       {
         title: "Add customers — they get a unique code",
@@ -60,36 +60,36 @@ export const en = {
 
   features: {
     label: "What's included",
-    heading: "Everything your loyalty program needs",
-    body: "Built specifically for small and medium businesses that want real customer retention — without enterprise complexity.",
+    heading: "Everything you need to keep customers coming back",
+    body: "A complete retention system built for small and medium businesses — without enterprise complexity or enterprise pricing.",
     items: [
       {
-        badge: "Multi-program",
+        badge: "Flexible programs",
         badgeColor: "indigo" as const,
-        title: "Points, stamps, and visits — your choice",
+        title: "Points, stamps, visits, and cashback",
         description:
-          "Run multiple loyalty programs at once. A coffee punch card AND a points program on the same account. Each program has its own balance, rewards, and configuration.",
+          "Run multiple loyalty programs at once, each with its own mechanic, balance, and rewards. Configure what customers earn, what they can redeem, and what every purchase is worth.",
       },
       {
-        badge: "Zero friction",
-        badgeColor: "green" as const,
-        title: "Customers need nothing — just their code",
-        description:
-          "No app. No account. No password. Customers identify themselves with an 8-character code you give them. They can check their balance at yourshop.fideliza.app anytime.",
-      },
-      {
-        badge: "Multi-tenant",
-        badgeColor: "indigo" as const,
-        title: "Your own branded subdomain",
-        description:
-          "Every business on Fideliza gets an isolated subdomain like marios.fideliza.app. Your data, your customers, your brand — completely separate from every other business.",
-      },
-      {
-        badge: "Real-time",
+        badge: "Reasons to return",
         badgeColor: "amber" as const,
-        title: "Live balance and transaction history",
+        title: "Flash offers, missions, and birthday rewards",
         description:
-          "Every point earned or redeemed is recorded instantly. Full transaction ledger for your records. See what rewards are driving engagement and which customers are most loyal.",
+          "Create urgency with limited-time offers, launch missions with bonus rewards, and surprise customers on their birthday or when they haven't visited in a while — automatically.",
+      },
+      {
+        badge: "Automatic growth",
+        badgeColor: "green" as const,
+        title: "VIP tiers and referrals that work for you",
+        description:
+          "Your best customers climb to Silver, Gold, and Platinum with growing benefits, and every customer can bring you new ones with their referral link — both earn points.",
+      },
+      {
+        badge: "WhatsApp + analytics",
+        badgeColor: "indigo" as const,
+        title: "Messages that bring customers back",
+        description:
+          "Send WhatsApp campaigns and reminders — expiring rewards, birthdays, win-back offers — and measure everything: visits, redemptions, and who your most loyal customers are.",
       },
     ],
     visuals: {
@@ -98,28 +98,35 @@ export const en = {
           { label: "Points", active: true },
           { label: "Stamps", active: false },
           { label: "Visits", active: false },
+          { label: "Cashback", active: false },
         ],
         balance: "350 pts",
         nextReward: "Next reward: 150 pts",
       },
-      accessCode: {
-        status: "Active",
-        hint: "No registration required — code is all they need",
-      },
-      subdomain: {
-        hint: "Data isolated per tenant — no cross-contamination",
-      },
-      transaction: {
+      engagement: {
         rows: [
-          { label: "Purchase $28.00", points: "+280", type: "earn" as const },
-          { label: "Purchase $12.50", points: "+125", type: "earn" as const },
-          {
-            label: "Redeemed: Free Coffee",
-            points: "−250",
-            type: "redeem" as const,
-          },
+          { icon: "flash" as const, title: "Flash offer: 2x1 lattes", meta: "Ends in 05:12:44" },
+          { icon: "mission" as const, title: "Mission: visit 3x this week", meta: "+200 pts bonus" },
+          { icon: "birthday" as const, title: "Birthday reward sent to Alice", meta: "Automatic" },
         ],
-        balanceLabel: "Balance",
+      },
+      growth: {
+        tiers: [
+          { label: "Silver", active: false },
+          { label: "Gold", active: true },
+          { label: "Platinum", active: false },
+        ],
+        tierHint: "María reached Gold · 2x points",
+        referral: "María referred 3 friends",
+        referralPoints: "+450 pts",
+      },
+      whatsapp: {
+        sender: "Fideliza · WhatsApp",
+        message: "Hi Ana! 🎁 Your free-coffee reward expires in 3 days. Come see us!",
+        time: "10:42",
+        statLabel: "Redemptions this month",
+        statValue: "32",
+        statDelta: "▲ 18%",
       },
     },
   },
@@ -146,18 +153,18 @@ export const en = {
       },
       {
         stat: "∞",
-        unit: "Program types",
+        unit: "Ways to bring them back",
         description:
-          "Run a points program and a stamp card simultaneously. Different mechanics for different audiences.",
+          "Points, stamps, visits, and cashback — plus flash offers, missions, VIP tiers, and referrals layered on top.",
       },
     ],
     label: "Built for businesses",
     heading: "More return visits, less guesswork",
-    body: "Loyalty shouldn't require a developer, a dedicated app, or a six-month onboarding process. Fideliza is the loyalty platform that independent businesses can actually use and afford.",
+    body: "Retention shouldn't require a developer, a dedicated app, or a six-month onboarding process. Fideliza is the retention system that independent businesses can actually use and afford.",
     items: [
       {
         title: "Retain customers, not just attract them",
-        body: "Loyalty programs increase repeat visit frequency by giving customers a tangible reason to come back. Track who's loyal and reward them before they leave.",
+        body: "Flash offers, missions, and VIP tiers give customers tangible reasons to return — and when someone stops visiting, Fideliza can send them a win-back reward on WhatsApp automatically.",
       },
       {
         title: "Know who your best customers are",
@@ -224,11 +231,11 @@ export const en = {
       },
       {
         name: "Starter",
-        price: "$19",
-        originalPrice: "$29",
-        annualPrice: "$182",
-        originalAnnualPrice: "$290",
-        annualMonthly: "$15/mo",
+        price: "$29",
+        originalPrice: null as string | null,
+        annualPrice: "$290",
+        originalAnnualPrice: null as string | null,
+        annualMonthly: "$24/mo",
         period: "/month",
         description:
           "For growing businesses ready to turn regulars into loyal customers.",
@@ -248,11 +255,11 @@ export const en = {
       },
       {
         name: "Pro",
-        price: "$39",
-        originalPrice: "$59",
-        annualPrice: "$374",
-        originalAnnualPrice: "$590",
-        annualMonthly: "$31/mo",
+        price: "$59",
+        originalPrice: null as string | null,
+        annualPrice: "$590",
+        originalAnnualPrice: null as string | null,
+        annualMonthly: "$49/mo",
         period: "/month",
         description:
           "For established businesses with a serious loyalty strategy.",
@@ -356,8 +363,18 @@ export const en = {
         },
       ] as { name: string; rows: { label: string; values: (string | boolean)[] }[] }[],
     },
+    coupon: {
+      code: "FIDELIZA10",
+      intro: "Founders coupon",
+      introShort: "25% off your first payment",
+      description: "25% off your first payment on Starter or Pro — monthly or annual — with coupon",
+      remaining: "{n} of {total} left",
+      soldOut: "Coupons sold out",
+      copy: "Copy code",
+      copied: "Copied!",
+    },
     footnote:
-      "Pricing shown is pre-launch. Early access members lock in founder rates.",
+      "Prices in Mexican pesos (MXN). Cancel or switch plans anytime.",
   },
 
   cta: {

@@ -8,9 +8,10 @@ type VisualsDict = Dictionary['features']['visuals'];
 
 function ProgramTypesVisual({ t }: { t: VisualsDict['programTypes'] }) {
   const colors = [
-    { bg: 'bg-indigo-100', text: 'text-indigo-700', icon: '★' },
-    { bg: 'bg-violet-100', text: 'text-violet-700', icon: '◉' },
-    { bg: 'bg-sky-100',    text: 'text-sky-700',    icon: '✓' },
+    { bg: 'bg-indigo-100',  text: 'text-indigo-700',  icon: '★' },
+    { bg: 'bg-violet-100',  text: 'text-violet-700',  icon: '◉' },
+    { bg: 'bg-sky-100',     text: 'text-sky-700',     icon: '✓' },
+    { bg: 'bg-emerald-100', text: 'text-emerald-700', icon: '$' },
   ];
   return (
     <div className="flex gap-3 flex-wrap">
@@ -36,59 +37,87 @@ function ProgramTypesVisual({ t }: { t: VisualsDict['programTypes'] }) {
   );
 }
 
-function AccessCodeVisual({ t }: { t: VisualsDict['accessCode'] }) {
+const engagementIcons: Record<string, { emoji: string; bg: string }> = {
+  flash:    { emoji: '⚡', bg: 'bg-amber-100' },
+  mission:  { emoji: '🎯', bg: 'bg-indigo-100' },
+  birthday: { emoji: '🎂', bg: 'bg-pink-100' },
+};
+
+function EngagementVisual({ t }: { t: VisualsDict['engagement'] }) {
+  return (
+    <div className="space-y-2">
+      {t.rows.map((row) => {
+        const icon = engagementIcons[row.icon];
+        return (
+          <div key={row.title} className="flex items-center gap-3 px-3 py-2 rounded-lg bg-gray-50 border border-gray-100">
+            <div className={`w-7 h-7 rounded-lg ${icon.bg} flex items-center justify-center text-sm flex-shrink-0`}>
+              {icon.emoji}
+            </div>
+            <div className="min-w-0">
+              <div className="text-sm text-gray-700 truncate">{row.title}</div>
+              <div className="text-xs text-gray-400">{row.meta}</div>
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+function GrowthVisual({ t }: { t: VisualsDict['growth'] }) {
+  const tierColors = [
+    { bg: 'bg-slate-100',  text: 'text-slate-600',  ring: 'border-transparent' },
+    { bg: 'bg-amber-100',  text: 'text-amber-700',  ring: 'border-amber-300 shadow-sm' },
+    { bg: 'bg-violet-100', text: 'text-violet-700', ring: 'border-transparent' },
+  ];
   return (
     <div className="space-y-3">
-      <div className="flex items-center gap-3 p-3 rounded-xl bg-gray-50 border border-gray-200">
-        <div className="w-8 h-8 rounded-full bg-indigo-100 flex items-center justify-center text-xs font-bold text-indigo-700">A</div>
-        <div>
-          <div className="text-sm font-medium text-gray-800">Alice Méndez</div>
-          <div className="text-xs text-gray-400 font-mono tracking-wider">ALIC-BB01</div>
-        </div>
-        <div className="ml-auto text-xs font-semibold text-emerald-600 bg-emerald-50 rounded-full px-2 py-0.5">{t.status}</div>
-      </div>
-      <p className="text-xs text-gray-400 flex items-center gap-1.5">
-        <svg viewBox="0 0 24 24" fill="currentColor" className="w-3.5 h-3.5 text-emerald-500 flex-shrink-0">
-          <path fillRule="evenodd" d="M2.25 12c0-5.385 4.365-9.75 9.75-9.75s9.75 4.365 9.75 9.75-4.365 9.75-9.75 9.75S2.25 17.385 2.25 12zm13.36-1.814a.75.75 0 10-1.22-.872l-3.236 4.53L9.53 12.22a.75.75 0 00-1.06 1.06l2.25 2.25a.75.75 0 001.14-.094l3.75-5.25z" clipRule="evenodd" />
-        </svg>
-        {t.hint}
-      </p>
-    </div>
-  );
-}
-
-function SubdomainVisual({ t }: { t: VisualsDict['subdomain'] }) {
-  const urls = ['marios.fideliza.app', 'brewbean.fideliza.app', 'yourshop.fideliza.app'];
-  return (
-    <div className="space-y-2">
-      {urls.map((url, i) => (
-        <div key={url} className={`flex items-center gap-2 px-3 py-2 rounded-lg border text-sm font-mono ${i === 0 ? 'bg-indigo-50 border-indigo-200 text-indigo-700' : 'bg-gray-50 border-gray-200 text-gray-500'}`}>
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} className="w-3.5 h-3.5 flex-shrink-0">
-            <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z" />
-          </svg>
-          {url}
-        </div>
-      ))}
-      <p className="text-xs text-gray-400 pt-1">{t.hint}</p>
-    </div>
-  );
-}
-
-function TransactionVisual({ t }: { t: VisualsDict['transaction'] }) {
-  return (
-    <div className="space-y-2">
-      {t.rows.map((tx, i) => (
-        <div key={i} className="flex items-center justify-between px-3 py-2 rounded-lg bg-gray-50 border border-gray-100 text-sm">
-          <div className="flex items-center gap-2">
-            <div className={`w-1.5 h-1.5 rounded-full ${tx.type === 'earn' ? 'bg-emerald-500' : 'bg-red-400'}`} />
-            <span className="text-gray-700">{tx.label}</span>
+      <div className="flex items-center gap-2 flex-wrap">
+        {t.tiers.map((tier, i) => (
+          <div
+            key={tier.label}
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full border text-xs font-semibold ${tierColors[i].bg} ${tierColors[i].text} ${
+              tier.active ? tierColors[i].ring : 'border-transparent opacity-60'
+            }`}
+          >
+            {tier.active && <span>👑</span>}
+            {tier.label}
           </div>
-          <span className={`font-semibold tabular-nums ${tx.type === 'earn' ? 'text-emerald-600' : 'text-red-500'}`}>{tx.points}</span>
+        ))}
+      </div>
+      <p className="text-xs text-gray-400">{t.tierHint}</p>
+      <div className="flex items-center justify-between px-3 py-2 rounded-lg bg-emerald-50 border border-emerald-100 text-sm">
+        <div className="flex items-center gap-2 min-w-0">
+          <span>🤝</span>
+          <span className="text-gray-700 truncate">{t.referral}</span>
         </div>
-      ))}
-      <div className="flex justify-between pt-2 px-1 text-xs text-gray-500">
-        <span>{t.balanceLabel}</span>
-        <span className="font-semibold text-gray-800 tabular-nums">350 pts</span>
+        <span className="font-semibold text-emerald-600 tabular-nums flex-shrink-0">{t.referralPoints}</span>
+      </div>
+    </div>
+  );
+}
+
+function WhatsAppVisual({ t }: { t: VisualsDict['whatsapp'] }) {
+  return (
+    <div className="space-y-3">
+      {/* WhatsApp message bubble */}
+      <div className="rounded-xl bg-emerald-50 border border-emerald-100 p-3">
+        <div className="flex items-center gap-1.5 mb-1.5">
+          <svg viewBox="0 0 24 24" fill="currentColor" className="w-3.5 h-3.5 text-emerald-500">
+            <path d="M12 2a10 10 0 00-8.6 15.1L2 22l5-1.3A10 10 0 1012 2zm5 13.9c-.2.6-1.2 1.1-1.7 1.2-.4 0-.9.1-3-.6-2.5-1-4.1-3.5-4.2-3.7-.1-.2-1-1.3-1-2.6 0-1.2.6-1.8.9-2 .2-.3.5-.3.7-.3h.5c.2 0 .4 0 .6.4l.8 2c.1.2.1.4 0 .5l-.3.5-.4.5c-.1.1-.3.3-.1.5.1.3.6 1 1.3 1.7.9.8 1.7 1.1 2 1.2.2.1.4.1.5-.1l.7-.8c.2-.2.3-.2.6-.1l1.9.9c.2.1.4.2.4.3.1.1.1.5-.2 1z" />
+          </svg>
+          <span className="text-[11px] font-semibold text-emerald-700">{t.sender}</span>
+          <span className="ml-auto text-[10px] text-gray-400">{t.time}</span>
+        </div>
+        <p className="text-sm text-gray-700 leading-snug">{t.message}</p>
+      </div>
+      {/* Analytics stat row */}
+      <div className="flex items-center justify-between px-3 py-2 rounded-lg bg-gray-50 border border-gray-100 text-sm">
+        <span className="text-gray-500 text-xs">{t.statLabel}</span>
+        <span className="flex items-baseline gap-2">
+          <span className="font-bold text-gray-800 tabular-nums">{t.statValue}</span>
+          <span className="text-xs font-semibold text-emerald-600">{t.statDelta}</span>
+        </span>
       </div>
     </div>
   );
@@ -100,10 +129,10 @@ interface FeaturesProps {
 
 export function Features({ t }: FeaturesProps) {
   const visuals = [
-    <ProgramTypesVisual key="programs" t={t.visuals.programTypes} />,
-    <AccessCodeVisual   key="access"   t={t.visuals.accessCode} />,
-    <SubdomainVisual    key="subdomain" t={t.visuals.subdomain} />,
-    <TransactionVisual  key="txn"      t={t.visuals.transaction} />,
+    <ProgramTypesVisual key="programs"   t={t.visuals.programTypes} />,
+    <EngagementVisual   key="engagement" t={t.visuals.engagement} />,
+    <GrowthVisual       key="growth"     t={t.visuals.growth} />,
+    <WhatsAppVisual     key="whatsapp"   t={t.visuals.whatsapp} />,
   ];
 
   return (
