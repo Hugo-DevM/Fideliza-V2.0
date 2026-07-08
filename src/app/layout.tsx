@@ -22,7 +22,7 @@ export const metadata: Metadata = {
     template: "%s | Fideliza",
   },
   description:
-    "Run a loyalty program your customers actually use — no app downloads, no complex setup. Points, stamps, and visits. Your own branded subdomain. Up and running in under 5 minutes.",
+    "El sistema de retención completo para tu negocio: puntos, sellos, cashback, niveles VIP, referidos y campañas de WhatsApp. Sin que tus clientes descarguen una app — solo un código. Listo en menos de 5 minutos.",
   icons: {
     icon: [
       { url: "/favicon-16x16.png", sizes: "16x16", type: "image/png" },
@@ -38,10 +38,10 @@ export const metadata: Metadata = {
     siteName: "Fideliza",
     title: "Fideliza — Programa de lealtad para tu negocio",
     description:
-      "Run a loyalty program your customers actually use — no app downloads, no complex setup. Points, stamps, and visits. Up and running in under 5 minutes.",
+      "Puntos, sellos, cashback, niveles VIP, referidos y campañas de WhatsApp. Sin app para tus clientes — solo un código. Listo en menos de 5 minutos.",
     images: [
       {
-        url: "/og-image.jpg",
+        url: "/og-image.png",
         width: 1200,
         height: 630,
         alt: "Fideliza — Programa de lealtad para tu negocio",
@@ -52,8 +52,8 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "Fideliza — Programa de lealtad para tu negocio",
     description:
-      "Run a loyalty program your customers actually use — no app downloads, no complex setup. Points, stamps, and visits. Up and running in under 5 minutes.",
-    images: ["/og-image.jpg"],
+      "Puntos, sellos, cashback, niveles VIP, referidos y campañas de WhatsApp. Sin app para tus clientes — solo un código. Listo en menos de 5 minutos.",
+    images: ["/og-image.png"],
   },
 };
 
@@ -93,7 +93,7 @@ export default async function RootLayout({
               "applicationCategory": "BusinessApplication",
               "operatingSystem": "Web",
               "inLanguage": ["es", "en"],
-              "description": "Sistema de programas de lealtad digital para pequeños y medianos negocios en México y Latinoamérica. Sin app, sin descargas — los clientes usan un código único. Incluye programas de puntos, sellos y visitas, panel de administración, subdominio propio y exportación de datos.",
+              "description": "Sistema de retención de clientes para pequeños y medianos negocios en México y Latinoamérica. Sin app, sin descargas — los clientes usan un código único. Incluye puntos, sellos, visitas y cashback, niveles VIP, referidos, misiones, premios de cumpleaños, campañas de WhatsApp, panel de administración, subdominio propio y exportación de datos.",
               "keywords": "programa de lealtad, fidelización de clientes, puntos de lealtad, tarjeta de sellos digital, loyalty program Mexico, retención de clientes, programa de puntos para negocios",
               "offers": [
                 {
@@ -101,21 +101,21 @@ export default async function RootLayout({
                   "name": "Plan Gratis",
                   "price": "0",
                   "priceCurrency": "MXN",
-                  "description": "Hasta 50 clientes, 1 programa de lealtad"
+                  "description": "Hasta 50 clientes, 1 programa de fidelización"
                 },
                 {
                   "@type": "Offer",
                   "name": "Plan Starter",
-                  "price": "349",
+                  "price": "549",
                   "priceCurrency": "MXN",
-                  "description": "Hasta 500 clientes, hasta 3 programas de lealtad"
+                  "description": "Hasta 300 clientes, 3 programas de fidelización, 500 mensajes WhatsApp/mes"
                 },
                 {
                   "@type": "Offer",
                   "name": "Plan Pro",
-                  "price": "699",
+                  "price": "1099",
                   "priceCurrency": "MXN",
-                  "description": "Clientes ilimitados, programas ilimitados, exportación CSV"
+                  "description": "Clientes y programas ilimitados, referidos, niveles VIP, exportación CSV, 3,000 mensajes WhatsApp/mes"
                 }
               ],
               "featureList": [
