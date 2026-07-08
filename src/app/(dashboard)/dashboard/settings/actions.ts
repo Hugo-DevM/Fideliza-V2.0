@@ -94,41 +94,6 @@ export async function updateSettingsAction(formData: FormData) {
   }
 }
 
-export async function updateWhatsappSenderAction(formData: FormData) {
-  const { tenantId, tenant, effectivePlan } = await getAuthenticatedTenant();
-
-  if (effectivePlan !== 'pro') {
-    return { error: 'Esta función solo está disponible en el Plan Pro.' };
-  }
-
-  const raw = (formData.get('whatsapp_from') as string | null)?.trim() ?? '';
-
-  // Empty = reset to Fideliza shared number
-  if (raw === '') {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const db = createServiceRoleClient() as any;
-    await db.from('tenants').update({ whatsapp_from: null }).eq('id', tenantId);
-    revalidateTenantCache(tenantId, tenant.subdomain);
-    revalidatePath('/dashboard/settings');
-    return { success: true };
-  }
-
-  // Normalize: accept +521234567890 or whatsapp:+521234567890
-  const normalized = raw.startsWith('whatsapp:') ? raw : `whatsapp:${raw}`;
-  const phone = normalized.replace('whatsapp:', '');
-
-  if (!/^\+[1-9]\d{6,14}$/.test(phone)) {
-    return { error: 'El número debe estar en formato E.164 (ej. +521234567890).' };
-  }
-
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const db = createServiceRoleClient() as any;
-  await db.from('tenants').update({ whatsapp_from: normalized }).eq('id', tenantId);
-  revalidateTenantCache(tenantId, tenant.subdomain);
-  revalidatePath('/dashboard/settings');
-  return { success: true };
-}
-
 export async function deleteAccountAction(formData: FormData) {
   const { tenantId, tenant } = await getAuthenticatedTenant();
 
