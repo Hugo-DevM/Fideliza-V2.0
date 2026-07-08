@@ -105,9 +105,21 @@ export const en = {
       },
       engagement: {
         rows: [
-          { icon: "flash" as const, title: "Flash offer: 2x1 lattes", meta: "Ends in 05:12:44" },
-          { icon: "mission" as const, title: "Mission: visit 3x this week", meta: "+200 pts bonus" },
-          { icon: "birthday" as const, title: "Birthday reward sent to Alice", meta: "Automatic" },
+          {
+            icon: "flash" as const,
+            title: "Flash offer: 2x1 lattes",
+            meta: "Ends in 05:12:44",
+          },
+          {
+            icon: "mission" as const,
+            title: "Mission: visit 3x this week",
+            meta: "+200 pts bonus",
+          },
+          {
+            icon: "birthday" as const,
+            title: "Birthday reward sent to Alice",
+            meta: "Automatic",
+          },
         ],
       },
       growth: {
@@ -122,7 +134,8 @@ export const en = {
       },
       whatsapp: {
         sender: "Fideliza · WhatsApp",
-        message: "Hi Ana! 🎁 Your free-coffee reward expires in 3 days. Come see us!",
+        message:
+          "Hi Ana! 🎁 Your free-coffee reward expires in 3 days. Come see us!",
         time: "10:42",
         statLabel: "Redemptions this month",
         statValue: "32",
@@ -311,20 +324,54 @@ export const en = {
         {
           name: "Essentials",
           rows: [
-            { label: "Customers", values: ["Up to 50", "Up to 300", "Unlimited", "Unlimited"] },
-            { label: "Loyalty programs", values: ["1", "3", "Unlimited", "Unlimited"] },
-            { label: "Program types", values: ["Points & stamps", "Points, stamps & visits", "All (incl. cashback)", "All (incl. cashback)"] },
+            {
+              label: "Customers",
+              values: ["Up to 50", "Up to 300", "Unlimited", "Unlimited"],
+            },
+            {
+              label: "Loyalty programs",
+              values: ["1", "3", "Unlimited", "Unlimited"],
+            },
+            {
+              label: "Program types",
+              values: [
+                "Points & stamps",
+                "Points, stamps & visits",
+                "All (incl. cashback)",
+                "All (incl. cashback)",
+              ],
+            },
             { label: "Your own subdomain", values: [true, true, true, true] },
-            { label: "Customer access codes", values: [true, true, true, true] },
-            { label: "Transaction history", values: ["Last 50", "Full", "Full", "Full"] },
+            {
+              label: "Customer access codes",
+              values: [true, true, true, true],
+            },
+            {
+              label: "Transaction history",
+              values: ["Last 50", "Full", "Full", "Full"],
+            },
           ],
         },
         {
           name: "Rewards & engagement",
           rows: [
-            { label: "Reward catalog", values: [false, "3 per program", "5 per program", "5 per program"] },
-            { label: "Customer portal", values: ["Fideliza branding", true, true, true] },
-            { label: "Your logo & colors on the portal", values: [false, true, true, true] },
+            {
+              label: "Reward catalog",
+              values: [
+                false,
+                "3 per program",
+                "5 per program",
+                "5 per program",
+              ],
+            },
+            {
+              label: "Customer portal",
+              values: ["Fideliza branding", true, true, true],
+            },
+            {
+              label: "Your logo & colors on the portal",
+              values: [false, true, true, true],
+            },
             { label: "Flash offers", values: [false, true, true, true] },
             { label: "Points head start", values: [false, true, true, true] },
           ],
@@ -336,45 +383,66 @@ export const en = {
             { label: "VIP tiers", values: [false, false, true, true] },
             { label: "Surprise & delight", values: [false, false, true, true] },
             { label: "Referral program", values: [false, false, true, true] },
-            { label: "Missions & challenges", values: [false, false, true, true] },
+            {
+              label: "Missions & challenges",
+              values: [false, false, true, true],
+            },
           ],
         },
         {
           name: "WhatsApp",
           rows: [
-            { label: "Monthly messages", values: [false, "500/month", "3,000/month", "3,000/month"] },
-            { label: "Marketing campaigns", values: [false, false, true, true] },
+            {
+              label: "Monthly messages",
+              values: [false, "500/month", "3,000/month", "3,000/month"],
+            },
+            {
+              label: "Marketing campaigns",
+              values: [false, false, true, true],
+            },
           ],
         },
         {
           name: "Data & support",
           rows: [
-            { label: "Analytics", values: [false, false, true, "Per location"] },
+            {
+              label: "Analytics",
+              values: [false, false, true, "Per location"],
+            },
             { label: "CSV export", values: [false, false, true, true] },
-            { label: "Support", values: ["Basic", "Email", "Priority", "Dedicated"] },
+            {
+              label: "Support",
+              values: ["Basic", "Email", "Priority", "Dedicated"],
+            },
           ],
         },
         {
           name: "Multi-location",
           rows: [
             { label: "Branches", values: ["1", "1", "1", "Unlimited"] },
-            { label: "Staff & managers per location", values: [false, false, false, true] },
+            {
+              label: "Staff & managers per location",
+              values: [false, false, false, true],
+            },
           ],
         },
-      ] as { name: string; rows: { label: string; values: (string | boolean)[] }[] }[],
+      ] as {
+        name: string;
+        rows: { label: string; values: (string | boolean)[] }[];
+      }[],
     },
     coupon: {
       code: "FIDELIZA10",
       intro: "Founders coupon",
       introShort: "25% off your first payment",
-      description: "25% off your first payment on Starter or Pro — monthly or annual — with coupon",
+      description:
+        "25% off your first payment on Starter or Pro monthly or annual with coupon",
       remaining: "{n} of {total} left",
       soldOut: "Coupons sold out",
       copy: "Copy code",
       copied: "Copied!",
     },
-    footnote:
-      "Prices in Mexican pesos (MXN). Cancel or switch plans anytime.",
+    footnote: "Prices in Mexican pesos (MXN). Cancel or switch plans anytime.",
   },
 
   cta: {
@@ -418,17 +486,20 @@ export const en = {
     devices: [
       {
         name: "Computer",
-        description: "Full dashboard experience. Manage customers, create programs, view reports, and export data from your desktop or laptop.",
+        description:
+          "Full dashboard experience. Manage customers, create programs, view reports, and export data from your desktop or laptop.",
         hint: "Recommended for daily management",
       },
       {
         name: "Tablet",
-        description: "Perfect for the counter. Register customers, assign points, and verify vouchers without leaving the register.",
+        description:
+          "Perfect for the counter. Register customers, assign points, and verify vouchers without leaving the register.",
         hint: "Great at the point of sale",
       },
       {
         name: "Phone",
-        description: "Quick access on the go. Check customer balances, register a transaction, or verify a redemption from anywhere in the venue.",
+        description:
+          "Quick access on the go. Check customer balances, register a transaction, or verify a redemption from anywhere in the venue.",
         hint: "Ideal for quick transactions",
       },
     ],
@@ -442,39 +513,49 @@ export const en = {
     items: [
       {
         question: "Do my customers need to download an app?",
-        answer: "No. Customers identify themselves with a unique 10-character access code you give them. They can check their balance from any browser — no app, no account, no password.",
+        answer:
+          "No. Customers identify themselves with a unique 10-character access code you give them. They can check their balance from any browser — no app, no account, no password.",
       },
       {
         question: "How long does setup take?",
-        answer: "Under 5 minutes. Sign up, claim your subdomain, create your first loyalty program, and start adding customers. No technical knowledge required.",
+        answer:
+          "Under 5 minutes. Sign up, claim your subdomain, create your first loyalty program, and start adding customers. No technical knowledge required.",
       },
       {
         question: "Can I run multiple loyalty programs at the same time?",
-        answer: "Yes. The Free plan includes 1 program, Starter includes 3, and Pro gives you unlimited programs. You can run a stamp card and a points program simultaneously on the same account.",
+        answer:
+          "Yes. The Free plan includes 1 program, Starter includes 3, and Pro gives you unlimited programs. You can run a stamp card and a points program simultaneously on the same account.",
       },
       {
         question: "What happens if a customer loses their access code?",
-        answer: "You can look up any customer from your dashboard and resend or copy their access code at any time. Since there's no app or password, there's nothing to reset.",
+        answer:
+          "You can look up any customer from your dashboard and resend or copy their access code at any time. Since there's no app or password, there's nothing to reset.",
       },
       {
         question: "Does Fideliza work with my existing POS system?",
-        answer: "Yes. Fideliza is a standalone loyalty layer — it doesn't replace your point-of-sale system. Staff enter or scan the customer's code independently, without any integration required.",
+        answer:
+          "Yes. Fideliza is a standalone loyalty layer — it doesn't replace your point-of-sale system. Staff enter or scan the customer's code independently, without any integration required.",
       },
       {
         question: "Can I cancel at any time?",
-        answer: "Absolutely. There are no long-term contracts or cancellation fees. You can cancel your subscription from the billing settings at any time and keep access until the end of your billing period.",
+        answer:
+          "Absolutely. There are no long-term contracts or cancellation fees. You can cancel your subscription from the billing settings at any time and keep access until the end of your billing period.",
       },
       {
         question: "Is my customer data safe?",
-        answer: "Yes. Every business on Fideliza runs in a fully isolated environment. Your customers, transactions, and rewards are completely separate from every other account on the platform.",
+        answer:
+          "Yes. Every business on Fideliza runs in a fully isolated environment. Your customers, transactions, and rewards are completely separate from every other account on the platform.",
       },
       {
-        question: "How is Fideliza different from Stamp Me, Loopy Loyalty, or Fivestars?",
-        answer: "The main difference is that Fideliza doesn't require your customers to download an app or create an account. With Stamp Me or Loopy Loyalty, customers need to install an app on their phone — that friction reduces adoption. With Fideliza, customers only need their 10-character code to access their rewards from any browser. No app, no sign-up, no barrier.",
+        question:
+          "How is Fideliza different from Stamp Me, Loopy Loyalty, or Fivestars?",
+        answer:
+          "The main difference is that Fideliza doesn't require your customers to download an app or create an account. With Stamp Me or Loopy Loyalty, customers need to install an app on their phone — that friction reduces adoption. With Fideliza, customers only need their 10-character code to access their rewards from any browser. No app, no sign-up, no barrier.",
       },
       {
         question: "What type of business is Fideliza for?",
-        answer: "Fideliza works for any business with repeat customers: restaurants, coffee shops, barbershops, hair salons, bakeries, clothing stores, gyms, pharmacies, and more. If customers come back regularly and you want to reward them without technical complexity, Fideliza is for you. No tech team needed, no POS integration required — you're up and running in under 5 minutes.",
+        answer:
+          "Fideliza works for any business with repeat customers: restaurants, coffee shops, barbershops, hair salons, bakeries, clothing stores, gyms, pharmacies, and more. If customers come back regularly and you want to reward them without technical complexity, Fideliza is for you. No tech team needed, no POS integration required — you're up and running in under 5 minutes.",
       },
     ],
   },
@@ -507,7 +588,8 @@ export const en = {
 
   notFound: {
     title: "Page not found",
-    description: "The page you're looking for doesn't exist or has been moved. Let's get you back on track.",
+    description:
+      "The page you're looking for doesn't exist or has been moved. Let's get you back on track.",
     backHome: "Back to home",
     contactSupport: "Contact support",
     logoAriaLabel: "Fideliza — Back to home",

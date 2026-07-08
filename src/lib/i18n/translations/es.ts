@@ -107,9 +107,21 @@ export const es: Dictionary = {
       },
       engagement: {
         rows: [
-          { icon: "flash" as const, title: "Oferta flash: 2x1 en cafés", meta: "Termina en 05:12:44" },
-          { icon: "mission" as const, title: "Misión: visítanos 3 veces esta semana", meta: "+200 pts extra" },
-          { icon: "birthday" as const, title: "Bono de cumpleaños enviado a Alice", meta: "Automático" },
+          {
+            icon: "flash" as const,
+            title: "Oferta flash: 2x1 en cafés",
+            meta: "Termina en 05:12:44",
+          },
+          {
+            icon: "mission" as const,
+            title: "Misión: visítanos 3 veces esta semana",
+            meta: "+200 pts extra",
+          },
+          {
+            icon: "birthday" as const,
+            title: "Bono de cumpleaños enviado a Alice",
+            meta: "Automático",
+          },
         ],
       },
       growth: {
@@ -124,7 +136,8 @@ export const es: Dictionary = {
       },
       whatsapp: {
         sender: "Fideliza · WhatsApp",
-        message: "¡Hola Ana! 🎁 Tu premio de café gratis vence en 3 días. ¡Ven a visitarnos!",
+        message:
+          "¡Hola Ana! 🎁 Tu premio de café gratis vence en 3 días. ¡Ven a visitarnos!",
         time: "10:42",
         statLabel: "Canjes este mes",
         statValue: "32",
@@ -313,54 +326,115 @@ export const es: Dictionary = {
         {
           name: "Lo esencial",
           rows: [
-            { label: "Clientes", values: ["Hasta 50", "Hasta 300", "Ilimitados", "Ilimitados"] },
-            { label: "Programas de fidelización", values: ["1", "3", "Ilimitados", "Ilimitados"] },
-            { label: "Tipos de programa", values: ["Puntos y sellos", "Puntos, sellos y visitas", "Todos (incluye cashback)", "Todos (incluye cashback)"] },
+            {
+              label: "Clientes",
+              values: ["Hasta 50", "Hasta 300", "Ilimitados", "Ilimitados"],
+            },
+            {
+              label: "Programas de fidelización",
+              values: ["1", "3", "Ilimitados", "Ilimitados"],
+            },
+            {
+              label: "Tipos de programa",
+              values: [
+                "Puntos y sellos",
+                "Puntos, sellos y visitas",
+                "Todos (incluye cashback)",
+                "Todos (incluye cashback)",
+              ],
+            },
             { label: "Tu propio subdominio", values: [true, true, true, true] },
-            { label: "Códigos de acceso para clientes", values: [true, true, true, true] },
-            { label: "Historial de transacciones", values: ["Últimas 50", "Completo", "Completo", "Completo"] },
+            {
+              label: "Códigos de acceso para clientes",
+              values: [true, true, true, true],
+            },
+            {
+              label: "Historial de transacciones",
+              values: ["Últimas 50", "Completo", "Completo", "Completo"],
+            },
           ],
         },
         {
           name: "Premios y engagement",
           rows: [
-            { label: "Catálogo de premios", values: [false, "3 por programa", "5 por programa", "5 por programa"] },
-            { label: "Portal del cliente", values: ["Con marca Fideliza", true, true, true] },
-            { label: "Tu logo y colores en el portal", values: [false, true, true, true] },
+            {
+              label: "Catálogo de premios",
+              values: [
+                false,
+                "3 por programa",
+                "5 por programa",
+                "5 por programa",
+              ],
+            },
+            {
+              label: "Portal del cliente",
+              values: ["Con marca Fideliza", true, true, true],
+            },
+            {
+              label: "Tu logo y colores en el portal",
+              values: [false, true, true, true],
+            },
             { label: "Ofertas flash", values: [false, true, true, true] },
-            { label: "Impulso inicial de puntos", values: [false, true, true, true] },
+            {
+              label: "Impulso inicial de puntos",
+              values: [false, true, true, true],
+            },
           ],
         },
         {
           name: "Retención avanzada",
           rows: [
-            { label: "Premios de cumpleaños", values: [false, false, true, true] },
+            {
+              label: "Premios de cumpleaños",
+              values: [false, false, true, true],
+            },
             { label: "Niveles VIP", values: [false, false, true, true] },
-            { label: "Sorpresas para clientes", values: [false, false, true, true] },
-            { label: "Programa de referidos", values: [false, false, true, true] },
+            {
+              label: "Sorpresas para clientes",
+              values: [false, false, true, true],
+            },
+            {
+              label: "Programa de referidos",
+              values: [false, false, true, true],
+            },
             { label: "Misiones y retos", values: [false, false, true, true] },
           ],
         },
         {
           name: "WhatsApp",
           rows: [
-            { label: "Mensajes mensuales", values: [false, "500/mes", "3,000/mes", "3,000/mes"] },
-            { label: "Campañas de marketing", values: [false, false, true, true] },
+            {
+              label: "Mensajes mensuales",
+              values: [false, "500/mes", "3,000/mes", "3,000/mes"],
+            },
+            {
+              label: "Campañas de marketing",
+              values: [false, false, true, true],
+            },
           ],
         },
         {
           name: "Datos y soporte",
           rows: [
-            { label: "Analíticas", values: [false, false, true, "Por sucursal"] },
+            {
+              label: "Analíticas",
+              values: [false, false, true, "Por sucursal"],
+            },
             { label: "Exportación CSV", values: [false, false, true, true] },
-            { label: "Soporte", values: ["Básico", "Email", "Prioritario", "Dedicado"] },
+            {
+              label: "Soporte",
+              values: ["Básico", "Email", "Prioritario", "Dedicado"],
+            },
           ],
         },
         {
           name: "Multi-sucursal",
           rows: [
             { label: "Sucursales", values: ["1", "1", "1", "Ilimitadas"] },
-            { label: "Staff y managers por sucursal", values: [false, false, false, true] },
+            {
+              label: "Staff y managers por sucursal",
+              values: [false, false, false, true],
+            },
           ],
         },
       ],
@@ -369,7 +443,8 @@ export const es: Dictionary = {
       code: "FIDELIZA10",
       intro: "Cupón de fundadores",
       introShort: "25% en tu primer pago",
-      description: "25% de descuento en tu primer pago de Starter o Pro — mensual o anual — con el cupón",
+      description:
+        "25% de descuento en tu primer pago de Starter o Pro mensual o anual con el cupón",
       remaining: "Quedan {n} de {total}",
       soldOut: "Cupones agotados",
       copy: "Copiar código",
@@ -383,10 +458,7 @@ export const es: Dictionary = {
     badge: "Acceso anticipado abierto",
     heading: "Lanza tu programa de fidelización esta semana",
     body: "Únete a la lista de espera y sé uno de los primeros negocios en usar Fideliza. Los miembros de acceso anticipado bloquean el precio fundador — 1 mes de Starter, gratis.",
-    bullets: [
-      "Configuración en menos de 5 minutos",
-      "Cancela cuando quieras",
-    ],
+    bullets: ["Configuración en menos de 5 minutos", "Cancela cuando quieras"],
   },
 
   footer: {
@@ -419,17 +491,20 @@ export const es: Dictionary = {
     devices: [
       {
         name: "Computadora",
-        description: "Experiencia completa del panel. Gestiona clientes, crea programas, visualiza reportes y exporta datos desde tu escritorio o laptop.",
+        description:
+          "Experiencia completa del panel. Gestiona clientes, crea programas, visualiza reportes y exporta datos desde tu escritorio o laptop.",
         hint: "Recomendado para la gestión diaria",
       },
       {
         name: "Tablet",
-        description: "Perfecta para el mostrador. Registra clientes, asigna puntos y verifica vouchers sin alejarte de la caja.",
+        description:
+          "Perfecta para el mostrador. Registra clientes, asigna puntos y verifica vouchers sin alejarte de la caja.",
         hint: "Ideal en el punto de venta",
       },
       {
         name: "Celular",
-        description: "Acceso rápido desde donde estés. Consulta saldos, registra una transacción o verifica un canje desde cualquier parte del local.",
+        description:
+          "Acceso rápido desde donde estés. Consulta saldos, registra una transacción o verifica un canje desde cualquier parte del local.",
         hint: "Perfecto para transacciones rápidas",
       },
     ],
@@ -443,39 +518,50 @@ export const es: Dictionary = {
     items: [
       {
         question: "¿Mis clientes necesitan descargar una app?",
-        answer: "No. Los clientes se identifican con un código de acceso único de 10 caracteres que tú les das. Pueden ver su saldo desde cualquier navegador — sin app, sin cuenta, sin contraseña.",
+        answer:
+          "No. Los clientes se identifican con un código de acceso único de 10 caracteres que tú les das. Pueden ver su saldo desde cualquier navegador — sin app, sin cuenta, sin contraseña.",
       },
       {
         question: "¿Cuánto tiempo tarda la configuración?",
-        answer: "Menos de 5 minutos. Regístrate, elige tu subdominio, crea tu primer programa y empieza a agregar clientes. No se requieren conocimientos técnicos.",
+        answer:
+          "Menos de 5 minutos. Regístrate, elige tu subdominio, crea tu primer programa y empieza a agregar clientes. No se requieren conocimientos técnicos.",
       },
       {
-        question: "¿Puedo tener varios programas de fidelización al mismo tiempo?",
-        answer: "Sí. El plan Gratis incluye 1 programa, Starter incluye 3 y Pro te da programas ilimitados. Puedes tener una tarjeta de sellos y un programa de puntos funcionando a la vez en la misma cuenta.",
+        question:
+          "¿Puedo tener varios programas de fidelización al mismo tiempo?",
+        answer:
+          "Sí. El plan Gratis incluye 1 programa, Starter incluye 3 y Pro te da programas ilimitados. Puedes tener una tarjeta de sellos y un programa de puntos funcionando a la vez en la misma cuenta.",
       },
       {
         question: "¿Qué pasa si un cliente pierde su código de acceso?",
-        answer: "Puedes buscar cualquier cliente desde tu panel y copiar o compartir su código en cualquier momento. Como no hay app ni contraseña, no hay nada que restablecer.",
+        answer:
+          "Puedes buscar cualquier cliente desde tu panel y copiar o compartir su código en cualquier momento. Como no hay app ni contraseña, no hay nada que restablecer.",
       },
       {
         question: "¿Fideliza funciona con mi sistema de punto de venta?",
-        answer: "Sí. Fideliza es una capa de fidelización independiente — no reemplaza tu sistema de cobro. El personal ingresa o escanea el código del cliente por separado, sin ninguna integración.",
+        answer:
+          "Sí. Fideliza es una capa de fidelización independiente — no reemplaza tu sistema de cobro. El personal ingresa o escanea el código del cliente por separado, sin ninguna integración.",
       },
       {
         question: "¿Puedo cancelar cuando quiera?",
-        answer: "Sí. No hay contratos a largo plazo ni cargos por cancelación. Puedes cancelar tu suscripción desde la configuración de facturación en cualquier momento y conservar el acceso hasta el fin de tu período pagado.",
+        answer:
+          "Sí. No hay contratos a largo plazo ni cargos por cancelación. Puedes cancelar tu suscripción desde la configuración de facturación en cualquier momento y conservar el acceso hasta el fin de tu período pagado.",
       },
       {
         question: "¿Los datos de mis clientes están seguros?",
-        answer: "Sí. Cada negocio en Fideliza opera en un entorno completamente aislado. Tus clientes, transacciones y premios están totalmente separados de cualquier otra cuenta en la plataforma.",
+        answer:
+          "Sí. Cada negocio en Fideliza opera en un entorno completamente aislado. Tus clientes, transacciones y premios están totalmente separados de cualquier otra cuenta en la plataforma.",
       },
       {
-        question: "¿En qué se diferencia Fideliza de Stamp Me, Loopy Loyalty o Fivestars?",
-        answer: "La diferencia principal es que Fideliza no requiere que tus clientes descarguen una app ni creen una cuenta. Con Stamp Me o Loopy Loyalty, el cliente necesita instalar una aplicación en su teléfono — eso genera fricción y reduce la adopción. En Fideliza, el cliente solo necesita su código de 10 caracteres para acceder desde cualquier navegador. Además, Fideliza está diseñado para negocios en México y Latinoamérica, con precios en pesos mexicanos y soporte en español.",
+        question:
+          "¿En qué se diferencia Fideliza de Stamp Me, Loopy Loyalty o Fivestars?",
+        answer:
+          "La diferencia principal es que Fideliza no requiere que tus clientes descarguen una app ni creen una cuenta. Con Stamp Me o Loopy Loyalty, el cliente necesita instalar una aplicación en su teléfono — eso genera fricción y reduce la adopción. En Fideliza, el cliente solo necesita su código de 10 caracteres para acceder desde cualquier navegador. Además, Fideliza está diseñado para negocios en México y Latinoamérica, con precios en pesos mexicanos y soporte en español.",
       },
       {
         question: "¿Para qué tipo de negocio funciona Fideliza?",
-        answer: "Fideliza funciona para cualquier negocio que quiera retener clientes habituales: restaurantes, cafeterías, barberías, salones de belleza, panaderías, tiendas de ropa, gimnasios, farmacias y más. Si tienes clientes que regresan regularmente y quieres recompensarlos sin complicaciones técnicas, Fideliza es para ti. No necesitas un equipo de tecnología ni una integración con tu sistema de cobro — funciona de forma independiente en menos de 5 minutos.",
+        answer:
+          "Fideliza funciona para cualquier negocio que quiera retener clientes habituales: restaurantes, cafeterías, barberías, salones de belleza, panaderías, tiendas de ropa, gimnasios, farmacias y más. Si tienes clientes que regresan regularmente y quieres recompensarlos sin complicaciones técnicas, Fideliza es para ti. No necesitas un equipo de tecnología ni una integración con tu sistema de cobro — funciona de forma independiente en menos de 5 minutos.",
       },
     ],
   },
@@ -500,15 +586,18 @@ export const es: Dictionary = {
       phoneInvalid: "Ingresa un número de teléfono válido.",
       nameInvalid: "El nombre solo puede contener letras y espacios.",
       nameTooLong: "El nombre es demasiado largo (máx. 60 caracteres).",
-      businessTooLong: "El nombre del negocio es demasiado largo (máx. 100 caracteres).",
+      businessTooLong:
+        "El nombre del negocio es demasiado largo (máx. 100 caracteres).",
       generic: "Algo salió mal. Inténtalo de nuevo.",
-      serverUnreachable: "No se pudo contactar el servidor. Inténtalo de nuevo.",
+      serverUnreachable:
+        "No se pudo contactar el servidor. Inténtalo de nuevo.",
     },
   },
 
   notFound: {
     title: "Página no encontrada",
-    description: "La página que buscas no existe o ha sido movida. Volvamos a encaminarte.",
+    description:
+      "La página que buscas no existe o ha sido movida. Volvamos a encaminarte.",
     backHome: "Volver al inicio",
     contactSupport: "Contactar soporte",
     logoAriaLabel: "Fideliza — Volver al inicio",
