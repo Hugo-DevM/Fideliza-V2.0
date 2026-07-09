@@ -100,6 +100,13 @@ const nextConfig: NextConfig = {
     // Legacy / mistyped URLs that Google has crawled as 404
     { source: '/policy', destination: '/privacy', permanent: true },
     { source: '/mes',    destination: '/',        permanent: true },
+
+    // Old locale-prefixed routes from a previous version — locale is now
+    // handled via middleware/cookie, so these paths no longer exist
+    { source: '/es', destination: '/', permanent: true },
+    { source: '/en', destination: '/', permanent: true },
+    { source: '/es/:path*', destination: '/:path*', permanent: true },
+    { source: '/en/:path*', destination: '/:path*', permanent: true },
   ],
 
   headers: async () => [

@@ -5,7 +5,7 @@ import { LandingShell } from '@/components/landing/LandingShell';
 export const metadata: Metadata = {
   title: 'Fideliza — Programa de lealtad para tu negocio',
   description:
-    'Crea programas de puntos, sellos, visitas y cashback. Fideliza a tus clientes con Fideliza+ — sin app, sin setup complejo.',
+    'El sistema de retención completo para tu negocio: puntos, sellos, cashback, niveles VIP, referidos y campañas de WhatsApp. Sin que tus clientes descarguen una app — solo un código.',
   alternates: {
     canonical: 'https://fideliza.app/',
   },

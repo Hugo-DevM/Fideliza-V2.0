@@ -13,9 +13,6 @@ export default function robots(): MetadataRoute.Robots {
           '/dashboard/',
           '/api/',
           '/c/',
-          // Redirect stubs — canonical content is at /
-          '/en/',
-          '/es/',
         ],
       },
     ],
