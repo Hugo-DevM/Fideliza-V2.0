@@ -3,6 +3,7 @@
 import { revalidatePath } from 'next/cache';
 import { getAuthenticatedTenant } from '@/lib/auth/get-tenant';
 import { createServiceRoleClient } from '@/lib/supabase/server';
+import { checkRateLimit } from '@/lib/middleware/rate-limit';
 
 // Note: Supabase uses parameterized queries so SQL injection is already prevented
 // at the driver level. These helpers add a second layer against stored XSS and
@@ -29,6 +30,13 @@ const MESSAGE_MAX = 5000;
 export async function submitSupportTicketAction(formData: FormData) {
   // Support is available on all plans — Pro tickets get priority handling.
   const { tenantId, tenant } = await getAuthenticatedTenant();
+
+  // ── Rate limit: 5 tickets por hora por tenant ─────────────────────────
+  const rl = await checkRateLimit(`support:${tenantId}`, 5, 60 * 60_000);
+  if (!rl.allowed) {
+    const minutesLeft = Math.ceil((rl.resetAt - Date.now()) / 60_000);
+    return { error: `Has alcanzado el límite de 5 tickets por hora. Podrás enviar otro en aproximadamente ${minutesLeft} minuto${minutesLeft !== 1 ? 's' : ''}.` };
+  }
 
   const subject = sanitizeText((formData.get('subject') as string | null) ?? '');
   const message = sanitizeText((formData.get('message') as string | null) ?? '');

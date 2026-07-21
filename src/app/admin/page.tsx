@@ -90,18 +90,7 @@ export default async function AdminPage() {
     return prioB - prioA;
   });
 
-  // ── Pending bonuses summary ───────────────────────────────────────────
-  const { data: bonusSummary } = await db
-    .from('customer_bonus_credits')
-    .select('bonus_type, units, tenant_id')
-    .is('claimed_at', null)
-    .gt('expires_at', new Date().toISOString()) as {
-      data: Array<{ bonus_type: string; units: number; tenant_id: string }> | null;
-    };
-
-  const totalPending     = bonusSummary?.length ?? 0;
-  const totalPendingPts  = bonusSummary?.reduce((s, b) => s + b.units, 0) ?? 0;
-  const openTickets      = tickets?.filter((t) => t.status !== 'resolved').length ?? 0;
+  const openTickets = tickets?.filter((t) => t.status !== 'resolved').length ?? 0;
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-[#07090f] p-6 space-y-6">
@@ -117,17 +106,9 @@ export default async function AdminPage() {
         </div>
 
         {/* Stats */}
-        <div className="grid grid-cols-3 gap-4">
-          {[
-            { label: 'Tickets abiertos', value: openTickets },
-            { label: 'Bonos pendientes', value: totalPending },
-            { label: 'Puntos por acreditar', value: totalPendingPts.toLocaleString() },
-          ].map((s) => (
-            <div key={s.label} className="rounded-2xl border border-gray-200 dark:border-[#1e2538] bg-white dark:bg-[#0f1222] p-4">
-              <p className="text-2xl font-bold text-gray-900 dark:text-white">{s.value}</p>
-              <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">{s.label}</p>
-            </div>
-          ))}
+        <div className="rounded-2xl border border-gray-200 dark:border-[#1e2538] bg-white dark:bg-[#0f1222] p-4 w-fit">
+          <p className="text-2xl font-bold text-gray-900 dark:text-white">{openTickets}</p>
+          <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">Tickets abiertos</p>
         </div>
 
         {/* Tickets */}
