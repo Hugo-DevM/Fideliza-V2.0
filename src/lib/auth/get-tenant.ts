@@ -11,6 +11,7 @@ import { redirect } from 'next/navigation';
 import { createServerClient } from '@/lib/supabase/server';
 import { getTenantByIdCached, getTenantSettingsCached } from '@/modules/tenants/tenant.repository';
 import { getPlanLimits, getEffectivePlanFromTenant } from '@/lib/config/plans';
+import { NotFoundError } from '@/lib/middleware/errors';
 import type { Tenant, TenantSettings } from '@/lib/types';
 import type { PlanLimits } from '@/lib/config/plans';
 
@@ -48,12 +49,18 @@ export const getAuthenticatedTenant = cache(async (): Promise<AuthenticatedConte
       getTenantByIdCached(tenantId),
       getTenantSettingsCached(tenantId),
     ]);
-  } catch {
-    // Tenant not found or inactive (e.g. deleted account, stale session).
-    // Sign the user out silently so stale cookies don't cause a loop, then
-    // redirect to login with a clear message.
-    await supabase.auth.signOut();
-    redirect('/auth/login?reason=account_not_found');
+  } catch (err) {
+    if (err instanceof NotFoundError) {
+      // Tenant not found or inactive (e.g. deleted account, stale session).
+      // Sign the user out silently so stale cookies don't cause a loop, then
+      // redirect to login with a clear message.
+      await supabase.auth.signOut();
+      redirect('/auth/login?reason=account_not_found');
+    }
+    // Transient error (network, DB timeout, etc.) — log and re-throw so Next.js
+    // can show the error boundary instead of silently signing the user out.
+    console.error('[getAuthenticatedTenant] DB/network error fetching tenant:', err);
+    throw err;
   }
 
   const effectivePlan = getEffectivePlanFromTenant(tenant!);

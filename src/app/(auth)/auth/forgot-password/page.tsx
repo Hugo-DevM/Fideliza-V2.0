@@ -1,7 +1,7 @@
 import Image from 'next/image';
 import ForgotPasswordForm from './ForgotPasswordForm';
 
-export const metadata = { title: 'Recuperar contraseña — Fideliza+' };
+export const metadata = { title: 'Recuperar contraseña — Fideliza' };
 
 export default function ForgotPasswordPage() {
   return (
@@ -9,8 +9,8 @@ export default function ForgotPasswordPage() {
       <div className="w-full max-w-md space-y-6">
 
         <div className="text-center space-y-1.5">
-          <Image src="/logofidelizalight.svg" alt="Fideliza+" width={288} height={96} className="block dark:hidden h-24 w-auto mx-auto" />
-          <Image src="/logofideliza.svg" alt="Fideliza+" width={288} height={96} className="hidden dark:block h-24 w-auto mx-auto" />
+          <Image src="/logofidelizalight.svg" alt="Fideliza" width={288} height={96} className="block dark:hidden h-24 w-auto mx-auto" />
+          <Image src="/logofideliza.svg" alt="Fideliza" width={288} height={96} className="hidden dark:block h-24 w-auto mx-auto" />
           <p className="text-sm text-gray-500 dark:text-gray-400">Panel de negocios</p>
         </div>
 

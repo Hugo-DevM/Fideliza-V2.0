@@ -1,6 +1,6 @@
 import Image from 'next/image';
 
-export const metadata = { title: 'Revisa tu correo — Fideliza+' };
+export const metadata = { title: 'Revisa tu correo — Fideliza' };
 
 interface Props {
   searchParams: Promise<{ email?: string }>;
@@ -14,8 +14,8 @@ export default async function ConfirmPage({ searchParams }: Props) {
       <div className="w-full max-w-sm space-y-8 text-center">
 
         {/* Logo */}
-        <Image src="/logofidelizalight.svg" alt="Fideliza+" width={288} height={96} className="block dark:hidden h-24 w-auto mx-auto" />
-        <Image src="/logofideliza.svg" alt="Fideliza+" width={288} height={96} className="hidden dark:block h-24 w-auto mx-auto" />
+        <Image src="/logofidelizalight.svg" alt="Fideliza" width={288} height={96} className="block dark:hidden h-24 w-auto mx-auto" />
+        <Image src="/logofideliza.svg" alt="Fideliza" width={288} height={96} className="hidden dark:block h-24 w-auto mx-auto" />
 
         {/* Icon + heading */}
         <div className="space-y-4">
@@ -44,7 +44,7 @@ export default async function ConfirmPage({ searchParams }: Props) {
             Pasos a seguir
           </p>
           {[
-            'Abre el correo de Fideliza+',
+            'Abre el correo de Fideliza',
             'Haz clic en "Confirmar tu correo"',
             'Serás redirigido a tu panel',
           ].map((step, i) => (

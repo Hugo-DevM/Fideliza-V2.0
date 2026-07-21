@@ -6,7 +6,7 @@ import DeleteAccountSection from './DeleteAccountSection';
 import WhatsappSenderSection from './WhatsappSenderSection';
 import AccordionSection from './AccordionSection';
 
-export const metadata = { title: 'Configuración — Fideliza+' };
+export const metadata = { title: 'Configuración — Fideliza' };
 
 export default async function SettingsPage({
   searchParams,

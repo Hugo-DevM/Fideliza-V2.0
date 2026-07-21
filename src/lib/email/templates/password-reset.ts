@@ -2,7 +2,7 @@
  * Password reset email template.
  *
  * Inline styles are used intentionally — email clients strip <style> tags.
- * Colors match the Fideliza+ UI (indigo-600 = #4F46E5).
+ * Colors match the Fideliza UI (indigo-600 = #4F46E5).
  * Link expires in 15 minutes; expiry message is prominently displayed.
  */
 
@@ -12,7 +12,7 @@ export function passwordResetTemplate(resetUrl: string): string {
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Recupera tu contraseña — Fideliza+</title>
+  <title>Recupera tu contraseña — Fideliza</title>
 </head>
 <body style="margin:0;padding:0;background-color:#f8fafc;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;">
   <table width="100%" cellpadding="0" cellspacing="0" style="background-color:#f8fafc;padding:40px 16px;">
@@ -24,7 +24,7 @@ export function passwordResetTemplate(resetUrl: string): string {
           <tr>
             <td align="center" style="padding-bottom:24px;">
               <span style="font-size:22px;font-weight:700;color:#4F46E5;letter-spacing:-0.5px;">
-                Fideliza+
+                Fideliza
               </span>
             </td>
           </tr>
@@ -51,7 +51,7 @@ export function passwordResetTemplate(resetUrl: string): string {
                 Recupera tu contraseña
               </h1>
               <p style="margin:0 0 28px;font-size:14px;color:#64748b;text-align:center;line-height:1.6;">
-                Recibimos una solicitud para restablecer la contraseña de tu cuenta en Fideliza+.
+                Recibimos una solicitud para restablecer la contraseña de tu cuenta en Fideliza.
               </p>
 
               <!-- CTA Button -->
@@ -100,7 +100,7 @@ export function passwordResetTemplate(resetUrl: string): string {
           <tr>
             <td align="center" style="padding-top:24px;">
               <p style="margin:0;font-size:11px;color:#94a3b8;">
-                © ${new Date().getFullYear()} Fideliza+. Todos los derechos reservados.
+                © ${new Date().getFullYear()} Fideliza. Todos los derechos reservados.
               </p>
             </td>
           </tr>

@@ -4,7 +4,7 @@ import NewProgramModal from './NewProgramModal';
 import CreateProgramCard from './CreateProgramCard';
 import Link from 'next/link';
 
-export const metadata = { title: 'Programas — Fideliza+' };
+export const metadata = { title: 'Programas — Fideliza' };
 
 const TYPE_LABELS: Record<string, string> = {
   points: 'Puntos', stamp: 'Sellos', visit: 'Visitas', cashback: 'Cashback',
@@ -43,7 +43,8 @@ export default async function ProgramsPage() {
       customer_program_enrollments(count)
     `)
     .eq('tenant_id', tenantId)
-    .order('created_at', { ascending: false });
+    .order('created_at', { ascending: false })
+    .limit(100);
 
   const programs  = (allPrograms ?? []) as unknown as ProgramRow[];
   const active    = programs.filter((p) => p.status !== 'archived');

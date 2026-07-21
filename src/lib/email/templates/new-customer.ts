@@ -14,7 +14,7 @@ export function milestoneTemplate(tenantName: string, total: number, emoji: stri
 
           <tr>
             <td align="center" style="padding-bottom:24px;">
-              <span style="font-size:22px;font-weight:700;color:#4F46E5;letter-spacing:-0.5px;">Fideliza+</span>
+              <span style="font-size:22px;font-weight:700;color:#4F46E5;letter-spacing:-0.5px;">Fideliza</span>
             </td>
           </tr>
 
@@ -56,7 +56,7 @@ export function milestoneTemplate(tenantName: string, total: number, emoji: stri
           <tr>
             <td align="center" style="padding-top:24px;">
               <p style="margin:0;font-size:11px;color:#94a3b8;">
-                © ${new Date().getFullYear()} Fideliza+. Todos los derechos reservados.
+                © ${new Date().getFullYear()} Fideliza. Todos los derechos reservados.
               </p>
             </td>
           </tr>
@@ -85,7 +85,7 @@ export function newCustomerTemplate(tenantName: string, customerName: string): s
 
           <tr>
             <td align="center" style="padding-bottom:24px;">
-              <span style="font-size:22px;font-weight:700;color:#4F46E5;letter-spacing:-0.5px;">Fideliza+</span>
+              <span style="font-size:22px;font-weight:700;color:#4F46E5;letter-spacing:-0.5px;">Fideliza</span>
             </td>
           </tr>
 
@@ -129,7 +129,7 @@ export function newCustomerTemplate(tenantName: string, customerName: string): s
           <tr>
             <td align="center" style="padding-top:24px;">
               <p style="margin:0;font-size:11px;color:#94a3b8;">
-                © ${new Date().getFullYear()} Fideliza+. Todos los derechos reservados.
+                © ${new Date().getFullYear()} Fideliza. Todos los derechos reservados.
               </p>
             </td>
           </tr>

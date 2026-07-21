@@ -2,7 +2,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { verifyEmailAction } from './actions';
 
-export const metadata = { title: 'Confirmar correo — Fideliza+' };
+export const metadata = { title: 'Confirmar correo — Fideliza' };
 
 interface Props {
   searchParams: Promise<{ token_hash?: string; type?: string }>;
@@ -14,8 +14,8 @@ const cardCls = 'rounded-2xl bg-white dark:bg-[#161b2e] px-8 pt-8 pb-7 shadow-xl
 function LogoGroup() {
   return (
     <>
-      <Image src="/logofidelizalight.svg" alt="Fideliza+" width={288} height={96} className="block dark:hidden h-24 w-auto mx-auto" />
-      <Image src="/logofideliza.svg" alt="Fideliza+" width={288} height={96} className="hidden dark:block h-24 w-auto mx-auto" />
+      <Image src="/logofidelizalight.svg" alt="Fideliza" width={288} height={96} className="block dark:hidden h-24 w-auto mx-auto" />
+      <Image src="/logofideliza.svg" alt="Fideliza" width={288} height={96} className="hidden dark:block h-24 w-auto mx-auto" />
     </>
   );
 }
@@ -71,7 +71,7 @@ export default async function VerifyPage({ searchParams }: Props) {
               Un clic para confirmar
             </h1>
             <p className="text-sm text-gray-500 dark:text-gray-400 leading-relaxed">
-              Haz clic en el botón para activar tu cuenta en Fideliza+.
+              Haz clic en el botón para activar tu cuenta en Fideliza.
             </p>
           </div>
 

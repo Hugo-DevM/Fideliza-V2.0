@@ -101,7 +101,7 @@ export const POST = withPublicContext<{ message: string }>(
     }
 
     return NextResponse.json<ApiResponse<{ message: string }>>(
-      { data: { message: '¡Estás en la lista! Te notificaremos cuando Fideliza+ lance.' }, error: null },
+      { data: { message: '¡Estás en la lista! Te notificaremos cuando Fideliza lance.' }, error: null },
       { status: 201 }
     );
   }

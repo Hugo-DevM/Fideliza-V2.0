@@ -2,7 +2,7 @@ import { getAuthenticatedTenant } from "@/lib/auth/get-tenant";
 import QuickRegister from "./QuickRegister";
 import VerifyVoucherForm from "../VerifyVoucherForm";
 
-export const metadata = { title: "Registro rápido — Fideliza+" };
+export const metadata = { title: "Registro rápido — Fideliza" };
 
 export default async function QuickRegisterPage() {
   const { settings } = await getAuthenticatedTenant();

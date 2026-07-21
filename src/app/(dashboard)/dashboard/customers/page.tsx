@@ -8,7 +8,7 @@ import CopyCodeButton from './CopyCodeButton';
 import PromotionBlastButton from './PromotionBlastButton';
 import { TIER_STYLES } from '@/lib/utils/tiers';
 
-export const metadata = { title: 'Clientes — Fideliza+' };
+export const metadata = { title: 'Clientes — Fideliza' };
 
 const LIMIT = 10;
 

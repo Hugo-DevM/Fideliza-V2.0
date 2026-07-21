@@ -17,12 +17,30 @@ import { createServerClient as createSupabaseServerClient } from '@supabase/ssr'
 import { cookies } from 'next/headers';
 import type { EmailOtpType } from '@supabase/supabase-js';
 
+/**
+ * Sanitizes the `next` redirect param to prevent open-redirect attacks.
+ * Accepts only relative paths that start with "/" but NOT "//" (protocol-relative).
+ * Also rejects paths containing "\" or ":" (scheme injection).
+ */
+function sanitizeNext(raw: string | null): string {
+  if (
+    raw &&
+    raw.startsWith('/') &&
+    !raw.startsWith('//') &&
+    !raw.includes('\\') &&
+    !raw.includes(':')
+  ) {
+    return raw;
+  }
+  return '/dashboard';
+}
+
 export async function GET(request: Request) {
   const { searchParams, origin } = new URL(request.url);
   const code      = searchParams.get('code');
   const tokenHash = searchParams.get('token_hash');
   const type      = searchParams.get('type') as EmailOtpType | null;
-  const next      = searchParams.get('next') ?? '/dashboard';
+  const next      = sanitizeNext(searchParams.get('next'));
 
   const cookieStore = await cookies();
 

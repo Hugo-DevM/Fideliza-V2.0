@@ -14,7 +14,7 @@ export function Footer({ t }: FooterProps) {
           {/* Brand */}
           <div className="sm:col-span-1">
             <div className="mb-3">
-              <Image src="/logofideliza.svg" alt="Fideliza+" width={144} height={48} className="h-12 w-auto" />
+              <Image src="/logofideliza.svg" alt="Fideliza" width={144} height={48} className="h-12 w-auto" />
             </div>
             <p className="text-sm leading-relaxed max-w-xs">{t.tagline}</p>
           </div>

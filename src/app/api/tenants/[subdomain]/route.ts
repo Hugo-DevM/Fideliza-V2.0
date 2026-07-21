@@ -20,7 +20,7 @@ export const GET = withPublicContext<{ tenant: PublicTenant; settings: TenantSet
 
     if (!subdomain || typeof subdomain !== 'string') {
       return NextResponse.json<ApiResponse<null>>(
-        { data: null, error: 'Subdomain is required' },
+        { data: null, error: 'El subdominio es requerido' },
         { status: 400 }
       );
     }

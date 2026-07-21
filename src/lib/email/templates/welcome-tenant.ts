@@ -7,7 +7,7 @@ export function welcomeTenantTemplate(businessName: string): string {
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Bienvenido a Fideliza+ — ${businessName}</title>
+  <title>Bienvenido a Fideliza — ${businessName}</title>
 </head>
 <body style="margin:0;padding:0;background-color:#f8fafc;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;">
   <table width="100%" cellpadding="0" cellspacing="0" style="background-color:#f8fafc;padding:40px 16px;">
@@ -17,7 +17,7 @@ export function welcomeTenantTemplate(businessName: string): string {
 
           <tr>
             <td align="center" style="padding-bottom:24px;">
-              <span style="font-size:22px;font-weight:700;color:#4F46E5;letter-spacing:-0.5px;">Fideliza+</span>
+              <span style="font-size:22px;font-weight:700;color:#4F46E5;letter-spacing:-0.5px;">Fideliza</span>
             </td>
           </tr>
 
@@ -35,7 +35,7 @@ export function welcomeTenantTemplate(businessName: string): string {
               </table>
 
               <h1 style="margin:0 0 8px;font-size:20px;font-weight:700;color:#0f172a;text-align:center;line-height:1.3;">
-                ¡Bienvenido a Fideliza+, ${businessName}!
+                ¡Bienvenido a Fideliza, ${businessName}!
               </h1>
               <p style="margin:0 0 28px;font-size:14px;color:#64748b;text-align:center;line-height:1.6;">
                 Tu cuenta está lista. En minutos puedes tener tu primer programa de fidelización activo — sin apps, sin complicaciones.
@@ -95,7 +95,7 @@ export function welcomeTenantTemplate(businessName: string): string {
           <tr>
             <td align="center" style="padding-top:24px;">
               <p style="margin:0;font-size:11px;color:#94a3b8;">
-                © ${year} Fideliza+. Todos los derechos reservados.
+                © ${year} Fideliza. Todos los derechos reservados.
               </p>
             </td>
           </tr>

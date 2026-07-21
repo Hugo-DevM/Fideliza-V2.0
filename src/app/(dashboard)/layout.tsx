@@ -3,6 +3,7 @@ import { createServiceRoleClient } from '@/lib/supabase/server';
 import DashboardShell from '@/components/dashboard/DashboardShell';
 import OnboardingChecklist from '@/components/dashboard/OnboardingChecklist';
 import { getAlerts } from '@/lib/alerts/get-alerts';
+import SubscriptionBanner from './SubscriptionBanner';
 
 export default async function DashboardLayout({
   children,
@@ -11,7 +12,7 @@ export default async function DashboardLayout({
 }) {
   const { tenant, settings } = await getAuthenticatedTenant();
   const db = createServiceRoleClient();
-  const alerts = await getAlerts(tenant.id).catch(() => []);
+  const alerts = await getAlerts(tenant.id).catch((err) => { console.error('[dashboard] getAlerts failed:', err); return []; });
 
   const [
     { count: customerCount },
@@ -37,6 +38,10 @@ export default async function DashboardLayout({
       timezone={settings.timezone ?? 'America/Mexico_City'}
       alerts={alerts}
     >
+      <SubscriptionBanner
+        subscriptionStatus={tenant.subscription_status}
+        plan={tenant.plan}
+      />
       {children}
       <OnboardingChecklist tenantId={tenant.id} steps={onboardingSteps} />
     </DashboardShell>

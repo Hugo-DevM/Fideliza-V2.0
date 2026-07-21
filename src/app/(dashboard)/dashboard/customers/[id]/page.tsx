@@ -19,7 +19,7 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
   const { tenantId } = await getAuthenticatedTenant();
   const db = createServiceRoleClient();
   const { data } = await db.from('customers').select('name').eq('tenant_id', tenantId).eq('id', id).single();
-  return { title: `${data?.name ?? 'Cliente'} — Fideliza+` };
+  return { title: `${data?.name ?? 'Cliente'} — Fideliza` };
 }
 
 async function loadCustomerDetail(tenantId: string, id: string) {

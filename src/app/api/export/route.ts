@@ -72,7 +72,7 @@ export async function GET(request: Request) {
 
   const db = createServiceRoleClient();
   const wb = new ExcelJS.Workbook();
-  wb.creator  = 'Fideliza+';
+  wb.creator  = 'Fideliza';
   wb.created  = new Date();
   wb.modified = new Date();
 
@@ -94,7 +94,8 @@ export async function GET(request: Request) {
       .eq('tenant_id', tenantId)
       .gte('created_at', fromDate.toISOString())
       .lte('created_at', toDate.toISOString())
-      .order('created_at', { ascending: false });
+      .order('created_at', { ascending: false })
+      .limit(10_000);
 
     if (error) return NextResponse.json({ error: error.message }, { status: 500 });
 
@@ -172,10 +173,12 @@ export async function GET(request: Request) {
       db.from('customers')
         .select('id, name, phone, email, access_code, is_active, notes, created_at')
         .eq('tenant_id', tenantId)
-        .order('created_at', { ascending: false }),
+        .order('created_at', { ascending: false })
+        .limit(10_000),
       db.from('customer_program_enrollments')
         .select('customer_id, current_points, lifetime_points, last_activity_at, reward_programs(name, type)')
-        .eq('tenant_id', tenantId),
+        .eq('tenant_id', tenantId)
+        .limit(50_000),
     ]);
 
     type CustRow = {
@@ -264,7 +267,8 @@ export async function GET(request: Request) {
       .eq('tenant_id', tenantId)
       .gte('created_at', fromDate.toISOString())
       .lte('created_at', toDate.toISOString())
-      .order('created_at', { ascending: false });
+      .order('created_at', { ascending: false })
+      .limit(10_000);
 
     if (error) return NextResponse.json({ error: error.message }, { status: 500 });
 

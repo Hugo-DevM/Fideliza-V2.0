@@ -44,11 +44,41 @@ export default function QuickRegister({ programLabel, currency }: Props) {
 
   useEffect(() => {
     if (!customerAccessCode) return;
-    const interval = setInterval(async () => {
-      const refreshed = await lookupCustomerAction(customerAccessCode);
-      if ('customer' in refreshed) setCustomer(refreshed.customer);
-    }, 10_000);
-    return () => clearInterval(interval);
+
+    let interval: ReturnType<typeof setInterval> | undefined;
+
+    function startPolling() {
+      if (interval !== undefined) return;
+      interval = setInterval(async () => {
+        const refreshed = await lookupCustomerAction(customerAccessCode!);
+        if ('customer' in refreshed) setCustomer(refreshed.customer);
+      }, 30_000);
+    }
+
+    function stopPolling() {
+      if (interval === undefined) return;
+      clearInterval(interval);
+      interval = undefined;
+    }
+
+    function handleVisibilityChange() {
+      if (document.visibilityState === 'hidden') {
+        stopPolling();
+      } else {
+        startPolling();
+      }
+    }
+
+    if (document.visibilityState !== 'hidden') {
+      startPolling();
+    }
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+
+    return () => {
+      stopPolling();
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
   }, [customerAccessCode]);
 
   function handleLookup(e: React.FormEvent) {

@@ -12,7 +12,7 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
   const { tenantId } = await getAuthenticatedTenant();
   const db = createServiceRoleClient();
   const { data } = await db.from('reward_programs').select('name').eq('tenant_id', tenantId).eq('id', id).single();
-  return { title: `${data?.name ?? 'Programa'} · Transacciones — Fideliza+` };
+  return { title: `${data?.name ?? 'Programa'} · Transacciones — Fideliza` };
 }
 
 export default async function ProgramTransactionsPage({

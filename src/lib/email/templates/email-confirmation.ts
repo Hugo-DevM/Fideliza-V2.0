@@ -14,7 +14,7 @@ export function emailConfirmationTemplate(confirmUrl: string, fullName?: string)
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Confirma tu correo — Fideliza+</title>
+  <title>Confirma tu correo — Fideliza</title>
 </head>
 <body style="margin:0;padding:0;background-color:#f8fafc;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;">
   <table width="100%" cellpadding="0" cellspacing="0" style="background-color:#f8fafc;padding:40px 16px;">
@@ -26,7 +26,7 @@ export function emailConfirmationTemplate(confirmUrl: string, fullName?: string)
           <tr>
             <td align="center" style="padding-bottom:24px;">
               <span style="font-size:22px;font-weight:700;color:#4F46E5;letter-spacing:-0.5px;">
-                Fideliza+
+                Fideliza
               </span>
             </td>
           </tr>
@@ -53,7 +53,7 @@ export function emailConfirmationTemplate(confirmUrl: string, fullName?: string)
                 ${greeting}, confirma tu correo
               </h1>
               <p style="margin:0 0 28px;font-size:14px;color:#64748b;text-align:center;line-height:1.6;">
-                Para activar tu cuenta en Fideliza+ y comenzar a fidelizar clientes,
+                Para activar tu cuenta en Fideliza y comenzar a fidelizar clientes,
                 confirma que este correo te pertenece.
               </p>
 
@@ -94,7 +94,7 @@ export function emailConfirmationTemplate(confirmUrl: string, fullName?: string)
 
               <!-- Security note -->
               <p style="margin:0;font-size:12px;color:#94a3b8;text-align:center;line-height:1.6;">
-                Si no creaste una cuenta en Fideliza+, puedes ignorar este correo.
+                Si no creaste una cuenta en Fideliza, puedes ignorar este correo.
               </p>
             </td>
           </tr>
@@ -103,7 +103,7 @@ export function emailConfirmationTemplate(confirmUrl: string, fullName?: string)
           <tr>
             <td align="center" style="padding-top:24px;">
               <p style="margin:0;font-size:11px;color:#94a3b8;">
-                © ${new Date().getFullYear()} Fideliza+. Todos los derechos reservados.
+                © ${new Date().getFullYear()} Fideliza. Todos los derechos reservados.
               </p>
             </td>
           </tr>

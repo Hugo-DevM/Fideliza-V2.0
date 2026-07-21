@@ -25,7 +25,7 @@ export const GET = withTenantContext<{
 
     if (!identifier) {
       return NextResponse.json<ApiResponse<null>>(
-        { data: null, error: 'Access code is required' },
+        { data: null, error: 'El código de acceso es requerido' },
         { status: 400 }
       );
     }

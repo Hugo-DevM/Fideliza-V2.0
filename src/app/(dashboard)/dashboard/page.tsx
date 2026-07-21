@@ -4,7 +4,7 @@ import { createServiceRoleClient } from '@/lib/supabase/server';
 import { listActivePrograms } from '@/modules/rewards';
 import PortalCard from '@/components/dashboard/PortalCard';
 
-export const metadata = { title: 'Resumen — Fideliza+' };
+export const metadata = { title: 'Resumen — Fideliza' };
 
 export default async function DashboardPage() {
   const { tenantId, tenant, effectivePlan } = await getAuthenticatedTenant();

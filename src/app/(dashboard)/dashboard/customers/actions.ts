@@ -104,21 +104,41 @@ export async function sendPromotionBlastAction() {
   }
   const db = createServiceRoleClient();
 
-  const { data: customers } = await db
-    .from('customers')
-    .select('id, name, phone')
-    .eq('tenant_id', tenantId)
-    .eq('is_active', true)
-    .eq('whatsapp_opt_in', true)
-    .not('phone', 'is', null);
-
-  if (!customers?.length) return { queued: 0 };
-
   const businessName = settings.program_label ?? 'Fideliza';
+  const PAGE_SIZE = 500;
+  const BATCH_SIZE = 10;
+  let totalQueued = 0;
+  let page = 0;
 
-  for (const c of customers) {
-    void sendPromotionMessage(c.id, tenantId, c.name, businessName, c.phone);
+  while (true) {
+    const from = page * PAGE_SIZE;
+    const to   = from + PAGE_SIZE - 1;
+
+    const { data: customers } = await db
+      .from('customers')
+      .select('id, name, phone')
+      .eq('tenant_id', tenantId)
+      .eq('is_active', true)
+      .eq('whatsapp_opt_in', true)
+      .not('phone', 'is', null)
+      .range(from, to);
+
+    if (!customers?.length) break;
+
+    // Send in limited-concurrency batches of BATCH_SIZE
+    for (let i = 0; i < customers.length; i += BATCH_SIZE) {
+      const batch = customers.slice(i, i + BATCH_SIZE);
+      void Promise.allSettled(
+        batch.map((c) => sendPromotionMessage(c.id, tenantId, c.name, businessName, c.phone)),
+      );
+    }
+
+    totalQueued += customers.length;
+
+    // If we received fewer rows than PAGE_SIZE we've reached the last page
+    if (customers.length < PAGE_SIZE) break;
+    page++;
   }
 
-  return { queued: customers.length };
+  return { queued: totalQueued };
 }

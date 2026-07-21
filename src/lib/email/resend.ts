@@ -7,7 +7,7 @@
  *
  * Required environment variables:
  *   RESEND_API_KEY  — from resend.com dashboard
- *   EMAIL_FROM      — verified sender address (e.g. "Fideliza+ <noreply@fideliza.app>")
+ *   EMAIL_FROM      — verified sender address (e.g. "Fideliza <noreply@fideliza.app>")
  *   NEXT_PUBLIC_APP_URL — used to build reset links
  */
 
@@ -43,7 +43,7 @@ export async function sendConfirmationEmail(
   const { error } = await resend.emails.send({
     from:    getFromAddress(),
     to,
-    subject: 'Confirma tu correo electrónico — Fideliza+',
+    subject: 'Confirma tu correo electrónico — Fideliza',
     html:    emailConfirmationTemplate(confirmUrl, fullName),
   });
   if (error) throw new Error(`Resend: ${error.message}`);
@@ -60,7 +60,7 @@ export async function sendPasswordResetEmail(to: string, token: string): Promise
   const { error } = await resend.emails.send({
     from:    getFromAddress(),
     to,
-    subject: 'Recupera tu contraseña — Fideliza+',
+    subject: 'Recupera tu contraseña — Fideliza',
     html:    passwordResetTemplate(resetUrl),
   });
 
@@ -77,9 +77,9 @@ export async function sendMilestoneNotification(
   total: number,
 ): Promise<void> {
   const milestoneMessages: Record<number, { emoji: string; headline: string; body: string }> = {
-    1:   { emoji: '🎉', headline: '¡Tu primer cliente!',         body: 'Acabas de registrar a tu primer cliente en Fideliza+. Tu programa de lealtad ya está en marcha.' },
+    1:   { emoji: '🎉', headline: '¡Tu primer cliente!',         body: 'Acabas de registrar a tu primer cliente en Fideliza. Tu programa de lealtad ya está en marcha.' },
     50:  { emoji: '🚀', headline: '¡50 clientes registrados!',   body: 'Has llegado a 50 clientes en tu programa de lealtad. ¡Tu base de clientes sigue creciendo!' },
-    300: { emoji: '🏆', headline: '¡300 clientes registrados!',  body: '¡Increíble! Has alcanzado los 300 clientes en Fideliza+. Has llegado al límite del Plan Pro.' },
+    300: { emoji: '🏆', headline: '¡300 clientes registrados!',  body: '¡Increíble! Has alcanzado los 300 clientes en Fideliza. Has llegado al límite del Plan Pro.' },
   };
 
   const msg = milestoneMessages[total];
@@ -178,7 +178,7 @@ export async function sendWelcomeTenantEmail(
     await resend.emails.send({
       from:    getFromAddress(),
       to,
-      subject: `¡Bienvenido a Fideliza+, ${businessName}!`,
+      subject: `¡Bienvenido a Fideliza, ${businessName}!`,
       html:    welcomeTenantTemplate(businessName),
     });
   } catch { /* best-effort — never blocks account creation */ }

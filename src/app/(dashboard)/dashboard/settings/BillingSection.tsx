@@ -387,7 +387,7 @@ export default function BillingSection({
             <div>
               <p className="text-sm font-semibold text-indigo-700 dark:text-indigo-400">Estás en el plan más completo</p>
               <p className="text-xs text-indigo-500 dark:text-indigo-400/70 mt-0.5">
-                Tienes acceso a todas las funciones de Fideliza+.
+                Tienes acceso a todas las funciones de Fideliza.
               </p>
             </div>
           </div>
