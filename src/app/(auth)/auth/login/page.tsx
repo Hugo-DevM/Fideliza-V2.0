@@ -7,7 +7,7 @@ export const metadata = { title: 'Iniciar sesión — Fideliza+' };
 export default async function LoginPage({
   searchParams,
 }: {
-  searchParams: Promise<{ error?: string; reason?: string }>;
+  searchParams: Promise<{ error?: string; reason?: string; next?: string }>;
 }) {
   const { error, reason } = await searchParams;
 

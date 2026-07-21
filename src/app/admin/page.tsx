@@ -7,6 +7,7 @@
  */
 
 import { redirect } from 'next/navigation';
+import { cookies } from 'next/headers';
 import { createServerClient, createServiceRoleClient } from '@/lib/supabase/server';
 import { getEffectivePlan } from '@/lib/config/plans';
 import TicketReplyForm from './TicketReplyForm';
@@ -33,7 +34,15 @@ export default async function AdminPage() {
 
   const adminEmail = process.env.ADMIN_EMAIL;
   if (!user || !adminEmail || user.email !== adminEmail) {
-    redirect('/auth/login');
+    redirect('/auth/login?next=/admin');
+  }
+
+  // ── Second factor: clave secreta ─────────────────────────────────────
+  const jar = await cookies();
+  const verified = jar.get('admin_verified')?.value;
+  const adminSecret = process.env.ADMIN_SECRET;
+  if (!adminSecret || verified !== adminSecret) {
+    redirect('/admin/verify');
   }
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any

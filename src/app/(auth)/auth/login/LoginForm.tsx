@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { createBrowserClient } from '@supabase/ssr';
 import { translateAuthError } from '@/lib/utils/supabase-errors';
 import { useAutoError } from '@/hooks/useAutoError';
@@ -9,6 +9,7 @@ import GoogleAuthButton from '@/components/GoogleAuthButton';
 
 export default function LoginForm() {
   const router = useRouter();
+  const searchParams = useSearchParams();
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -34,7 +35,8 @@ export default function LoginForm() {
       setError(translateAuthError(error.message));
       setStatus('error');
     } else {
-      router.push('/dashboard');
+      const next = searchParams.get('next');
+      router.push(next && next.startsWith('/') ? next : '/dashboard');
     }
   }
 
