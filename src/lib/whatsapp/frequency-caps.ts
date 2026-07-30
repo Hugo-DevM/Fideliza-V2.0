@@ -2,8 +2,12 @@
  * WhatsApp frequency cap guard.
  *
  * Limits per customer:
- *   utility:   max 1 message per ISO week  (Monday–Sunday)
+ *   utility:   max 6 messages per ISO week  (Monday–Sunday)
  *   marketing: max 2 messages per calendar month
+ *
+ * The utility budget is shared across ALL utility templates, and a single earn
+ * can fire tier_upgrade + milestone_80 + challenge_completed at once — hence 6
+ * rather than 1, which silently dropped all but one of them.
  *
  * Reads and atomically increments a row in whatsapp_frequency_caps.
  * Returns true if the message is allowed, false if the cap is reached.
@@ -13,7 +17,7 @@ import { createServiceRoleClient } from '@/lib/supabase/server';
 import type { UUID } from '@/lib/types';
 
 const CAPS = {
-  utility:   { max: 1, windowUnit: 'week'  as const },
+  utility:   { max: 6, windowUnit: 'week'  as const },
   marketing: { max: 2, windowUnit: 'month' as const },
 };
 
