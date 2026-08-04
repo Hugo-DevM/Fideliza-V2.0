@@ -5,6 +5,7 @@ import { getAuthenticatedTenant } from '@/lib/auth/get-tenant';
 import { createCustomer, updateCustomer } from '@/modules/customers';
 import { createServiceRoleClient } from '@/lib/supabase/server';
 import { getPlanLimits } from '@/lib/config/plans';
+import { FEATURES } from '@/lib/config/features';
 import { sendPromotionMessage } from '@/modules/whatsapp/whatsapp.service';
 
 export async function createCustomerAction(formData: FormData) {
@@ -113,6 +114,11 @@ export async function updateCustomerAction(formData: FormData) {
 
 export async function sendPromotionBlastAction() {
   const { tenantId, settings, planLimits } = await getAuthenticatedTenant();
+  // Feature retirada de la app — el botón ya no se renderiza, pero la action
+  // sigue siendo alcanzable por request directo.
+  if (!FEATURES.promotionBlast) {
+    return { error: 'Los mensajes de promoción no están disponibles.' };
+  }
   if (!planLimits.whatsappMarketing) {
     return { error: 'Los mensajes de promoción requieren el plan Pro.' };
   }

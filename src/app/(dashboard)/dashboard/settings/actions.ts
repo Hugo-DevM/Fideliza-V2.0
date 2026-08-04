@@ -6,6 +6,7 @@ import { getAuthenticatedTenant } from '@/lib/auth/get-tenant';
 import { updateTenantSettings, softDeleteTenant } from '@/modules/tenants/tenant.repository';
 import { createServerClient, createServiceRoleClient } from '@/lib/supabase/server';
 import { getPlanLimits } from '@/lib/config/plans';
+import { FEATURES } from '@/lib/config/features';
 import { revalidateTenantCache } from '@/lib/cache/tenant-cache';
 
 export async function updateSettingsAction(formData: FormData) {
@@ -26,14 +27,19 @@ export async function updateSettingsAction(formData: FormData) {
   const wa_notify_welcome          = formData.get('wa_notify_welcome')          === 'true';
   const wa_notify_voucher_expiry   = formData.get('wa_notify_voucher_expiry')   === 'true';
   const wa_notify_balance_reminder = formData.get('wa_notify_balance_reminder') === 'true';
-  // Plan-gated: reactivation + streak (Pro only — both are marketing templates)
+  // Plan-gated: reactivation + streak + promotion (Pro only — all marketing templates,
+  // which enqueueMessage drops for plans without whatsappMarketing)
   const wa_notify_reactivation   = limits.whatsappMarketing
     ? formData.get('wa_notify_reactivation')   === 'true'
     : false;
-  const wa_notify_streak_at_risk = limits.whatsappMarketing
+  // FEATURES.* — ambas están ocultas en la app; se fuerzan a false para no dejar
+  // flags encendidos en la BD mientras la función no se muestra.
+  const wa_notify_streak_at_risk = FEATURES.streakAtRisk && limits.whatsappMarketing
     ? formData.get('wa_notify_streak_at_risk') === 'true'
     : false;
-  const wa_notify_promotion        = formData.get('wa_notify_promotion')        === 'true';
+  const wa_notify_promotion      = FEATURES.promotionBlast && limits.whatsappMarketing
+    ? formData.get('wa_notify_promotion')      === 'true'
+    : false;
   // Plan-gated: birthday (Pro) and milestone_80 (Starter+) — force false if plan doesn't allow
   const wa_notify_birthday         = limits.birthdayRewards
     ? formData.get('wa_notify_birthday') === 'true'

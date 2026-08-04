@@ -22,6 +22,7 @@ import { NextResponse }                from 'next/server';
 import { createServiceRoleClient }    from '@/lib/supabase/server';
 import { sendStreakAtRiskMessage }    from '@/modules/whatsapp/whatsapp.service';
 import { getPlanLimits, getEffectivePlanFromTenant } from '@/lib/config/plans';
+import { FEATURES } from '@/lib/config/features';
 
 export const dynamic     = 'force-dynamic';
 export const maxDuration = 60;
@@ -55,6 +56,12 @@ export async function GET(request: Request) {
   const cronSecret = process.env.CRON_SECRET;
   if (!cronSecret || authHeader !== `Bearer ${cronSecret}`) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
+
+  // Feature retirada de la app. El scheduler es externo (cron-job.org), así que
+  // la guarda vive aquí: mientras el flag esté en false esta corrida no hace nada.
+  if (!FEATURES.streakAtRisk) {
+    return NextResponse.json({ queued: 0, skipped: 0, eligible: 0, reason: 'feature_disabled' });
   }
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any

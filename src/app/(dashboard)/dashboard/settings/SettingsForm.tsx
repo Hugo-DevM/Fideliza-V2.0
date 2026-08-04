@@ -9,6 +9,7 @@ import type { TenantSettings } from '@/lib/types';
 import { useDashboardI18n } from '@/lib/i18n/dashboard-context';
 import type { Locale } from '@/lib/i18n';
 import { getPlanLimits } from '@/lib/config/plans';
+import { FEATURES } from '@/lib/config/features';
 import { PHONE_PREFIXES } from '@/lib/constants/phone-limits';
 import { formatTimeOnly } from '@/lib/utils/date';
 import AccordionSection from './AccordionSection';
@@ -31,7 +32,15 @@ export default function SettingsForm({
 }) {
   const { t, locale, setLocale } = useDashboardI18n();
   const s = t.settings;
-  const brandingLocked = !getPlanLimits(plan).portalCustomBranding;
+  const limits = getPlanLimits(plan);
+  const brandingLocked = !limits.portalCustomBranding;
+
+  // WhatsApp toggles have three different gates — mirroring updateSettingsAction,
+  // which forces the locked ones back to false on save. Without matching them
+  // here the switch flips, saves, and silently reverts.
+  const waLocked        = limits.whatsappMonthlyLimit === 0;  // free: no WhatsApp at all
+  const marketingLocked = !limits.whatsappMarketing;          // reactivation / streak / promotion
+  const birthdayLocked  = !limits.birthdayRewards;            // birthday
 
   const [primaryColor,   setPrimaryColor]   = useState(settings.primary_color);
   const [secondaryColor, setSecondaryColor] = useState(settings.secondary_color);
@@ -540,14 +549,21 @@ export default function SettingsForm({
           )}
 
           <div className="space-y-3">
-            <NotifToggle label="Bienvenida al registrarse" hint="Mensaje de bienvenida cuando un cliente se une al programa." checked={waNotifyWelcome} onChange={setWaNotifyWelcome} disabled={plan === 'free'} />
-            <NotifToggle label="Recordatorio de voucher por vencer" hint="Aviso 3 días antes de que un voucher expire sin ser canjeado." checked={waNotifyVoucherExpiry} onChange={setWaNotifyVoucherExpiry} disabled={plan === 'free'} />
-            <NotifToggle label="Recordatorio de saldo acumulado" hint="Recuerda a clientes inactivos que tienen puntos/sellos disponibles." checked={waNotifyBalanceReminder} onChange={setWaNotifyBalanceReminder} disabled={plan === 'free'} />
-            <NotifToggle label="Reactivación de clientes inactivos" hint="Mensaje semanal para clientes sin visitas en los últimos 21 días." checked={waNotifyReactivation} onChange={setWaNotifyReactivation} disabled={plan === 'free'} />
-            <NotifToggle label="Racha en riesgo" hint="Alerta cuando un cliente está a punto de perder su racha de visitas." checked={waNotifyStreakAtRisk} onChange={setWaNotifyStreakAtRisk} disabled={plan === 'free'} />
-            <NotifToggle label="Mensajes promocionales" hint="Envía promociones y ofertas especiales a tus clientes (costo más alto)." checked={waNotifyPromotion} onChange={setWaNotifyPromotion} disabled={plan === 'free'} />
-            <NotifToggle label="Felicitación de cumpleaños" hint="Mensaje automático el día del cumpleaños del cliente con puntos de regalo." checked={waNotifyBirthday} onChange={setWaNotifyBirthday} disabled={plan === 'free'} />
-            <NotifToggle label="Cerca de su recompensa (80%)" hint="Avisa al cliente cuando le falta poco para completar su meta y obtener su recompensa." checked={waNotifyMilestone80} onChange={setWaNotifyMilestone80} disabled={plan === 'free'} />
+            <NotifToggle label="Bienvenida al registrarse" hint="Mensaje de bienvenida cuando un cliente se une al programa." checked={waNotifyWelcome} onChange={setWaNotifyWelcome} disabled={waLocked} />
+            <NotifToggle label="Recordatorio de voucher por vencer" hint="Aviso 3 días antes de que un voucher expire sin ser canjeado." checked={waNotifyVoucherExpiry} onChange={setWaNotifyVoucherExpiry} disabled={waLocked} />
+            <NotifToggle label="Recordatorio de saldo acumulado" hint="Recuerda a clientes inactivos que tienen puntos/sellos disponibles." checked={waNotifyBalanceReminder} onChange={setWaNotifyBalanceReminder} disabled={waLocked} />
+            <NotifToggle label="Reactivación de clientes inactivos" hint="Mensaje semanal para clientes sin visitas en los últimos 21 días." checked={waNotifyReactivation} onChange={setWaNotifyReactivation} disabled={waLocked || marketingLocked} badge={marketingLocked ? 'Pro' : undefined} />
+            {/* Racha en riesgo y Mensajes promocionales: ocultos vía FEATURES
+                (lib/config/features.ts). El estado y los hidden inputs siguen
+                abajo para que reactivarlos sea solo cambiar el flag. */}
+            {FEATURES.streakAtRisk && (
+              <NotifToggle label="Racha en riesgo" hint="Alerta cuando un cliente está a punto de perder su racha de visitas." checked={waNotifyStreakAtRisk} onChange={setWaNotifyStreakAtRisk} disabled={waLocked || marketingLocked} badge={marketingLocked ? 'Pro' : undefined} />
+            )}
+            {FEATURES.promotionBlast && (
+              <NotifToggle label="Mensajes promocionales" hint="Envía promociones y ofertas especiales a tus clientes (costo más alto)." checked={waNotifyPromotion} onChange={setWaNotifyPromotion} disabled={waLocked || marketingLocked} badge={marketingLocked ? 'Pro' : undefined} />
+            )}
+            <NotifToggle label="Felicitación de cumpleaños" hint="Mensaje automático el día del cumpleaños del cliente con puntos de regalo." checked={waNotifyBirthday} onChange={setWaNotifyBirthday} disabled={waLocked || birthdayLocked} badge={birthdayLocked ? 'Pro' : undefined} />
+            <NotifToggle label="Cerca de su recompensa (80%)" hint="Avisa al cliente cuando le falta poco para completar su meta y obtener su recompensa." checked={waNotifyMilestone80} onChange={setWaNotifyMilestone80} disabled={waLocked} />
           </div>
         </div>
       </AccordionSection>
@@ -609,12 +625,15 @@ function NotifToggle({
   checked,
   onChange,
   disabled = false,
+  badge,
 }: {
   label: string;
   hint: string;
   checked: boolean;
   onChange: (v: boolean) => void;
   disabled?: boolean;
+  /** Plan pill shown next to the label, e.g. "Pro". */
+  badge?: string;
 }) {
   return (
     <div className={[
@@ -624,7 +643,14 @@ function NotifToggle({
         : 'border-gray-100 dark:border-[#1e2438] bg-gray-50 dark:bg-[#1a1f35]',
     ].join(' ')}>
       <div className="min-w-0">
-        <p className="text-sm font-medium text-gray-800 dark:text-gray-100">{label}</p>
+        <div className="flex items-center gap-2">
+          <p className="text-sm font-medium text-gray-800 dark:text-gray-100">{label}</p>
+          {badge && (
+            <span className="shrink-0 rounded-full bg-amber-100 dark:bg-amber-500/20 px-1.5 py-0.5 text-[10px] font-semibold text-amber-700 dark:text-amber-400">
+              {badge}
+            </span>
+          )}
+        </div>
         <p className="text-xs text-gray-400 dark:text-gray-500 mt-0.5">{hint}</p>
       </div>
       <button

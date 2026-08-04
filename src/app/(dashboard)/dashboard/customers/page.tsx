@@ -7,6 +7,7 @@ import CustomerSearchInput from './CustomerSearchInput';
 import CopyCodeButton from './CopyCodeButton';
 import PromotionBlastButton from './PromotionBlastButton';
 import { TIER_STYLES } from '@/lib/utils/tiers';
+import { FEATURES } from '@/lib/config/features';
 
 export const metadata = { title: 'Clientes — Fideliza' };
 
@@ -102,7 +103,7 @@ export default async function CustomersPage({
           </p>
         </div>
         <div className="flex items-center gap-2 sm:shrink-0">
-          {planLimits.whatsappMarketing && <PromotionBlastButton />}
+          {FEATURES.promotionBlast && planLimits.whatsappMarketing && <PromotionBlastButton />}
           {!atCustomerLimit && (
             <NewCustomerModal
               phonePrefix={settings.phone_prefix ?? null}
