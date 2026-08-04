@@ -147,7 +147,10 @@ export default function PortalTabsClient({
         className="mx-auto w-full max-w-lg flex-1 space-y-4 px-4 py-5"
         style={{
           opacity:   visible ? 1 : 0,
-          transform: visible ? 'translateY(0)' : 'translateY(6px)',
+          // 'none', no 'translateY(0)': un transform activo haría de este <main>
+          // el bloque contenedor del modal de RedeemButton (position:fixed) y lo
+          // recortaría a esta columna max-w-lg en vez de cubrir la pantalla.
+          transform: visible ? 'none' : 'translateY(6px)',
           transition: 'opacity 150ms ease, transform 150ms ease',
         }}
       >

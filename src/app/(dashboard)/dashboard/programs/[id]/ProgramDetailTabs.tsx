@@ -107,11 +107,17 @@ export default function ProgramDetailTabs({
         ))}
       </div>
 
-      {/* Animated content */}
+      {/* Animated content.
+          En reposo el transform DEBE ser 'none', no 'translateY(0)': cualquier
+          transform distinto de none convierte a este div en el bloque contenedor
+          de sus descendientes con position:fixed, y los modales de adentro
+          (NewRewardForm, DeleteRewardButton) quedarían recortados a esta caja en
+          vez de cubrir la pantalla. La transición interpola none ↔ translateY
+          igual, así que la animación de entrada no cambia. */}
       <div
         style={{
           opacity:    visible ? 1 : 0,
-          transform:  visible ? 'translateY(0)' : 'translateY(6px)',
+          transform:  visible ? 'none' : 'translateY(6px)',
           transition: 'opacity 180ms ease, transform 180ms ease',
         }}
       >
