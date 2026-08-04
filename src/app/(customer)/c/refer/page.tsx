@@ -31,21 +31,24 @@ export default async function ReferralPage({ searchParams }: PageProps) {
   const { ref: referrerCode, program: programId } = await searchParams;
   if (!referrerCode || !programId) notFound();
 
-  let tenantId: string;
-  let tenantName: string;
-  let logoUrl: string | null = null;
-  let logoPadding = 8;
+  let tenant: Awaited<ReturnType<typeof getTenantBySubdomainPublic>>;
 
   try {
-    const tenant = await getTenantBySubdomainPublic(subdomain);
-    tenantId     = tenant.id;
-    tenantName   = tenant.name;
-    logoUrl      = tenant.logo_url;
-    logoPadding  = tenant.logo_padding;
+    tenant = await getTenantBySubdomainPublic(subdomain);
   } catch (err) {
     if (err instanceof TenantNotFoundError) notFound();
     throw err;
   }
+
+  // Referrals are a Pro feature. The per-program referral_enabled flag survives
+  // a downgrade, so the plan is checked first — otherwise an already-shared link
+  // would keep registering referrals after the tenant drops to Starter/Free.
+  if (!tenant.referralProgram) notFound();
+
+  const tenantId    = tenant.id;
+  const tenantName  = tenant.name;
+  const logoUrl     = tenant.logo_url;
+  const logoPadding = tenant.logo_padding;
 
   const db = createServiceRoleClient();
 

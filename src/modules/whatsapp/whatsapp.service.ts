@@ -337,7 +337,7 @@ export async function sendMilestone80Message(
         '4': rewardName,
         '5': '{{unit_label}}',
       },
-      priority: 3,
+      priority: 5, // last of the four notifications a single earn can fire
     });
   } catch { /* best-effort */ }
 }
@@ -461,7 +461,7 @@ export async function sendSurpriseDelightMessage(
         '3': String(multiplier),
         '4': '{{unit_label}}',
       },
-      priority: 3,
+      priority: 4,
     });
   } catch { /* best-effort */ }
 }
@@ -494,7 +494,7 @@ export async function sendChallengeCompletedMessage(
         '4': businessName,
         '5': '{{unit_label}}',
       },
-      priority: 2,
+      priority: 3,
     });
   } catch { /* best-effort */ }
 }

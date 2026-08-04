@@ -80,10 +80,10 @@ export default async function CustomersPage({
               Has llegado al máximo de tu plan actual. Actualiza para agregar más.
             </p>
           </div>
-          <a href="/dashboard/settings"
+          <Link href="/dashboard/settings"
             className="shrink-0 rounded-xl bg-amber-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-amber-700 transition">
             Actualizar plan
-          </a>
+          </Link>
         </div>
       )}
 
@@ -103,7 +103,13 @@ export default async function CustomersPage({
         </div>
         <div className="flex items-center gap-2 sm:shrink-0">
           {planLimits.whatsappMarketing && <PromotionBlastButton />}
-          {!atCustomerLimit && <NewCustomerModal phonePrefix={settings.phone_prefix ?? null} plan={effectivePlan} />}
+          {!atCustomerLimit && (
+            <NewCustomerModal
+              phonePrefix={settings.phone_prefix ?? null}
+              plan={effectivePlan}
+              referralEnabled={settings.referral_enabled ?? false}
+            />
+          )}
         </div>
       </div>
 

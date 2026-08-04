@@ -206,8 +206,12 @@ export async function processTransaction(
 
     const tx = data as unknown as Transaction;
 
-    // ── Update loyalty score + tier cache (fire-and-forget) ──────────────────
-    void (async () => {
+    // ── Deferred side effects ────────────────────────────────────────────────
+    // The four blocks below can each enqueue a WhatsApp message for the SAME
+    // customer on a single earn (tier upgrade, challenge, surprise, 80% nudge).
+    // They are defined here and awaited in a fixed sequence at the end of the
+    // block — running them concurrently made the arrival order a race.
+    const updateLoyaltyAndNotifyTier = async (): Promise<void> => {
       try {
         const loyaltyDelta = computeLoyaltyDelta(programType, baseDelta, tierSettings);
         if (loyaltyDelta <= 0) return;
@@ -264,11 +268,10 @@ export async function processTransaction(
           }
         }
       } catch { /* best-effort — never blocks the earn */ }
-    })();
-    // ────────────────────────────────────────────────────────────────────────
+    };
 
-    // ── 80% milestone notification (fire-and-forget) ─────────────────────────
-    void (async () => {
+    // ── 80% milestone notification ───────────────────────────────────────────
+    const notifyMilestone80 = async (): Promise<void> => {
       try {
         const balanceAfter  = tx.balance_after;
         const balanceBefore = balanceAfter - effectiveDelta;
@@ -324,40 +327,40 @@ export async function processTransaction(
           cheapestReward.name,
         );
       } catch { /* best-effort — never blocks the earn */ }
-    })();
+    };
+
     // Note: tier upgrade notification is handled inside the loyalty score block above.
-    // ── Surprise & Delight notification (fire-and-forget) ────────────────────
-    if (surpriseFired) {
-      void (async () => {
-        try {
-          const db2 = createServiceRoleClient();
+    // ── Surprise & Delight notification ──────────────────────────────────────
+    const notifySurpriseDelight = async (): Promise<void> => {
+      if (!surpriseFired) return;
+      try {
+        const db2 = createServiceRoleClient();
 
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          const { data: customer } = await (db2.from('customers') as any)
-            .select('name, phone, whatsapp_opt_in')
-            .eq('id', input.customer_id)
-            .eq('whatsapp_opt_in', true)
-            .maybeSingle() as { data: { name: string; phone: string | null } | null };
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const { data: customer } = await (db2.from('customers') as any)
+          .select('name, phone, whatsapp_opt_in')
+          .eq('id', input.customer_id)
+          .eq('whatsapp_opt_in', true)
+          .maybeSingle() as { data: { name: string; phone: string | null } | null };
 
-          if (!customer?.phone) return;
+        if (!customer?.phone) return;
 
-          const { data: tenantRow } = await db2
-            .from('tenants')
-            .select('name')
-            .eq('id', tenantId)
-            .single() as { data: { name: string } | null };
+        const { data: tenantRow } = await db2
+          .from('tenants')
+          .select('name')
+          .eq('id', tenantId)
+          .single() as { data: { name: string } | null };
 
-          await sendSurpriseDelightMessage(
-            input.customer_id,
-            tenantId,
-            customer.name,
-            tenantRow?.name ?? '',
-            customer.phone,
-            surpriseMult,
-          );
-        } catch { /* best-effort — never blocks the earn */ }
-      })();
-    }
+        await sendSurpriseDelightMessage(
+          input.customer_id,
+          tenantId,
+          customer.name,
+          tenantRow?.name ?? '',
+          customer.phone,
+          surpriseMult,
+        );
+      } catch { /* best-effort — never blocks the earn */ }
+    };
     // ── Referral completion hook (fire-and-forget) ───────────────────────────
     // Fires only on the referred customer's FIRST earn (lifetimePoints === 0).
     // Applies bonus to whatever program they first transact in.
@@ -448,8 +451,8 @@ export async function processTransaction(
         } catch { /* best-effort — never blocks the earn */ }
       })();
     }
-    // ── Challenge progress hook (fire-and-forget) ────────────────────────────
-    void (async () => {
+    // ── Challenge progress hook ──────────────────────────────────────────────
+    const notifyChallengeProgress = async (): Promise<void> => {
       try {
         const db2 = createServiceRoleClient();
         const now  = new Date().toISOString();
@@ -544,6 +547,19 @@ export async function processTransaction(
           }
         }
       } catch { /* best-effort — never blocks the earn */ }
+    };
+
+    // Run the same-customer notifications in a fixed order, biggest event first:
+    // tier upgrade → challenge completed → surprise → 80% nudge. Sequential on
+    // purpose — each message must land in the queue before the next is inserted,
+    // otherwise the arrival order depends on which Supabase call returns first.
+    // The referral hook above stays concurrent: it notifies the REFERRER, a
+    // different customer, so it never competes for this customer's ordering.
+    void (async () => {
+      await updateLoyaltyAndNotifyTier();
+      await notifyChallengeProgress();
+      await notifySurpriseDelight();
+      await notifyMilestone80();
     })();
     // ────────────────────────────────────────────────────────────────────────
 

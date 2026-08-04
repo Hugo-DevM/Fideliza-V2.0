@@ -1,6 +1,7 @@
 'use server';
 
 import { createServiceRoleClient } from '@/lib/supabase/server';
+import { getPlanLimits, getEffectivePlan } from '@/lib/config/plans';
 import { sendReferralWelcomeMessage } from '@/modules/whatsapp/whatsapp.service';
 
 interface RegisterReferredInput {
@@ -16,6 +17,24 @@ export async function registerReferredCustomerAction(
 ): Promise<{ accessCode: string } | { error: string }> {
   const { tenantId, referrerId, programId, name, phone } = input;
   const db = createServiceRoleClient();
+
+  // Referrals are a Pro feature. The per-program flag survives a downgrade, so
+  // the plan is checked first. Message stays neutral — the end customer should
+  // not see the business's billing status.
+  const { data: tenantRow } = await db
+    .from('tenants')
+    .select('plan, subscription_status')
+    .eq('id', tenantId)
+    .single() as { data: { plan: string; subscription_status: string | null } | null };
+
+  if (!tenantRow) return { error: 'Negocio no disponible.' };
+
+  const planLimits = getPlanLimits(
+    getEffectivePlan(tenantRow.plan, tenantRow.subscription_status)
+  );
+  if (!planLimits.referralProgram) {
+    return { error: 'El programa de referidos no está activo.' };
+  }
 
   // Validate referral is still enabled on the program
   const { data: program } = await db

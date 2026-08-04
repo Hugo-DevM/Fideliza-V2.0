@@ -34,7 +34,7 @@ import type { UUID } from '@/lib/types';
  */
 export async function getTenantBySubdomainPublic(
   subdomain: string
-): Promise<{ id: UUID; name: string; is_active: boolean; logo_url: string | null; logo_padding: number; clientPortal: boolean; customBranding: boolean }> {
+): Promise<{ id: UUID; name: string; is_active: boolean; logo_url: string | null; logo_padding: number; clientPortal: boolean; customBranding: boolean; referralProgram: boolean }> {
   const sub = subdomain.toLowerCase();
   return unstable_cache(
     async () => {
@@ -66,8 +66,9 @@ export async function getTenantBySubdomainPublic(
         is_active:      raw.is_active,
         logo_url:       raw.logo_url,
         logo_padding:   settings?.logo_padding ?? 8,
-        clientPortal:   limits.clientPortal,
-        customBranding: limits.portalCustomBranding,
+        clientPortal:    limits.clientPortal,
+        customBranding:  limits.portalCustomBranding,
+        referralProgram: limits.referralProgram,
       };
     },
     ['tenant-by-subdomain', sub],
@@ -281,10 +282,12 @@ async function getPortalTenantConfigCached(tenantId: UUID): Promise<PortalTenant
         ? raw.tenant_settings[0]
         : raw.tenant_settings;
 
-      // Free plan → neutral Fideliza branding (no tenant logo/colors) + "Powered by" badge
-      const customBranding = getPlanLimits(
+      const limits = getPlanLimits(
         getEffectivePlan(raw.plan, raw.subscription_status)
-      ).portalCustomBranding;
+      );
+
+      // Free plan → neutral Fideliza branding (no tenant logo/colors) + "Powered by" badge
+      const customBranding = limits.portalCustomBranding;
 
       const tenant: PortalTenant = {
         id:              tenantId,
@@ -303,7 +306,10 @@ async function getPortalTenantConfigCached(tenantId: UUID): Promise<PortalTenant
         tenant,
         tiers_enabled:            settings?.tiers_enabled ?? false,
         tiers:                    settings?.tiers ?? null,
-        referral_enabled:         settings?.referral_enabled ?? false,
+        // The stored flag survives a downgrade (Pro → Starter/Free leaves
+        // referral_enabled = true in tenant_settings), so the plan is the
+        // authority here — never the flag alone.
+        referral_enabled:         limits.referralProgram && (settings?.referral_enabled ?? false),
         referral_program_configs: settings?.referral_program_configs ?? {},
       };
     },

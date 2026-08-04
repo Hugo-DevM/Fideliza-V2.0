@@ -4,10 +4,11 @@ import { revalidatePath, revalidateTag } from 'next/cache';
 import { getAuthenticatedTenant } from '@/lib/auth/get-tenant';
 import { createCustomer, updateCustomer } from '@/modules/customers';
 import { createServiceRoleClient } from '@/lib/supabase/server';
+import { getPlanLimits } from '@/lib/config/plans';
 import { sendPromotionMessage } from '@/modules/whatsapp/whatsapp.service';
 
 export async function createCustomerAction(formData: FormData) {
-  const { tenantId } = await getAuthenticatedTenant();
+  const { tenantId, effectivePlan, settings } = await getAuthenticatedTenant();
 
   const name             = (formData.get('name')  as string | null)?.trim() ?? '';
   const phone            = (formData.get('phone') as string | null)?.trim() || null;
@@ -23,6 +24,19 @@ export async function createCustomerAction(formData: FormData) {
 
   if (!name)  return { error: 'El nombre es obligatorio.' };
   if (!phone) return { error: 'El teléfono es obligatorio.' };
+
+  // The input is disabled in the UI when either gate is closed, so this only
+  // fires on a forged request or a change mid-session. Rejected before creating
+  // the customer — dropping the code silently would let the operator believe it
+  // registered.
+  if (referralCode) {
+    if (!getPlanLimits(effectivePlan).referralProgram) {
+      return { error: 'El programa de referidos requiere el plan Pro.' };
+    }
+    if (!settings.referral_enabled) {
+      return { error: 'El programa de referidos está desactivado.' };
+    }
+  }
 
   try {
     const customer = await createCustomer(tenantId, { name, phone, notes, whatsapp_opt_in, birth_month, birth_day, birth_year });

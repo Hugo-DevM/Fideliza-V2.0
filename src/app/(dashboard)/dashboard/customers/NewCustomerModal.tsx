@@ -4,6 +4,7 @@ import { useState, useTransition, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { createCustomerAction } from "./actions";
+import { getPlanLimits } from "@/lib/config/plans";
 import {
   getLocalLimits,
   PHONE_PREFIXES,
@@ -22,9 +23,11 @@ function capitalizeWords(value: string) {
 interface Props {
   phonePrefix: string | null;
   plan: string;
+  /** tenant_settings.referral_enabled — the Pro plan only unlocks the toggle. */
+  referralEnabled: boolean;
 }
 
-export default function NewCustomerModal({ phonePrefix, plan }: Props) {
+export default function NewCustomerModal({ phonePrefix, plan, referralEnabled }: Props) {
   const [open, setOpen] = useState(false);
   const { mounted: modalMounted, visible: modalVisible } =
     useModalTransition(open);
@@ -44,6 +47,12 @@ export default function NewCustomerModal({ phonePrefix, plan }: Props) {
   const NOTES_MAX = 300;
   const formRef = useRef<HTMLFormElement>(null);
   const router = useRouter();
+
+  // Two independent gates: the plan unlocks the feature, the tenant toggle turns
+  // it on. The input stays visible but locked in both cases so the operator sees
+  // the feature exists (and why it's off) instead of it silently vanishing.
+  const referralsInPlan = getPlanLimits(plan).referralProgram;
+  const referralsUsable = referralsInPlan && referralEnabled;
 
   const {
     min: localMin,
@@ -400,27 +409,71 @@ export default function NewCustomerModal({ phonePrefix, plan }: Props) {
                   </div>
                 </div>
 
-                {/* Referral code */}
+                {/* Referral code — requires the Pro plan AND the tenant toggle */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
-                    Código de referido{" "}
-                    <span className="text-gray-400 dark:text-gray-500 font-normal">
-                      (opcional)
+                  <label className="flex items-center gap-2 text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
+                    <span>
+                      Código de referido{" "}
+                      <span className="text-gray-400 dark:text-gray-500 font-normal">
+                        (opcional)
+                      </span>
                     </span>
+                    {!referralsInPlan && (
+                      <span className="rounded-full bg-amber-100 dark:bg-amber-500/20 px-1.5 py-0.5 text-[10px] font-semibold text-amber-700 dark:text-amber-400">
+                        Pro
+                      </span>
+                    )}
                   </label>
                   <input
                     name="referral_code"
                     type="text"
-                    placeholder="Ej. AB3X7K"
+                    placeholder={
+                      referralsUsable
+                        ? "Ej. AB3X7K"
+                        : referralsInPlan
+                          ? "Programa de referidos desactivado"
+                          : "Disponible en el plan Pro"
+                    }
                     maxLength={8}
-                    className={`${inputCls} uppercase`}
+                    disabled={!referralsUsable}
+                    className={`${inputCls} uppercase ${
+                      referralsUsable
+                        ? ""
+                        : "cursor-not-allowed opacity-60 bg-gray-50 dark:bg-[#1a1f35]"
+                    }`}
                     onChange={(e) => {
                       e.target.value = e.target.value.toUpperCase();
                     }}
                   />
                   <p className="mt-1 text-xs text-gray-400 dark:text-gray-500">
-                    Si un cliente existente refirió a esta persona, ingresa su
-                    código.
+                    {referralsUsable ? (
+                      <>
+                        Si un cliente existente refirió a esta persona, ingresa
+                        su código.
+                      </>
+                    ) : referralsInPlan ? (
+                      <>
+                        Tu programa de referidos está desactivado.{" "}
+                        <Link
+                          href="/dashboard/referidos"
+                          className="text-indigo-500 hover:underline"
+                        >
+                          Actívalo en Referidos
+                        </Link>{" "}
+                        para registrar quién refirió a cada cliente.
+                      </>
+                    ) : (
+                      <>
+                        El programa de referidos es del plan Pro.{" "}
+                        <Link
+                          href="/dashboard/settings"
+                          className="text-indigo-500 hover:underline"
+                        >
+                          Mejora tu plan
+                        </Link>{" "}
+                        para dar bonos por referir.
+                      </>
+                    )}
                   </p>
                 </div>
 
