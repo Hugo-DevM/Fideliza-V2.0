@@ -1,5 +1,6 @@
 'use server';
 
+import { after } from 'next/server';
 import { onboardTenant } from '@/modules/tenants';
 import { createServiceRoleClient } from '@/lib/supabase/server';
 import { BadRequestError } from '@/lib/middleware/errors';
@@ -102,8 +103,11 @@ export async function setupTenantAction(input: {
       return { error: `Cuenta creada pero hubo un problema al guardar tus datos: ${metaError.message}` };
     }
 
-    // Fire-and-forget — welcome email must never block account creation
-    void sendWelcomeTenantEmail(input.email, input.businessName);
+    // Deferred — the welcome email must never block account creation, but it
+    // must still go out: `after()` survives the response returning.
+    after(async () => {
+      await sendWelcomeTenantEmail(input.email, input.businessName);
+    });
 
     return { tenantId: tenant.id };
   } catch (err) {

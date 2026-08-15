@@ -2,6 +2,7 @@
  * Customer service — business logic for customer operations.
  */
 
+import { after } from 'next/server';
 import { createServiceRoleClient } from '@/lib/supabase/server';
 import {
   getCustomerByAccessCode,
@@ -90,13 +91,17 @@ export async function createCustomer(
 
   const customer = data as Customer;
 
-  // Fire-and-forget: milestone email + WhatsApp welcome (run concurrently)
-  void (async () => {
+  // Deferred: milestone email + WhatsApp welcome, run concurrently.
+  // Scheduled with `after()` (next/server) rather than a bare `void`: on a
+  // serverless host the container can be frozen as soon as the response is
+  // sent, which would strand this work — the welcome message is the customer's
+  // very first contact, so losing it is the most visible failure of all.
+  after(async () => {
     const prefs = await getNotificationPrefs(tenantId);
 
     // Milestone email notification (at 1, 50, 300 customers)
-    void (async () => {
-      const MILESTONES = [1, 50, 300];
+    const notifyMilestone = async (): Promise<void> => {
+      const MILESTONES = [1, 50, 300, 1000];
       const { count } = await db
         .from('customers')
         .select('id', { count: 'exact', head: true })
@@ -105,11 +110,11 @@ export async function createCustomer(
       const total = count ?? 0;
       if (!MILESTONES.includes(total)) return;
       if (!prefs?.notifyNewCustomer) return;
-      void sendMilestoneNotification(prefs.email, prefs.tenantName, total);
-    })();
+      await sendMilestoneNotification(prefs.email, prefs.tenantName, total);
+    };
 
     // WhatsApp welcome message
-    void (async () => {
+    const notifyWelcome = async (): Promise<void> => {
       if (!customer.whatsapp_opt_in) return;
       if (!customer.phone)           return;
       if (!prefs?.waNotifyWelcome)   return;
@@ -120,8 +125,10 @@ export async function createCustomer(
         prefs.tenantName,
         customer.phone,
       );
-    })();
-  })();
+    };
+
+    await Promise.allSettled([notifyMilestone(), notifyWelcome()]);
+  });
 
   return customer;
 }

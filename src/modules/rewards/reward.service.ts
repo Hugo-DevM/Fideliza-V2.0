@@ -2,6 +2,7 @@
  * Reward service — business logic for programs and rewards.
  */
 
+import { after } from 'next/server';
 import { createServiceRoleClient } from '@/lib/supabase/server';
 import {
   listActivePrograms,
@@ -97,8 +98,10 @@ export async function createProgram(
 
   const program = data as unknown as RewardProgram;
 
-  // Fire-and-forget milestone notification — only at 1st and 3rd program
-  void (async () => {
+  // Deferred milestone notification — only at 1st and 3rd program.
+  // `after()` keeps the invocation alive until the email is sent; a bare `void`
+  // could be frozen with the container as soon as the response returns.
+  after(async () => {
     const MILESTONES = [1, 3];
     const { count } = await db
       .from('reward_programs')
@@ -111,8 +114,8 @@ export async function createProgram(
     const prefs = await getNotificationPrefs(tenantId);
     if (!prefs?.notifyNewCustomer) return;
 
-    void sendProgramMilestoneNotification(prefs.email, prefs.tenantName, total, program.name);
-  })();
+    await sendProgramMilestoneNotification(prefs.email, prefs.tenantName, total, program.name);
+  });
 
   return program;
 }

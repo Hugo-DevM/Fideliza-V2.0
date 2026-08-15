@@ -65,6 +65,10 @@ export async function createCustomerAction(formData: FormData) {
           .maybeSingle();
 
         if (!existing) {
+          // program_id stays null: nothing is credited at this point, so the
+          // first-earn hook in transaction.service.ts pays BOTH the referred
+          // welcome bonus and the referrer bonus. The portal link path sets it
+          // instead, to signal the welcome bonus was already paid.
           await db.from('referrals').insert({
             tenant_id:   tenantId,
             referrer_id: referrer.id,

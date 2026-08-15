@@ -54,7 +54,12 @@ export const PLAN_CONFIG: Record<string, PlanLimits> = {
     challenges:             false,
   },
   starter: {
-    maxCustomers:           300,
+    // Unlimited on purpose. Storing customer rows costs us nothing — the real
+    // variable cost is Twilio, and that is already bounded by
+    // whatsappMonthlyLimit (500/month). Capping customers only lost deals to
+    // cheaper competitors offering unlimited at half the price. Starter vs Pro
+    // is differentiated by retention features, not by a headcount.
+    maxCustomers:           null,
     maxPrograms:            3,
     maxRewardsPerProgram:   3,
     allowedProgramTypes:    ['points', 'stamp', 'visit'],

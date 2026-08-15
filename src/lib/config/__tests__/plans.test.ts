@@ -80,8 +80,11 @@ describe('FREE plan', () => {
 describe('STARTER plan', () => {
   const limits = PLAN_CONFIG.starter;
 
-  it('maxCustomers = 300', () => {
-    assert.equal(limits.maxCustomers, 300);
+  it('maxCustomers = null (unlimited)', () => {
+    // Deliberate: customer rows are free to store, and spend is capped by
+    // whatsappMonthlyLimit instead. Starter is differentiated from Pro by
+    // retention features, not by a headcount.
+    assert.equal(limits.maxCustomers, null);
   });
 
   it('maxPrograms = 3', () => {

@@ -1,6 +1,7 @@
 'use server';
 
 import { revalidatePath } from 'next/cache';
+import { after } from 'next/server';
 import { getAuthenticatedTenant } from '@/lib/auth/get-tenant';
 import { processTransaction } from '@/modules/transactions';
 import { createServiceRoleClient } from '@/lib/supabase/server';
@@ -149,7 +150,7 @@ export async function addMissionProgressAction(customerId: string, challengeId: 
 }
 
 export async function sendBalanceReminderAction(customerId: string, programId: string) {
-  const { tenantId, settings, planLimits } = await getAuthenticatedTenant();
+  const { tenantId, tenant, planLimits } = await getAuthenticatedTenant();
   if (planLimits.whatsappMonthlyLimit === 0) {
     return { error: 'Los mensajes de WhatsApp no están disponibles en el plan Gratis.' };
   }
@@ -179,30 +180,38 @@ export async function sendBalanceReminderAction(customerId: string, programId: s
 
   const typedEnrollment = enrollment as unknown as { current_points: number };
 
-  // Get cheapest unreached reward for this program
+  // Get cheapest unreached reward for this program.
+  // The column is `cost_points` — `points_required` does not exist on `rewards`,
+  // and querying it made this action fail for every customer.
   const { data: reward } = await (db
     .from('rewards')
-    .select('name, points_required')
+    .select('name, cost_points')
+    .eq('tenant_id', tenantId)
     .eq('program_id', programId)
     .eq('is_active', true)
-    .gt('points_required', typedEnrollment.current_points)
-    .order('points_required', { ascending: true })
+    .gt('cost_points', typedEnrollment.current_points)
+    .order('cost_points', { ascending: true })
     .limit(1)
-    .single() as unknown as Promise<{ data: { name: string; points_required: number } | null }>);
+    .maybeSingle() as unknown as Promise<{ data: { name: string; cost_points: number } | null }>);
 
   if (!reward) return { error: 'No hay recompensas disponibles para recordar.' };
-  const pointsNeeded = reward.points_required - typedEnrollment.current_points;
+  const pointsNeeded = reward.cost_points - typedEnrollment.current_points;
 
-  void sendBalanceReminder(
-    customerId,
-    tenantId,
-    customer.name,
-    settings.program_label ?? 'Fideliza',
-    customer.phone,
-    typedEnrollment.current_points,
-    pointsNeeded,
-    reward.name,
-  );
+  // Deferred with `after()`: the action returns immediately so the button stops
+  // spinning, but the enqueue still completes before the container is frozen.
+  const phone = customer.phone;
+  after(async () => {
+    await sendBalanceReminder(
+      customerId,
+      tenantId,
+      customer.name,
+      tenant.name,
+      phone,
+      typedEnrollment.current_points,
+      pointsNeeded,
+      reward.name,
+    );
+  });
 
   return { success: true };
 }

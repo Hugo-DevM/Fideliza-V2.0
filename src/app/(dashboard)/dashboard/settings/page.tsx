@@ -24,16 +24,20 @@ export default async function SettingsPage({
   } | null = null;
   if (effectivePlan === 'free' || effectivePlan === 'starter' || effectivePlan === 'pro') {
     const db = createServiceRoleClient();
-    const hasLimits = effectivePlan !== 'pro';
+    // Derived from the limits themselves, never from the plan name: a plan whose
+    // cap is null shows no usage bar, whichever plan it happens to be. Keying
+    // this off `plan !== 'pro'` broke the moment Starter became unlimited.
+    const customerLimit = planLimits.maxCustomers;
+    const programLimit  = planLimits.maxPrograms;
     const waLimit = planLimits.whatsappMonthlyLimit ?? 0;
     const monthStart = new Date();
     monthStart.setUTCDate(1);
     monthStart.setUTCHours(0, 0, 0, 0);
     const [{ count: customerCount }, { count: programCount }, { count: whatsappCount }] = await Promise.all([
-      hasLimits
+      customerLimit !== null
         ? db.from('customers').select('id', { count: 'exact', head: true }).eq('tenant_id', tenant.id).eq('is_active', true)
         : Promise.resolve({ count: 0 }),
-      hasLimits
+      programLimit !== null
         ? db.from('reward_programs').select('id', { count: 'exact', head: true }).eq('tenant_id', tenant.id).neq('status', 'archived')
         : Promise.resolve({ count: 0 }),
       waLimit > 0
@@ -41,8 +45,8 @@ export default async function SettingsPage({
         : Promise.resolve({ count: 0 }),
     ]);
     planUsage = {
-      customers: hasLimits ? { used: customerCount ?? 0, max: planLimits.maxCustomers! } : null,
-      programs:  hasLimits ? { used: programCount  ?? 0, max: planLimits.maxPrograms!  } : null,
+      customers: customerLimit !== null ? { used: customerCount ?? 0, max: customerLimit } : null,
+      programs:  programLimit  !== null ? { used: programCount  ?? 0, max: programLimit  } : null,
       whatsapp:  { used: whatsappCount ?? 0, max: waLimit },
     };
   }

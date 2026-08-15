@@ -258,7 +258,7 @@ export const es: Dictionary = {
         highlight: true,
         featuresIntro: "Todo lo de Gratis, más:",
         features: [
-          "Hasta 300 clientes",
+          "Clientes ilimitados",
           "3 programas de fidelización",
           "Programas por visitas",
           "Portal con tu logo y colores",
@@ -282,7 +282,7 @@ export const es: Dictionary = {
         highlight: false,
         featuresIntro: "Todo lo de Starter, más:",
         features: [
-          "Clientes y programas ilimitados",
+          "Programas ilimitados",
           "Cashback y analíticas",
           "Referidos, niveles VIP y misiones",
           "Premios de cumpleaños y sorpresas",
@@ -328,7 +328,7 @@ export const es: Dictionary = {
           rows: [
             {
               label: "Clientes",
-              values: ["Hasta 50", "Hasta 300", "Ilimitados", "Ilimitados"],
+              values: ["Hasta 50", "Ilimitados", "Ilimitados", "Ilimitados"],
             },
             {
               label: "Programas de fidelización",

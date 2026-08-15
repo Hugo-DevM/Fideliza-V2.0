@@ -7,6 +7,7 @@
  * calls cannot provide. See migration 004_rpc_functions.sql.
  */
 
+import { after } from 'next/server';
 import { createServiceRoleClient } from '@/lib/supabase/server';
 import { BadRequestError, NotFoundError } from '@/lib/middleware/errors';
 import { getTransactionHistoryLimit } from '@/lib/middleware/plan-limits';
@@ -211,6 +212,13 @@ export async function processTransaction(
     // customer on a single earn (tier upgrade, challenge, surprise, 80% nudge).
     // They are defined here and awaited in a fixed sequence at the end of the
     // block — running them concurrently made the arrival order a race.
+    //
+    // They are scheduled with `after()` (next/server), NOT a bare `void`. On a
+    // serverless host the response returning is the signal to freeze the
+    // container: anything still pending in the event loop freezes with it and
+    // may never resume. `after()` keeps the invocation alive until the work is
+    // done, without delaying the response the cashier sees. The 80% nudge runs
+    // last, so it was the one most often lost.
     const updateLoyaltyAndNotifyTier = async (): Promise<void> => {
       try {
         const loyaltyDelta = computeLoyaltyDelta(programType, baseDelta, tierSettings);
@@ -229,9 +237,13 @@ export async function processTransaction(
         const tierBefore = computeTier(loyaltyScore, tierSettings.tiers);
         const tierAfter  = computeTier(newLoyaltyScore, tierSettings.tiers);
 
-        // Update cached tier on customers table
+        // Update cached tier on customers table.
+        // Must be awaited: a Supabase query builder is lazy and only issues its
+        // request when it is awaited (fetch lives inside `then`). A bare `void`
+        // discarded the builder without ever running the UPDATE, which is why
+        // customers.tier_label stayed null everywhere it is displayed.
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        void (db.from('customers') as any)
+        await (db.from('customers') as any)
           .update({ tier_label: tierAfter?.label ?? null, tier_color: tierAfter?.color ?? null })
           .eq('id', input.customer_id)
           .eq('tenant_id', tenantId);
@@ -365,26 +377,38 @@ export async function processTransaction(
     // Fires only on the referred customer's FIRST earn (lifetimePoints === 0).
     // Applies bonus to whatever program they first transact in.
     if (lifetimePoints === 0) {
-      void (async () => {
+      after(async () => {
         try {
           const db2 = createServiceRoleClient();
 
-          // Atomically complete the referral: UPDATE WHERE status='pending' prevents double-fire
+          // Atomically complete the referral. `status='pending'` in the WHERE is the
+          // idempotency guard on its own: the same statement flips it to 'completed',
+          // so a concurrent second earn finds nothing.
+          //
+          // program_id is NOT part of the filter and is NOT overwritten — it carries
+          // which signup path created the referral, and that decides whether the
+          // referred customer still needs their welcome bonus (see below):
+          //   null     → dashboard signup (createCustomerAction) — bonus not paid yet
+          //   set      → portal referral link (registerReferredCustomerAction) — bonus
+          //              already credited at registration
+          // Filtering on `is('program_id', null)` used to exclude the portal path
+          // entirely, so those referrers never got paid and never got notified.
           const { data: referral } = await db2
             .from('referrals')
             .update({
               status:       'completed',
               completed_at: new Date().toISOString(),
-              program_id:   input.program_id,
             })
             .eq('tenant_id',   tenantId)
             .eq('referred_id', input.customer_id)
             .eq('status',      'pending')
-            .is('program_id',  null)
-            .select('id, referrer_id, referred_id')
+            .select('id, referrer_id, referred_id, program_id')
             .maybeSingle();
 
           if (!referral) return; // No pending referral or already completed
+
+          // True only for the dashboard path, where nothing has been credited yet.
+          const referredBonusPending = referral.program_id === null;
 
           // Fetch referral bonuses from tenant settings
           const { data: tsRow } = await db2
@@ -408,8 +432,10 @@ export async function processTransaction(
             });
           }
 
-          // Credit referred bonus (on top of their normal earn)
-          if (referredBonus > 0) {
+          // Credit referred bonus (on top of their normal earn) — only when the
+          // signup path did not already pay it. The portal link credits it at
+          // registration, so crediting again here would double it.
+          if (referredBonusPending && referredBonus > 0) {
             await db2.rpc('rpc_earn_points', {
               p_tenant_id:    tenantId,
               p_customer_id:  referral.referred_id,
@@ -417,6 +443,15 @@ export async function processTransaction(
               p_points_delta: referredBonus,
               p_note:         '🎁 Bono de bienvenida por referido',
             });
+          }
+
+          // Record which program the referral completed in (informational only —
+          // the status flip above is what guarantees single-fire).
+          if (referredBonusPending) {
+            await db2
+              .from('referrals')
+              .update({ program_id: input.program_id })
+              .eq('id', referral.id);
           }
 
           // WhatsApp notification to referrer
@@ -449,7 +484,7 @@ export async function processTransaction(
             tenantRow?.name ?? '',
           );
         } catch { /* best-effort — never blocks the earn */ }
-      })();
+      });
     }
     // ── Challenge progress hook ──────────────────────────────────────────────
     const notifyChallengeProgress = async (): Promise<void> => {
@@ -555,12 +590,12 @@ export async function processTransaction(
     // otherwise the arrival order depends on which Supabase call returns first.
     // The referral hook above stays concurrent: it notifies the REFERRER, a
     // different customer, so it never competes for this customer's ordering.
-    void (async () => {
+    after(async () => {
       await updateLoyaltyAndNotifyTier();
       await notifyChallengeProgress();
       await notifySurpriseDelight();
       await notifyMilestone80();
-    })();
+    });
     // ────────────────────────────────────────────────────────────────────────
 
     return tx;
@@ -657,8 +692,9 @@ export async function redeemReward(
 
   const redemption = data as unknown as CustomerRewardRedemption;
 
-  // Fire-and-forget notification — fetch names and notify owner
-  void (async () => {
+  // Deferred notification — fetch names and notify owner. Scheduled with
+  // `after()` so the invocation is not frozen before the email goes out.
+  after(async () => {
     try {
       const db2 = createServiceRoleClient();
       const [prefs, customerRes, rewardRes] = await Promise.all([
@@ -667,7 +703,7 @@ export async function redeemReward(
         db2.from('rewards').select('name').eq('id', input.reward_id).single(),
       ]);
       if (prefs?.notifyRedemption) {
-        void sendRedemptionNotification(
+        await sendRedemptionNotification(
           prefs.email,
           prefs.tenantName,
           (customerRes.data as { name: string } | null)?.name ?? 'Cliente',
@@ -676,7 +712,7 @@ export async function redeemReward(
         );
       }
     } catch { /* best-effort */ }
-  })();
+  });
 
   return redemption;
 }

@@ -17,7 +17,7 @@
 import { createServiceRoleClient } from '@/lib/supabase/server';
 import { isSendingAllowed }        from '@/lib/whatsapp/quality-gate';
 import { checkAndIncrementCap }    from '@/lib/whatsapp/frequency-caps';
-import { getPlanLimits }           from '@/lib/config/plans';
+import { getPlanLimits, getEffectivePlan } from '@/lib/config/plans';
 import type { UUID }               from '@/lib/types';
 
 type TemplateCategory = 'utility' | 'marketing';
@@ -37,16 +37,22 @@ async function enqueueMessage(p: EnqueueParams): Promise<void> {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const db = createServiceRoleClient() as any;
 
-  // 0. Plan gate — WhatsApp notifications are Starter and Pro only
-  // Also resolve the sender: Pro tenants may have their own whatsapp_from
+  // 0. Plan gate — WhatsApp notifications are Starter and Pro only.
+  // Must use the EFFECTIVE plan: a past_due or canceled subscription keeps
+  // `plan` at 'pro' while the tenant is entitled to nothing. Reading `plan`
+  // raw kept those accounts sending (marketing included) on our Twilio bill.
+  // Also resolve the sender: Pro tenants may have their own whatsapp_from.
   const { data: tenant } = await db
     .from('tenants')
-    .select('plan, whatsapp_from')
+    .select('plan, subscription_status, whatsapp_from')
     .eq('id', p.tenantId)
     .single();
-  if (!tenant || tenant.plan === 'free') return;
+  if (!tenant) return;
 
-  const planLimits = getPlanLimits(tenant.plan);
+  const effectivePlan = getEffectivePlan(tenant.plan, tenant.subscription_status);
+  if (effectivePlan === 'free') return;
+
+  const planLimits = getPlanLimits(effectivePlan);
 
   // Gate 1 — marketing templates are Pro-only
   if (p.category === 'marketing' && !planLimits.whatsappMarketing) return;

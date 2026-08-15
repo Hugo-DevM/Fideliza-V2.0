@@ -10,11 +10,17 @@
  *   3. Voucher must not have been notified already (whatsapp_expiry_notified_at IS NULL)
  *
  * On match: enqueues a WhatsApp utility message and marks the voucher as notified.
+ *
+ * This route ALSO hosts the WhatsApp queue watchdog (checkQueueHealth). That is
+ * deliberate: the queue dispatcher runs on cron-job.org, so it cannot detect its
+ * own outage, and Vercel's free tier has no room for another declared cron. This
+ * one is triggered by Vercel daily, which makes it an independent heartbeat.
  */
 
 import { NextResponse }            from 'next/server';
 import { createServiceRoleClient } from '@/lib/supabase/server';
 import { sendVoucherExpiryReminder } from '@/modules/whatsapp/whatsapp.service';
+import { checkQueueHealth }         from '@/lib/whatsapp/queue-health';
 
 export const dynamic    = 'force-dynamic';
 export const maxDuration = 60;
@@ -52,6 +58,12 @@ export async function GET(request: Request) {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const db = createServiceRoleClient() as any;
 
+  // Queue watchdog — rides on this cron because Vercel triggers it (the WhatsApp
+  // dispatcher runs on an external scheduler, so it cannot watch itself).
+  // Runs FIRST, before any of the early returns below: on most days there are no
+  // expiring vouchers, and a watchdog that only fires on busy days is no watchdog.
+  const queue = await checkQueueHealth();
+
   const now          = new Date();
   const threeDaysOut = new Date(now.getTime() + 3 * 24 * 60 * 60 * 1000);
 
@@ -75,7 +87,7 @@ export async function GET(request: Request) {
     };
 
   if (error || !vouchers?.length) {
-    return NextResponse.json({ queued: 0, skipped: 0 });
+    return NextResponse.json({ queued: 0, skipped: 0, queue });
   }
 
   // Filter: only opt-in customers with a phone number who are active
@@ -87,7 +99,7 @@ export async function GET(request: Request) {
   );
 
   if (!eligible.length) {
-    return NextResponse.json({ queued: 0, skipped: vouchers.length });
+    return NextResponse.json({ queued: 0, skipped: vouchers.length, queue });
   }
 
   // ── Step 2: Fetch tenant settings for all unique tenant IDs in one query ──
@@ -151,5 +163,6 @@ export async function GET(request: Request) {
     queued,
     skipped,
     total: vouchers.length,
+    queue,
   });
 }

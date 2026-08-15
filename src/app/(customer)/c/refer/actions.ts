@@ -1,5 +1,6 @@
 'use server';
 
+import { after } from 'next/server';
 import { createServiceRoleClient } from '@/lib/supabase/server';
 import { getPlanLimits, getEffectivePlan } from '@/lib/config/plans';
 import { sendReferralWelcomeMessage } from '@/modules/whatsapp/whatsapp.service';
@@ -112,7 +113,12 @@ export async function registerReferredCustomerAction(
     return { error: 'No se pudo crear el cliente. Intenta de nuevo.' };
   }
 
-  // Record the referral (pending — completed on first earn)
+  // Record the referral (pending — the REFERRER is paid on the referred's first earn).
+  //
+  // program_id is set here on purpose: it marks that the welcome bonus below was
+  // already credited, so the first-earn hook in transaction.service.ts does not
+  // credit it a second time. The dashboard signup path leaves it null because it
+  // pays nothing up front. Do not change one side without the other.
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   await (db as any).from('referrals').insert({
     tenant_id:   tenantId,
@@ -134,17 +140,20 @@ export async function registerReferredCustomerAction(
     });
   }
 
-  // WhatsApp notifications (fire-and-forget)
+  // WhatsApp notification — deferred with `after()` so the response can return
+  // immediately without the serverless container freezing before it is enqueued.
   if (phone) {
-    void sendReferralWelcomeMessage(
-      newCustomer.id,
-      tenantId,
-      name,
-      businessName,
-      phone,
-      referredBonus,
-      referrer?.name ?? 'un amigo',
-    );
+    after(async () => {
+      await sendReferralWelcomeMessage(
+        newCustomer.id,
+        tenantId,
+        name,
+        businessName,
+        phone,
+        referredBonus,
+        referrer?.name ?? 'un amigo',
+      );
+    });
   }
 
   return { accessCode: newCustomer.access_code };

@@ -18,6 +18,7 @@ import { milestoneTemplate } from './templates/new-customer';
 import { redemptionAlertTemplate }   from './templates/redemption-alert';
 import { weeklyDigestTemplate, type WeeklyDigestStats } from './templates/weekly-digest';
 import { welcomeTenantTemplate }     from './templates/welcome-tenant';
+import { queueStuckAlertTemplate }   from './templates/queue-stuck-alert';
 
 function getResendClient(): Resend {
   const key = process.env.RESEND_API_KEY;
@@ -79,7 +80,8 @@ export async function sendMilestoneNotification(
   const milestoneMessages: Record<number, { emoji: string; headline: string; body: string }> = {
     1:   { emoji: '🎉', headline: '¡Tu primer cliente!',         body: 'Acabas de registrar a tu primer cliente en Fideliza. Tu programa de lealtad ya está en marcha.' },
     50:  { emoji: '🚀', headline: '¡50 clientes registrados!',   body: 'Has llegado a 50 clientes en tu programa de lealtad. ¡Tu base de clientes sigue creciendo!' },
-    300: { emoji: '🏆', headline: '¡300 clientes registrados!',  body: '¡Increíble! Has alcanzado los 300 clientes en Fideliza. Has llegado al límite del Plan Pro.' },
+    300: { emoji: '🏆', headline: '¡300 clientes registrados!',  body: '¡Increíble! Has alcanzado los 300 clientes en Fideliza. Ya tienes una base sólida para trabajar la retención.' },
+    1000:{ emoji: '👑', headline: '¡1,000 clientes registrados!', body: '¡Mil clientes en tu programa de lealtad! Estás construyendo algo grande con Fideliza.' },
   };
 
   const msg = milestoneMessages[total];
@@ -182,6 +184,27 @@ export async function sendWelcomeTenantEmail(
       html:    welcomeTenantTemplate(businessName),
     });
   } catch { /* best-effort — never blocks account creation */ }
+}
+
+/**
+ * Operations alert to ADMIN_EMAIL when the WhatsApp queue stops draining.
+ *
+ * Unlike the other senders here, this one THROWS on failure. It is the alert of
+ * last resort: if it fails silently we are blind to an outage that is itself
+ * silent. The caller (checkQueueHealth) catches and logs it.
+ */
+export async function sendQueueStuckAlert(
+  to: string,
+  params: { stuck: number; failed24h: number; oldestMinutes: number | null },
+): Promise<void> {
+  const resend = getResendClient();
+  const { error } = await resend.emails.send({
+    from:    getFromAddress(),
+    to,
+    subject: `⚠️ Fideliza: ${params.stuck} mensajes de WhatsApp atorados en la cola`,
+    html:    queueStuckAlertTemplate(params),
+  });
+  if (error) throw new Error(`Resend: ${error.message}`);
 }
 
 export type { WeeklyDigestStats };

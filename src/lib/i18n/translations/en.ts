@@ -256,7 +256,7 @@ export const en = {
         highlight: true,
         featuresIntro: "Everything in Free, plus:" as string | null,
         features: [
-          "Up to 300 customers",
+          "Unlimited customers",
           "3 loyalty programs",
           "Visit-based programs",
           "Portal with your logo & colors",
@@ -280,7 +280,7 @@ export const en = {
         highlight: false,
         featuresIntro: "Everything in Starter, plus:" as string | null,
         features: [
-          "Unlimited customers & programs",
+          "Unlimited programs",
           "Cashback & analytics",
           "Referrals, VIP tiers & missions",
           "Birthday rewards & surprises",
@@ -326,7 +326,7 @@ export const en = {
           rows: [
             {
               label: "Customers",
-              values: ["Up to 50", "Up to 300", "Unlimited", "Unlimited"],
+              values: ["Up to 50", "Unlimited", "Unlimited", "Unlimited"],
             },
             {
               label: "Loyalty programs",
