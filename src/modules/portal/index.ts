@@ -1,4 +1,9 @@
-export { getPortalData, getTenantBySubdomainPublic } from './portal.service';
+export {
+  getPortalData,
+  getTenantBySubdomainPublic,
+  DEFAULT_PORTAL_COLOR,
+  DEFAULT_PORTAL_COLOR_SECONDARY,
+} from './portal.service';
 export type {
   PortalData,
   PortalTenant,

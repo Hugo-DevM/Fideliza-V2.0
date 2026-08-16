@@ -5,16 +5,20 @@
  * Tenant is resolved from x-tenant-subdomain (injected by middleware).
  */
 
-import { headers } from 'next/headers';
+import { headers, cookies } from 'next/headers';
 import Image from 'next/image';
-import { notFound } from 'next/navigation';
+import { notFound, redirect } from 'next/navigation';
 import CodeEntryForm from './CodeEntryForm';
 import AutoRefresh from './AutoRefresh';
 import ThemeToggle from './ThemeToggle';
 import AuthThemeToggle from '@/app/(auth)/ThemeToggle';
 import PortalTabsClient from './PortalTabsClient';
+import RememberCard from './RememberCard';
+import SaveCardHint from './SaveCardHint';
+import ForgetCardButton, { ForgetCardOnMount } from './ForgetCard';
 import { getPortalData, getTenantBySubdomainPublic } from '@/modules/portal';
 import { NotFoundError, TenantNotFoundError } from '@/lib/middleware/errors';
+import { CARD_COOKIE, parseCardCookie } from '@/lib/portal/session';
 import type { PortalData } from '@/modules/portal';
 
 export const dynamic = 'force-dynamic';
@@ -60,6 +64,14 @@ export default async function CustomerPortalPage({ searchParams }: PageProps) {
   }
 
   if (!code) {
+    // Returning visitor — restore the remembered card before rendering anything.
+    // Doing it here rather than client-side means no flash of the code form.
+    // redirect() throws NEXT_REDIRECT, so it must stay outside the try below.
+    const saved = parseCardCookie((await cookies()).get(CARD_COOKIE)?.value);
+    if (saved && saved.sub === subdomain) {
+      redirect(`/c?code=${encodeURIComponent(saved.code)}`);
+    }
+
     let tenantName: string | undefined;
     let tenantLogoUrl: string | null = null;
     let tenantLogoPadding = 8;
@@ -96,15 +108,20 @@ export default async function CustomerPortalPage({ searchParams }: PageProps) {
 
   if (!data) {
     return (
-      <EntryScreen
-        error="Código no encontrado. Verifícalo e inténtalo de nuevo."
-        primaryColor={undefined}
-        tenantName={undefined}
-      />
+      <>
+        {/* The code did not resolve — drop it so a stale cookie cannot keep
+            redirecting the visitor straight back to this error. */}
+        <ForgetCardOnMount />
+        <EntryScreen
+          error="Código no encontrado. Verifícalo e inténtalo de nuevo."
+          primaryColor={undefined}
+          tenantName={undefined}
+        />
+      </>
     );
   }
 
-  return <PortalShell data={data} code={code} tab={tab} />;
+  return <PortalShell data={data} code={code} tab={tab} subdomain={subdomain} />;
 }
 
 // ── Portal unavailable (Free plan) ───────────────────────────────────
@@ -219,12 +236,15 @@ function EntryScreen({
 
 // ── Portal shell ──────────────────────────────────────────────────────
 
-function PortalShell({ data, code, tab }: { data: PortalData; code: string; tab: Tab }) {
+function PortalShell({
+  data, code, tab, subdomain,
+}: { data: PortalData; code: string; tab: Tab; subdomain: string }) {
   const { tenant, customer } = data;
 
   return (
     <div className="flex min-h-screen flex-col bg-gray-100 dark:bg-[#07090f]">
       <AutoRefresh intervalMs={20_000} />
+      <RememberCard code={code} subdomain={subdomain} />
 
       {/* ── Gradient header ──────────────────────────────────────── */}
       <header
@@ -234,6 +254,11 @@ function PortalShell({ data, code, tab }: { data: PortalData; code: string; tab:
         }}
       >
         <div className="mx-auto max-w-lg relative">
+          {/* Shared phones and the counter tablet make this necessary: without a
+              way out, the first card opened on a device stays there forever. */}
+          <div className="absolute left-0 top-0">
+            <ForgetCardButton />
+          </div>
           <div className="absolute right-0 top-0">
             <ThemeToggle />
           </div>
@@ -258,6 +283,8 @@ function PortalShell({ data, code, tab }: { data: PortalData; code: string; tab:
           </div>
         </div>
       </header>
+
+      <SaveCardHint primaryColor={tenant.primary_color} />
 
       {/* Tab bar + content — client component for instant switching */}
       <PortalTabsClient data={data} code={code} initialTab={tab} />

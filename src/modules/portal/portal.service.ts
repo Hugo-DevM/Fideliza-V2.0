@@ -24,6 +24,13 @@ import { getPlanLimits, getEffectivePlan } from '@/lib/config/plans';
 import type { UUID } from '@/lib/types';
 
 /**
+ * Neutral Fideliza branding — what a tenant without portalCustomBranding
+ * (Free plan) gets instead of their own colours.
+ */
+export const DEFAULT_PORTAL_COLOR = '#6366F1';
+export const DEFAULT_PORTAL_COLOR_SECONDARY = '#A5B4FC';
+
+/**
  * Looks up a tenant by subdomain using the service-role client so it works
  * in unauthenticated contexts (e.g. the customer portal) where RLS blocks
  * the anon client from reading the tenants table.
@@ -34,7 +41,7 @@ import type { UUID } from '@/lib/types';
  */
 export async function getTenantBySubdomainPublic(
   subdomain: string
-): Promise<{ id: UUID; name: string; is_active: boolean; logo_url: string | null; logo_padding: number; clientPortal: boolean; customBranding: boolean; referralProgram: boolean }> {
+): Promise<{ id: UUID; name: string; is_active: boolean; logo_url: string | null; logo_padding: number; primary_color: string; clientPortal: boolean; customBranding: boolean; referralProgram: boolean }> {
   const sub = subdomain.toLowerCase();
   return unstable_cache(
     async () => {
@@ -42,7 +49,7 @@ export async function getTenantBySubdomainPublic(
 
       const { data, error } = await db
         .from('tenants')
-        .select('id, name, is_active, logo_url, plan, subscription_status, tenant_settings(logo_padding)')
+        .select('id, name, is_active, logo_url, plan, subscription_status, tenant_settings(logo_padding, primary_color)')
         .eq('subdomain', sub)
         .eq('is_active', true)
         .single();
@@ -51,10 +58,11 @@ export async function getTenantBySubdomainPublic(
         throw new TenantNotFoundError(sub);
       }
 
+      type SettingsSlice = { logo_padding: number; primary_color: string | null };
       const raw = data as unknown as {
         id: UUID; name: string; is_active: boolean; logo_url: string | null;
         plan: string; subscription_status: string | null;
-        tenant_settings: Array<{ logo_padding: number }> | { logo_padding: number } | null;
+        tenant_settings: Array<SettingsSlice> | SettingsSlice | null;
       };
       const settings = Array.isArray(raw.tenant_settings) ? raw.tenant_settings[0] : raw.tenant_settings;
       const effectivePlan = getEffectivePlan(raw.plan, raw.subscription_status);
@@ -66,6 +74,7 @@ export async function getTenantBySubdomainPublic(
         is_active:      raw.is_active,
         logo_url:       raw.logo_url,
         logo_padding:   settings?.logo_padding ?? 8,
+        primary_color:  settings?.primary_color ?? DEFAULT_PORTAL_COLOR,
         clientPortal:    limits.clientPortal,
         customBranding:  limits.portalCustomBranding,
         referralProgram: limits.referralProgram,
@@ -295,8 +304,8 @@ async function getPortalTenantConfigCached(tenantId: UUID): Promise<PortalTenant
         subdomain:       raw.subdomain,
         logo_url:        customBranding ? (raw.logo_url ?? null) : null,
         logo_padding:    settings?.logo_padding ?? 8,
-        primary_color:   customBranding ? (settings?.primary_color   ?? '#6366F1') : '#6366F1',
-        secondary_color: customBranding ? (settings?.secondary_color ?? '#A5B4FC') : '#A5B4FC',
+        primary_color:   customBranding ? (settings?.primary_color   ?? DEFAULT_PORTAL_COLOR)           : DEFAULT_PORTAL_COLOR,
+        secondary_color: customBranding ? (settings?.secondary_color ?? DEFAULT_PORTAL_COLOR_SECONDARY) : DEFAULT_PORTAL_COLOR_SECONDARY,
         welcome_message: settings?.welcome_message ?? null,
         program_label:   settings?.program_label   ?? 'Points',
         powered_by:      !customBranding,
