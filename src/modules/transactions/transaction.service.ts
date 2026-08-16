@@ -22,6 +22,7 @@ import {
   sendChallengeCompletedMessage,
 } from '@/modules/whatsapp/whatsapp.service';
 import { computeTier, computeLoyaltyDelta } from '@/lib/utils/tiers';
+import { defaultReferralBonuses } from '@/lib/config/referral-bonuses';
 import type { TierConfig, TenantTierSettings } from '@/lib/utils/tiers';
 import type {
   Transaction,
@@ -429,8 +430,12 @@ export async function processTransaction(
             .single() as { data: { referral_program_configs: Record<string, { referrer_bonus: number; referred_bonus: number }> } | null };
 
           const programConfig = tsRow?.referral_program_configs?.[input.program_id];
-          const referrerBonus = programConfig?.referrer_bonus ?? 100;
-          const referredBonus = programConfig?.referred_bonus ?? 50;
+          // Same defaults the business is shown in /dashboard/referidos. A
+          // literal here is how an unconfigured VISIT program ended up paying
+          // 100 visits instead of the 3 the screen advertised.
+          const fallback      = defaultReferralBonuses(programType);
+          const referrerBonus = programConfig?.referrer_bonus ?? fallback.referrer;
+          const referredBonus = programConfig?.referred_bonus ?? fallback.referred;
 
           // Credit referrer bonus
           if (referrerBonus > 0) {

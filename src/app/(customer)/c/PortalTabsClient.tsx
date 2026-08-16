@@ -6,6 +6,7 @@ import RedeemButton from './RedeemButton';
 import ReferralShareButton from './ReferralShareButton';
 import { computeTier, nextTier, TIER_STYLES } from '@/lib/utils/tiers';
 import { unitLabel, formatUnitAmount } from '@/lib/utils/program-units';
+import { defaultReferralBonuses } from '@/lib/config/referral-bonuses';
 import type { TierConfig } from '@/lib/utils/tiers';
 import type {
   PortalData,
@@ -979,8 +980,11 @@ function ReferralShareCard({ enrollment: e, referralCode, programConfig, busines
   programConfig?: { referrer_bonus: number; referred_bonus: number };
   businessName: string;
 }) {
-  const referrerBonus = programConfig?.referrer_bonus ?? 100;
-  const referredBonus = programConfig?.referred_bonus ?? 50;
+  // Defaults must match what the business sees in /dashboard/referidos, which
+  // is why they come from the shared rules rather than a literal here.
+  const fallback      = defaultReferralBonuses(e.program_type);
+  const referrerBonus = programConfig?.referrer_bonus ?? fallback.referrer;
+  const referredBonus = programConfig?.referred_bonus ?? fallback.referred;
   const referralPath  = `/c/refer?ref=${referralCode}&program=${e.program_id}`;
 
   return (

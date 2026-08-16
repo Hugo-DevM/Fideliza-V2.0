@@ -19,6 +19,7 @@ import { createServiceRoleClient } from '@/lib/supabase/server';
 import AuthThemeToggle from '@/app/(auth)/ThemeToggle';
 import { logger } from '@/lib/utils/logger';
 import { formatUnitAmount } from '@/lib/utils/program-units';
+import { defaultReferralBonuses } from '@/lib/config/referral-bonuses';
 import ReferralRegisterForm from './ReferralRegisterForm';
 
 export const dynamic = 'force-dynamic';
@@ -120,7 +121,8 @@ export default async function ReferralPage({ searchParams }: PageProps) {
   }
 
   const referredBonus = Number(
-    settings.referral_program_configs?.[program.id]?.referred_bonus ?? 50
+    settings.referral_program_configs?.[program.id]?.referred_bonus
+    ?? defaultReferralBonuses(program.type).referred
   );
 
   return (

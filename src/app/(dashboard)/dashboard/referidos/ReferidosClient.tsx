@@ -9,6 +9,7 @@ import {
   toStorageUnits,
   fromStorageUnits,
 } from '@/lib/utils/program-units';
+import { referralBonusRule, defaultReferralBonuses } from '@/lib/config/referral-bonuses';
 
 interface Props {
   programs: { id: string; name: string; type: string; status: string }[];
@@ -17,15 +18,6 @@ interface Props {
   stats: { pending: number; completed: number; top5: { id: string; name: string; count: number }[] };
 }
 
-/**
- * Limits expressed in the units the OPERATOR types, which for cashback is
- * pesos — not the cents the value is stored as. See toStorageUnits.
- */
-function bonusLimits(type: string): { max: number; step: number; defaultReferrer: number; defaultReferred: number } {
-  if (type === 'stamp' || type === 'visit') return { max: 50,    step: 1,    defaultReferrer: 3,   defaultReferred: 2   };
-  if (type === 'cashback')                  return { max: 500,   step: 0.5,  defaultReferrer: 10,  defaultReferred: 5   };
-  return                                           { max: 10000, step: 50,   defaultReferrer: 100, defaultReferred: 50  };
-}
 
 export default function ReferidosClient({
   programs,
@@ -50,13 +42,14 @@ export default function ReferidosClient({
    * they offered $10.
    */
   function handleBonusChange(programId: string, field: 'referrer_bonus' | 'referred_bonus', value: string, type: string) {
-    const { max, defaultReferrer, defaultReferred } = bonusLimits(type);
+    const { max } = referralBonusRule(type);
+    const fallback = defaultReferralBonuses(type);
     const typed = Math.max(0, Math.min(max, parseFloat(value) || 0));
     setConfigs((prev) => ({
       ...prev,
       [programId]: {
-        referrer_bonus: prev[programId]?.referrer_bonus ?? toStorageUnits(type, defaultReferrer),
-        referred_bonus: prev[programId]?.referred_bonus ?? toStorageUnits(type, defaultReferred),
+        referrer_bonus: prev[programId]?.referrer_bonus ?? fallback.referrer,
+        referred_bonus: prev[programId]?.referred_bonus ?? fallback.referred,
         [field]: toStorageUnits(type, typed),
       },
     }));
@@ -133,10 +126,11 @@ export default function ReferidosClient({
         <div className="space-y-3">
           <h2 className="text-sm font-semibold text-gray-700 dark:text-gray-300">Bonos por programa</h2>
           {programs.map((p) => {
-            const { max, step, defaultReferrer, defaultReferred } = bonusLimits(p.type);
+            const { max, step } = referralBonusRule(p.type);
+            const fallback = defaultReferralBonuses(p.type);
             const cfg = configs[p.id] ?? {
-              referrer_bonus: toStorageUnits(p.type, defaultReferrer),
-              referred_bonus: toStorageUnits(p.type, defaultReferred),
+              referrer_bonus: fallback.referrer,
+              referred_bonus: fallback.referred,
             };
             // Cashback stores cents but the operator thinks in pesos.
             const unit = usesCurrency(p.type) ? 'pesos' : unitLabel(p.type);

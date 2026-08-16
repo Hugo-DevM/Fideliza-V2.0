@@ -4,6 +4,7 @@ import { after } from 'next/server';
 import { createServiceRoleClient } from '@/lib/supabase/server';
 import { getPlanLimits, getEffectivePlan } from '@/lib/config/plans';
 import { sendReferralWelcomeMessage } from '@/modules/whatsapp/whatsapp.service';
+import { defaultReferralBonuses } from '@/lib/config/referral-bonuses';
 
 interface RegisterReferredInput {
   tenantId:      string;
@@ -84,11 +85,11 @@ export async function registerReferredCustomerAction(
   // Validate the program is still active
   const { data: program } = await db
     .from('reward_programs')
-    .select('config, name')
+    .select('name, type')
     .eq('id', programId)
     .eq('tenant_id', tenantId)
     .eq('status', 'active')
-    .maybeSingle() as { data: { config: Record<string, unknown>; name: string } | null };
+    .maybeSingle() as { data: { name: string; type: string } | null };
 
   if (!program) return { error: 'Programa no disponible.' };
 
@@ -110,7 +111,8 @@ export async function registerReferredCustomerAction(
   }
 
   const referredBonus = Number(
-    settings.referral_program_configs?.[programId]?.referred_bonus ?? 50
+    settings.referral_program_configs?.[programId]?.referred_bonus
+    ?? defaultReferralBonuses(program.type).referred
   );
 
   // ── Already a customer here? ──────────────────────────────────────────
