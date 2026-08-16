@@ -18,6 +18,7 @@ import { createServiceRoleClient } from '@/lib/supabase/server';
 import { isSendingAllowed }        from '@/lib/whatsapp/quality-gate';
 import { checkAndIncrementCap }    from '@/lib/whatsapp/frequency-caps';
 import { getPlanLimits, getEffectivePlan } from '@/lib/config/plans';
+import { portalUrlForCustomer }        from '@/lib/portal/url';
 import type { UUID }               from '@/lib/types';
 
 type TemplateCategory = 'utility' | 'marketing';
@@ -31,6 +32,11 @@ interface EnqueueParams {
   params:      Record<string, string>;  // template variable values, in order
   priority?:   number;                 // lower = higher priority (default 5)
   scheduledAt?: Date;                  // earliest send time (default NOW)
+  /**
+   * Access code used to resolve the '{{portal_url}}' sentinel into the
+   * customer's personal card link. Required only by templates that use it.
+   */
+  portalCode?: string;
 }
 
 async function enqueueMessage(p: EnqueueParams): Promise<void> {
@@ -44,7 +50,7 @@ async function enqueueMessage(p: EnqueueParams): Promise<void> {
   // Also resolve the sender: Pro tenants may have their own whatsapp_from.
   const { data: tenant } = await db
     .from('tenants')
-    .select('plan, subscription_status, whatsapp_from')
+    .select('plan, subscription_status, whatsapp_from, subdomain')
     .eq('id', p.tenantId)
     .single();
   if (!tenant) return;
@@ -90,10 +96,15 @@ async function enqueueMessage(p: EnqueueParams): Promise<void> {
   const underCap = await checkAndIncrementCap(p.customerId, p.tenantId, p.category);
   if (!underCap) return;
 
-  // 3. Resolve {{unit_label}} sentinel in params
+  // 3. Resolve sentinels in params
+  const portalUrl = p.portalCode
+    ? portalUrlForCustomer(tenant.subdomain, p.portalCode)
+    : '';
   const resolvedParams: Record<string, string> = {};
   for (const [k, v] of Object.entries(p.params)) {
-    resolvedParams[k] = v === '{{unit_label}}' ? unitLabel : v;
+    if (v === '{{unit_label}}')      resolvedParams[k] = unitLabel;
+    else if (v === '{{portal_url}}') resolvedParams[k] = portalUrl;
+    else                             resolvedParams[k] = v;
   }
 
   // 4. Insert into the queue
@@ -116,8 +127,19 @@ async function enqueueMessage(p: EnqueueParams): Promise<void> {
 
 /**
  * Sent when a customer is registered with WhatsApp opt-in.
- * Template: fideliza_welcome_v2 (utility)
- * Params: [customer_name, business_name]
+ *
+ * Two templates, chosen by whether the v3 ContentSid is configured:
+ *
+ *   fideliza_welcome_v3 (preferred) — {{1}} name, {{2}} business,
+ *     {{3}} unit_label, {{4}} the customer's personal card link. Without this,
+ *     the customer is told they are enrolled but never learns where to look.
+ *
+ *   fideliza_welcome_v2 (fallback) — the original, no link.
+ *
+ * The fallback is what makes this safe to deploy before Meta approves v3: an
+ * unmapped template name resolves to an empty ContentSid, which the dispatcher
+ * treats as a permanent failure and never retries. Shipping v3 unconditionally
+ * would silently kill every welcome message until approval landed.
  */
 export async function sendWelcomeMessage(
   customerId:   UUID,
@@ -125,19 +147,30 @@ export async function sendWelcomeMessage(
   customerName: string,
   businessName: string,
   phone:        string,
+  accessCode?:  string,
 ): Promise<void> {
   try {
+    const hasLinkTemplate = Boolean(process.env.TWILIO_TMPL_WELCOME_V3) && Boolean(accessCode);
+
     await enqueueMessage({
       tenantId,
       customerId,
       phone,
-      template: 'fideliza_welcome_v2',
+      template: hasLinkTemplate ? 'fideliza_welcome_v3' : 'fideliza_welcome_v2',
       category: 'utility',
-      params: {
-        '1': customerName,
-        '2': businessName,
-        '3': '{{unit_label}}',
-      },
+      params: hasLinkTemplate
+        ? {
+            '1': customerName,
+            '2': businessName,
+            '3': '{{unit_label}}',
+            '4': '{{portal_url}}',
+          }
+        : {
+            '1': customerName,
+            '2': businessName,
+            '3': '{{unit_label}}',
+          },
+      portalCode: accessCode,
       priority: 1, // welcome messages get highest priority
     });
   } catch { /* best-effort — never blocks customer creation */ }

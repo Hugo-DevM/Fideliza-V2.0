@@ -8,6 +8,7 @@ import ToggleStatusButton from './ToggleStatusButton';
 import EditCustomerModal from './EditCustomerModal';
 import WhatsAppOptInToggle from './WhatsAppOptInToggle';
 import BalanceReminderButton from './BalanceReminderButton';
+import ShareAccessLinkButton from './ShareAccessLinkButton';
 import MissionsCard from './MissionsCard';
 import { NotFoundError } from '@/lib/middleware/errors';
 import type { ProgramConfig } from '@/lib/types';
@@ -87,7 +88,7 @@ export default async function CustomerDetailPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const { tenantId, settings, planLimits } = await getAuthenticatedTenant();
+  const { tenantId, tenant, settings, planLimits } = await getAuthenticatedTenant();
 
   let data: Awaited<ReturnType<typeof loadCustomerDetail>>;
   try {
@@ -173,6 +174,18 @@ export default async function CustomerDetailPage({
                 <WhatsAppOptInToggle customerId={customer.id} initialOptIn={customer.whatsapp_opt_in ?? false} />
               </div>
             )}
+          </div>
+
+          {/* Resend the personal card link — the fix for "I lost the link".
+              Uses the owner's own WhatsApp, so it works on every plan. */}
+          <div className="mt-2">
+            <ShareAccessLinkButton
+              customerName={customer.name}
+              businessName={tenant.name}
+              accessCode={customer.access_code}
+              subdomain={tenant.subdomain}
+              phone={customer.phone ?? null}
+            />
           </div>
         </div>
 

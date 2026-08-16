@@ -1,8 +1,10 @@
 /**
- * Referral registration page — /c/refer?ref=XXXX-XXXX&program=<program_id>
+ * Referral registration page — /c/refer?ref=XXXXXX&program=<program_id>
  *
- * When a customer shares their access code as a referral link, this page:
- *   1. Looks up the referrer by access code
+ * `ref` is the referrer's 6-char referral_code (never their access_code).
+ *
+ * When a customer shares their referral link, this page:
+ *   1. Looks up the referrer by referral code
  *   2. Shows a registration form for the new customer
  *   3. On submit: creates the customer, enrolls them, records the referral
  *   4. Redirects to the portal with the new customer's code
@@ -52,14 +54,18 @@ export default async function ReferralPage({ searchParams }: PageProps) {
 
   const db = createServiceRoleClient();
 
-  // Validate referrer exists
+  // Validate referrer exists.
+  //
+  // Looked up by referral_code (6 chars), NOT access_code: the portal builds
+  // this link from referral_code, and access_code is the customer's credential
+  // — putting it in a link they broadcast would let anyone open their card.
   const { data: referrer } = await db
     .from('customers')
     .select('id, name')
     .eq('tenant_id', tenantId)
-    .eq('access_code', referrerCode.toUpperCase().trim())
+    .eq('referral_code', referrerCode.toUpperCase().trim())
     .eq('is_active', true)
-    .single() as { data: { id: string; name: string } | null };
+    .maybeSingle() as { data: { id: string; name: string } | null };
 
   if (!referrer) notFound();
 

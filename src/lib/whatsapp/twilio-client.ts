@@ -36,6 +36,10 @@ export class WhatsAppApiError extends Error {
  */
 const TEMPLATE_SID_MAP: Record<string, string> = {
   fideliza_welcome_v2:            process.env.TWILIO_TMPL_WELCOME            ?? '',
+  // v3 adds {{4}} = the customer's personal portal link. Optional on purpose:
+  // until this SID is set, sendWelcomeMessage keeps using v2. See
+  // docs/memory/whatsapp-templates.md for the template body to submit.
+  fideliza_welcome_v3:            process.env.TWILIO_TMPL_WELCOME_V3         ?? '',
   fideliza_voucher_expiry_v2:     process.env.TWILIO_TMPL_VOUCHER_EXPIRY     ?? '',
   fideliza_balance_reminder_v2:   process.env.TWILIO_TMPL_BALANCE_REMINDER   ?? '',
   fideliza_reactivation_v2:       process.env.TWILIO_TMPL_REACTIVATION       ?? '',

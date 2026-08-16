@@ -124,6 +124,7 @@ export async function createCustomer(
         customer.name,
         prefs.tenantName,
         customer.phone,
+        customer.access_code,
       );
     };
 
