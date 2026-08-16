@@ -6,20 +6,44 @@ interface ReferralShareButtonProps {
   /** Relative path — origin is prepended client-side */
   path: string;
   code: string;
+  businessName: string;
+  /** Already formatted for the program type, e.g. "3 sellos" or "$10.00". */
+  bonusText: string;
 }
 
-export default function ReferralShareButton({ path, code }: ReferralShareButtonProps) {
+export default function ReferralShareButton({
+  path, code, businessName, bonusText,
+}: ReferralShareButtonProps) {
   const [copied, setCopied] = useState(false);
+
+  /**
+   * The two ways to redeem an invitation are genuinely different, so the message
+   * spells out both instead of blurring them:
+   *   - the link applies the code by itself, nothing to type
+   *   - at the counter the cashier types the code, so it has to be readable
+   *
+   * `*code*` renders bold in WhatsApp. Elsewhere (SMS, notes) the asterisks show
+   * literally — an accepted trade-off, since WhatsApp is where these are shared.
+   */
+  function buildMessage(url: string): string {
+    return (
+      `¡Hola! Te invito a ${businessName} 🎁\n\n` +
+      `Regístrate aquí y tus ${bonusText} de regalo se aplican solos:\n${url}\n\n` +
+      `¿Prefieres ir directo? Menciona mi código en caja:\n*${code}*`
+    );
+  }
 
   async function handleShare() {
     const url = window.location.origin + path;
+    const message = buildMessage(url);
 
+    // The URL goes inside `text` rather than in the separate `url` field:
+    // share targets combine the two inconsistently and some drop one of them.
     if (navigator.share) {
       try {
         await navigator.share({
-          title: 'Únete al programa de lealtad',
-          text: `Usa mi código ${code} y obtén puntos de regalo al registrarte.`,
-          url,
+          title: `Únete al programa de ${businessName}`,
+          text: message,
         });
         return;
       } catch {
@@ -28,7 +52,9 @@ export default function ReferralShareButton({ path, code }: ReferralShareButtonP
     }
 
     try {
-      await navigator.clipboard.writeText(url);
+      // Copy the whole message, not just the link. Copying the bare URL left
+      // the sender to explain the invitation themselves.
+      await navigator.clipboard.writeText(message);
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     } catch {

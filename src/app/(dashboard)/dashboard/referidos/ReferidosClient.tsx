@@ -3,6 +3,12 @@
 import { useState, useTransition } from 'react';
 import Link from 'next/link';
 import { updateReferralSettingsAction } from './actions';
+import {
+  unitLabel,
+  usesCurrency,
+  toStorageUnits,
+  fromStorageUnits,
+} from '@/lib/utils/program-units';
 
 interface Props {
   programs: { id: string; name: string; type: string; status: string }[];
@@ -11,13 +17,10 @@ interface Props {
   stats: { pending: number; completed: number; top5: { id: string; name: string; count: number }[] };
 }
 
-function unitLabel(type: string): string {
-  if (type === 'stamp')    return 'sellos';
-  if (type === 'visit')    return 'visitas';
-  if (type === 'cashback') return 'bono $';
-  return 'pts';
-}
-
+/**
+ * Limits expressed in the units the OPERATOR types, which for cashback is
+ * pesos — not the cents the value is stored as. See toStorageUnits.
+ */
 function bonusLimits(type: string): { max: number; step: number; defaultReferrer: number; defaultReferred: number } {
   if (type === 'stamp' || type === 'visit') return { max: 50,    step: 1,    defaultReferrer: 3,   defaultReferred: 2   };
   if (type === 'cashback')                  return { max: 500,   step: 0.5,  defaultReferrer: 10,  defaultReferred: 5   };
@@ -36,15 +39,25 @@ export default function ReferidosClient({
   const [errMsg,  setErrMsg]    = useState('');
   const [isPending, startTransition] = useTransition();
 
+  /**
+   * `value` is what the operator typed — pesos for cashback, plain units
+   * otherwise. It is converted to storage units before going into state, so
+   * what we save is always what rpc_earn_points will credit.
+   *
+   * This is the bug this screen used to have: it labelled the cashback field
+   * "bono $" and defaulted it to 10, but saved 10 unchanged — and 10 in a
+   * cashback program is 10 cents. Businesses were offering $0.10 believing
+   * they offered $10.
+   */
   function handleBonusChange(programId: string, field: 'referrer_bonus' | 'referred_bonus', value: string, type: string) {
     const { max, defaultReferrer, defaultReferred } = bonusLimits(type);
-    const num = Math.max(0, Math.min(max, parseFloat(value) || 0));
+    const typed = Math.max(0, Math.min(max, parseFloat(value) || 0));
     setConfigs((prev) => ({
       ...prev,
       [programId]: {
-        referrer_bonus: prev[programId]?.referrer_bonus ?? defaultReferrer,
-        referred_bonus: prev[programId]?.referred_bonus ?? defaultReferred,
-        [field]: num,
+        referrer_bonus: prev[programId]?.referrer_bonus ?? toStorageUnits(type, defaultReferrer),
+        referred_bonus: prev[programId]?.referred_bonus ?? toStorageUnits(type, defaultReferred),
+        [field]: toStorageUnits(type, typed),
       },
     }));
   }
@@ -121,8 +134,12 @@ export default function ReferidosClient({
           <h2 className="text-sm font-semibold text-gray-700 dark:text-gray-300">Bonos por programa</h2>
           {programs.map((p) => {
             const { max, step, defaultReferrer, defaultReferred } = bonusLimits(p.type);
-            const cfg = configs[p.id] ?? { referrer_bonus: defaultReferrer, referred_bonus: defaultReferred };
-            const unit = unitLabel(p.type);
+            const cfg = configs[p.id] ?? {
+              referrer_bonus: toStorageUnits(p.type, defaultReferrer),
+              referred_bonus: toStorageUnits(p.type, defaultReferred),
+            };
+            // Cashback stores cents but the operator thinks in pesos.
+            const unit = usesCurrency(p.type) ? 'pesos' : unitLabel(p.type);
             return (
               <div
                 key={p.id}
@@ -149,7 +166,7 @@ export default function ReferidosClient({
                       min={0}
                       max={max}
                       step={step}
-                      value={cfg.referrer_bonus}
+                      value={fromStorageUnits(p.type, cfg.referrer_bonus)}
                       onChange={(e) => handleBonusChange(p.id, 'referrer_bonus', e.target.value, p.type)}
                       className="w-full rounded-xl border border-gray-200 dark:border-[#2a3147] bg-white dark:bg-[#0d0f17] px-3 py-2 text-sm text-gray-900 dark:text-white outline-none transition focus:border-emerald-400 dark:focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100 dark:focus:ring-emerald-500/20 disabled:opacity-50"
                     />
@@ -164,7 +181,7 @@ export default function ReferidosClient({
                       min={0}
                       max={max}
                       step={step}
-                      value={cfg.referred_bonus}
+                      value={fromStorageUnits(p.type, cfg.referred_bonus)}
                       onChange={(e) => handleBonusChange(p.id, 'referred_bonus', e.target.value, p.type)}
                       className="w-full rounded-xl border border-gray-200 dark:border-[#2a3147] bg-white dark:bg-[#0d0f17] px-3 py-2 text-sm text-gray-900 dark:text-white outline-none transition focus:border-emerald-400 dark:focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100 dark:focus:ring-emerald-500/20 disabled:opacity-50"
                     />

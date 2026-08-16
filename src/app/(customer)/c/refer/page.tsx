@@ -18,6 +18,7 @@ import { TenantNotFoundError } from '@/lib/middleware/errors';
 import { createServiceRoleClient } from '@/lib/supabase/server';
 import AuthThemeToggle from '@/app/(auth)/ThemeToggle';
 import { logger } from '@/lib/utils/logger';
+import { formatUnitAmount } from '@/lib/utils/program-units';
 import ReferralRegisterForm from './ReferralRegisterForm';
 
 export const dynamic = 'force-dynamic';
@@ -86,11 +87,11 @@ export default async function ReferralPage({ searchParams }: PageProps) {
   // Validate program exists and is active
   const { data: program } = await db
     .from('reward_programs')
-    .select('id, name, config')
+    .select('id, name, type')
     .eq('id', programId)
     .eq('tenant_id', tenantId)
     .eq('status', 'active')
-    .maybeSingle() as { data: { id: string; name: string; config: Record<string, unknown> } | null };
+    .maybeSingle() as { data: { id: string; name: string; type: string } | null };
 
   if (!program) rejectWith('program_not_found_or_inactive', { subdomain, programId });
 
@@ -160,7 +161,9 @@ export default async function ReferralPage({ searchParams }: PageProps) {
               </h1>
               <p className="text-sm text-gray-500 dark:text-gray-400">
                 Regístrate en <strong>{program.name}</strong> y gana{' '}
-                <strong className="text-emerald-600 dark:text-emerald-400">{referredBonus} puntos de regalo</strong>{' '}
+                <strong className="text-emerald-600 dark:text-emerald-400">
+                  {formatUnitAmount(program.type, referredBonus)} de regalo
+                </strong>{' '}
                 desde tu primera visita.
               </p>
             </div>

@@ -5,6 +5,7 @@ import VoucherCard from './VoucherCard';
 import RedeemButton from './RedeemButton';
 import ReferralShareButton from './ReferralShareButton';
 import { computeTier, nextTier, TIER_STYLES } from '@/lib/utils/tiers';
+import { unitLabel, formatUnitAmount } from '@/lib/utils/program-units';
 import type { TierConfig } from '@/lib/utils/tiers';
 import type {
   PortalData,
@@ -325,6 +326,7 @@ function PointsTab({
               enrollment={e}
               referralCode={customer.referral_code ?? ''}
               programConfig={referralProgramConfigs[e.program_id]}
+              businessName={tenant.name}
             />
           ))}
         </section>
@@ -616,15 +618,8 @@ function EmptyState({ type, title, message }: { type: 'programs' | 'rewards' | '
   );
 }
 
-function bonusLabel(type: string): string {
-  if (type === 'visit')    return 'visitas';
-  if (type === 'stamp')    return 'sellos';
-  if (type === 'cashback') return 'bono $';
-  return 'pts';
-}
-
 function ChallengeRow({ challenge: c, programType }: { challenge: PortalChallenge; programType: string }) {
-  const unit      = bonusLabel(programType);
+  const unit      = unitLabel(programType);
   const pct       = Math.min(100, Math.round((c.progress / c.target) * 100));
   const remaining = Math.max(0, c.target - c.progress);
   const done      = Boolean(c.completed_at);
@@ -650,7 +645,7 @@ function ChallengeRow({ challenge: c, programType }: { challenge: PortalChalleng
             ? 'bg-emerald-100 dark:bg-emerald-500/20 text-emerald-700 dark:text-emerald-400'
             : 'bg-orange-100 dark:bg-orange-500/20 text-orange-700 dark:text-orange-400'
         }`}>
-          +{c.bonus_points} {unit}
+          +{formatUnitAmount(programType, c.bonus_points)}
         </span>
       </div>
 
@@ -978,10 +973,11 @@ function TransactionRow({ tx, programLabel, primaryColor }: { tx: PortalTransact
   );
 }
 
-function ReferralShareCard({ enrollment: e, referralCode, programConfig }: {
+function ReferralShareCard({ enrollment: e, referralCode, programConfig, businessName }: {
   enrollment: PortalEnrollment;
   referralCode: string;
   programConfig?: { referrer_bonus: number; referred_bonus: number };
+  businessName: string;
 }) {
   const referrerBonus = programConfig?.referrer_bonus ?? 100;
   const referredBonus = programConfig?.referred_bonus ?? 50;
@@ -1002,15 +998,24 @@ function ReferralShareCard({ enrollment: e, referralCode, programConfig }: {
       </div>
       <div className="flex gap-3 mb-4 text-center">
         <div className="flex-1 rounded-xl bg-emerald-50 dark:bg-emerald-500/10 px-3 py-2">
-          <p className="text-lg font-bold text-emerald-600 dark:text-emerald-400">+{referrerBonus}</p>
-          <p className="text-[10px] text-gray-500 dark:text-gray-400">pts para ti</p>
+          <p className="text-lg font-bold text-emerald-600 dark:text-emerald-400">
+            +{formatUnitAmount(e.program_type, referrerBonus)}
+          </p>
+          <p className="text-[10px] text-gray-500 dark:text-gray-400">para ti</p>
         </div>
         <div className="flex-1 rounded-xl bg-blue-50 dark:bg-blue-500/10 px-3 py-2">
-          <p className="text-lg font-bold text-blue-600 dark:text-blue-400">+{referredBonus}</p>
-          <p className="text-[10px] text-gray-500 dark:text-gray-400">pts para tu amigo</p>
+          <p className="text-lg font-bold text-blue-600 dark:text-blue-400">
+            +{formatUnitAmount(e.program_type, referredBonus)}
+          </p>
+          <p className="text-[10px] text-gray-500 dark:text-gray-400">para tu amigo</p>
         </div>
       </div>
-      <ReferralShareButton path={referralPath} code={referralCode} />
+      <ReferralShareButton
+        path={referralPath}
+        code={referralCode}
+        businessName={businessName}
+        bonusText={formatUnitAmount(e.program_type, referredBonus)}
+      />
     </div>
   );
 }

@@ -20,6 +20,7 @@ import { NextResponse }                from 'next/server';
 import { createServiceRoleClient }    from '@/lib/supabase/server';
 import { sendBirthdayMessage }        from '@/modules/whatsapp/whatsapp.service';
 import { getPlanLimits, getEffectivePlanFromTenant } from '@/lib/config/plans';
+import { unitLabelTitle }            from '@/lib/utils/program-units';
 
 export const dynamic     = 'force-dynamic';
 export const maxDuration = 60;
@@ -57,16 +58,6 @@ interface EnrollmentRow {
   } | null;
 }
 
-/** Maps program type to a human-readable Spanish unit label. */
-function unitLabelFromType(type: string): string {
-  switch (type) {
-    case 'stamp':    return 'Sellos';
-    case 'visit':    return 'Visitas';
-    case 'cashback': return 'Cashback';
-    default:         return 'Puntos';
-  }
-}
-
 /**
  * For a set of enrollments belonging to one customer, pick the one that is
  * closest to 100% completion (highest progress ratio) and return its unit label.
@@ -78,7 +69,7 @@ function pickClosestUnitLabel(
 ): string {
   if (enrollments.length === 0) return 'Puntos';
   if (enrollments.length === 1) {
-    return unitLabelFromType(enrollments[0].reward_programs?.type ?? 'points');
+    return unitLabelTitle(enrollments[0].reward_programs?.type ?? 'points');
   }
 
   let bestRatio = -1;
@@ -109,7 +100,7 @@ function pickClosestUnitLabel(
     }
   }
 
-  return unitLabelFromType(bestType);
+  return unitLabelTitle(bestType);
 }
 
 export async function GET(request: Request) {
