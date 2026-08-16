@@ -26,8 +26,17 @@ const MONTHS = [
   'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre',
 ];
 
+/**
+ * Base field styles WITHOUT a width. Width is applied per field.
+ *
+ * Keeping w-full in here broke the phone row: the prefix <select> and the
+ * number <input> are flex siblings, and `w-full` on both beat the narrower
+ * width utility (Tailwind resolves same-property conflicts by stylesheet
+ * order, not by the order they appear in className), so the select filled the
+ * row and pushed the input outside the card.
+ */
 const fieldCls =
-  'w-full rounded-xl border border-gray-200 dark:border-[#2a3147] bg-white dark:bg-[#0f1222] px-4 py-3 text-sm text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-600 outline-none transition focus:border-emerald-400 focus:ring-2 focus:ring-emerald-400/20';
+  'rounded-xl border border-gray-200 dark:border-[#2a3147] bg-white dark:bg-[#0f1222] py-3 text-sm text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-600 outline-none transition focus:border-emerald-400 focus:ring-2 focus:ring-emerald-400/20';
 
 export default function ReferralRegisterForm({
   tenantId, referrerId, programId, phonePrefix,
@@ -119,7 +128,7 @@ export default function ReferralRegisterForm({
           placeholder="María González"
           maxLength={80}
           required
-          className={fieldCls}
+          className={`${fieldCls} w-full px-4`}
         />
       </div>
 
@@ -128,12 +137,15 @@ export default function ReferralRegisterForm({
         <label htmlFor="ref-phone" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
           WhatsApp <span className="text-red-400">*</span>
         </label>
-        <div className="flex gap-2">
+        <div className="flex items-stretch gap-2">
+          {/* Fixed, content-sized. shrink-0 keeps it from collapsing when the
+              number is long; min-w-0 on the input is what lets THAT one shrink
+              instead of overflowing the card. */}
           <select
             value={prefix}
             onChange={(e) => handlePrefixChange(e.target.value)}
             aria-label="Código de país"
-            className={`${fieldCls} w-[7.5rem] shrink-0 appearance-none pr-2`}
+            className={`${fieldCls} w-24 shrink-0 appearance-none px-3 text-center`}
           >
             {PHONE_PREFIXES.map((p) => (
               <option key={p.code} value={p.code}>{p.iso} {p.code}</option>
@@ -147,7 +159,7 @@ export default function ReferralRegisterForm({
             onChange={(e) => handlePhoneChange(e.target.value)}
             placeholder="5551234567"
             required
-            className={fieldCls}
+            className={`${fieldCls} min-w-0 flex-1 px-4`}
           />
         </div>
         <p className="mt-1.5 text-xs text-gray-400 dark:text-gray-500">{localHint}</p>
@@ -196,7 +208,7 @@ export default function ReferralRegisterForm({
             value={birthDay}
             onChange={(e) => setBirthDay(e.target.value)}
             aria-label="Día de cumpleaños"
-            className={`${fieldCls} appearance-none`}
+            className={`${fieldCls} w-full min-w-0 appearance-none px-3`}
           >
             <option value="">Día</option>
             {Array.from({ length: daysInMonth }, (_, i) => (
@@ -210,7 +222,7 @@ export default function ReferralRegisterForm({
               if (!e.target.value) setBirthDay('');
             }}
             aria-label="Mes de cumpleaños"
-            className={`${fieldCls} appearance-none`}
+            className={`${fieldCls} w-full min-w-0 appearance-none px-3`}
           >
             <option value="">Mes</option>
             {MONTHS.map((m, i) => (
@@ -221,7 +233,7 @@ export default function ReferralRegisterForm({
             value={birthYear}
             onChange={(e) => setBirthYear(e.target.value)}
             aria-label="Año de nacimiento"
-            className={`${fieldCls} appearance-none`}
+            className={`${fieldCls} w-full min-w-0 appearance-none px-3`}
           >
             <option value="">Año</option>
             {Array.from({ length: 100 }, (_, i) => thisYear - i).map((y) => (
