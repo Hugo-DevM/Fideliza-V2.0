@@ -37,21 +37,37 @@ export async function registerReferredCustomerAction(
     return { error: 'El programa de referidos no está activo.' };
   }
 
-  // Validate referral is still enabled on the program
+  // Validate the program is still active
   const { data: program } = await db
     .from('reward_programs')
     .select('config, name')
     .eq('id', programId)
     .eq('tenant_id', tenantId)
     .eq('status', 'active')
-    .single() as { data: { config: Record<string, unknown>; name: string } | null };
+    .maybeSingle() as { data: { config: Record<string, unknown>; name: string } | null };
 
   if (!program) return { error: 'Programa no disponible.' };
 
-  const cfg = program.config ?? {};
-  if (!cfg.referral_enabled) return { error: 'El programa de referidos no está activo.' };
+  // Must match refer/page.tsx exactly: the switch lives in tenant_settings.
+  // If these two disagree, the invitation renders and then fails on submit.
+  const { data: settings } = await db
+    .from('tenant_settings')
+    .select('referral_enabled, referral_program_configs')
+    .eq('tenant_id', tenantId)
+    .maybeSingle() as {
+      data: {
+        referral_enabled: boolean | null;
+        referral_program_configs: Record<string, { referrer_bonus: number; referred_bonus: number }> | null;
+      } | null;
+    };
 
-  const referredBonus = Number(cfg.referred_bonus ?? 50);
+  if (!settings?.referral_enabled) {
+    return { error: 'El programa de referidos no está activo.' };
+  }
+
+  const referredBonus = Number(
+    settings.referral_program_configs?.[programId]?.referred_bonus ?? 50
+  );
 
   // Fetch referrer name for the WhatsApp message
   const { data: referrer } = await db

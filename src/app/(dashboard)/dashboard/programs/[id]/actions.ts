@@ -111,40 +111,11 @@ export async function updateSurpriseDelightAction(
   }
 }
 
-export async function updateReferralAction(
-  programId: string,
-  referral: {
-    referral_enabled: boolean;
-    referrer_bonus:   number;
-    referred_bonus:   number;
-  },
-) {
-  const { tenantId, effectivePlan } = await getAuthenticatedTenant();
-  if (!getPlanLimits(effectivePlan).referralProgram) {
-    return { error: 'El programa de referidos requiere el plan Pro.' };
-  }
-
-  const db = createServiceRoleClient();
-
-  const { data: program } = await db
-    .from('reward_programs')
-    .select('config')
-    .eq('id', programId)
-    .eq('tenant_id', tenantId)
-    .single();
-
-  if (!program) return { error: 'Programa no encontrado.' };
-
-  const newConfig = { ...(program.config as Record<string, unknown>), ...referral };
-
-  try {
-    await updateProgram(tenantId, programId, { config: newConfig });
-    revalidatePath(`/dashboard/programs/${programId}`);
-    return { success: true };
-  } catch (err) {
-    return { error: err instanceof Error ? err.message : 'No se pudo guardar el programa de referidos.' };
-  }
-}
+// updateReferralAction was removed along with ReferralCard: referrals are
+// configured tenant-wide in /dashboard/referidos (tenant_settings), which is
+// the single source of truth read by the portal, the /c/refer page and the
+// payout hook in transaction.service.ts. Writing a per-program copy of the
+// flag is what made the share link 404 while the button stayed visible.
 
 export async function createChallengeAction(
   programId: string,

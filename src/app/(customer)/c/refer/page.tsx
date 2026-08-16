@@ -17,6 +17,7 @@ import { getTenantBySubdomainPublic } from '@/modules/portal';
 import { TenantNotFoundError } from '@/lib/middleware/errors';
 import { createServiceRoleClient } from '@/lib/supabase/server';
 import AuthThemeToggle from '@/app/(auth)/ThemeToggle';
+import { logger } from '@/lib/utils/logger';
 import ReferralRegisterForm from './ReferralRegisterForm';
 
 export const dynamic = 'force-dynamic';
@@ -25,27 +26,40 @@ interface PageProps {
   searchParams: Promise<{ ref?: string; program?: string }>;
 }
 
+/**
+ * Every rejection on this page renders the same 404, which made a broken
+ * referral link impossible to diagnose from the outside — seven different
+ * causes, one identical dead end. Log the reason before bailing so the cause is
+ * visible in the server logs.
+ */
+function rejectWith(reason: string, ctx: Record<string, unknown> = {}): never {
+  logger.warn('[refer] link rejected', { reason, ...ctx });
+  notFound();
+}
+
 export default async function ReferralPage({ searchParams }: PageProps) {
   const headersList = await headers();
   const subdomain = headersList.get('x-tenant-subdomain');
-  if (!subdomain) notFound();
+  if (!subdomain) rejectWith('no_subdomain');
 
   const { ref: referrerCode, program: programId } = await searchParams;
-  if (!referrerCode || !programId) notFound();
+  if (!referrerCode || !programId) {
+    rejectWith('missing_params', { subdomain, hasRef: Boolean(referrerCode), hasProgram: Boolean(programId) });
+  }
 
   let tenant: Awaited<ReturnType<typeof getTenantBySubdomainPublic>>;
 
   try {
     tenant = await getTenantBySubdomainPublic(subdomain);
   } catch (err) {
-    if (err instanceof TenantNotFoundError) notFound();
+    if (err instanceof TenantNotFoundError) rejectWith('tenant_not_found', { subdomain });
     throw err;
   }
 
-  // Referrals are a Pro feature. The per-program referral_enabled flag survives
-  // a downgrade, so the plan is checked first — otherwise an already-shared link
-  // would keep registering referrals after the tenant drops to Starter/Free.
-  if (!tenant.referralProgram) notFound();
+  // Referrals are a Pro feature. The tenant_settings flag survives a downgrade,
+  // so the plan is checked first — otherwise an already-shared link would keep
+  // registering referrals after the tenant drops to Starter/Free.
+  if (!tenant.referralProgram) rejectWith('plan_lacks_referrals', { subdomain });
 
   const tenantId    = tenant.id;
   const tenantName  = tenant.name;
@@ -67,23 +81,45 @@ export default async function ReferralPage({ searchParams }: PageProps) {
     .eq('is_active', true)
     .maybeSingle() as { data: { id: string; name: string } | null };
 
-  if (!referrer) notFound();
+  if (!referrer) rejectWith('referrer_not_found', { subdomain, referrerCode });
 
-  // Validate program exists + referral is enabled
+  // Validate program exists and is active
   const { data: program } = await db
     .from('reward_programs')
     .select('id, name, config')
     .eq('id', programId)
     .eq('tenant_id', tenantId)
     .eq('status', 'active')
-    .single() as { data: { id: string; name: string; config: Record<string, unknown> } | null };
+    .maybeSingle() as { data: { id: string; name: string; config: Record<string, unknown> } | null };
 
-  if (!program) notFound();
+  if (!program) rejectWith('program_not_found_or_inactive', { subdomain, programId });
 
-  const cfg = program.config ?? {};
-  if (!cfg.referral_enabled) notFound();
+  // The enable switch and the bonus amounts both live in tenant_settings —
+  // the same place /dashboard/referidos writes, the portal reads to decide
+  // whether to show the share button, and transaction.service.ts reads to pay
+  // the referrer. One source of truth for all three.
+  //
+  // This used to read reward_programs.config.referral_enabled, which no live UI
+  // ever wrote (its editor was dropped from the program screen but the check
+  // stayed), so every referral link 404'd for every tenant.
+  const { data: settings } = await db
+    .from('tenant_settings')
+    .select('referral_enabled, referral_program_configs')
+    .eq('tenant_id', tenantId)
+    .maybeSingle() as {
+      data: {
+        referral_enabled: boolean | null;
+        referral_program_configs: Record<string, { referrer_bonus: number; referred_bonus: number }> | null;
+      } | null;
+    };
 
-  const referredBonus  = Number(cfg.referred_bonus ?? 50);
+  if (!settings?.referral_enabled) {
+    rejectWith('referrals_disabled_in_settings', { subdomain, programId });
+  }
+
+  const referredBonus = Number(
+    settings.referral_program_configs?.[program.id]?.referred_bonus ?? 50
+  );
 
   return (
     <>
