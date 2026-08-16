@@ -373,10 +373,21 @@ export async function processTransaction(
         );
       } catch { /* best-effort — never blocks the earn */ }
     };
-    // ── Referral completion hook (fire-and-forget) ───────────────────────────
-    // Fires only on the referred customer's FIRST earn (lifetimePoints === 0).
-    // Applies bonus to whatever program they first transact in.
-    if (lifetimePoints === 0) {
+    // ── Referral completion hook ─────────────────────────────────────────────
+    // Runs on every earn, NOT only when lifetimePoints === 0.
+    //
+    // That guard looked like a cheap optimisation but silently killed the whole
+    // payout for anyone who signed up through the portal referral link:
+    // registerReferredCustomerAction credits their welcome bonus with
+    // rpc_earn_points at registration, so their enrollment already has
+    // lifetime_points > 0 by the time they make their first real purchase — and
+    // the hook never fired.
+    //
+    // Single-fire is guaranteed by the atomic `UPDATE ... WHERE status='pending'`
+    // below, not by this condition, so dropping it costs one UPDATE that matches
+    // zero rows for customers without a pending referral. It runs inside after(),
+    // so it never delays the response.
+    {
       after(async () => {
         try {
           const db2 = createServiceRoleClient();
