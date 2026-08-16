@@ -6,18 +6,62 @@ import { getPlanLimits, getEffectivePlan } from '@/lib/config/plans';
 import { sendReferralWelcomeMessage } from '@/modules/whatsapp/whatsapp.service';
 
 interface RegisterReferredInput {
-  tenantId:   string;
-  referrerId: string;
-  programId:  string;
-  name:       string;
-  phone:      string | null;
+  tenantId:      string;
+  referrerId:    string;
+  programId:     string;
+  name:          string;
+  /** E.164 (prefix + local digits). Required — it is the identity key here. */
+  phone:         string;
+  whatsappOptIn: boolean;
+  birthMonth:    number | null;
+  birthDay:      number | null;
+  birthYear:     number | null;
 }
+
+type RegisterResult =
+  | { accessCode: string; existing: boolean }
+  | { error: string };
+
+const DAYS_IN_MONTH = [31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
 
 export async function registerReferredCustomerAction(
   input: RegisterReferredInput,
-): Promise<{ accessCode: string } | { error: string }> {
-  const { tenantId, referrerId, programId, name, phone } = input;
+): Promise<RegisterResult> {
+  const {
+    tenantId, referrerId, programId, name, phone,
+    whatsappOptIn, birthMonth, birthDay, birthYear,
+  } = input;
   const db = createServiceRoleClient();
+
+  // ── Input validation ──────────────────────────────────────────────────
+  const trimmedName = name.trim();
+  if (trimmedName.length < 2 || trimmedName.length > 80) {
+    return { error: 'Escribe tu nombre.' };
+  }
+
+  const normalizedPhone = phone.trim();
+  if (!/^\+\d{7,16}$/.test(normalizedPhone)) {
+    return { error: 'Escribe un número de teléfono válido.' };
+  }
+
+  // Birthday is optional, but a partial date is a mistake worth catching —
+  // the birthday cron matches on month AND day, so one without the other is
+  // silently useless.
+  if ((birthMonth === null) !== (birthDay === null)) {
+    return { error: 'Selecciona el día y el mes de tu cumpleaños.' };
+  }
+  if (birthMonth !== null && birthDay !== null) {
+    if (birthMonth < 1 || birthMonth > 12) return { error: 'Mes inválido.' };
+    if (birthDay < 1 || birthDay > DAYS_IN_MONTH[birthMonth - 1]) {
+      return { error: 'Ese día no existe en el mes que elegiste.' };
+    }
+  }
+  if (birthYear !== null) {
+    const thisYear = new Date().getUTCFullYear();
+    if (birthYear < thisYear - 120 || birthYear > thisYear) {
+      return { error: 'Año de nacimiento inválido.' };
+    }
+  }
 
   // Referrals are a Pro feature. The per-program flag survives a downgrade, so
   // the plan is checked first. Message stays neutral — the end customer should
@@ -69,6 +113,27 @@ export async function registerReferredCustomerAction(
     settings.referral_program_configs?.[programId]?.referred_bonus ?? 50
   );
 
+  // ── Already a customer here? ──────────────────────────────────────────
+  // Send them to the card they already have instead of minting a second one.
+  //
+  // Two reasons this matters. Sharing a referral link with someone who already
+  // buys from you is the common case, and a duplicate would strand their
+  // existing balance on an orphaned record they can no longer reach. And
+  // without this check the welcome bonus is farmable: re-open the link, get
+  // another 50 points, repeat.
+  //
+  // No new customer, no referral row, no bonus — just their existing code.
+  const { data: duplicate } = await db
+    .from('customers')
+    .select('access_code')
+    .eq('tenant_id', tenantId)
+    .eq('phone', normalizedPhone)
+    .maybeSingle() as { data: { access_code: string } | null };
+
+  if (duplicate) {
+    return { accessCode: duplicate.access_code, existing: true };
+  }
+
   // Fetch referrer name for the WhatsApp message
   const { data: referrer } = await db
     .from('customers')
@@ -110,17 +175,22 @@ export async function registerReferredCustomerAction(
     accessCode = generateCode();
   }
 
-  // Create the referred customer
-  const whatsappOptIn = Boolean(phone);
+  // Create the referred customer.
+  // whatsapp_opt_in is the customer's explicit choice, not inferred from having
+  // typed a phone number — consent has to be given, not assumed.
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const { data: newCustomer, error: createErr } = await (db.from('customers') as any)
     .insert({
-      tenant_id:        tenantId,
-      name:             name.trim(),
-      phone:            phone ?? null,
-      access_code:      accessCode,
-      whatsapp_opt_in:  whatsappOptIn,
-      is_active:        true,
+      tenant_id:            tenantId,
+      name:                 trimmedName,
+      phone:                normalizedPhone,
+      access_code:          accessCode,
+      whatsapp_opt_in:      whatsappOptIn,
+      whatsapp_opted_in_at: whatsappOptIn ? new Date().toISOString() : null,
+      birth_month:          birthMonth,
+      birth_day:            birthDay,
+      birth_year:           birthYear,
+      is_active:            true,
     })
     .select('id, access_code')
     .single() as { data: { id: string; access_code: string } | null; error: unknown };
@@ -158,19 +228,20 @@ export async function registerReferredCustomerAction(
 
   // WhatsApp notification — deferred with `after()` so the response can return
   // immediately without the serverless container freezing before it is enqueued.
-  if (phone) {
+  // Only when the customer actually opted in.
+  if (whatsappOptIn) {
     after(async () => {
       await sendReferralWelcomeMessage(
         newCustomer.id,
         tenantId,
-        name,
+        trimmedName,
         businessName,
-        phone,
+        normalizedPhone,
         referredBonus,
         referrer?.name ?? 'un amigo',
       );
     });
   }
 
-  return { accessCode: newCustomer.access_code };
+  return { accessCode: newCustomer.access_code, existing: false };
 }

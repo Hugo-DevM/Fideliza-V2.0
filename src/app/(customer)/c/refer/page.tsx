@@ -104,12 +104,13 @@ export default async function ReferralPage({ searchParams }: PageProps) {
   // stayed), so every referral link 404'd for every tenant.
   const { data: settings } = await db
     .from('tenant_settings')
-    .select('referral_enabled, referral_program_configs')
+    .select('referral_enabled, referral_program_configs, phone_prefix')
     .eq('tenant_id', tenantId)
     .maybeSingle() as {
       data: {
         referral_enabled: boolean | null;
         referral_program_configs: Record<string, { referrer_bonus: number; referred_bonus: number }> | null;
+        phone_prefix: string | null;
       } | null;
     };
 
@@ -168,6 +169,7 @@ export default async function ReferralPage({ searchParams }: PageProps) {
               tenantId={tenantId}
               referrerId={referrer.id}
               programId={program.id}
+              phonePrefix={settings.phone_prefix}
             />
           </div>
 
