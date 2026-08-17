@@ -1,7 +1,8 @@
 'use client';
 
 import { useState, useTransition } from 'react';
-import { updateTenantTiersAction } from './actions';
+import { updateTenantTiersAction, previewTierBackfillAction, applyTierBackfillAction } from './actions';
+import { computeTier } from '@/lib/utils/tiers';
 import { DEFAULT_TENANT_TIERS, TIER_STYLES } from '@/lib/utils/tiers';
 import type { TierConfig, TenantTierSettings, TierWindowSettings } from '@/lib/utils/tiers';
 
@@ -54,6 +55,46 @@ export default function TiersClient({ settings, window: tierWindow }: TiersClien
   const [saved,     setSaved]     = useState(false);
   const [error,     setError]     = useState('');
   const [isPending, startTransition] = useTransition();
+
+  // Retroactive tier assignment. Scores are fetched once and bucketed here, so
+  // moving a threshold re-projects the distribution instantly with no round trip.
+  const [backfillScores, setBackfillScores] = useState<number[] | null>(null);
+  const [backfillCapped, setBackfillCapped] = useState(false);
+  const [backfillDone,   setBackfillDone]   = useState<number | null>(null);
+  const [backfillBusy,   setBackfillBusy]   = useState(false);
+
+  const rates = {
+    tier_score_per_stamp:        perStamp,
+    tier_score_per_visit:        perVisit,
+    tier_score_per_point:        perPoint,
+    tier_score_per_cashback_cent: perCashback,
+  };
+
+  const projection = backfillScores
+    ? tiers.map((t) => ({
+        tier:  t,
+        count: backfillScores.filter((s) => computeTier(s, tiers)?.label === t.label).length,
+      }))
+    : null;
+
+  async function loadPreview() {
+    setError('');
+    setBackfillBusy(true);
+    const res = await previewTierBackfillAction(rates);
+    setBackfillBusy(false);
+    if ('error' in res) { setError(res.error); return; }
+    setBackfillScores(res.scores);
+    setBackfillCapped(res.capped);
+  }
+
+  async function applyBackfill() {
+    setError('');
+    setBackfillBusy(true);
+    const res = await applyTierBackfillAction({ tiers, rates });
+    setBackfillBusy(false);
+    if ('error' in res) { setError(res.error); return; }
+    setBackfillDone(res.updated);
+  }
 
   function updateTier(i: number, patch: Partial<TierConfig>) {
     setTiers((prev) => prev.map((t, idx) => (idx === i ? { ...t, ...patch } : t)));
@@ -173,6 +214,80 @@ export default function TiersClient({ settings, window: tierWindow }: TiersClien
               </strong>
               . Hasta esa fecha ningún cliente baja de nivel.
             </p>
+          )}
+        </div>
+
+        {/* ── Retroactive assignment ─────────────────────────────────── */}
+        <div className={`px-5 py-4 border-b border-gray-100 dark:border-[#1e2438] ${!enabled ? 'pointer-events-none opacity-40' : ''}`}>
+          <h3 className="text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wide mb-1">
+            Reconocer el historial
+          </h3>
+          <p className="text-xs text-gray-400 dark:text-gray-500 mb-3">
+            Al activar los niveles, tus clientes actuales arrancan en cero — incluido el que lleva
+            años viniendo. Puedes asignarles su nivel a partir de lo que ya acumularon.
+          </p>
+
+          {!projection && (
+            <button
+              type="button"
+              onClick={loadPreview}
+              disabled={backfillBusy}
+              className="rounded-xl border border-gray-200 dark:border-[#2a3147] px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-200 transition hover:border-indigo-300 disabled:opacity-50"
+            >
+              {backfillBusy ? 'Calculando…' : 'Ver cómo quedarían'}
+            </button>
+          )}
+
+          {projection && (
+            <div className="space-y-3">
+              <div className="grid grid-cols-3 gap-2">
+                {projection.map(({ tier, count }) => {
+                  const s = TIER_STYLES[tier.color] ?? TIER_STYLES.bronze;
+                  const medal = tier.color === 'gold' ? '🥇' : tier.color === 'silver' ? '🥈' : '🥉';
+                  return (
+                    <div key={tier.label} className={`rounded-xl border px-3 py-2 text-center ${s.bg} ${s.border}`}>
+                      <p className="text-lg">{medal}</p>
+                      <p className="text-xl font-bold text-gray-900 dark:text-white">{count}</p>
+                      <p className={`text-[11px] font-semibold ${s.text}`}>{tier.label}</p>
+                    </div>
+                  );
+                })}
+              </div>
+
+              <p className="text-xs text-gray-400 dark:text-gray-500">
+                Mueve los umbrales abajo y esta proyección se actualiza sola.
+                {backfillCapped && ' (muestra basada en tus primeros 5,000 clientes)'}
+              </p>
+
+              {backfillDone === null ? (
+                <div className="flex flex-wrap gap-2">
+                  <button
+                    type="button"
+                    onClick={applyBackfill}
+                    disabled={backfillBusy}
+                    className="rounded-xl bg-indigo-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-indigo-700 disabled:opacity-50"
+                  >
+                    {backfillBusy ? 'Aplicando…' : 'Aplicar estos niveles'}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => { setBackfillScores(null); setBackfillCapped(false); }}
+                    className="rounded-xl border border-gray-200 dark:border-[#2a3147] px-4 py-2 text-sm font-medium text-gray-500 dark:text-gray-400 transition"
+                  >
+                    Cancelar
+                  </button>
+                </div>
+              ) : (
+                <p className="rounded-xl bg-emerald-50 dark:bg-emerald-500/10 px-3 py-2 text-xs text-emerald-700 dark:text-emerald-400">
+                  Listo: se asignó nivel a <strong>{backfillDone}</strong> cliente{backfillDone === 1 ? '' : 's'}.
+                  Puedes volver a calcularlo cuando quieras — recalcula desde el historial, no acumula.
+                </p>
+              )}
+
+              <p className="text-[11px] text-gray-400 dark:text-gray-500">
+                Guarda primero los umbrales si los cambiaste: la asignación usa lo que está guardado.
+              </p>
+            </div>
           )}
         </div>
 

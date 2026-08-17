@@ -3,6 +3,8 @@
 import { getAuthenticatedTenant } from '@/lib/auth/get-tenant';
 import { createServiceRoleClient } from '@/lib/supabase/server';
 import { revalidateTenantCache } from '@/lib/cache/tenant-cache';
+import { revalidatePath } from 'next/cache';
+import { computeTier } from '@/lib/utils/tiers';
 import type { TierConfig } from '@/lib/utils/tiers';
 
 export async function updateTenantTiersAction(payload: {
@@ -102,6 +104,122 @@ export async function updateTenantTiersAction(payload: {
     if (error) return { error: error.message };
     revalidateTenantCache(tenantId, tenant.subdomain);
     return {};
+  } catch (e) {
+    return { error: (e as Error).message };
+  }
+}
+
+/** Cap on how many customer scores travel to the browser for the preview. */
+const BACKFILL_PREVIEW_CAP = 5000;
+
+/**
+ * Retroactive tier scores for every active customer, derived from their
+ * enrollment history.
+ *
+ * Returns bare numbers, not customers: the preview only needs to bucket them by
+ * threshold, and shipping identities to the browser for a count would leak more
+ * than the feature needs.
+ */
+export async function previewTierBackfillAction(rates: {
+  tier_score_per_stamp:        number;
+  tier_score_per_visit:        number;
+  tier_score_per_point:        number;
+  tier_score_per_cashback_cent: number;
+}): Promise<{ scores: number[]; capped: boolean } | { error: string }> {
+  try {
+    const { tenantId, planLimits } = await getAuthenticatedTenant();
+    if (!planLimits.universalTiers) {
+      return { error: 'Los niveles VIP están disponibles en el plan Pro.' };
+    }
+
+    const db = createServiceRoleClient();
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const { data, error } = await (db as any).rpc('rpc_tier_backfill_scores', {
+      p_tenant_id:         tenantId,
+      p_per_stamp:         rates.tier_score_per_stamp,
+      p_per_visit:         rates.tier_score_per_visit,
+      p_per_point:         rates.tier_score_per_point,
+      p_per_cashback_cent: rates.tier_score_per_cashback_cent,
+    }) as { data: { customer_id: string; score: number }[] | null; error: unknown };
+
+    if (error) return { error: 'No se pudo calcular la vista previa.' };
+
+    const all = (data ?? []).map((r) => Number(r.score));
+    return { scores: all.slice(0, BACKFILL_PREVIEW_CAP), capped: all.length > BACKFILL_PREVIEW_CAP };
+  } catch (e) {
+    return { error: (e as Error).message };
+  }
+}
+
+/**
+ * Writes the retroactive scores and refreshes the cached tier on each customer.
+ *
+ * Assigns rather than accumulates, so running it twice recalculates from history
+ * instead of doubling. The tier cache is updated grouped by tier — three
+ * statements regardless of how many customers there are.
+ */
+export async function applyTierBackfillAction(payload: {
+  tiers: TierConfig[];
+  rates: {
+    tier_score_per_stamp:        number;
+    tier_score_per_visit:        number;
+    tier_score_per_point:        number;
+    tier_score_per_cashback_cent: number;
+  };
+}): Promise<{ updated: number } | { error: string }> {
+  try {
+    const { tenantId, tenant, planLimits } = await getAuthenticatedTenant();
+    if (!planLimits.universalTiers) {
+      return { error: 'Los niveles VIP están disponibles en el plan Pro.' };
+    }
+
+    const db = createServiceRoleClient();
+    const { rates } = payload;
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const { data: updated, error: applyErr } = await (db as any).rpc('rpc_tier_backfill_apply', {
+      p_tenant_id:         tenantId,
+      p_per_stamp:         rates.tier_score_per_stamp,
+      p_per_visit:         rates.tier_score_per_visit,
+      p_per_point:         rates.tier_score_per_point,
+      p_per_cashback_cent: rates.tier_score_per_cashback_cent,
+    }) as { data: number | null; error: unknown };
+
+    if (applyErr) return { error: 'No se pudieron aplicar los niveles.' };
+
+    // Refresh the cached label/colour, which is what every dashboard list reads.
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const { data: scored } = await (db as any).rpc('rpc_tier_backfill_scores', {
+      p_tenant_id:         tenantId,
+      p_per_stamp:         rates.tier_score_per_stamp,
+      p_per_visit:         rates.tier_score_per_visit,
+      p_per_point:         rates.tier_score_per_point,
+      p_per_cashback_cent: rates.tier_score_per_cashback_cent,
+    }) as { data: { customer_id: string; score: number }[] | null };
+
+    const byTier = new Map<string, { label: string; color: string; ids: string[] }>();
+    for (const row of scored ?? []) {
+      const tier = computeTier(Number(row.score), payload.tiers);
+      if (!tier) continue;
+      const key = tier.label;
+      if (!byTier.has(key)) byTier.set(key, { label: tier.label, color: tier.color, ids: [] });
+      byTier.get(key)!.ids.push(row.customer_id);
+    }
+
+    for (const group of byTier.values()) {
+      // Chunked: a single .in() with thousands of UUIDs blows past URL limits.
+      for (let i = 0; i < group.ids.length; i += 500) {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        await (db.from('customers') as any)
+          .update({ tier_label: group.label, tier_color: group.color })
+          .eq('tenant_id', tenantId)
+          .in('id', group.ids.slice(i, i + 500));
+      }
+    }
+
+    revalidateTenantCache(tenantId, tenant.subdomain);
+    revalidatePath('/dashboard/tiers');
+    return { updated: Number(updated ?? 0) };
   } catch (e) {
     return { error: (e as Error).message };
   }
