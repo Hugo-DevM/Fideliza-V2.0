@@ -12,10 +12,17 @@ export interface TierConfig {
   multiplier:   number;
   color:        'bronze' | 'silver' | 'gold';
   /**
-   * Reward granted as a free voucher the first time a customer reaches this
-   * tier. Optional — null/undefined means the tier grants no gift.
+   * Free gift handed out as a voucher the first time a customer reaches this
+   * tier. Empty/null means the tier grants no gift.
+   *
+   * Deliberately free text and NOT a reward from the catalog: a reward belongs
+   * to one program (rewards.program_id is NOT NULL) while a VIP tier is global,
+   * it would burn one of the plan's per-program reward slots, and it would mix
+   * sellable stock with giveaways.
    */
-  reward_id?:   string | null;
+  gift_label?:       string | null;
+  /** Days the gift voucher stays valid. Null = no expiry. */
+  gift_expiry_days?: number | null;
 }
 
 /**

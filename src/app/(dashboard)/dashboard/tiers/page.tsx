@@ -35,20 +35,6 @@ export default async function TiersPage() {
     tier_grandfather_until: (raw?.tier_grandfather_until as string | null) ?? null,
   };
 
-  // Pool of rewards a tier can hand out as a welcome gift.
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const { data: rewardRows } = await (db.from('rewards') as any)
-    .select('id, name, reward_programs(name)')
-    .eq('tenant_id', tenantId)
-    .eq('is_active', true)
-    .limit(100) as { data: { id: string; name: string; reward_programs: { name: string } | null }[] | null };
-
-  const tierRewards = (rewardRows ?? []).map((r) => ({
-    id:           r.id,
-    name:         r.name,
-    program_name: r.reward_programs?.name ?? '',
-  }));
-
   // Tier distribution — counts per color from customers.tier_color
   type TierCount = { tier_color: string; tier_label: string; count: number };
   let distribution: TierCount[] = [];
@@ -111,7 +97,7 @@ export default async function TiersPage() {
           })}
       </div>
 
-      <TiersClient settings={settings} window={tierWindow} rewards={tierRewards} />
+      <TiersClient settings={settings} window={tierWindow} />
     </div>
   );
 

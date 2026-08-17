@@ -262,6 +262,7 @@ export async function GET(request: Request) {
       .select(`
         id, redemption_code, status, created_at, used_at, expires_at, cancelled_at,
         customers(name, phone),
+        gift_label,
         rewards(name, cost_points, reward_programs(name))
       `)
       .eq('tenant_id', tenantId)
@@ -279,6 +280,7 @@ export async function GET(request: Request) {
     type RedRow = {
       id: string; redemption_code: string; status: string;
       created_at: string; used_at: string | null; expires_at: string | null; cancelled_at: string | null;
+      gift_label: string | null;
       customers: { name: string; phone: string | null } | null;
       rewards: { name: string; cost_points: number; reward_programs: { name: string } | null } | null;
     };
@@ -309,7 +311,7 @@ export async function GET(request: Request) {
         fecha:    fmtDate(r.created_at),
         cliente:  r.customers?.name ?? '',
         telefono: r.customers?.phone ?? '',
-        reward:   r.rewards?.name ?? '',
+        reward:   r.rewards?.name ?? r.gift_label ?? '',
         programa: r.rewards?.reward_programs?.name ?? '',
         puntos:   r.rewards?.cost_points ?? 0,
         estado:   STATUS_LABELS[r.status] ?? r.status,

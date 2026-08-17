@@ -296,17 +296,19 @@ export async function processTransaction(
           const db2 = createServiceRoleClient();
 
           // Gift voucher for the new tier, when the business configured one.
-          // The RPC is a no-op if the customer already received it, so the
-          // revalidation window cannot be farmed by oscillating around the
-          // threshold. Awaited but non-fatal: a missing gift must not stop the
+          // The RPC is a no-op if the customer already received this tier's
+          // gift, so the revalidation window cannot be farmed by oscillating
+          // around the threshold. Non-fatal: a missing gift must not stop the
           // upgrade notification below.
-          if (tierAfter.reward_id) {
+          if (tierAfter.gift_label?.trim()) {
             try {
               // eslint-disable-next-line @typescript-eslint/no-explicit-any
-              await (db2 as any).rpc('rpc_grant_tier_reward', {
+              await (db2 as any).rpc('rpc_grant_tier_gift', {
                 p_tenant_id:   tenantId,
                 p_customer_id: input.customer_id,
-                p_reward_id:   tierAfter.reward_id,
+                p_tier_min:    tierAfter.min_lifetime,
+                p_gift_label:  tierAfter.gift_label,
+                p_expiry_days: tierAfter.gift_expiry_days ?? null,
               });
             } catch { /* best-effort */ }
           }

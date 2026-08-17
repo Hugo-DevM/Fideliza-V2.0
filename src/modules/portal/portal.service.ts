@@ -548,7 +548,7 @@ export async function getPortalData(
     // Pending vouchers with reward name
     db
       .from('customer_reward_redemptions')
-      .select('id, redemption_code, expires_at, created_at, rewards(name)')
+      .select('id, redemption_code, expires_at, created_at, gift_label, rewards(name)')
       .eq('tenant_id', tenantId)
       .eq('customer_id', customer.id)
       .eq('status', 'pending')
@@ -779,6 +779,7 @@ export async function getPortalData(
     redemption_code: string;
     expires_at: string | null;
     created_at: string;
+    gift_label: string | null;
     rewards: { name: string } | null;
   };
 
@@ -787,7 +788,8 @@ export async function getPortalData(
   ).map((v) => ({
     id:               v.id,
     redemption_code:  v.redemption_code,
-    reward_name:      v.rewards?.name ?? 'Reward',
+    // Tier gift vouchers carry their own label instead of a catalogue reward.
+    reward_name:      v.rewards?.name ?? v.gift_label ?? 'Recompensa',
     expires_at:       v.expires_at,
     created_at:       v.created_at,
   }));

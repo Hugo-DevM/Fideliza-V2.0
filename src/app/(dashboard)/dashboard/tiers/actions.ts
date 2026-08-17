@@ -43,24 +43,19 @@ export async function updateTenantTiersAction(payload: {
       return { error: 'Las tasas de conversión deben ser mayores a 0.' };
     }
 
-    // Tier gift rewards must belong to this tenant. rpc_grant_tier_reward is
-    // already tenant-scoped so a foreign id could never pay out, but without
-    // this the business would save a config that silently grants nothing.
-    const giftIds = payload.tiers
-      .map((t) => t.reward_id)
-      .filter((id): id is string => Boolean(id));
-
-    if (giftIds.length > 0) {
-      const { data: owned } = await db
-        .from('rewards')
-        .select('id')
-        .eq('tenant_id', tenantId)
-        .eq('is_active', true)
-        .in('id', giftIds) as { data: { id: string }[] | null };
-
-      const ownedSet = new Set((owned ?? []).map((r) => r.id));
-      if (giftIds.some((id) => !ownedSet.has(id))) {
-        return { error: 'Uno de los premios de regalo no existe o está inactivo.' };
+    // Tier gifts are free text, so the only thing to guard is that a configured
+    // gift is actually usable: an empty label grants nothing, and an out-of-range
+    // expiry would produce a voucher that dies the same day or never.
+    for (const t of payload.tiers) {
+      const label = t.gift_label?.trim();
+      if (label && label.length > 80) {
+        return { error: 'El regalo de nivel no puede pasar de 80 caracteres.' };
+      }
+      if (t.gift_expiry_days != null && (t.gift_expiry_days < 1 || t.gift_expiry_days > 365)) {
+        return { error: 'La vigencia del regalo debe estar entre 1 y 365 días.' };
+      }
+      if (!label && t.gift_expiry_days != null) {
+        return { error: 'Escribe qué se regala antes de poner una vigencia.' };
       }
     }
 

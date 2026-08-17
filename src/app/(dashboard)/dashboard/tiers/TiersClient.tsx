@@ -14,8 +14,6 @@ const MULTIPLIER_OPTIONS = [
 interface TiersClientProps {
   settings: TenantTierSettings;
   window:   TierWindowSettings;
-  /** Active rewards across all programs — the pool a tier gift can pick from. */
-  rewards:  { id: string; name: string; program_name: string }[];
 }
 
 /** Ordered from most generous to most demanding. */
@@ -42,7 +40,7 @@ const WINDOW_OPTIONS: { label: string; value: number | null; hint: string }[] = 
   },
 ];
 
-export default function TiersClient({ settings, window: tierWindow, rewards }: TiersClientProps) {
+export default function TiersClient({ settings, window: tierWindow }: TiersClientProps) {
   const [enabled,    setEnabled]    = useState(settings.tiers_enabled);
   const [tiers,      setTiers]      = useState<TierConfig[]>(
     settings.tiers.length > 0 ? settings.tiers : DEFAULT_TENANT_TIERS,
@@ -296,26 +294,37 @@ export default function TiersClient({ settings, window: tierWindow, rewards }: T
 
                       {/* Gift on reaching this tier — the moment that actually
                           drives a visit, since the voucher has to be used. */}
-                      {i > 0 && rewards.length > 0 && (
+                      {i > 0 && (
                         <div className="sm:col-span-2">
                           <label className="mb-1 block text-xs font-medium text-gray-500 dark:text-gray-400">
-                            Premio de regalo al alcanzarlo
+                            Regalo al alcanzarlo{' '}
+                            <span className="font-normal text-gray-400 dark:text-gray-500">(opcional)</span>
                           </label>
-                          <select
-                            value={tier.reward_id ?? ''}
-                            onChange={(e) => updateTier(i, { reward_id: e.target.value || null })}
-                            className="w-full rounded-lg border border-gray-200 dark:border-[#2a3147] bg-white dark:bg-[#0d0f17] px-3 py-2 text-sm text-gray-900 dark:text-white outline-none transition focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100 dark:focus:ring-indigo-500/20"
-                          >
-                            <option value="">Sin regalo</option>
-                            {rewards.map((r) => (
-                              <option key={r.id} value={r.id}>
-                                {r.name} — {r.program_name}
-                              </option>
-                            ))}
-                          </select>
+                          <div className="flex gap-2">
+                            <input
+                              type="text"
+                              maxLength={80}
+                              placeholder="Ej. Postre gratis"
+                              value={tier.gift_label ?? ''}
+                              onChange={(e) => updateTier(i, { gift_label: e.target.value || null })}
+                              className="flex-1 min-w-0 rounded-lg border border-gray-200 dark:border-[#2a3147] bg-white dark:bg-[#0d0f17] px-3 py-2 text-sm text-gray-900 dark:text-white outline-none transition focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100 dark:focus:ring-indigo-500/20"
+                            />
+                            <input
+                              type="number"
+                              min={1}
+                              max={365}
+                              placeholder="días"
+                              title="Días de vigencia del cupón"
+                              value={tier.gift_expiry_days ?? ''}
+                              onChange={(e) =>
+                                updateTier(i, { gift_expiry_days: e.target.value ? parseInt(e.target.value, 10) : null })
+                              }
+                              className="w-24 shrink-0 rounded-lg border border-gray-200 dark:border-[#2a3147] bg-white dark:bg-[#0d0f17] px-3 py-2 text-sm text-gray-900 dark:text-white outline-none transition focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100 dark:focus:ring-indigo-500/20"
+                            />
+                          </div>
                           <p className="mt-1 text-[11px] text-gray-400 dark:text-gray-500">
-                            Se entrega como cupón la primera vez que el cliente llega a este nivel.
-                            Una sola vez por cliente.
+                            Se entrega como cupón la primera vez que el cliente llega a este nivel —
+                            una sola vez, aunque vuelva a subir. No consume premios de tu catálogo.
                           </p>
                         </div>
                       )}

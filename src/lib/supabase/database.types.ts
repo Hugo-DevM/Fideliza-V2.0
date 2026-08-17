@@ -344,11 +344,13 @@ export type Database = {
           customer_id: string
           expires_at: string | null
           id: string
+          gift_label: string | null
+          granted_for_tier: number | null
           redemption_code: string
-          reward_id: string
+          reward_id: string | null
           status: Database["public"]["Enums"]["redemption_status"]
           tenant_id: string
-          transaction_id: string
+          transaction_id: string | null
           used_at: string | null
           whatsapp_expiry_notified_at: string | null
         }
@@ -358,11 +360,13 @@ export type Database = {
           customer_id: string
           expires_at?: string | null
           id?: string
+          gift_label?: string | null
+          granted_for_tier?: number | null
           redemption_code: string
-          reward_id: string
+          reward_id?: string | null
           status?: Database["public"]["Enums"]["redemption_status"]
           tenant_id: string
-          transaction_id: string
+          transaction_id?: string | null
           used_at?: string | null
           whatsapp_expiry_notified_at?: string | null
         }
@@ -372,11 +376,13 @@ export type Database = {
           customer_id?: string
           expires_at?: string | null
           id?: string
+          gift_label?: string | null
+          granted_for_tier?: number | null
           redemption_code?: string
-          reward_id?: string
+          reward_id?: string | null
           status?: Database["public"]["Enums"]["redemption_status"]
           tenant_id?: string
-          transaction_id?: string
+          transaction_id?: string | null
           used_at?: string | null
           whatsapp_expiry_notified_at?: string | null
         }

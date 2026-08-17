@@ -32,7 +32,7 @@ async function loadCustomerDetail(tenantId: string, id: string) {
     getCustomerTransactionHistory(tenantId, id, undefined, 1, 8),
     db.from('transactions').select('id', { count: 'exact', head: true }).eq('tenant_id', tenantId).eq('customer_id', id),
     db.from('customer_reward_redemptions')
-      .select('id, redemption_code, status, expires_at, created_at, rewards(name)')
+      .select('id, redemption_code, status, expires_at, created_at, gift_label, rewards(name)')
       .eq('tenant_id', tenantId)
       .eq('customer_id', id)
       .order('created_at', { ascending: false })
@@ -408,7 +408,9 @@ export default async function CustomerDetailPage({
                 </thead>
                 <tbody className="divide-y divide-gray-50 dark:divide-[#1e2438]">
                   {(vouchers as unknown as Record<string, unknown>[]).map((v) => {
-                    const reward = v['rewards'] as { name: string } | null;
+                    // Tier gift vouchers have no reward row — gift_label carries the name.
+                    const reward = (v['rewards'] as { name: string } | null)
+                      ?? (v['gift_label'] ? { name: v['gift_label'] as string } : null);
                     const vstatus = v['status'] as string;
                     return (
                       <tr key={v['id'] as string} className="hover:bg-gray-50 dark:hover:bg-[#1a1f35] transition">

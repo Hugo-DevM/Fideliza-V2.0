@@ -36,6 +36,8 @@ interface VoucherRow {
     whatsapp_opt_in:  boolean;
     is_active:        boolean;
   } | null;
+  /** Set only on tier gift vouchers, which have no reward behind them. */
+  gift_label: string | null;
   rewards: {
     name: string;
   } | null;
@@ -75,8 +77,9 @@ export async function GET(request: Request) {
       customer_id,
       tenant_id,
       expires_at,
+      gift_label,
       customers!inner(name, phone, whatsapp_opt_in, is_active),
-      rewards!inner(name)
+      rewards(name)
     `)
     .eq('status', 'pending')
     .is('whatsapp_expiry_notified_at', null)
@@ -132,7 +135,8 @@ export async function GET(request: Request) {
     }
 
     const customer     = voucher.customers!;
-    const rewardName   = voucher.rewards?.name ?? 'tu recompensa';
+    // Gift vouchers have no reward behind them — the label carries the name.
+    const rewardName   = voucher.rewards?.name ?? voucher.gift_label ?? 'tu recompensa';
     const businessName = tenantNames.get(voucher.tenant_id) ?? '';
 
     // Calculate days remaining (ceil so "today" = 1, not 0)
