@@ -43,6 +43,27 @@ export async function updateTenantTiersAction(payload: {
       return { error: 'Las tasas de conversión deben ser mayores a 0.' };
     }
 
+    // Tier gift rewards must belong to this tenant. rpc_grant_tier_reward is
+    // already tenant-scoped so a foreign id could never pay out, but without
+    // this the business would save a config that silently grants nothing.
+    const giftIds = payload.tiers
+      .map((t) => t.reward_id)
+      .filter((id): id is string => Boolean(id));
+
+    if (giftIds.length > 0) {
+      const { data: owned } = await db
+        .from('rewards')
+        .select('id')
+        .eq('tenant_id', tenantId)
+        .eq('is_active', true)
+        .in('id', giftIds) as { data: { id: string }[] | null };
+
+      const ownedSet = new Set((owned ?? []).map((r) => r.id));
+      if (giftIds.some((id) => !ownedSet.has(id))) {
+        return { error: 'Uno de los premios de regalo no existe o está inactivo.' };
+      }
+    }
+
     const windowMonths = payload.tier_window_months;
     if (windowMonths !== null && (windowMonths < 1 || windowMonths > 60)) {
       return { error: 'La ventana de revalidación debe estar entre 1 y 60 meses.' };

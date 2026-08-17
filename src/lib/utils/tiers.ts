@@ -11,6 +11,11 @@ export interface TierConfig {
   min_lifetime: number;
   multiplier:   number;
   color:        'bronze' | 'silver' | 'gold';
+  /**
+   * Reward granted as a free voucher the first time a customer reaches this
+   * tier. Optional — null/undefined means the tier grants no gift.
+   */
+  reward_id?:   string | null;
 }
 
 /**

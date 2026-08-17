@@ -14,15 +14,35 @@ const MULTIPLIER_OPTIONS = [
 interface TiersClientProps {
   settings: TenantTierSettings;
   window:   TierWindowSettings;
+  /** Active rewards across all programs — the pool a tier gift can pick from. */
+  rewards:  { id: string; name: string; program_name: string }[];
 }
 
+/** Ordered from most generous to most demanding. */
 const WINDOW_OPTIONS: { label: string; value: number | null; hint: string }[] = [
-  { label: 'Nunca caduca', value: null, hint: 'El nivel se conserva para siempre.' },
-  { label: '12 meses',     value: 12,   hint: 'Cuenta lo acumulado en el último año.' },
-  { label: '6 meses',      value: 6,    hint: 'Más exigente: hay que mantenerse activo.' },
+  {
+    label: 'Nunca caduca',
+    value: null,
+    hint: 'Quien llega al nivel más alto lo conserva aunque deje de venir, con todos sus beneficios.',
+  },
+  {
+    label: '12 meses',
+    value: 12,
+    hint: 'Cuenta lo acumulado en el último año. Generoso: un cliente ocasional pero constante conserva su nivel.',
+  },
+  {
+    label: '6 meses',
+    value: 6,
+    hint: 'Equilibrado. Buena opción para negocios de visita regular: salones, restaurantes, tiendas.',
+  },
+  {
+    label: '3 meses',
+    value: 3,
+    hint: 'Muy exigente. Solo tiene sentido donde se espera visita muy seguida: cafeterías, gimnasios.',
+  },
 ];
 
-export default function TiersClient({ settings, window: tierWindow }: TiersClientProps) {
+export default function TiersClient({ settings, window: tierWindow, rewards }: TiersClientProps) {
   const [enabled,    setEnabled]    = useState(settings.tiers_enabled);
   const [tiers,      setTiers]      = useState<TierConfig[]>(
     settings.tiers.length > 0 ? settings.tiers : DEFAULT_TENANT_TIERS,
@@ -100,9 +120,13 @@ export default function TiersClient({ settings, window: tierWindow }: TiersClien
           <h3 className="text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wide mb-1">
             Vigencia del nivel
           </h3>
+          <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">
+            ¿Tus clientes conservan su nivel para siempre, o tienen que mantenerlo?
+          </p>
           <p className="text-xs text-gray-400 dark:text-gray-500 mb-3">
-            Con una ventana, el nivel se calcula sobre lo acumulado en ese periodo: el cliente
-            tiene que seguir viniendo para conservarlo.
+            Un nivel que no se puede perder premia lo que el cliente ya hizo. Con una ventana se
+            vuelve una razón para volver: sabe que si deja de venir pierde sus premios exclusivos
+            y su multiplicador.
           </p>
 
           <div className="flex flex-wrap gap-2">
@@ -132,9 +156,12 @@ export default function TiersClient({ settings, window: tierWindow }: TiersClien
 
           {windowMonths !== null && tierWindow.tier_window_months === null && (
             <p className="mt-3 rounded-xl bg-amber-50 dark:bg-amber-500/10 px-3 py-2 text-xs text-amber-700 dark:text-amber-400">
-              Al guardar se abre un periodo de gracia de {windowMonths} meses: durante ese tiempo
-              nadie baja de nivel. Es necesario porque el historial de puntos de lealtad empezó a
-              registrarse hace poco y aún no cubre una ventana completa.
+              Al guardar se abre un <strong>periodo de gracia de {windowMonths} meses</strong> en el
+              que ningún cliente baja de nivel. Es necesario porque el historial que alimenta este
+              cálculo empezó a registrarse hace poco y todavía no cubre una ventana completa.
+              <br />
+              En la práctica: activarlo hoy no cambia nada para nadie durante {windowMonths} meses,
+              y para entonces ya habrá datos reales suficientes.
             </p>
           )}
 
@@ -266,6 +293,32 @@ export default function TiersClient({ settings, window: tierWindow }: TiersClien
                           ))}
                         </div>
                       </div>
+
+                      {/* Gift on reaching this tier — the moment that actually
+                          drives a visit, since the voucher has to be used. */}
+                      {i > 0 && rewards.length > 0 && (
+                        <div className="sm:col-span-2">
+                          <label className="mb-1 block text-xs font-medium text-gray-500 dark:text-gray-400">
+                            Premio de regalo al alcanzarlo
+                          </label>
+                          <select
+                            value={tier.reward_id ?? ''}
+                            onChange={(e) => updateTier(i, { reward_id: e.target.value || null })}
+                            className="w-full rounded-lg border border-gray-200 dark:border-[#2a3147] bg-white dark:bg-[#0d0f17] px-3 py-2 text-sm text-gray-900 dark:text-white outline-none transition focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100 dark:focus:ring-indigo-500/20"
+                          >
+                            <option value="">Sin regalo</option>
+                            {rewards.map((r) => (
+                              <option key={r.id} value={r.id}>
+                                {r.name} — {r.program_name}
+                              </option>
+                            ))}
+                          </select>
+                          <p className="mt-1 text-[11px] text-gray-400 dark:text-gray-500">
+                            Se entrega como cupón la primera vez que el cliente llega a este nivel.
+                            Una sola vez por cliente.
+                          </p>
+                        </div>
+                      )}
                     </div>
                   </div>
                 );
