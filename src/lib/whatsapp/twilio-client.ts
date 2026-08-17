@@ -49,6 +49,9 @@ const TEMPLATE_SID_MAP: Record<string, string> = {
   fideliza_birthday_no_age_v2:    process.env.TWILIO_TMPL_BIRTHDAY_NO_AGE    ?? '',
   fideliza_milestone_80_v2:       process.env.TWILIO_TMPL_MILESTONE_80       ?? '',
   fideliza_tier_upgrade_v2:       process.env.TWILIO_TMPL_TIER_UPGRADE       ?? '',
+  // Optional: sendTierAtRiskMessage skips sending entirely while this is unset,
+  // so the revalidation cron can ship before Meta approves the template.
+  fideliza_tier_at_risk_v1:       process.env.TWILIO_TMPL_TIER_AT_RISK       ?? '',
   fideliza_surprise_v2:           process.env.TWILIO_TMPL_SURPRISE           ?? '',
   fideliza_referral_earned_v2:    process.env.TWILIO_TMPL_REFERRAL_EARNED    ?? '',
   fideliza_referral_welcome_v2:   process.env.TWILIO_TMPL_REFERRAL_WELCOME   ?? '',

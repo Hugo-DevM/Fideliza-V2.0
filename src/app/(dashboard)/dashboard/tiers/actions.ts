@@ -12,6 +12,8 @@ export async function updateTenantTiersAction(payload: {
   tier_score_per_visit:        number;
   tier_score_per_point:        number;
   tier_score_per_cashback_cent: number;
+  /** null = el nivel nunca caduca. 6 / 12 = ventana móvil de revalidación. */
+  tier_window_months:          number | null;
 }): Promise<{ error?: string }> {
   try {
     const { tenantId, tenant, planLimits } = await getAuthenticatedTenant();
@@ -41,6 +43,32 @@ export async function updateTenantTiersAction(payload: {
       return { error: 'Las tasas de conversión deben ser mayores a 0.' };
     }
 
+    const windowMonths = payload.tier_window_months;
+    if (windowMonths !== null && (windowMonths < 1 || windowMonths > 60)) {
+      return { error: 'La ventana de revalidación debe estar entre 1 y 60 meses.' };
+    }
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const { data: current } = await (db.from('tenant_settings') as any)
+      .select('tier_window_months, tier_grandfather_until')
+      .eq('tenant_id', tenantId)
+      .maybeSingle() as { data: { tier_window_months: number | null; tier_grandfather_until: string | null } | null };
+
+    // Turning the window on for the first time starts a grace period equal to
+    // the window itself. That is not an arbitrary courtesy: loyalty_delta only
+    // began being recorded when the monthly ranking shipped, so a 12-month
+    // window has no 12 months of data behind it yet and every existing customer
+    // would drop to the bottom tier overnight. By the time the grace expires,
+    // a full window of real data exists.
+    let grandfatherUntil = current?.tier_grandfather_until ?? null;
+    const turningOn = windowMonths !== null && (current?.tier_window_months ?? null) === null;
+    if (turningOn) {
+      const until = new Date();
+      until.setUTCMonth(until.getUTCMonth() + windowMonths);
+      grandfatherUntil = until.toISOString();
+    }
+    if (windowMonths === null) grandfatherUntil = null;
+
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const { error } = await (db.from('tenant_settings') as any)
       .update({
@@ -50,6 +78,8 @@ export async function updateTenantTiersAction(payload: {
         tier_score_per_visit:        payload.tier_score_per_visit,
         tier_score_per_point:        payload.tier_score_per_point,
         tier_score_per_cashback_cent: payload.tier_score_per_cashback_cent,
+        tier_window_months:          windowMonths,
+        tier_grandfather_until:      grandfatherUntil,
       })
       .eq('tenant_id', tenantId);
 

@@ -14,8 +14,8 @@ export type {
   PortalReward,
   PortalChallenge,
   PortalMission,
-  PortalLeaderboardEntry,
-  PortalProgramRanking,
+  PortalRankingEntry,
+  PortalMonthlyRanking,
   PortalTierConfig,
   PortalPendingBonus,
 } from './portal.service';

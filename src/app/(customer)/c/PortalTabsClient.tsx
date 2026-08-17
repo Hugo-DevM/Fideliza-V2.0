@@ -16,20 +16,13 @@ import type {
   PortalReward,
   PortalChallenge,
   PortalMission,
-  PortalProgramRanking,
+  PortalRankingEntry,
   PortalPendingBonus,
 } from '@/modules/portal';
 
 type Tab = 'points' | 'rewards' | 'history' | 'ranking';
 
 const ACCENT = '#6366F1';
-
-const LIFETIME_METRIC: Record<string, string> = {
-  points:   'puntos acumulados',
-  stamp:    'sellos acumulados',
-  visit:    'visitas acumuladas',
-  cashback: 'cashback acumulado',
-};
 
 const MEDAL: Record<number, string> = { 1: '🥇', 2: '🥈', 3: '🥉' };
 
@@ -84,7 +77,7 @@ export default function PortalTabsClient({
   code: string;
   initialTab: Tab;
 }) {
-  const { tenant, customer, enrollments, recent_transactions, pending_vouchers, rankings, pending_bonuses } = data;
+  const { tenant, customer, enrollments, recent_transactions, pending_vouchers, monthly_ranking, pending_bonuses } = data;
 
   const [activeTab, setActiveTab] = useState<Tab>(initialTab);
   const [visible,   setVisible]   = useState(true);
@@ -184,7 +177,7 @@ export default function PortalTabsClient({
         )}
         {activeTab === 'ranking' && (
           <RankingTab
-            rankings={rankings}
+            ranking={monthly_ranking}
             customer={customer}
           />
         )}
@@ -232,13 +225,13 @@ function PointsTab({
     <>
       {/* Universal VIP Tier badge */}
       {tenantTiers && tenantTiers.length > 0 && (() => {
-        const currentTier = computeTier(customer.loyalty_score, tenantTiers as TierConfig[]);
-        const upcoming    = nextTier(customer.loyalty_score, tenantTiers as TierConfig[]);
+        const currentTier = computeTier(customer.tier_score, tenantTiers as TierConfig[]);
+        const upcoming    = nextTier(customer.tier_score, tenantTiers as TierConfig[]);
         if (!currentTier) return null;
         const style  = TIER_STYLES[currentTier.color] ?? TIER_STYLES.bronze;
         const medal  = currentTier.color === 'gold' ? '🥇' : currentTier.color === 'silver' ? '🥈' : '🥉';
         const pct    = upcoming
-          ? Math.min(100, Math.round((customer.loyalty_score - currentTier.min_lifetime) / (upcoming.min_lifetime - currentTier.min_lifetime) * 100))
+          ? Math.min(100, Math.round((customer.tier_score - currentTier.min_lifetime) / (upcoming.min_lifetime - currentTier.min_lifetime) * 100))
           : 100;
         return (
           <div className={`rounded-2xl border px-4 py-3 space-y-2 ${style.bg} ${style.border}`}>
@@ -247,7 +240,12 @@ function PointsTab({
                 <span className="text-xl">{medal}</span>
                 <div>
                   <p className={`text-sm font-bold ${style.text}`}>{currentTier.label}</p>
-                  <p className="text-xs text-gray-500 dark:text-gray-400">{customer.loyalty_score.toLocaleString()} pts de lealtad</p>
+                  <p className="text-xs text-gray-500 dark:text-gray-400">
+                    {customer.tier_score.toLocaleString()} pts de lealtad
+                    {customer.tier_window_months
+                      ? ` · últimos ${customer.tier_window_months} meses`
+                      : ''}
+                  </p>
                 </div>
               </div>
               {currentTier.multiplier > 1 && (
@@ -260,7 +258,7 @@ function PointsTab({
               <div className="space-y-1">
                 <div className="flex justify-between text-xs text-gray-400 dark:text-gray-500">
                   <span>Siguiente: {upcoming.label}</span>
-                  <span>{(upcoming.min_lifetime - customer.loyalty_score).toLocaleString()} pts restantes</span>
+                  <span>{(upcoming.min_lifetime - customer.tier_score).toLocaleString()} pts restantes</span>
                 </div>
                 <div className="h-1.5 w-full rounded-full bg-gray-200 dark:bg-[#2a3147]">
                   <div
@@ -454,130 +452,129 @@ function HistoryTab({
 // ── RANKING TAB ───────────────────────────────────────────────────────
 
 function RankingTab({
-  rankings,
+  ranking,
   customer,
 }: {
-  rankings: PortalProgramRanking[];
+  ranking: PortalData['monthly_ranking'];
   customer: PortalData['customer'];
 }) {
-  if (rankings.length === 0) {
+  if (!ranking || ranking.total_participants === 0) {
     return (
       <EmptyState
         type="history"
-        title="Sin programas aún"
-        message="Inscríbete en un programa de lealtad para ver tu posición en el ranking."
+        title="El ranking de este mes apenas empieza"
+        message="Acumula en tu próxima visita para aparecer en la tabla."
       />
     );
   }
 
+  const inRanking = ranking.customer_rank !== null;
+
   return (
     <div className="space-y-4">
-      {rankings.map((r) => (
-        <ProgramRankingCard key={r.program_id} ranking={r} customerName={customer.name} />
-      ))}
-    </div>
-  );
-}
-
-function ProgramRankingCard({
-  ranking: r,
-  customerName,
-}: {
-  ranking: PortalProgramRanking;
-  customerName: string;
-}) {
-  const metricLabel = LIFETIME_METRIC[r.program_type] ?? 'puntos acumulados';
-  const selfInTop10 = r.top10.some((e) => e.is_self);
-
-  return (
-    <div className="rounded-2xl border border-gray-100 dark:border-[#1e2438] bg-white dark:bg-[#161b2e] shadow-sm overflow-hidden">
-      <div className="px-5 py-4 border-b border-gray-100 dark:border-[#1e2438]">
+      {/* Your standing */}
+      <div className="rounded-2xl border border-gray-100 dark:border-[#1e2438] bg-white dark:bg-[#161b2e] shadow-sm px-5 py-4">
         <p className="text-[11px] font-semibold uppercase tracking-widest text-gray-400 dark:text-gray-500">
-          {r.program_name}
+          {ranking.period_label}
         </p>
+
         <div className="mt-3 flex items-center gap-3">
           <div className="flex flex-col items-center justify-center rounded-2xl bg-indigo-50 dark:bg-indigo-500/15 px-5 py-3 min-w-[72px]">
             <span className="text-3xl font-bold text-indigo-600 dark:text-indigo-400">
-              #{r.customer_rank}
+              {inRanking ? `#${ranking.customer_rank}` : '—'}
             </span>
             <span className="text-[10px] font-semibold uppercase tracking-wide text-indigo-400 dark:text-indigo-500 mt-0.5">
               tu lugar
             </span>
           </div>
-          <div>
-            <p className="text-sm font-semibold text-gray-800 dark:text-gray-100">{customerName}</p>
+
+          <div className="min-w-0">
+            <p className="text-sm font-semibold text-gray-800 dark:text-gray-100 truncate">{customer.name}</p>
             <p className="text-xs text-gray-400 dark:text-gray-500 mt-0.5">
-              de {r.total_enrolled.toLocaleString()} cliente{r.total_enrolled !== 1 ? 's' : ''}
+              de {ranking.total_participants.toLocaleString()} participante{ranking.total_participants !== 1 ? 's' : ''} este mes
             </p>
-            {r.customer_rank === 1 && (
-              <p className="mt-1 text-xs font-semibold text-yellow-600 dark:text-yellow-400">¡Eres el cliente más leal! 🏆</p>
+
+            {!inRanking && (
+              <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                Aún no acumulas este mes. ¡Tu próxima visita te mete a la tabla!
+              </p>
             )}
-            {r.customer_rank <= 3 && r.customer_rank > 1 && (
-              <p className="mt-1 text-xs font-semibold text-amber-600 dark:text-amber-400">¡Estás en el podio! {MEDAL[r.customer_rank]}</p>
+            {ranking.customer_rank === 1 && (
+              <p className="mt-1 text-xs font-semibold text-yellow-600 dark:text-yellow-400">
+                ¡Vas en primer lugar! 🏆
+              </p>
             )}
-            {r.customer_rank <= 10 && r.customer_rank > 3 && (
-              <p className="mt-1 text-xs font-semibold text-emerald-600 dark:text-emerald-400">¡Estás en el top 10!</p>
+            {ranking.points_to_next !== null && ranking.points_to_next > 0 && (
+              <p className="mt-1 text-xs font-semibold text-emerald-600 dark:text-emerald-400">
+                Te faltan {ranking.points_to_next.toLocaleString()} para subir un lugar
+              </p>
             )}
           </div>
         </div>
       </div>
 
-      {r.top10.length > 0 && (
-        <div className="divide-y divide-gray-50 dark:divide-[#1e2438]">
-          <p className="px-5 pt-3 pb-2 text-[11px] font-semibold uppercase tracking-widest text-gray-400 dark:text-gray-500">
-            Top {r.top10.length}
+      {/* Podium */}
+      {ranking.podium.length > 0 && (
+        <div className="rounded-2xl border border-gray-100 dark:border-[#1e2438] bg-white dark:bg-[#161b2e] shadow-sm overflow-hidden">
+          <p className="px-5 pt-4 pb-2 text-[11px] font-semibold uppercase tracking-widest text-gray-400 dark:text-gray-500">
+            Podio del mes
           </p>
-          {r.top10.map((entry) => (
-            <div
-              key={entry.rank}
-              className={`flex items-center gap-3 px-5 py-3 ${entry.is_self ? 'bg-indigo-50 dark:bg-indigo-500/10' : ''}`}
-            >
-              <div className="w-8 shrink-0 text-center">
-                {MEDAL[entry.rank] ? (
-                  <span className="text-lg">{MEDAL[entry.rank]}</span>
-                ) : (
-                  <span className="text-sm font-bold text-gray-400 dark:text-gray-500">#{entry.rank}</span>
-                )}
-              </div>
-              <div className="flex-1 min-w-0">
-                <p className={`text-sm font-semibold truncate ${entry.is_self ? 'text-indigo-600 dark:text-indigo-400' : 'text-gray-800 dark:text-gray-100'}`}>
-                  {entry.display_name}
-                  {entry.is_self && <span className="ml-1.5 text-[10px] font-bold uppercase tracking-wide opacity-70">tú</span>}
-                </p>
-              </div>
-              <div className="shrink-0 text-right">
-                <p className="font-mono text-sm font-semibold text-gray-600 dark:text-gray-300">{entry.lifetime_points.toLocaleString()}</p>
-                <p className="text-[10px] text-gray-400 dark:text-gray-500">{metricLabel}</p>
-              </div>
-            </div>
-          ))}
-
-          {!selfInTop10 && (
-            <>
-              <div className="px-5 py-1.5 text-center">
-                <span className="text-[11px] text-gray-300 dark:text-gray-600">•••</span>
-              </div>
-              <div className="flex items-center gap-3 px-5 py-3 bg-indigo-50 dark:bg-indigo-500/10">
-                <div className="w-8 shrink-0 text-center">
-                  <span className="text-sm font-bold text-indigo-500 dark:text-indigo-400">#{r.customer_rank}</span>
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-semibold text-indigo-600 dark:text-indigo-400 truncate">
-                    {customerName} <span className="text-[10px] font-bold uppercase tracking-wide opacity-70">tú</span>
-                  </p>
-                </div>
-                <div className="shrink-0 text-right">
-                  <p className="font-mono text-sm font-semibold text-indigo-600 dark:text-indigo-400">{r.customer_lifetime_points.toLocaleString()}</p>
-                  <p className="text-[10px] text-gray-400 dark:text-gray-500">{metricLabel}</p>
-                </div>
-              </div>
-            </>
-          )}
+          <div className="divide-y divide-gray-50 dark:divide-[#1e2438]">
+            {ranking.podium.map((entry, i) => (
+              <RankingRow key={`podium-${i}`} entry={entry} />
+            ))}
+          </div>
         </div>
       )}
+
+      {/* Neighbourhood — only adds value when the customer is outside the podium */}
+      {ranking.neighbors.length > 0 && ranking.customer_rank !== null && ranking.customer_rank > 3 && (
+        <div className="rounded-2xl border border-gray-100 dark:border-[#1e2438] bg-white dark:bg-[#161b2e] shadow-sm overflow-hidden">
+          <p className="px-5 pt-4 pb-2 text-[11px] font-semibold uppercase tracking-widest text-gray-400 dark:text-gray-500">
+            Cerca de ti
+          </p>
+          <div className="divide-y divide-gray-50 dark:divide-[#1e2438]">
+            {ranking.neighbors.map((entry, i) => (
+              <RankingRow key={`near-${i}`} entry={entry} />
+            ))}
+          </div>
+        </div>
+      )}
+
+      <p className="px-1 text-center text-[11px] text-gray-400 dark:text-gray-500">
+        El ranking se reinicia el primer día de cada mes.
+      </p>
     </div>
   );
 }
+
+function RankingRow({ entry }: { entry: PortalRankingEntry }) {
+  return (
+    <div className={`flex items-center gap-3 px-5 py-3 ${entry.is_self ? 'bg-indigo-50 dark:bg-indigo-500/10' : ''}`}>
+      <div className="w-8 shrink-0 text-center">
+        {MEDAL[entry.rank] ? (
+          <span className="text-lg">{MEDAL[entry.rank]}</span>
+        ) : (
+          <span className="text-sm font-bold text-gray-400 dark:text-gray-500">#{entry.rank}</span>
+        )}
+      </div>
+      <div className="flex-1 min-w-0">
+        <p className={`text-sm font-semibold truncate ${entry.is_self ? 'text-indigo-600 dark:text-indigo-400' : 'text-gray-800 dark:text-gray-100'}`}>
+          {entry.display_name}
+          {entry.is_self && <span className="ml-1.5 text-[10px] font-bold uppercase tracking-wide opacity-70">tú</span>}
+        </p>
+      </div>
+      <div className="shrink-0 text-right">
+        <p className={`font-mono text-sm font-semibold ${entry.is_self ? 'text-indigo-600 dark:text-indigo-400' : 'text-gray-600 dark:text-gray-300'}`}>
+          {entry.score.toLocaleString()}
+        </p>
+        <p className="text-[10px] text-gray-400 dark:text-gray-500">puntos del mes</p>
+      </div>
+    </div>
+  );
+}
+
+
 
 // ── Shared sub-components ─────────────────────────────────────────────
 
@@ -861,6 +858,32 @@ function RewardRow({ reward: r, primaryColor, tenantId, customerId, enrollmentId
           </div>
           <RedeemButton tenantId={tenantId} customerId={customerId} rewardId={r.id} enrollmentId={enrollmentId} primaryColor={primaryColor} rewardName={r.name} />
           {r.expiry_days && <p className="mt-2 text-center text-xs text-gray-400 dark:text-gray-500">El voucher vence en {r.expiry_days} días</p>}
+        </div>
+      </div>
+    );
+  }
+
+  // Locked by VIP tier — shown, never hidden. A reward you cannot reach yet is
+  // the only thing that makes the next level worth wanting.
+  if (r.is_tier_locked) {
+    return (
+      <div className="flex items-start gap-3 px-4 py-4">
+        <div className="mt-0.5 h-9 w-9 shrink-0 rounded-full bg-amber-100 dark:bg-amber-500/15 flex items-center justify-center">
+          <svg className="h-4 w-4 text-amber-600 dark:text-amber-400" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 1 0-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 0 0 2.25-2.25v-6.75a2.25 2.25 0 0 0-2.25-2.25H6.75a2.25 2.25 0 0 0-2.25 2.25v6.75a2.25 2.25 0 0 0 2.25 2.25Z" />
+          </svg>
+        </div>
+        <div className="flex-1 min-w-0">
+          <div className="flex items-start justify-between gap-2">
+            <p className="font-semibold text-gray-800 dark:text-gray-100">{r.name}</p>
+            <p className="shrink-0 text-sm font-semibold text-gray-400 dark:text-gray-500">
+              {r.progress_total.toLocaleString()} {r.progress_label}
+            </p>
+          </div>
+          {r.description && <p className="mt-0.5 text-xs text-gray-400 dark:text-gray-500">{r.description}</p>}
+          <p className="mt-1.5 inline-flex items-center gap-1 rounded-full bg-amber-50 dark:bg-amber-500/10 px-2 py-0.5 text-xs font-semibold text-amber-700 dark:text-amber-400">
+            {r.required_tier ? `Exclusivo nivel ${r.required_tier}` : 'Exclusivo por nivel'}
+          </p>
         </div>
       </div>
     );

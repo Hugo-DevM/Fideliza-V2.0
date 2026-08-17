@@ -2,7 +2,7 @@ import { getAuthenticatedTenant } from '@/lib/auth/get-tenant';
 import { createServiceRoleClient } from '@/lib/supabase/server';
 import { getPlanLimits } from '@/lib/config/plans';
 import { DEFAULT_TENANT_TIERS, TIER_STYLES } from '@/lib/utils/tiers';
-import type { TenantTierSettings, TierConfig } from '@/lib/utils/tiers';
+import type { TenantTierSettings, TierConfig, TierWindowSettings } from '@/lib/utils/tiers';
 import TiersClient from './TiersClient';
 import Link from 'next/link';
 import ProUpgradeOverlay from '@/components/dashboard/ProUpgradeOverlay';
@@ -17,7 +17,7 @@ export default async function TiersPage() {
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const { data: raw } = await (db.from('tenant_settings') as any)
-    .select('tiers_enabled, tiers, tier_score_per_stamp, tier_score_per_visit, tier_score_per_point, tier_score_per_cashback_cent')
+    .select('tiers_enabled, tiers, tier_score_per_stamp, tier_score_per_visit, tier_score_per_point, tier_score_per_cashback_cent, tier_window_months, tier_grandfather_until')
     .eq('tenant_id', tenantId)
     .maybeSingle() as { data: Record<string, unknown> | null };
 
@@ -28,6 +28,11 @@ export default async function TiersPage() {
     tier_score_per_visit:        Number(raw?.tier_score_per_visit ?? 10),
     tier_score_per_point:        Number(raw?.tier_score_per_point ?? 1),
     tier_score_per_cashback_cent: Number(raw?.tier_score_per_cashback_cent ?? 0.1),
+  };
+
+  const tierWindow: TierWindowSettings = {
+    tier_window_months:     (raw?.tier_window_months as number | null) ?? null,
+    tier_grandfather_until: (raw?.tier_grandfather_until as string | null) ?? null,
   };
 
   // Tier distribution — counts per color from customers.tier_color
@@ -92,7 +97,7 @@ export default async function TiersPage() {
           })}
       </div>
 
-      <TiersClient settings={settings} />
+      <TiersClient settings={settings} window={tierWindow} />
     </div>
   );
 

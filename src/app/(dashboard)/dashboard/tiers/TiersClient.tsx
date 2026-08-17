@@ -3,7 +3,7 @@
 import { useState, useTransition } from 'react';
 import { updateTenantTiersAction } from './actions';
 import { DEFAULT_TENANT_TIERS, TIER_STYLES } from '@/lib/utils/tiers';
-import type { TierConfig, TenantTierSettings } from '@/lib/utils/tiers';
+import type { TierConfig, TenantTierSettings, TierWindowSettings } from '@/lib/utils/tiers';
 
 const MULTIPLIER_OPTIONS = [
   { label: '1×',  value: 1 },
@@ -13,9 +13,16 @@ const MULTIPLIER_OPTIONS = [
 
 interface TiersClientProps {
   settings: TenantTierSettings;
+  window:   TierWindowSettings;
 }
 
-export default function TiersClient({ settings }: TiersClientProps) {
+const WINDOW_OPTIONS: { label: string; value: number | null; hint: string }[] = [
+  { label: 'Nunca caduca', value: null, hint: 'El nivel se conserva para siempre.' },
+  { label: '12 meses',     value: 12,   hint: 'Cuenta lo acumulado en el último año.' },
+  { label: '6 meses',      value: 6,    hint: 'Más exigente: hay que mantenerse activo.' },
+];
+
+export default function TiersClient({ settings, window: tierWindow }: TiersClientProps) {
   const [enabled,    setEnabled]    = useState(settings.tiers_enabled);
   const [tiers,      setTiers]      = useState<TierConfig[]>(
     settings.tiers.length > 0 ? settings.tiers : DEFAULT_TENANT_TIERS,
@@ -24,6 +31,7 @@ export default function TiersClient({ settings }: TiersClientProps) {
   const [perVisit,   setPerVisit]   = useState(settings.tier_score_per_visit);
   const [perPoint,   setPerPoint]   = useState(settings.tier_score_per_point);
   const [perCashback, setPerCashback] = useState(settings.tier_score_per_cashback_cent);
+  const [windowMonths, setWindowMonths] = useState<number | null>(tierWindow.tier_window_months);
 
   const [saved,     setSaved]     = useState(false);
   const [error,     setError]     = useState('');
@@ -43,6 +51,7 @@ export default function TiersClient({ settings }: TiersClientProps) {
         tier_score_per_visit:        perVisit,
         tier_score_per_point:        perPoint,
         tier_score_per_cashback_cent: perCashback,
+        tier_window_months:          windowMonths,
       });
       if (res.error) {
         setError(res.error);
@@ -84,6 +93,62 @@ export default function TiersClient({ settings }: TiersClientProps) {
               }`}
             />
           </button>
+        </div>
+
+        {/* ── Revalidation window ────────────────────────────────────── */}
+        <div className={`px-5 py-4 border-b border-gray-100 dark:border-[#1e2438] ${!enabled ? 'pointer-events-none opacity-40' : ''}`}>
+          <h3 className="text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wide mb-1">
+            Vigencia del nivel
+          </h3>
+          <p className="text-xs text-gray-400 dark:text-gray-500 mb-3">
+            Con una ventana, el nivel se calcula sobre lo acumulado en ese periodo: el cliente
+            tiene que seguir viniendo para conservarlo.
+          </p>
+
+          <div className="flex flex-wrap gap-2">
+            {WINDOW_OPTIONS.map((opt) => {
+              const active = windowMonths === opt.value;
+              return (
+                <button
+                  key={String(opt.value)}
+                  type="button"
+                  onClick={() => setWindowMonths(opt.value)}
+                  className={[
+                    'rounded-xl border px-3.5 py-2 text-sm font-medium transition',
+                    active
+                      ? 'border-indigo-500 bg-indigo-50 dark:bg-indigo-500/15 text-indigo-700 dark:text-indigo-300'
+                      : 'border-gray-200 dark:border-[#2a3147] text-gray-600 dark:text-gray-300 hover:border-indigo-300',
+                  ].join(' ')}
+                >
+                  {opt.label}
+                </button>
+              );
+            })}
+          </div>
+
+          <p className="mt-2 text-xs text-gray-400 dark:text-gray-500">
+            {WINDOW_OPTIONS.find((o) => o.value === windowMonths)?.hint}
+          </p>
+
+          {windowMonths !== null && tierWindow.tier_window_months === null && (
+            <p className="mt-3 rounded-xl bg-amber-50 dark:bg-amber-500/10 px-3 py-2 text-xs text-amber-700 dark:text-amber-400">
+              Al guardar se abre un periodo de gracia de {windowMonths} meses: durante ese tiempo
+              nadie baja de nivel. Es necesario porque el historial de puntos de lealtad empezó a
+              registrarse hace poco y aún no cubre una ventana completa.
+            </p>
+          )}
+
+          {windowMonths !== null && tierWindow.tier_grandfather_until && (
+            <p className="mt-3 rounded-xl bg-gray-50 dark:bg-[#0d0f17] px-3 py-2 text-xs text-gray-500 dark:text-gray-400">
+              Periodo de gracia activo hasta el{' '}
+              <strong>
+                {new Date(tierWindow.tier_grandfather_until).toLocaleDateString('es-MX', {
+                  day: 'numeric', month: 'long', year: 'numeric',
+                })}
+              </strong>
+              . Hasta esa fecha ningún cliente baja de nivel.
+            </p>
+          )}
         </div>
 
         <div className={`px-5 py-4 grid gap-6 lg:grid-cols-2 lg:items-start ${!enabled ? 'pointer-events-none opacity-40' : ''}`}>

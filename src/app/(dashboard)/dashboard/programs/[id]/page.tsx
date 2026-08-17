@@ -179,6 +179,11 @@ export default async function ProgramDetailPage({
           programLabel={settings.program_label ?? 'puntos'}
           rewardCatalog={planLimits.rewardCatalog}
           maxRewardsPerProgram={planLimits.maxRewardsPerProgram}
+          tiers={
+            planLimits.universalTiers && settings.tiers_enabled
+              ? ((settings.tiers as { label: string; min_lifetime: number }[] | null) ?? [])
+              : []
+          }
         />
       </div>
     );

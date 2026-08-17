@@ -176,6 +176,7 @@ export async function createReward(
       cost_points: input.cost_points,
       stock:       input.stock ?? null,
       expiry_days: input.expiry_days ?? null,
+      min_tier_score: input.min_tier_score ?? null,
       is_active:   true,
     })
     .select('*')
@@ -212,6 +213,7 @@ export async function updateReward(
       ...(input.stock       !== undefined && { stock:       input.stock }),
       ...(input.expiry_days !== undefined && { expiry_days: input.expiry_days }),
       ...(input.is_active   !== undefined && { is_active:   input.is_active }),
+      ...(input.min_tier_score !== undefined && { min_tier_score: input.min_tier_score }),
     })
     .eq('id', rewardId)
     .eq('tenant_id', tenantId)

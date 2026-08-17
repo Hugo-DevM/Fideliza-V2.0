@@ -21,6 +21,8 @@ import { createServiceRoleClient } from '@/lib/supabase/server';
 import { tenantTag, tenantSubdomainTag } from '@/lib/cache/tenant-cache';
 import { NotFoundError, TenantNotFoundError } from '@/lib/middleware/errors';
 import { getPlanLimits, getEffectivePlan } from '@/lib/config/plans';
+import { getTierScore } from '@/lib/utils/tier-score';
+import type { TierWindowSettings } from '@/lib/utils/tiers';
 import type { UUID } from '@/lib/types';
 
 /**
@@ -107,7 +109,18 @@ export interface PortalCustomer {
   access_code: string;
   referral_code: string;
   member_since: string;
+  /** Lifetime accumulated score — never decreases. */
   loyalty_score: number;
+  /**
+   * The score the VIP tier is decided from. Equals loyalty_score unless the
+   * business configured a rolling window, in which case only activity inside
+   * the window counts and the tier has to be kept up.
+   */
+  tier_score: number;
+  /** null = tier never expires. */
+  tier_window_months: number | null;
+  /** Start of the current window, for the "revalidates" message. */
+  tier_window_start: string | null;
   tier_label: string | null;
   tier_color: string | null;
 }
@@ -120,6 +133,10 @@ export interface PortalReward {
   expiry_days: number | null;
   is_affordable: boolean;
   is_out_of_stock: boolean;
+  /** Requires a VIP tier the customer has not reached. Shown, not hidden. */
+  is_tier_locked: boolean;
+  /** Label of the tier needed, when locked. */
+  required_tier: string | null;
   // Progress towards this reward (varies by program type)
   progress_current: number;  // stamps collected / visits done / points earned
   progress_total: number;    // stamps needed / visits needed / cost in points
@@ -184,21 +201,35 @@ export interface PortalVoucher {
   created_at: string;
 }
 
-export interface PortalLeaderboardEntry {
-  rank: number;
+export interface PortalRankingEntry {
+  rank:         number;
   display_name: string;
-  lifetime_points: number;
-  is_self: boolean;
+  score:        number;
+  is_self:      boolean;
 }
 
-export interface PortalProgramRanking {
-  program_id: string;
-  program_name: string;
-  program_type: 'points' | 'stamp' | 'visit' | 'cashback';
-  customer_rank: number;
-  customer_lifetime_points: number;
-  total_enrolled: number;
-  top10: PortalLeaderboardEntry[];
+/**
+ * One ranking for the whole business, reset every calendar month.
+ *
+ * Global rather than per-program on purpose: the score is normalised by the
+ * tenant's conversion rates, which is exactly what makes a stamps customer
+ * comparable to a points customer in a single table. And monthly rather than
+ * all-time because an all-time board is permanently owned by the oldest
+ * customers — a newcomer sees themselves at #47 and stops trying.
+ */
+export interface PortalMonthlyRanking {
+  /** e.g. "agosto 2026" */
+  period_label:       string;
+  /** null when the customer has no activity this month yet */
+  customer_rank:      number | null;
+  customer_score:     number;
+  total_participants: number;
+  /** Top 3 of the business. */
+  podium:             PortalRankingEntry[];
+  /** The customer plus up to 3 above and 3 below — the motivating view. */
+  neighbors:          PortalRankingEntry[];
+  /** Points needed to pass the next person up. Null when 1st or inactive. */
+  points_to_next:     number | null;
 }
 
 export interface PortalTierConfig {
@@ -221,7 +252,8 @@ export interface PortalData {
   enrollments: PortalEnrollment[];
   recent_transactions: PortalTransaction[];
   pending_vouchers: PortalVoucher[];
-  rankings: PortalProgramRanking[];
+  /** Null when the ranking cannot be computed (e.g. migration not applied). */
+  monthly_ranking: PortalMonthlyRanking | null;
   /** Universal tier system — null when tiers_enabled = false */
   tenant_tiers: PortalTierConfig[] | null;
   /** Referral system — tenant-level config */
@@ -241,6 +273,76 @@ function truncateName(name: string): string {
   return `${parts[0]} ${parts[1][0]}.`;
 }
 
+/** How many people to show above and below the customer in the ranking. */
+const RANKING_NEIGHBOURS = 3;
+
+/**
+ * Builds the current month's business-wide ranking.
+ *
+ * Returns null rather than throwing when the aggregate is unavailable — the
+ * ranking is a nice-to-have and must never take down the whole portal, which
+ * is also what makes it safe to deploy before the SQL migration has run.
+ */
+async function buildMonthlyRanking(
+  tenantId: UUID,
+  customerId: UUID,
+): Promise<PortalMonthlyRanking | null> {
+  const now         = new Date();
+  const monthStart  = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1));
+  const periodLabel = now.toLocaleDateString('es-MX', { month: 'long', year: 'numeric', timeZone: 'UTC' });
+
+  try {
+    const db = createServiceRoleClient();
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const { data, error } = await (db as any).rpc('rpc_monthly_ranking', {
+      p_tenant_id: tenantId,
+      p_since:     monthStart.toISOString(),
+    }) as { data: Array<{ customer_id: string; name: string; score: number }> | null; error: unknown };
+
+    if (error || !data) return null;
+
+    // Ties share a position: three people on 120 points are all 2nd, and the
+    // next one down is 5th. Ordering alone would hand out arbitrary places.
+    let lastScore = Number.POSITIVE_INFINITY;
+    let lastRank  = 0;
+    const rows = data.map((row, idx) => {
+      const score = Number(row.score);
+      if (score < lastScore) {
+        lastRank  = idx + 1;
+        lastScore = score;
+      }
+      return {
+        rank:         lastRank,
+        display_name: truncateName(row.name ?? '?'),
+        score,
+        is_self:      row.customer_id === customerId,
+      };
+    });
+
+    const selfIdx = rows.findIndex((r) => r.is_self);
+    const self    = selfIdx >= 0 ? rows[selfIdx] : null;
+
+    // Whoever sits directly above — the gap worth chasing.
+    const ahead = selfIdx > 0
+      ? rows.slice(0, selfIdx).reverse().find((r) => r.score > (self?.score ?? 0))
+      : undefined;
+
+    return {
+      period_label:       periodLabel,
+      customer_rank:      self?.rank ?? null,
+      customer_score:     self?.score ?? 0,
+      total_participants: rows.length,
+      podium:             rows.slice(0, 3),
+      neighbors: selfIdx >= 0
+        ? rows.slice(Math.max(0, selfIdx - RANKING_NEIGHBOURS), selfIdx + RANKING_NEIGHBOURS + 1)
+        : [],
+      points_to_next: ahead && self ? ahead.score - self.score : null,
+    };
+  } catch {
+    return null;
+  }
+}
+
 // ── Cached per-tenant reads ───────────────────────────────────────────
 // These queries return the same result for every customer of a tenant, so
 // they are cached under tag `tenant:{id}` (invalidated on every settings /
@@ -250,6 +352,7 @@ interface PortalTenantConfig {
   tenant: PortalTenant;
   tiers_enabled: boolean;
   tiers: PortalTierConfig[] | null;
+  tier_window: TierWindowSettings;
   referral_enabled: boolean;
   referral_program_configs: Record<string, { referrer_bonus: number; referred_bonus: number }>;
 }
@@ -262,7 +365,7 @@ async function getPortalTenantConfigCached(tenantId: UUID): Promise<PortalTenant
       const { data } = await db
         .from('tenants')
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        .select('name, subdomain, logo_url, plan, subscription_status, tenant_settings(primary_color, secondary_color, welcome_message, program_label, logo_padding, tiers_enabled, tiers, referral_enabled, referral_program_configs)' as any)
+        .select('name, subdomain, logo_url, plan, subscription_status, tenant_settings(primary_color, secondary_color, welcome_message, program_label, logo_padding, tiers_enabled, tiers, tier_window_months, tier_grandfather_until, referral_enabled, referral_program_configs)' as any)
         .eq('id', tenantId)
         .single();
 
@@ -282,6 +385,8 @@ async function getPortalTenantConfigCached(tenantId: UUID): Promise<PortalTenant
           logo_padding: number;
           tiers_enabled: boolean;
           tiers: PortalTierConfig[] | null;
+          tier_window_months: number | null;
+          tier_grandfather_until: string | null;
           referral_enabled: boolean;
           referral_program_configs: Record<string, { referrer_bonus: number; referred_bonus: number }>;
         }> | null;
@@ -315,6 +420,10 @@ async function getPortalTenantConfigCached(tenantId: UUID): Promise<PortalTenant
         tenant,
         tiers_enabled:            settings?.tiers_enabled ?? false,
         tiers:                    settings?.tiers ?? null,
+        tier_window: {
+          tier_window_months:     settings?.tier_window_months ?? null,
+          tier_grandfather_until: settings?.tier_grandfather_until ?? null,
+        },
         // The stored flag survives a downgrade (Pro → Starter/Free leaves
         // referral_enabled = true in tenant_settings), so the plan is the
         // authority here — never the flag alone.
@@ -335,6 +444,7 @@ interface PortalRawReward {
   expiry_days: number | null;
   program_id: string;
   stock: number | null;
+  min_tier_score: number | null;
 }
 
 /**
@@ -349,7 +459,7 @@ async function getActiveRewardsCached(tenantId: UUID): Promise<PortalRawReward[]
 
       const { data } = await db
         .from('rewards')
-        .select('id, name, description, cost_points, expiry_days, program_id, stock')
+        .select('id, name, description, cost_points, expiry_days, program_id, stock, min_tier_score')
         .eq('tenant_id', tenantId)
         .eq('is_active', true);
 
@@ -448,6 +558,20 @@ export async function getPortalData(
   // ── 3. Tenant branding (from per-tenant cache) ────────────────────
   const tenant = tenantCfg.tenant;
 
+  // The tier is decided from this, not from loyalty_score: with a rolling
+  // window configured, activity that fell out of the window no longer counts.
+  // Computed here rather than at the end because the reward mapping below needs
+  // it to decide which rewards are tier-locked.
+  const lifetimeLoyalty = customer.loyalty_score ?? 0;
+  const { score: tierScore, windowStart } = tenantCfg.tiers_enabled
+    ? await getTierScore({
+        tenantId,
+        customerId:    customer.id,
+        lifetimeScore: lifetimeLoyalty,
+        settings:      tenantCfg.tier_window,
+      })
+    : { score: lifetimeLoyalty, windowStart: null };
+
   // ── 4. Parse enrollments + fetch affordable rewards ───────────────
   type RawEnrollment = {
     id: string;
@@ -533,14 +657,23 @@ export async function getPortalData(
           progress_label   = tenant.program_label;
         }
 
+        // Tier-locked rewards stay visible on purpose: hiding them removes the
+        // only reason a customer has to want the next level.
+        const isTierLocked = r.min_tier_score != null && tierScore < r.min_tier_score;
+        const requiredTier = isTierLocked
+          ? (tenantCfg.tiers ?? []).find((t) => t.min_lifetime === r.min_tier_score)?.label ?? null
+          : null;
+
         return {
           id:              r.id,
           name:            r.name,
           description:     r.description,
           cost_points:     r.cost_points,
           expiry_days:     r.expiry_days,
-          is_affordable,
+          is_affordable:   is_affordable && !isTierLocked,
           is_out_of_stock: !inStock,
+          is_tier_locked:  isTierLocked,
+          required_tier:   requiredTier,
           progress_current,
           progress_total,
           progress_label,
@@ -638,57 +771,7 @@ export async function getPortalData(
   }));
 
   // ── 6. Leaderboard per enrolled program ──────────────────────────
-  const rankings: PortalProgramRanking[] = await Promise.all(
-    enrollments.map(async (e) => {
-      const myLifetime = e.lifetime_points;
-
-      const [top10Res, aboveRes, totalRes] = await Promise.all([
-        db
-          .from('customer_program_enrollments')
-          .select('customer_id, lifetime_points, customers(name)')
-          .eq('tenant_id', tenantId)
-          .eq('program_id', e.program_id)
-          .order('lifetime_points', { ascending: false })
-          .limit(10),
-        db
-          .from('customer_program_enrollments')
-          .select('*', { count: 'exact', head: true })
-          .eq('tenant_id', tenantId)
-          .eq('program_id', e.program_id)
-          .gt('lifetime_points', myLifetime),
-        db
-          .from('customer_program_enrollments')
-          .select('*', { count: 'exact', head: true })
-          .eq('tenant_id', tenantId)
-          .eq('program_id', e.program_id),
-      ]);
-
-      type RawLeaderRow = {
-        customer_id: string;
-        lifetime_points: number;
-        customers: { name: string } | null;
-      };
-
-      const top10: PortalLeaderboardEntry[] = (
-        (top10Res.data ?? []) as unknown as RawLeaderRow[]
-      ).map((row, idx) => ({
-        rank:            idx + 1,
-        display_name:    truncateName(row.customers?.name ?? '?'),
-        lifetime_points: row.lifetime_points,
-        is_self:         row.customer_id === customer.id,
-      }));
-
-      return {
-        program_id:               e.program_id,
-        program_name:             e.program_name,
-        program_type:             e.program_type,
-        customer_rank:            (aboveRes.count ?? 0) + 1,
-        customer_lifetime_points: myLifetime,
-        total_enrolled:           totalRes.count ?? 0,
-        top10,
-      };
-    })
-  );
+  const monthlyRanking = await buildMonthlyRanking(tenantId, customer.id);
 
   // ── 7. Parse pending vouchers ─────────────────────────────────────
   type RawVoucher = {
@@ -747,14 +830,17 @@ export async function getPortalData(
       access_code:   rawCustomer.access_code,
       referral_code: rawCustomer.referral_code ?? '',
       member_since:  rawCustomer.created_at,
-      loyalty_score: rawCustomer.loyalty_score ?? 0,
+      loyalty_score: lifetimeLoyalty,
+      tier_score:    tierScore,
+      tier_window_months: tenantCfg.tier_window.tier_window_months,
+      tier_window_start:  windowStart ? windowStart.toISOString() : null,
       tier_label:    rawCustomer.tier_label ?? null,
       tier_color:    rawCustomer.tier_color ?? null,
     },
     enrollments,
     recent_transactions,
     pending_vouchers,
-    rankings,
+    monthly_ranking: monthlyRanking,
     tenant_tiers: tenantTiers,
     referral_enabled:          tenantCfg.referral_enabled,
     referral_program_configs:  tenantCfg.referral_program_configs,

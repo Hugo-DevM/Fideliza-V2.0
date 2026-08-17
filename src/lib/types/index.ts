@@ -70,6 +70,13 @@ export interface TenantSettings {
   wa_notify_milestone_80: boolean;
   referral_enabled:          boolean;
   referral_program_configs:  Record<string, { referrer_bonus: number; referred_bonus: number }>;
+  // Universal VIP tier system
+  tiers_enabled?:            boolean;
+  /** JSON column — cast at the point of use (see TierConfig in utils/tiers). */
+  tiers?:                    unknown;
+  /** null = el nivel nunca caduca; N = ventana móvil de revalidación en meses. */
+  tier_window_months?:       number | null;
+  tier_grandfather_until?:   string | null;
   // Configurable bonus amounts per program type (Pro — birthday & reactivation crons)
   // Optional: added in migrations 034+036; DB defaults shown below
   birthday_bonus_points?:       number;  // default 50 — points & cashback programs
@@ -169,6 +176,7 @@ export interface Reward {
   redeemed_count: number;
   is_active: boolean;
   expiry_days: number | null;     // null = no expiry on issued voucher
+  min_tier_score: number | null;  // null = any customer may redeem it
   created_at: string;
   updated_at: string;
 }

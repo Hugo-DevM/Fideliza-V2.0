@@ -539,6 +539,48 @@ export async function sendChallengeCompletedMessage(
 }
 
 /**
+ * Sent when a customer is about to lose their VIP tier because the activity
+ * that earned it is falling out of the revalidation window.
+ *
+ * Template: fideliza_tier_at_risk_v1 (utility — it is an account status notice,
+ * not a promotion)
+ * Params: [customer_name, tier_label, business_name, days_left, points_needed]
+ *
+ * No-ops while TWILIO_TMPL_TIER_AT_RISK is unset. Without that guard the cron
+ * would enqueue messages against an empty ContentSid, which the dispatcher
+ * marks failed permanently and never retries.
+ */
+export async function sendTierAtRiskMessage(
+  customerId:   UUID,
+  tenantId:     UUID,
+  customerName: string,
+  businessName: string,
+  phone:        string,
+  tierLabel:    string,
+  daysLeft:     number,
+  pointsNeeded: number,
+): Promise<void> {
+  if (!process.env.TWILIO_TMPL_TIER_AT_RISK) return;
+  try {
+    await enqueueMessage({
+      tenantId,
+      customerId,
+      phone,
+      template: 'fideliza_tier_at_risk_v1',
+      category: 'utility',
+      params: {
+        '1': customerName,
+        '2': tierLabel,
+        '3': businessName,
+        '4': String(daysLeft),
+        '5': String(pointsNeeded),
+      },
+      priority: 3,
+    });
+  } catch { /* best-effort */ }
+}
+
+/**
  * Sent when a customer crosses a tier threshold (Bronze→Silver, Silver→Gold).
  * Template: fideliza_tier_upgrade_v2 (utility)
  * Params: [customer_name, business_name, tier_label, multiplier]

@@ -13,9 +13,14 @@ interface Props {
   programType:   ProgramType;
   programConfig: Record<string, unknown>;
   compact?:      boolean; // renders only the header "+ Agregar" button
+  /**
+   * Tenant VIP tiers, ordered. Empty when the tier system is off, in which case
+   * the exclusivity selector is not rendered at all.
+   */
+  tiers?:        { label: string; min_lifetime: number }[];
 }
 
-export default function NewRewardForm({ programId, programType, programConfig, compact }: Props) {
+export default function NewRewardForm({ programId, programType, programConfig, compact, tiers = [] }: Props) {
   const [open, setOpen]   = useState(false);
   const { mounted: modalMounted, visible: modalVisible } = useModalTransition(open);
   const { setError, mounted, displayText, wrapperStyle, errorStyle } = useAutoError();
@@ -73,6 +78,7 @@ export default function NewRewardForm({ programId, programType, programConfig, c
                 programType={programType}
                 stampThreshold={stampThreshold}
                 visitThreshold={visitThreshold}
+                tiers={tiers}
                 errorStyle={errorStyle}
                 mounted={mounted}
                 displayText={displayText}
@@ -99,6 +105,7 @@ export default function NewRewardForm({ programId, programType, programConfig, c
         programType={programType}
         stampThreshold={stampThreshold}
         visitThreshold={visitThreshold}
+        tiers={tiers}
         errorStyle={errorStyle}
         mounted={mounted}
         displayText={displayText}
@@ -113,7 +120,7 @@ export default function NewRewardForm({ programId, programType, programConfig, c
 // ── Shared form body ──────────────────────────────────────────────
 
 function RewardFormBody({
-  formRef, onSubmit, programType, stampThreshold, visitThreshold, errorStyle, mounted, displayText, wrapperStyle, isPending, onCancel,
+  formRef, onSubmit, programType, stampThreshold, visitThreshold, errorStyle, mounted, displayText, wrapperStyle, isPending, onCancel, tiers,
 }: {
   formRef: React.RefObject<HTMLFormElement | null>;
   onSubmit: (e: React.FormEvent<HTMLFormElement>) => void;
@@ -126,6 +133,7 @@ function RewardFormBody({
   wrapperStyle: React.CSSProperties;
   isPending: boolean;
   onCancel: () => void;
+  tiers: { label: string; min_lifetime: number }[];
 }) {
   return (
     <form ref={formRef} onSubmit={onSubmit} className="space-y-3">
@@ -184,6 +192,29 @@ function RewardFormBody({
           <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1.5">Límite de stock</label>
           <input name="stock" type="number" min="0" placeholder="∞ ilimitado" className={inputCls} />
         </div>
+
+        {/* Tier exclusivity — only when the tenant actually has VIP tiers */}
+        {tiers.length > 0 && (
+          <div className="sm:col-span-2">
+            <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1.5">
+              Exclusivo para nivel VIP
+            </label>
+            <select name="min_tier_score" defaultValue="" className={inputCls}>
+              <option value="">Cualquier cliente</option>
+              {tiers
+                .filter((t) => t.min_lifetime > 0)
+                .map((t) => (
+                  <option key={t.label} value={t.min_lifetime}>
+                    Solo {t.label} o superior
+                  </option>
+                ))}
+            </select>
+            <p className="mt-1 text-[11px] text-gray-400 dark:text-gray-500">
+              Los demás clientes lo ven en el catálogo pero no pueden canjearlo — eso es lo que
+              lo vuelve una meta.
+            </p>
+          </div>
+        )}
       </div>
 
       <div className="flex gap-2 pt-1">

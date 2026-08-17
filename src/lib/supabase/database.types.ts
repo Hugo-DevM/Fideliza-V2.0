@@ -630,6 +630,7 @@ export type Database = {
           created_at: string
           description: string | null
           expiry_days: number | null
+          min_tier_score: number | null
           id: string
           image_url: string | null
           is_active: boolean
@@ -645,6 +646,7 @@ export type Database = {
           created_at?: string
           description?: string | null
           expiry_days?: number | null
+          min_tier_score?: number | null
           id?: string
           image_url?: string | null
           is_active?: boolean
@@ -660,6 +662,7 @@ export type Database = {
           created_at?: string
           description?: string | null
           expiry_days?: number | null
+          min_tier_score?: number | null
           id?: string
           image_url?: string | null
           is_active?: boolean
@@ -766,6 +769,8 @@ export type Database = {
           tier_score_per_visit: number
           tiers: Json
           tiers_enabled: boolean
+          tier_window_months: number | null
+          tier_grandfather_until: string | null
           timezone: string
           updated_at: string
           wa_notify_balance_reminder: boolean
@@ -809,6 +814,8 @@ export type Database = {
           tier_score_per_visit?: number
           tiers?: Json
           tiers_enabled?: boolean
+          tier_window_months?: number | null
+          tier_grandfather_until?: string | null
           timezone?: string
           updated_at?: string
           wa_notify_balance_reminder?: boolean
@@ -852,6 +859,8 @@ export type Database = {
           tier_score_per_visit?: number
           tiers?: Json
           tiers_enabled?: boolean
+          tier_window_months?: number | null
+          tier_grandfather_until?: string | null
           timezone?: string
           updated_at?: string
           wa_notify_balance_reminder?: boolean
@@ -939,6 +948,7 @@ export type Database = {
           enrollment_id: string
           id: string
           note: string | null
+          loyalty_delta: number | null
           points_delta: number
           program_id: string
           reward_id: string | null
@@ -953,6 +963,7 @@ export type Database = {
           enrollment_id: string
           id?: string
           note?: string | null
+          loyalty_delta?: number | null
           points_delta: number
           program_id: string
           reward_id?: string | null
@@ -967,6 +978,7 @@ export type Database = {
           enrollment_id?: string
           id?: string
           note?: string | null
+          loyalty_delta?: number | null
           points_delta?: number
           program_id?: string
           reward_id?: string | null

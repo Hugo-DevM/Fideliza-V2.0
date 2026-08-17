@@ -216,9 +216,15 @@ export async function createRewardAction(programId: string, formData: FormData) 
   const stock       = stock_str ? parseInt(stock_str, 10) : null;
   const expiry_days_str = formData.get('expiry_days') as string;
   const expiry_days = expiry_days_str ? parseInt(expiry_days_str, 10) : null;
+  const min_tier_str = formData.get('min_tier_score') as string | null;
+  const min_tier_score = min_tier_str ? parseInt(min_tier_str, 10) : null;
 
   if (!name || isNaN(cost_points) || cost_points <= 0) {
     return { error: 'El nombre y un costo válido son obligatorios.' };
+  }
+  // Restricting a reward to a tier only means anything while tiers are on.
+  if (min_tier_score !== null && !getPlanLimits(effectivePlan).universalTiers) {
+    return { error: 'Los premios exclusivos por nivel requieren el plan Pro.' };
   }
 
   try {
@@ -236,7 +242,7 @@ export async function createRewardAction(programId: string, formData: FormData) 
       }
     }
 
-    await createReward(tenantId, { program_id: programId, name, description, cost_points, stock, expiry_days });
+    await createReward(tenantId, { program_id: programId, name, description, cost_points, stock, expiry_days, min_tier_score });
     revalidateTag('rewards', 'max');
     revalidatePath(`/dashboard/programs/${programId}`);
     return { success: true };

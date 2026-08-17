@@ -37,6 +37,8 @@ interface Props {
   programLabel:   string;
   rewardCatalog:  boolean;
   maxRewardsPerProgram: number | null;
+  /** Empty when the tenant has no VIP tiers — hides the exclusivity selector. */
+  tiers:          { label: string; min_lifetime: number }[];
 }
 
 const AVATAR_COLORS = ['bg-indigo-500','bg-violet-500','bg-emerald-500','bg-amber-500','bg-rose-500','bg-cyan-500'];
@@ -61,7 +63,7 @@ function rewardCostLabel(type: string, costPoints: number, config: Record<string
 export default function ProgramDetailTabs({
   initialTab, programId, programType, effectivePlan, config,
   challenges, rewards, recentTx, txTotal, programLabel,
-  rewardCatalog, maxRewardsPerProgram,
+  rewardCatalog, maxRewardsPerProgram, tiers,
 }: Props) {
   const [activeTab, setActiveTab]   = useState(initialTab);
   const [visible,   setVisible]     = useState(true);
@@ -143,6 +145,7 @@ export default function ProgramDetailTabs({
                     programId={programId}
                     programType={programType as 'points' | 'stamp' | 'visit' | 'cashback'}
                     programConfig={config}
+                    tiers={tiers}
                     compact
                   />
                 )}

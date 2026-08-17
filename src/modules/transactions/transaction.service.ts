@@ -21,9 +21,10 @@ import {
   sendReferralEarnedMessage,
   sendChallengeCompletedMessage,
 } from '@/modules/whatsapp/whatsapp.service';
-import { computeTier, computeLoyaltyDelta } from '@/lib/utils/tiers';
+import { computeTier, computeLoyaltyDelta, computeActivityScore } from '@/lib/utils/tiers';
 import { defaultReferralBonuses } from '@/lib/config/referral-bonuses';
-import type { TierConfig, TenantTierSettings } from '@/lib/utils/tiers';
+import { getTierScore } from '@/lib/utils/tier-score';
+import type { TierConfig, TenantTierSettings, TierWindowSettings } from '@/lib/utils/tiers';
 import type {
   Transaction,
   CustomerRewardRedemption,
@@ -56,9 +57,9 @@ export async function processTransaction(
         .single(),
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       (db.from('tenant_settings') as any)
-        .select('tiers_enabled, tiers, tier_score_per_stamp, tier_score_per_visit, tier_score_per_point, tier_score_per_cashback_cent, birthday_bonus_points, birthday_bonus_stamps, birthday_bonus_visits, reactivation_bonus_points, reactivation_bonus_stamps, reactivation_bonus_visits')
+        .select('tiers_enabled, tiers, tier_score_per_stamp, tier_score_per_visit, tier_score_per_point, tier_score_per_cashback_cent, tier_window_months, tier_grandfather_until, birthday_bonus_points, birthday_bonus_stamps, birthday_bonus_visits, reactivation_bonus_points, reactivation_bonus_stamps, reactivation_bonus_visits')
         .eq('tenant_id', tenantId)
-        .maybeSingle() as Promise<{ data: (TenantTierSettings & {
+        .maybeSingle() as Promise<{ data: (TenantTierSettings & TierWindowSettings & {
           birthday_bonus_points?: number; birthday_bonus_stamps?: number; birthday_bonus_visits?: number;
           reactivation_bonus_points?: number; reactivation_bonus_stamps?: number; reactivation_bonus_visits?: number;
         }) | null }>,
@@ -80,7 +81,23 @@ export async function processTransaction(
       tier_score_per_point:         Number(tierSettingsRes.data?.tier_score_per_point ?? 1),
       tier_score_per_cashback_cent: Number(tierSettingsRes.data?.tier_score_per_cashback_cent ?? 0.1),
     };
-    const loyaltyScore = enrollmentRes.data?.loyalty_score ?? 0;
+    const lifetimeLoyalty = enrollmentRes.data?.loyalty_score ?? 0;
+    const tierWindow: TierWindowSettings = {
+      tier_window_months:     (tierSettingsRes.data?.tier_window_months as number | null | undefined) ?? null,
+      tier_grandfather_until: (tierSettingsRes.data?.tier_grandfather_until as string | null | undefined) ?? null,
+    };
+
+    // The score the tier is decided from. Equals lifetimeLoyalty unless the
+    // tenant enabled a rolling window, in which case a customer who stopped
+    // coming can drop back down.
+    const { score: loyaltyScore } = tierSettings.tiers_enabled
+      ? await getTierScore({
+          tenantId,
+          customerId:    input.customer_id,
+          lifetimeScore: lifetimeLoyalty,
+          settings:      tierWindow,
+        })
+      : { score: lifetimeLoyalty };
 
     // Fetch enrollment for Head Start (lifetime_points check)
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -220,6 +237,25 @@ export async function processTransaction(
     // may never resume. `after()` keeps the invocation alive until the work is
     // done, without delaying the response the cashier sees. The 80% nudge runs
     // last, so it was the one most often lost.
+    // ── Activity score ───────────────────────────────────────────────────────
+    // Stamps the normalised value of this earn onto the transaction row, which
+    // is what the monthly ranking sums over. It has to be a separate UPDATE
+    // because the row itself is created inside rpc_earn_points, where this
+    // value is not available.
+    //
+    // Written for every tenant, including those without VIP tiers — the ranking
+    // does not depend on the tier system being on.
+    const recordActivityScore = async (): Promise<void> => {
+      try {
+        const score = computeActivityScore(programType, baseDelta, tierSettings);
+        if (score <= 0) return;
+        await createServiceRoleClient()
+          .from('transactions')
+          .update({ loyalty_delta: score })
+          .eq('id', tx.id);
+      } catch { /* best-effort — a missing score only affects the ranking */ }
+    };
+
     const updateLoyaltyAndNotifyTier = async (): Promise<void> => {
       try {
         const loyaltyDelta = computeLoyaltyDelta(programType, baseDelta, tierSettings);
@@ -234,7 +270,10 @@ export async function processTransaction(
 
         if (scoreErr || newScore === null) return;
 
-        const newLoyaltyScore = newScore as number;
+        // The RPC returns the LIFETIME score, which is only the right basis when
+        // the tenant has no rolling window. Deriving "after" from the score the
+        // tier was actually decided from keeps both modes correct.
+        const newLoyaltyScore = loyaltyScore + loyaltyDelta;
         const tierBefore = computeTier(loyaltyScore, tierSettings.tiers);
         const tierAfter  = computeTier(newLoyaltyScore, tierSettings.tiers);
 
@@ -607,6 +646,7 @@ export async function processTransaction(
     // The referral hook above stays concurrent: it notifies the REFERRER, a
     // different customer, so it never competes for this customer's ordering.
     after(async () => {
+      await recordActivityScore();
       await updateLoyaltyAndNotifyTier();
       await notifyChallengeProgress();
       await notifySurpriseDelight();
@@ -684,6 +724,54 @@ export async function redeemReward(
   input: RedeemRewardInput
 ): Promise<CustomerRewardRedemption> {
   const db = createServiceRoleClient();
+
+  // ── Tier gate ────────────────────────────────────────────────────────────
+  // Enforced here and not only in the UI: the portal hides the button, but the
+  // redeem endpoint is reachable directly, and rpc_redeem_reward knows nothing
+  // about tiers. This is the only thing actually protecting the restriction.
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { data: rewardRow } = await (db.from('rewards') as any)
+    .select('min_tier_score, name')
+    .eq('id', input.reward_id)
+    .eq('tenant_id', tenantId)
+    .maybeSingle() as { data: { min_tier_score: number | null; name: string } | null };
+
+  if (rewardRow?.min_tier_score != null) {
+    const [{ data: settingsRow }, { data: customerRow }] = await Promise.all([
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (db.from('tenant_settings') as any)
+        .select('tiers, tiers_enabled, tier_window_months, tier_grandfather_until')
+        .eq('tenant_id', tenantId)
+        .maybeSingle() as Promise<{ data: (TierWindowSettings & { tiers: TierConfig[] | null; tiers_enabled: boolean }) | null }>,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (db.from('customers') as any)
+        .select('loyalty_score')
+        .eq('id', input.customer_id)
+        .eq('tenant_id', tenantId)
+        .maybeSingle() as Promise<{ data: { loyalty_score: number } | null }>,
+    ]);
+
+    const { score } = await getTierScore({
+      tenantId,
+      customerId:    input.customer_id,
+      lifetimeScore: customerRow?.loyalty_score ?? 0,
+      settings: {
+        tier_window_months:     settingsRow?.tier_window_months ?? null,
+        tier_grandfather_until: settingsRow?.tier_grandfather_until ?? null,
+      },
+    });
+
+    if (score < rewardRow.min_tier_score) {
+      const required = (settingsRow?.tiers ?? [])
+        .filter((t) => t.min_lifetime === rewardRow.min_tier_score)
+        .map((t) => t.label)[0];
+      throw new BadRequestError(
+        required
+          ? `Este premio es exclusivo del nivel ${required}.`
+          : 'Aún no alcanzas el nivel requerido para este premio.'
+      );
+    }
+  }
 
   const { data, error } = await db.rpc('rpc_redeem_reward', {
     p_tenant_id:     tenantId,

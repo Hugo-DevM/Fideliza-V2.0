@@ -122,6 +122,8 @@ export const CreateRewardSchema = z.object({
   cost_points:  z.number().int().positive('El costo en puntos debe ser un entero positivo'),
   stock:        z.number().int().nonnegative().nullable().optional(),
   expiry_days:  z.number().int().positive().nullable().optional(),
+  /** Umbral de nivel VIP mínimo para canjear. null = sin restricción. */
+  min_tier_score: z.number().int().nonnegative().nullable().optional(),
 });
 
 export const RedeemRewardSchema = z.object({
@@ -165,6 +167,7 @@ export const UpdateRewardSchema = z.object({
   cost_points: z.number().int().positive().optional(),
   stock:       z.number().int().nonnegative().nullable().optional(),
   expiry_days: z.number().int().positive().nullable().optional(),
+  min_tier_score: z.number().int().nonnegative().nullable().optional(),
   is_active:   z.boolean().optional(),
 });
 
