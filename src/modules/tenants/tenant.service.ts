@@ -8,6 +8,7 @@ import {
   getTenantSettings,
 } from './tenant.repository';
 import { BadRequestError } from '@/lib/middleware/errors';
+import { checkReservedSubdomain, reservedSubdomainMessage } from '@/lib/constants/reserved-subdomains';
 import type { Tenant, TenantSettings } from '@/lib/types';
 import type { CreateTenantInput } from '@/lib/validation/tenant.schema';
 
@@ -28,6 +29,16 @@ export async function onboardTenant(
   input: CreateTenantInput
 ): Promise<{ tenant: Tenant; settings: TenantSettings }> {
   const db = createServiceRoleClient();
+
+  // Reserved / offensive subdomains.
+  // Va aquí y no solo en checkSubdomainAction porque esa es la validación que
+  // dispara el formulario al salir del campo: una petición forjada directa a
+  // setupTenantAction o setupTenantFromOAuthAction la saltaba por completo.
+  // onboardTenant es el punto único por el que pasan los dos caminos de alta.
+  const reserved = checkReservedSubdomain(input.subdomain);
+  if (reserved) {
+    throw new BadRequestError(reservedSubdomainMessage(reserved));
+  }
 
   // Check subdomain availability
   const { data: existing } = await db

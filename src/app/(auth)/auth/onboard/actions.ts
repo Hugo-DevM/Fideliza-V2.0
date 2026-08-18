@@ -1,7 +1,9 @@
 'use server';
 
 import { redirect } from 'next/navigation';
+import { after } from 'next/server';
 import { createServerClient, createServiceRoleClient } from '@/lib/supabase/server';
+import { sendWelcomeTenantEmail } from '@/lib/email/resend';
 import { onboardTenant } from '@/modules/tenants';
 import { BadRequestError } from '@/lib/middleware/errors';
 
@@ -33,6 +35,14 @@ export async function setupTenantFromOAuthAction(input: {
     if (metaError) {
       return { error: `Cuenta creada pero hubo un problema al guardar tus datos: ${metaError.message}` };
     }
+
+    // El camino de correo/contraseña ya lo manda desde setupTenantAction; sin
+    // esto quien entra con Google nunca recibía el correo de bienvenida.
+    // emailVerified = true: el proveedor OAuth ya confirmó la dirección, así que
+    // el correo omite el paso "confirma tu correo".
+    after(async () => {
+      await sendWelcomeTenantEmail(user.email!, input.businessName.trim(), true);
+    });
 
     return { tenantId: tenant.id };
   } catch (err) {

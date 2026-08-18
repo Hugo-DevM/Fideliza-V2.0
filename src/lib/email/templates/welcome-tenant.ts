@@ -1,6 +1,32 @@
-export function welcomeTenantTemplate(businessName: string): string {
+/**
+ * @param emailVerified true cuando el correo ya está confirmado — el caso de
+ *   quien se registró con Google. Omite el paso "confirma tu correo", que para
+ *   esa persona es una instrucción imposible: nunca se le envió ningún enlace.
+ */
+export function welcomeTenantTemplate(businessName: string, emailVerified = false): string {
   const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? 'https://app.fideliza.app';
   const year   = new Date().getFullYear();
+
+  const steps = [
+    ...(emailVerified ? [] : ['Confirma tu correo electrónico con el enlace que te enviamos']),
+    'Crea tu primer programa — puntos, sellos o visitas',
+    'Agrega tu primer cliente y compártele su código de acceso',
+  ];
+
+  // Numerado generado, no escrito a mano: al omitir el primer paso la lista
+  // seguiría diciendo "2." y "3." si estuviera fijo en el HTML.
+  const stepsHtml = steps
+    .map(
+      (text, i) => `
+                      <tr>
+                        <td style="padding:6px 0;">
+                          <span style="font-size:13px;color:#0f172a;line-height:1.5;">
+                            <span style="color:#4F46E5;font-weight:700;">${i + 1}.</span> ${text}
+                          </span>
+                        </td>
+                      </tr>`,
+    )
+    .join('');
 
   return `<!DOCTYPE html>
 <html lang="es">
@@ -57,28 +83,7 @@ export function welcomeTenantTemplate(businessName: string): string {
                     <p style="margin:0 0 12px;font-size:12px;font-weight:700;color:#4F46E5;text-transform:uppercase;letter-spacing:0.8px;">
                       Primeros pasos
                     </p>
-                    <table width="100%" cellpadding="0" cellspacing="0">
-                      <tr>
-                        <td style="padding:6px 0;">
-                          <span style="font-size:13px;color:#0f172a;line-height:1.5;">
-                            <span style="color:#4F46E5;font-weight:700;">1.</span> Confirma tu correo electrónico con el enlace que te enviamos
-                          </span>
-                        </td>
-                      </tr>
-                      <tr>
-                        <td style="padding:6px 0;">
-                          <span style="font-size:13px;color:#0f172a;line-height:1.5;">
-                            <span style="color:#4F46E5;font-weight:700;">2.</span> Crea tu primer programa — puntos, sellos o visitas
-                          </span>
-                        </td>
-                      </tr>
-                      <tr>
-                        <td style="padding:6px 0;">
-                          <span style="font-size:13px;color:#0f172a;line-height:1.5;">
-                            <span style="color:#4F46E5;font-weight:700;">3.</span> Agrega tu primer cliente y compártele su código de acceso
-                          </span>
-                        </td>
-                      </tr>
+                    <table width="100%" cellpadding="0" cellspacing="0">${stepsHtml}
                     </table>
                   </td>
                 </tr>

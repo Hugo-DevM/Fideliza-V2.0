@@ -174,6 +174,8 @@ export async function sendWeeklyDigest(
 export async function sendWelcomeTenantEmail(
   to: string,
   businessName: string,
+  /** true para altas por OAuth: el correo ya viene verificado por el proveedor. */
+  emailVerified = false,
 ): Promise<void> {
   try {
     const resend = getResendClient();
@@ -181,7 +183,7 @@ export async function sendWelcomeTenantEmail(
       from:    getFromAddress(),
       to,
       subject: `¡Bienvenido a Fideliza, ${businessName}!`,
-      html:    welcomeTenantTemplate(businessName),
+      html:    welcomeTenantTemplate(businessName, emailVerified),
     });
   } catch { /* best-effort — never blocks account creation */ }
 }

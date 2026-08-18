@@ -5,6 +5,7 @@ import { onboardTenant } from '@/modules/tenants';
 import { createServiceRoleClient } from '@/lib/supabase/server';
 import { BadRequestError } from '@/lib/middleware/errors';
 import { sendConfirmationEmail, sendWelcomeTenantEmail } from '@/lib/email/resend';
+import { checkReservedSubdomain, reservedSubdomainMessage } from '@/lib/constants/reserved-subdomains';
 import { translateAuthError } from '@/lib/utils/supabase-errors';
 
 /**
@@ -124,8 +125,8 @@ export async function checkSubdomainAction(
 ): Promise<{ available: boolean; error?: string }> {
   const clean = subdomain.toLowerCase().trim();
 
-  const RESERVED = new Set(['www', 'app', 'api', 'admin', 'mail', 'static', 'fideliza', 'dashboard']);
-  if (RESERVED.has(clean)) return { available: false, error: 'Este subdominio está reservado. Elige otro.' };
+  const reserved = checkReservedSubdomain(clean);
+  if (reserved) return { available: false, error: reservedSubdomainMessage(reserved) };
 
   if (!/^[a-z0-9][a-z0-9\-]{1,61}[a-z0-9]$/.test(clean)) {
     return { available: false, error: 'Solo letras minúsculas, números y guiones (mínimo 3 caracteres).' };
