@@ -55,7 +55,7 @@ export function LandingShell({ dictEn, dictEs }: Props) {
         <MultiDevice t={dict.multiDevice} />
         <Pricing t={dict.pricing} />
         <FAQ t={dict.faq} />
-        <CTA t={dict.cta} waitlistT={dict.waitlistForm} />
+        <CTA t={dict.cta} />
       </main>
       <Footer t={dict.footer} />
     </>

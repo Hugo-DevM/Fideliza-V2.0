@@ -5,21 +5,21 @@ export const en = {
     pricing: "Pricing",
     faq: "FAQ",
     signIn: "Sign in",
-    cta: "Get early access",
+    cta: "Sign up",
     openMenu: "Open menu",
     closeMenu: "Close menu",
     manual: "Docs",
   },
 
   hero: {
-    badge: "Now in early access",
+    badge: "Sign-ups open",
     headingPlain: "Make your customers ",
     headingGradient: "come back again and again",
     body: "Fideliza is the complete retention system for your business: points, stamps and cashback, VIP tiers, referrals, missions, birthday rewards, and WhatsApp campaigns. All without your customers downloading an app — just a code.",
-    cta1: "Get early access — it's free",
+    cta1: "Create my free account",
     cta2: "See how it works",
-    socialProofCount: "40+ businesses",
-    socialProofText: "already on the waitlist",
+    socialProofCount: "No app",
+    socialProofText: "for your customers",
     card: {
       noAppBadge: "No app needed",
       pointsLabel: "Brew Points",
@@ -240,7 +240,7 @@ export const en = {
           "Last 50 transactions",
         ],
         cta: "Start for free",
-        href: "#waitlist",
+        href: "/auth/register",
       },
       {
         name: "Starter",
@@ -263,8 +263,8 @@ export const en = {
           "Reward catalog & flash offers",
           "500 WhatsApp messages/month",
         ],
-        cta: "Get early access",
-        href: "#waitlist",
+        cta: "Sign up",
+        href: "/auth/register",
       },
       {
         name: "Pro",
@@ -287,8 +287,8 @@ export const en = {
           "CSV export & priority support",
           "3,000 WhatsApp messages/month",
         ],
-        cta: "Get early access",
-        href: "#waitlist",
+        cta: "Sign up",
+        href: "/auth/register",
         comingSoon: false,
       },
       {
@@ -446,9 +446,11 @@ export const en = {
   },
 
   cta: {
-    badge: "Early access open",
-    heading: "Launch your loyalty program this week",
-    body: "Join the waitlist and be among the first businesses to run Fideliza. Early access members lock in founder pricing — 1 month of Starter, free.",
+    badge: "Sign-ups open",
+    heading: "Launch your loyalty program today",
+    body: "Create your Fideliza account and have your program running in minutes. Start free, no card required.",
+    primary: "Create my free account",
+    secondary: "I already have an account",
     bullets: [
       "No credit card required",
       "Set up in under 5 minutes",
@@ -466,7 +468,7 @@ export const en = {
         { label: "Features", href: "#features" },
         { label: "How it works", href: "#how-it-works" },
         { label: "Pricing", href: "#pricing" },
-        { label: "Early access", href: "#waitlist" },
+        { label: "Sign up", href: "/auth/register" },
         { label: "Support", href: "/support" },
       ],
       legal: [
@@ -560,31 +562,6 @@ export const en = {
     ],
   },
 
-  waitlistForm: {
-    emailPlaceholder: "your@email.com",
-    phonePlaceholder: "Phone number",
-    submitButton: "Join waitlist",
-    optional: "optional",
-    required: "required",
-    optionalToggle: "+ Add your name and business (optional)",
-    namePlaceholder: "Your name",
-    businessPlaceholder: "Business name",
-    disclaimer: "No credit card. No spam. Unsubscribe anytime.",
-    successTitle: "You're on the list!",
-    successMessage: "We'll notify you when Fideliza launches.",
-    alreadyOnList: "You're already on the list! We'll be in touch soon.",
-    errors: {
-      nameRequired: "Please enter your name.",
-      emailInvalid: "Please enter a valid email address.",
-      emailTooLong: "Email address is too long.",
-      phoneInvalid: "Please enter a valid phone number.",
-      nameInvalid: "Name can only contain letters and spaces.",
-      nameTooLong: "Name is too long (max 60 characters).",
-      businessTooLong: "Business name is too long (max 100 characters).",
-      generic: "Something went wrong. Please try again.",
-      serverUnreachable: "Could not reach the server. Please try again.",
-    },
-  },
 
   notFound: {
     title: "Page not found",

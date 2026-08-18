@@ -213,7 +213,7 @@ export function Hero({ t }: HeroProps) {
               className="flex flex-col sm:flex-row gap-3 justify-center lg:justify-start"
             >
               <LinkButton
-                href="#waitlist"
+                href="/auth/register"
                 size="lg"
                 className="relative pulse-ring whitespace-nowrap"
               >

@@ -128,18 +128,11 @@ async function enqueueMessage(p: EnqueueParams): Promise<void> {
 /**
  * Sent when a customer is registered with WhatsApp opt-in.
  *
- * Two templates, chosen by whether the v3 ContentSid is configured:
+ * Template: fideliza_welcome_v3 (utility)
+ * Params: [customer_name, business_name, unit_label, personal_card_link]
  *
- *   fideliza_welcome_v3 (preferred) — {{1}} name, {{2}} business,
- *     {{3}} unit_label, {{4}} the customer's personal card link. Without this,
- *     the customer is told they are enrolled but never learns where to look.
- *
- *   fideliza_welcome_v2 (fallback) — the original, no link.
- *
- * The fallback is what makes this safe to deploy before Meta approves v3: an
- * unmapped template name resolves to an empty ContentSid, which the dispatcher
- * treats as a permanent failure and never retries. Shipping v3 unconditionally
- * would silently kill every welcome message until approval landed.
+ * The link matters: without it the customer is told they are enrolled but never
+ * learns where to check their balance.
  */
 export async function sendWelcomeMessage(
   customerId:   UUID,
@@ -147,29 +140,21 @@ export async function sendWelcomeMessage(
   customerName: string,
   businessName: string,
   phone:        string,
-  accessCode?:  string,
+  accessCode:   string,
 ): Promise<void> {
   try {
-    const hasLinkTemplate = Boolean(process.env.TWILIO_TMPL_WELCOME_V3) && Boolean(accessCode);
-
     await enqueueMessage({
       tenantId,
       customerId,
       phone,
-      template: hasLinkTemplate ? 'fideliza_welcome_v3' : 'fideliza_welcome_v2',
+      template: 'fideliza_welcome_v3',
       category: 'utility',
-      params: hasLinkTemplate
-        ? {
-            '1': customerName,
-            '2': businessName,
-            '3': '{{unit_label}}',
-            '4': '{{portal_url}}',
-          }
-        : {
-            '1': customerName,
-            '2': businessName,
-            '3': '{{unit_label}}',
-          },
+      params: {
+        '1': customerName,
+        '2': businessName,
+        '3': '{{unit_label}}',
+        '4': '{{portal_url}}',
+      },
       portalCode: accessCode,
       priority: 1, // welcome messages get highest priority
     });

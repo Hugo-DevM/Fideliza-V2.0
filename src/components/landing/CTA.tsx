@@ -1,17 +1,17 @@
 import { Container } from '@/components/ui/Container';
-import { WaitlistForm } from './WaitlistForm';
+import { LinkButton } from '@/components/ui/Button';
 import { Reveal } from '@/components/ui/Reveal';
 import type { Dictionary } from '@/lib/i18n';
 import { withBrand } from '@/lib/brand';
 
 interface CTAProps {
   t: Dictionary['cta'];
-  waitlistT: Dictionary['waitlistForm'];
 }
 
-export function CTA({ t, waitlistT }: CTAProps) {
+export function CTA({ t }: CTAProps) {
   return (
-    <section id="waitlist" className="py-20 sm:py-28 bg-indigo-600 relative overflow-hidden">
+    // id="signup" — the old "#waitlist" anchor is gone along with the waitlist.
+    <section id="signup" className="py-20 sm:py-28 bg-indigo-600 relative overflow-hidden">
       {/* Background decoration */}
       <div className="absolute -top-32 -right-32 w-96 h-96 rounded-full opacity-10" style={{ background: 'radial-gradient(circle, white 0%, transparent 70%)' }} aria-hidden="true" />
       <div className="absolute -bottom-32 -left-32 w-96 h-96 rounded-full opacity-10" style={{ background: 'radial-gradient(circle, white 0%, transparent 70%)' }} aria-hidden="true" />
@@ -34,7 +34,14 @@ export function CTA({ t, waitlistT }: CTAProps) {
           </Reveal>
 
           <Reveal delay={0.24} direction="scale">
-            <WaitlistForm variant="cta" t={waitlistT} />
+            <div className="flex flex-col sm:flex-row justify-center gap-3">
+              <LinkButton href="/auth/register" variant="secondary" className="justify-center px-8">
+                {t.primary}
+              </LinkButton>
+              <LinkButton href="/auth/login" variant="outline" className="justify-center px-8 !text-white !border-white/40 hover:!bg-white/10">
+                {t.secondary}
+              </LinkButton>
+            </div>
           </Reveal>
 
           <Reveal delay={0.34} className="mt-10">

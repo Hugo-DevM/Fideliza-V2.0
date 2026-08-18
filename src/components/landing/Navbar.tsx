@@ -99,10 +99,12 @@ export function Navbar({ t, lang, onLangChange, offsetTop = false }: NavbarProps
             </svg>
             {lang === "es" ? "English" : "Español"}
           </button>
-          {/* <LinkButton href="/auth/login" size="sm">
+          <Link
+            href="/auth/login"
+            className="text-sm text-gray-300 hover:text-white transition-colors px-2"
+          >
             {t.signIn}
-          </LinkButton> */}
-          {/* Desktop CTA */}
+          </Link>
           <LinkButton href="/auth/register" size="sm">
             {t.cta}
           </LinkButton>
@@ -202,10 +204,17 @@ export function Navbar({ t, lang, onLangChange, offsetTop = false }: NavbarProps
               {lang === "es" ? "English" : "Español"}
             </button>
 
+            <Link
+              href="/auth/login"
+              onClick={() => setMenuOpen(false)}
+              className="text-sm text-gray-300 hover:text-white py-1 mt-2"
+            >
+              {t.signIn}
+            </Link>
             <LinkButton
               href="/auth/register"
               size="sm"
-              className="w-full justify-center mt-2"
+              className="w-full justify-center"
               onClick={() => setMenuOpen(false)}
             >
               {t.cta}

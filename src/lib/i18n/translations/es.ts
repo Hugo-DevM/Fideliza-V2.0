@@ -7,21 +7,21 @@ export const es: Dictionary = {
     pricing: "Precios",
     faq: "FAQ",
     signIn: "Iniciar sesión",
-    cta: "Acceso anticipado",
+    cta: "Crear cuenta",
     openMenu: "Abrir menú",
     closeMenu: "Cerrar menú",
     manual: "Manual",
   },
 
   hero: {
-    badge: "Acceso anticipado disponible",
+    badge: "Registro abierto",
     headingPlain: "Haz que tus clientes ",
     headingGradient: "regresen una y otra vez",
     body: "Fideliza es el sistema de retención completo para tu negocio: puntos, sellos y cashback, niveles VIP, referidos, misiones, premios de cumpleaños y campañas de WhatsApp. Todo sin que tus clientes descarguen una app — solo un código.",
-    cta1: "Acceso anticipado — es gratis",
+    cta1: "Crear mi cuenta gratis",
     cta2: "Ver cómo funciona",
-    socialProofCount: "+40 negocios",
-    socialProofText: "ya están en la lista de espera",
+    socialProofCount: "Sin app",
+    socialProofText: "para tus clientes",
     card: {
       noAppBadge: "Sin app",
       pointsLabel: "Puntos Brew",
@@ -242,7 +242,7 @@ export const es: Dictionary = {
           "Últimas 50 transacciones",
         ],
         cta: "Comienza gratis",
-        href: "#waitlist",
+        href: "/auth/register",
       },
       {
         name: "Starter",
@@ -265,8 +265,8 @@ export const es: Dictionary = {
           "Catálogo de premios y ofertas flash",
           "500 mensajes WhatsApp/mes",
         ],
-        cta: "Acceso anticipado",
-        href: "#waitlist",
+        cta: "Crear cuenta",
+        href: "/auth/register",
       },
       {
         name: "Pro",
@@ -289,8 +289,8 @@ export const es: Dictionary = {
           "Exportación CSV y soporte prioritario",
           "3,000 mensajes WhatsApp/mes",
         ],
-        cta: "Acceso anticipado",
-        href: "#waitlist",
+        cta: "Crear cuenta",
+        href: "/auth/register",
         comingSoon: false,
       },
       {
@@ -455,9 +455,11 @@ export const es: Dictionary = {
   },
 
   cta: {
-    badge: "Acceso anticipado abierto",
-    heading: "Lanza tu programa de fidelización esta semana",
-    body: "Únete a la lista de espera y sé uno de los primeros negocios en usar Fideliza. Los miembros de acceso anticipado bloquean el precio fundador — 1 mes de Starter, gratis.",
+    badge: "Registro abierto",
+    heading: "Lanza tu programa de fidelización hoy",
+    body: "Crea tu cuenta de Fideliza y ten tu programa funcionando en minutos. Empieza gratis, sin tarjeta.",
+    primary: "Crear mi cuenta gratis",
+    secondary: "Ya tengo cuenta",
     bullets: ["Configuración en menos de 5 minutos", "Cancela cuando quieras"],
   },
 
@@ -471,7 +473,7 @@ export const es: Dictionary = {
         { label: "Funciones", href: "#features" },
         { label: "Cómo funciona", href: "#how-it-works" },
         { label: "Precios", href: "#pricing" },
-        { label: "Acceso anticipado", href: "#waitlist" },
+        { label: "Crear cuenta", href: "/auth/register" },
         { label: "Soporte", href: "/support" },
       ],
       legal: [
@@ -566,33 +568,6 @@ export const es: Dictionary = {
     ],
   },
 
-  waitlistForm: {
-    emailPlaceholder: "tu@email.com",
-    phonePlaceholder: "Número de teléfono",
-    submitButton: "Unirse a la lista",
-    optional: "opcional",
-    required: "obligatorio",
-    optionalToggle: "+ Agrega tu nombre y negocio (opcional)",
-    namePlaceholder: "Tu nombre",
-    businessPlaceholder: "Nombre del negocio",
-    disclaimer: "Sin spam. Cancela cuando quieras.",
-    successTitle: "¡Estás en la lista!",
-    successMessage: "Te avisaremos cuando Fideliza lance oficialmente.",
-    alreadyOnList: "¡Ya estás en la lista! Pronto estaremos en contacto.",
-    errors: {
-      nameRequired: "Ingresa tu nombre.",
-      emailInvalid: "Ingresa un correo electrónico válido.",
-      emailTooLong: "El correo electrónico es demasiado largo.",
-      phoneInvalid: "Ingresa un número de teléfono válido.",
-      nameInvalid: "El nombre solo puede contener letras y espacios.",
-      nameTooLong: "El nombre es demasiado largo (máx. 60 caracteres).",
-      businessTooLong:
-        "El nombre del negocio es demasiado largo (máx. 100 caracteres).",
-      generic: "Algo salió mal. Inténtalo de nuevo.",
-      serverUnreachable:
-        "No se pudo contactar el servidor. Inténtalo de nuevo.",
-    },
-  },
 
   notFound: {
     title: "Página no encontrada",
