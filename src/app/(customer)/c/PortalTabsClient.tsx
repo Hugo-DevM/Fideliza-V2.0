@@ -1,12 +1,20 @@
 'use client';
 
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useSyncExternalStore } from 'react';
 import VoucherCard from './VoucherCard';
 import RedeemButton from './RedeemButton';
 import ReferralShareButton from './ReferralShareButton';
 import { computeTier, nextTier, TIER_STYLES } from '@/lib/utils/tiers';
 import { unitLabel, formatUnitAmount } from '@/lib/utils/program-units';
 import { defaultReferralBonuses } from '@/lib/config/referral-bonuses';
+import {
+  parseFlashOffer,
+  isFlashOfferActive,
+  isFlashOfferToday,
+  formatMultiplier,
+  formatHour,
+  formatFlashDays,
+} from '@/lib/utils/flash-offer';
 import type { TierConfig } from '@/lib/utils/tiers';
 import type {
   PortalData,
@@ -697,6 +705,8 @@ function EnrollmentCard({ enrollment: e, primaryColor, programLabel }: {
         )}
       </div>
 
+      <FlashOfferBanner config={e.program_config} />
+
       {affordableRewards.length > 0 && (
         <div className="mt-4 rounded-xl p-3.5" style={{ backgroundColor: `${primaryColor}12` }}>
           <p className="text-xs font-semibold mb-2" style={{ color: primaryColor }}>Puedes canjear:</p>
@@ -711,6 +721,110 @@ function EnrollmentCard({ enrollment: e, primaryColor, programLabel }: {
         </div>
       )}
     </div>
+  );
+}
+
+// ── Reloj compartido del banner de Oferta Flash ──────────────────────────────
+// El snapshot es el número de minuto, no un Date: `useSyncExternalStore` compara
+// con Object.is y un Date nuevo en cada lectura provocaría un bucle de renders.
+const MINUTE_MS = 60_000;
+function subscribeToMinute(onChange: () => void) {
+  const id = setInterval(onChange, MINUTE_MS);
+  return () => clearInterval(id);
+}
+const getMinuteSnapshot = () => Math.floor(Date.now() / MINUTE_MS);
+const getMinuteServerSnapshot = () => null;
+
+/**
+ * Anuncia la Oferta Flash del programa. Sin esto el multiplicador se aplicaba
+ * en silencio: el cliente solo lo notaba revisando el detalle de su transacción,
+ * así que la oferta regalaba puntos sin atraer una sola visita extra.
+ *
+ * La ventana se evalúa con el mismo módulo que usa el motor de puntos
+ * (`lib/utils/flash-offer.ts`), para que lo que anuncia el banner y lo que
+ * acredita el earn no puedan divergir.
+ */
+function FlashOfferBanner({ config }: { config: Record<string, unknown> }) {
+  // El horario no depende del reloj, pero "activo ahora" sí. En el servidor el
+  // snapshot es null, así que el primer render muestra solo el horario y el
+  // resaltado entra al hidratar: un render que caiga justo en el cambio de hora
+  // no produce desajuste. El tick de un minuto lo mantiene al día sin recargar.
+  const minute = useSyncExternalStore<number | null>(
+    subscribeToMinute,
+    getMinuteSnapshot,
+    getMinuteServerSnapshot,
+  );
+  const now = minute === null ? null : new Date(minute * MINUTE_MS);
+
+  const offer = parseFlashOffer(config);
+  if (!offer) return null;
+
+  const active = now !== null && isFlashOfferActive(config, now);
+  const today  = now !== null && isFlashOfferToday(config, now);
+
+  const mult  = formatMultiplier(offer.multiplier);
+  const range = `${formatHour(offer.startHour)} a ${formatHour(offer.endHour)}`;
+  const days  = formatFlashDays(offer.days);
+
+  return (
+    <div
+      className={`mt-4 flex items-start gap-3 rounded-xl border px-3.5 py-3 transition-colors ${
+        active
+          ? 'border-amber-300 bg-amber-50 dark:border-amber-500/40 dark:bg-amber-500/15'
+          : 'border-gray-100 bg-gray-50 dark:border-[#1e2438] dark:bg-[#0d0f17]'
+      }`}
+    >
+      <div
+        className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-lg ${
+          active ? 'bg-amber-500' : 'bg-amber-100 dark:bg-amber-500/20'
+        }`}
+      >
+        <FlashBoltIcon className={`h-4 w-4 ${active ? 'text-white' : 'text-amber-600 dark:text-amber-400'}`} />
+      </div>
+
+      <div className="min-w-0">
+        {active ? (
+          <>
+            <p className="text-sm font-bold text-amber-700 dark:text-amber-300">
+              ¡{mult} activo ahora!
+            </p>
+            <p className="mt-0.5 text-xs text-amber-700/80 dark:text-amber-400/80">
+              Termina a las {formatHour(offer.endHour)} — acumulas {mult} en esta visita.
+            </p>
+          </>
+        ) : today ? (
+          <>
+            <p className="text-sm font-semibold text-gray-800 dark:text-white">
+              Hoy {mult} de {range}
+            </p>
+            <p className="mt-0.5 text-xs text-gray-400 dark:text-gray-500">
+              Oferta Flash — acumulas {mult} si vienes en ese horario.
+            </p>
+          </>
+        ) : (
+          <>
+            <p className="text-sm font-semibold text-gray-800 dark:text-white">
+              Oferta Flash {mult}
+            </p>
+            <p className="mt-0.5 text-xs text-gray-400 dark:text-gray-500">
+              {days.charAt(0).toUpperCase() + days.slice(1)} de {range}.
+            </p>
+          </>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function FlashBoltIcon({ className }: { className?: string }) {
+  return (
+    <svg className={className} fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+      <path
+        fillRule="evenodd"
+        d="M14.615 1.595a.75.75 0 0 1 .359.852L12.982 9.75h7.268a.75.75 0 0 1 .548 1.262l-10.5 11.25a.75.75 0 0 1-1.272-.71l1.992-7.302H3.818a.75.75 0 0 1-.548-1.262l10.5-11.25a.75.75 0 0 1 .845-.143Z"
+        clipRule="evenodd"
+      />
+    </svg>
   );
 }
 

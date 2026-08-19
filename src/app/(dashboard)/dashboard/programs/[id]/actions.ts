@@ -4,6 +4,7 @@ import { revalidatePath, revalidateTag } from 'next/cache';
 import { getAuthenticatedTenant } from '@/lib/auth/get-tenant';
 import { updateProgram, createReward, updateReward } from '@/modules/rewards';
 import { getPlanLimits } from '@/lib/config/plans';
+import { MIN_VOUCHER_EXPIRY_DAYS, VOUCHER_EXPIRY_HINT } from '@/lib/config/vouchers';
 import { markRedemptionUsed } from '@/modules/transactions';
 import { createServiceRoleClient } from '@/lib/supabase/server';
 import { auditLog, AuditEvent } from '@/lib/utils/audit';
@@ -221,6 +222,12 @@ export async function createRewardAction(programId: string, formData: FormData) 
 
   if (!name || isNaN(cost_points) || cost_points <= 0) {
     return { error: 'El nombre y un costo válido son obligatorios.' };
+  }
+  // Dejar el campo vacío es válido (el voucher no vence). Poner un número por
+  // debajo del mínimo no lo es: se valida aquí y no solo en CreateRewardSchema
+  // porque este action llama a createReward() directo, sin pasar por Zod.
+  if (expiry_days !== null && (isNaN(expiry_days) || expiry_days < MIN_VOUCHER_EXPIRY_DAYS)) {
+    return { error: VOUCHER_EXPIRY_HINT };
   }
   // Restricting a reward to a tier only means anything while tiers are on.
   if (min_tier_score !== null && !getPlanLimits(effectivePlan).universalTiers) {

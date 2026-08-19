@@ -1,6 +1,18 @@
 import { z } from 'zod';
+import { MIN_VOUCHER_EXPIRY_DAYS, VOUCHER_EXPIRY_HINT } from '@/lib/config/vouchers';
 
 const UUID = z.string().uuid('Must be a valid UUID');
+
+/**
+ * Vigencia del voucher emitido al canjear. `null` = el voucher no vence.
+ * Si se especifica, debe superar el mínimo — ver `lib/config/vouchers.ts`.
+ */
+const voucherExpiryDays = z
+  .number()
+  .int()
+  .min(MIN_VOUCHER_EXPIRY_DAYS, VOUCHER_EXPIRY_HINT)
+  .nullable()
+  .optional();
 
 // ── Per-type program config schemas ──────────────────────────────────────────
 // Strict typing prevents mis-configured programs and calculation bugs.
@@ -121,7 +133,7 @@ export const CreateRewardSchema = z.object({
   image_url:    httpsUrl,
   cost_points:  z.number().int().positive('El costo en puntos debe ser un entero positivo'),
   stock:        z.number().int().nonnegative().nullable().optional(),
-  expiry_days:  z.number().int().positive().nullable().optional(),
+  expiry_days:  voucherExpiryDays,
   /** Umbral de nivel VIP mínimo para canjear. null = sin restricción. */
   min_tier_score: z.number().int().nonnegative().nullable().optional(),
 });
@@ -166,7 +178,7 @@ export const UpdateRewardSchema = z.object({
   image_url:   httpsUrl,
   cost_points: z.number().int().positive().optional(),
   stock:       z.number().int().nonnegative().nullable().optional(),
-  expiry_days: z.number().int().positive().nullable().optional(),
+  expiry_days: voucherExpiryDays,
   min_tier_score: z.number().int().nonnegative().nullable().optional(),
   is_active:   z.boolean().optional(),
 });

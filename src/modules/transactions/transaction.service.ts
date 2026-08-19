@@ -22,6 +22,7 @@ import {
   sendChallengeCompletedMessage,
 } from '@/modules/whatsapp/whatsapp.service';
 import { computeTier, computeLoyaltyDelta, computeActivityScore } from '@/lib/utils/tiers';
+import { isFlashOfferActive, parseFlashOffer } from '@/lib/utils/flash-offer';
 import { defaultReferralBonuses } from '@/lib/config/referral-bonuses';
 import { getTierScore } from '@/lib/utils/tier-score';
 import type { TierConfig, TenantTierSettings, TierWindowSettings } from '@/lib/utils/tiers';
@@ -123,9 +124,13 @@ export async function processTransaction(
       }
     }
 
-    // Flash Offer: multiply points if active window matches current time
-    if (cfg.flash_enabled && isFlashOfferActive(cfg)) {
-      const mult = Number(cfg.flash_multiplier ?? 2);
+    // Flash Offer: multiply points if active window matches current time.
+    // La ventana se evalúa en lib/utils/flash-offer.ts, el mismo módulo que usa
+    // el banner del portal — si divergieran, el portal anunciaría un
+    // multiplicador que el earn no aplica.
+    const flashOffer = isFlashOfferActive(cfg) ? parseFlashOffer(cfg) : null;
+    if (flashOffer) {
+      const mult = flashOffer.multiplier;
       effectiveDelta = Math.round(effectiveDelta * mult);
       effectiveNote  = effectiveNote
         ? `${effectiveNote} · Flash ${mult}x`
@@ -905,27 +910,3 @@ export async function getCustomerTransactionHistory(
   return { transactions: (data ?? []) as Transaction[], total: count ?? 0 };
 }
 
-// ── Flash Offer helper ───────────────────────────────────────────────────────
-
-/**
- * Returns true if the current Mexico City time falls within the configured
- * flash offer window. Uses a fixed UTC-6 offset (CST) — accurate within 1h
- * during CDT. Good enough for a promotional time window.
- */
-function isFlashOfferActive(config: Record<string, unknown>): boolean {
-  const startHour = Number(config.flash_start_hour ?? -1);
-  const endHour   = Number(config.flash_end_hour   ?? -1);
-  if (startHour < 0 || endHour < 0 || startHour >= endHour) return false;
-
-  // Mexico City: UTC-6 (CST). Approximate — ignores DST.
-  const nowUtc         = new Date();
-  const offsetMs       = 6 * 60 * 60 * 1000;
-  const mexicoNow      = new Date(nowUtc.getTime() - offsetMs);
-  const mexicoHour     = mexicoNow.getUTCHours();
-  const mexicoDay      = mexicoNow.getUTCDay(); // 0 = Sunday
-
-  const days = config.flash_days as number[] | undefined;
-  if (days && days.length > 0 && !days.includes(mexicoDay)) return false;
-
-  return mexicoHour >= startHour && mexicoHour < endHour;
-}

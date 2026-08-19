@@ -5,6 +5,7 @@ import { createServiceRoleClient } from '@/lib/supabase/server';
 import { revalidateTenantCache } from '@/lib/cache/tenant-cache';
 import { revalidatePath } from 'next/cache';
 import { computeTier } from '@/lib/utils/tiers';
+import { MIN_VOUCHER_EXPIRY_DAYS, VOUCHER_EXPIRY_HINT } from '@/lib/config/vouchers';
 import type { TierConfig } from '@/lib/utils/tiers';
 
 export async function updateTenantTiersAction(payload: {
@@ -53,8 +54,8 @@ export async function updateTenantTiersAction(payload: {
       if (label && label.length > 80) {
         return { error: 'El regalo de nivel no puede pasar de 80 caracteres.' };
       }
-      if (t.gift_expiry_days != null && (t.gift_expiry_days < 1 || t.gift_expiry_days > 365)) {
-        return { error: 'La vigencia del regalo debe estar entre 1 y 365 días.' };
+      if (t.gift_expiry_days != null && (t.gift_expiry_days < MIN_VOUCHER_EXPIRY_DAYS || t.gift_expiry_days > 365)) {
+        return { error: `La vigencia del regalo debe estar entre ${MIN_VOUCHER_EXPIRY_DAYS} y 365 días. ${VOUCHER_EXPIRY_HINT}` };
       }
       if (!label && t.gift_expiry_days != null) {
         return { error: 'Escribe qué se regala antes de poner una vigencia.' };

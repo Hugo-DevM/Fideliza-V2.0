@@ -4,6 +4,7 @@ import { useState, useTransition } from 'react';
 import { updateTenantTiersAction, previewTierBackfillAction, applyTierBackfillAction } from './actions';
 import { computeTier } from '@/lib/utils/tiers';
 import { DEFAULT_TENANT_TIERS, TIER_STYLES } from '@/lib/utils/tiers';
+import { MIN_VOUCHER_EXPIRY_DAYS } from '@/lib/config/vouchers';
 import type { TierConfig, TenantTierSettings, TierWindowSettings } from '@/lib/utils/tiers';
 
 const MULTIPLIER_OPTIONS = [
@@ -426,10 +427,10 @@ export default function TiersClient({ settings, window: tierWindow }: TiersClien
                             />
                             <input
                               type="number"
-                              min={1}
+                              min={MIN_VOUCHER_EXPIRY_DAYS}
                               max={365}
                               placeholder="días"
-                              title="Días de vigencia del cupón"
+                              title={`Días de vigencia del cupón. Mínimo ${MIN_VOUCHER_EXPIRY_DAYS}.`}
                               value={tier.gift_expiry_days ?? ''}
                               onChange={(e) =>
                                 updateTier(i, { gift_expiry_days: e.target.value ? parseInt(e.target.value, 10) : null })
@@ -440,6 +441,8 @@ export default function TiersClient({ settings, window: tierWindow }: TiersClien
                           <p className="mt-1 text-[11px] text-gray-400 dark:text-gray-500">
                             Se entrega como cupón la primera vez que el cliente llega a este nivel —
                             una sola vez, aunque vuelva a subir. No consume premios de tu catálogo.
+                            La vigencia debe ser de al menos {MIN_VOUCHER_EXPIRY_DAYS} días para que
+                            dé tiempo de avisar antes de que venza; vacío = sin vencimiento.
                           </p>
                         </div>
                       )}

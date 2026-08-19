@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { createRewardAction } from './actions';
 import { useAutoError } from '@/hooks/useAutoError';
 import { useModalTransition } from '@/hooks/useModalTransition';
+import { MIN_VOUCHER_EXPIRY_DAYS } from '@/lib/config/vouchers';
 
 type ProgramType = 'points' | 'stamp' | 'visit' | 'cashback';
 
@@ -186,7 +187,18 @@ function RewardFormBody({
 
         <div>
           <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1.5">Vencimiento (días)</label>
-          <input name="expiry_days" type="number" min="1" placeholder="30" className={inputCls} />
+          <input
+            name="expiry_days"
+            type="number"
+            min={MIN_VOUCHER_EXPIRY_DAYS}
+            placeholder="30"
+            title={`Mínimo ${MIN_VOUCHER_EXPIRY_DAYS} días. Déjalo vacío si el voucher no vence.`}
+            className={inputCls}
+          />
+          <p className="mt-1 text-[11px] text-gray-400 dark:text-gray-500">
+            Mínimo {MIN_VOUCHER_EXPIRY_DAYS} días, para que dé tiempo de avisar antes de que venza.
+            Vacío = sin vencimiento.
+          </p>
         </div>
         <div>
           <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1.5">Límite de stock</label>
