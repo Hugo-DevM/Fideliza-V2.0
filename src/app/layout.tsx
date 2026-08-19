@@ -67,6 +67,10 @@ export default async function RootLayout({
   const headersList = await headers();
   const lang = headersList.get("x-locale") ?? "en";
 
+  // Per-request CSP nonce minted in proxy.ts. Next.js nonces its own scripts
+  // automatically, but raw <script> tags and next/script need it passed in.
+  const nonce = headersList.get("x-nonce") ?? undefined;
+
   return (
     <html
       lang={lang}
@@ -76,6 +80,7 @@ export default async function RootLayout({
       <head>
         {/* Prevent dark mode flash before hydration */}
         <script
+          nonce={nonce}
           dangerouslySetInnerHTML={{
             __html: `try{var t=localStorage.getItem('theme');if(t==='dark'||(t==null&&window.matchMedia('(prefers-color-scheme:dark)').matches)){document.documentElement.classList.add('dark')}}catch(e){}`,
           }}
@@ -83,6 +88,7 @@ export default async function RootLayout({
         {/* Schema markup — helps AI and search engines understand what Fideliza is */}
         <script
           type="application/ld+json"
+          nonce={nonce}
           dangerouslySetInnerHTML={{
             __html: JSON.stringify({
               "@context": "https://schema.org",
@@ -139,7 +145,7 @@ export default async function RootLayout({
       </head>
       <body className="min-h-full flex flex-col">
         {children}
-        <MetaPixel />
+        <MetaPixel nonce={nonce} />
         <CookieBanner lang={lang} />
       </body>
     </html>

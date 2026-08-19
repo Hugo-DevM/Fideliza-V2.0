@@ -15,6 +15,7 @@
  */
 
 import { NextResponse }                from 'next/server';
+import { isAuthorizedCron }            from '@/lib/auth/cron';
 import { createServiceRoleClient }    from '@/lib/supabase/server';
 import { sendReactivationMessage }    from '@/modules/whatsapp/whatsapp.service';
 import { getPlanLimits, getEffectivePlanFromTenant } from '@/lib/config/plans';
@@ -44,9 +45,7 @@ interface TenantSettingsRow {
 
 export async function GET(request: Request) {
   // Verify cron secret
-  const authHeader = request.headers.get('authorization');
-  const cronSecret = process.env.CRON_SECRET;
-  if (!cronSecret || authHeader !== `Bearer ${cronSecret}`) {
+  if (!isAuthorizedCron(request)) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 

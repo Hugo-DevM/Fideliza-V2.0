@@ -1,6 +1,8 @@
 /**
- * GET  /api/rewards — List rewards for current tenant (public).
- * POST /api/rewards — Create a reward (authenticated).
+ * GET  /api/rewards — List rewards for current tenant. Business session required.
+ * POST /api/rewards — Create a reward. Business session required.
+ *
+ * The customer-facing catalog is served by the portal (/c), not by this route.
  */
 import { NextResponse } from 'next/server';
 import { withTenantContext } from '@/lib/middleware/api-context';

@@ -1,12 +1,22 @@
 'use server';
 
+import { cookies } from 'next/headers';
 import { createServerClient, createServiceRoleClient } from '@/lib/supabase/server';
+import { ADMIN_COOKIE_NAME, verifyAdminSessionToken } from '@/lib/auth/admin-session';
 
 async function verifyAdmin() {
   const supabase = await createServerClient();
   const { data: { user } } = await supabase.auth.getUser();
   const adminEmail = process.env.ADMIN_EMAIL;
   if (!user || !adminEmail || user.email !== adminEmail) {
+    throw new Error('Unauthorized');
+  }
+
+  // Server Actions are directly invocable, so the second factor has to be
+  // enforced here too — checking it only in /admin/page.tsx would make it a
+  // UI gate that any POST to this action bypasses.
+  const jar = await cookies();
+  if (!verifyAdminSessionToken(jar.get(ADMIN_COOKIE_NAME)?.value, process.env.ADMIN_SECRET)) {
     throw new Error('Unauthorized');
   }
 }

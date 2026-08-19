@@ -9,6 +9,7 @@
  *  4. Inject x-locale header so the root layout can set <html lang>
  *  5. Refresh Supabase auth session (prevents stale JWTs)
  *  6. Redirect unauthenticated users away from protected dashboard routes
+ *  7. Generate a per-request CSP nonce and emit the Content-Security-Policy
  *
  * Runs on Edge Runtime — no Node.js APIs, no direct DB calls.
  */
@@ -21,8 +22,46 @@ import {
 } from '@/lib/middleware/tenant';
 import { getPreferredLocale, type Locale } from '@/lib/i18n';
 
+// ── Content Security Policy ──────────────────────────────────────────────
+//
+// Built here rather than in next.config.ts because a nonce has to be minted
+// per request. script-src previously carried 'unsafe-inline', which let any
+// injected inline script execute and made the CSP close to decorative against
+// XSS. With a nonce + 'strict-dynamic', only scripts we emit run, and scripts
+// they load in turn inherit that trust.
+//
+// style-src deliberately keeps 'unsafe-inline': React writes style="" attributes
+// throughout the UI and CSP has no nonce mechanism for inline style attributes,
+// so removing it would break rendering for no meaningful XSS gain.
+
+const SUPABASE_URL = (process.env.NEXT_PUBLIC_SUPABASE_URL ?? '').replace(/\/$/, '');
+const SUPABASE_WS  = SUPABASE_URL.replace(/^https/, 'wss').replace(/^http/, 'ws');
+
+function buildCsp(nonce: string): string {
+  const isDev = process.env.NODE_ENV === 'development';
+
+  return [
+    `default-src 'self'`,
+    // React dev mode uses eval() for call stack reconstruction — never in production
+    `script-src 'self' 'nonce-${nonce}' 'strict-dynamic'${isDev ? " 'unsafe-eval'" : ''}`,
+    `style-src 'self' 'unsafe-inline'`,
+    `img-src 'self' data: blob: https:`,
+    `font-src 'self' data:`,
+    `connect-src ${["'self'", SUPABASE_URL, SUPABASE_WS].filter(Boolean).join(' ')}`,
+    `frame-ancestors 'none'`,
+    `base-uri 'self'`,
+    `form-action 'self'`,
+    `object-src 'none'`,
+    `upgrade-insecure-requests`,
+  ].join('; ');
+}
+
 export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
+
+  // btoa/crypto are available on the Edge runtime; Buffer is not.
+  const nonce = btoa(crypto.randomUUID());
+  const csp   = buildCsp(nonce);
 
   // ── Resolve tenant subdomain ──────────────────────────────────────────
   const resolution = resolveTenantSubdomain(request);
@@ -34,10 +73,23 @@ export async function proxy(request: NextRequest) {
 
   // ── Build request headers (forwarded to Server Components) ───────────
   const requestHeaders = new Headers(request.headers);
+
+  // Strip any client-supplied tenant header before deriving our own. Without
+  // this, a request to the root domain (where resolution.subdomain is null and
+  // the header below is never set) would pass an attacker-controlled
+  // x-tenant-subdomain straight through to the route handlers, which trust it
+  // as the tenant identity.
+  requestHeaders.delete('x-tenant-subdomain');
+
   requestHeaders.set('x-locale', locale);
   if (resolution.subdomain) {
     requestHeaders.set('x-tenant-subdomain', resolution.subdomain);
   }
+
+  // Next.js parses the CSP from the request header to nonce its own script
+  // tags; x-nonce is what our own inline scripts read via headers().
+  requestHeaders.set('x-nonce', nonce);
+  requestHeaders.set('Content-Security-Policy', csp);
 
   // ── Build mutable response ───────────────────────────────────────────
   let response = NextResponse.next({
@@ -90,6 +142,14 @@ export async function proxy(request: NextRequest) {
     !pathname.startsWith('/auth/verify');
   if (isAuthRoute && user) {
     return NextResponse.redirect(new URL('/dashboard', request.url));
+  }
+
+  // Applied last on purpose: the Supabase cookie setAll() callback above
+  // rebuilds `response`, which discards any header set before it.
+  response.headers.set('Content-Security-Policy', csp);
+  response.headers.set('x-locale', locale);
+  if (resolution.subdomain) {
+    response.headers.set('x-tenant-subdomain', resolution.subdomain);
   }
 
   return response;

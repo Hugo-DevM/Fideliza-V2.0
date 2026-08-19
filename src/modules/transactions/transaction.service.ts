@@ -321,6 +321,7 @@ export async function processTransaction(
           const { data: customer } = await (db2.from('customers') as any)
             .select('name, phone, whatsapp_opt_in')
             .eq('id', input.customer_id)
+            .eq('tenant_id', tenantId)
             .eq('whatsapp_opt_in', true)
             .maybeSingle() as { data: { name: string; phone: string | null } | null };
 
@@ -385,6 +386,7 @@ export async function processTransaction(
         const { data: customer } = await (db2.from('customers') as any)
           .select('name, phone, whatsapp_opt_in')
           .eq('id', input.customer_id)
+          .eq('tenant_id', tenantId)
           .eq('whatsapp_opt_in', true)
           .maybeSingle() as { data: { name: string; phone: string | null; whatsapp_opt_in: boolean } | null };
 
@@ -415,6 +417,7 @@ export async function processTransaction(
         const { data: customer } = await (db2.from('customers') as any)
           .select('name, phone, whatsapp_opt_in')
           .eq('id', input.customer_id)
+          .eq('tenant_id', tenantId)
           .eq('whatsapp_opt_in', true)
           .maybeSingle() as { data: { name: string; phone: string | null } | null };
 
@@ -588,6 +591,7 @@ export async function processTransaction(
             .from('customers')
             .select('name, phone, whatsapp_opt_in')
             .eq('id', input.customer_id)
+            .eq('tenant_id', tenantId)
             .eq('whatsapp_opt_in', true)
             .maybeSingle(),
           db2
@@ -826,8 +830,8 @@ export async function redeemReward(
       const db2 = createServiceRoleClient();
       const [prefs, customerRes, rewardRes] = await Promise.all([
         getNotificationPrefs(tenantId),
-        db2.from('customers').select('name').eq('id', input.customer_id).single(),
-        db2.from('rewards').select('name').eq('id', input.reward_id).single(),
+        db2.from('customers').select('name').eq('id', input.customer_id).eq('tenant_id', tenantId).single(),
+        db2.from('rewards').select('name').eq('id', input.reward_id).eq('tenant_id', tenantId).single(),
       ]);
       if (prefs?.notifyRedemption) {
         await sendRedemptionNotification(

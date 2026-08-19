@@ -267,4 +267,10 @@ export interface PaginatedResponse<T> {
 export interface TenantContext {
   tenantId: UUID;
   subdomain: string;
+  /**
+   * Supabase user id of the authenticated business account.
+   * Present on withTenantContext routes (session required); absent on
+   * withCustomerContext routes, where the access code is the credential.
+   */
+  userId?: UUID;
 }

@@ -25,7 +25,9 @@ export default async function AdminVerifyPage({
         <div className="rounded-2xl bg-white dark:bg-[#0f1222] border border-gray-200 dark:border-[#1e2538] px-6 py-6 shadow-lg">
           {error && (
             <p className="mb-4 rounded-xl bg-red-50 dark:bg-red-500/10 border border-red-100 dark:border-red-500/20 px-4 py-3 text-sm text-red-600 dark:text-red-400">
-              Clave incorrecta.
+              {error === 'rate_limit'
+                ? 'Demasiados intentos. Espera 15 minutos.'
+                : 'Clave incorrecta.'}
             </p>
           )}
 

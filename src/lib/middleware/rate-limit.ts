@@ -116,7 +116,11 @@ async function checkRedis(key: string, max: number, windowMs: number): Promise<R
   };
   } catch (err) {
     console.error('[rate-limit] Redis error, falling back to in-memory:', err);
-    return checkMemory(key, max, windowMs);
+    // Degraded mode: the in-memory window is per serverless instance, so the
+    // effective limit is multiplied by the number of live instances. Tighten
+    // the fallback so a Redis outage cannot be used to widen the limit —
+    // an attacker who can knock out Redis must not also get a free pass.
+    return checkMemory(key, Math.max(1, Math.ceil(max / 4)), windowMs);
   }
 }
 

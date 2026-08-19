@@ -12,6 +12,7 @@
  */
 
 import { NextResponse }          from 'next/server';
+import { isAuthorizedCron }      from '@/lib/auth/cron';
 import { createServiceRoleClient } from '@/lib/supabase/server';
 import { isSendingAllowed }      from '@/lib/whatsapp/quality-gate';
 import { sendTemplateMessage, WhatsAppApiError } from '@/lib/whatsapp/twilio-client';
@@ -50,9 +51,7 @@ function buildComponents(params: Record<string, string>): MetaTemplateComponent[
 
 export async function GET(request: Request) {
   // Verify cron secret
-  const authHeader = request.headers.get('authorization');
-  const cronSecret = process.env.CRON_SECRET;
-  if (!cronSecret || authHeader !== `Bearer ${cronSecret}`) {
+  if (!isAuthorizedCron(request)) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 

@@ -21,6 +21,7 @@
  */
 
 import { NextResponse } from 'next/server';
+import { createServerClient } from '@/lib/supabase/server';
 import { getTenantBySubdomain } from '@/modules/tenants/tenant.repository';
 import { TenantNotFoundError, withErrorHandler } from '@/lib/middleware/errors';
 import {
@@ -113,6 +114,40 @@ export function getClientIp(request: Request): string {
   return '127.0.0.1'; // local dev fallback
 }
 
+// ── Session authorization ─────────────────────────────────────────────
+//
+// Tenant-scoped routes are business/staff endpoints: they require a logged-in
+// Supabase session whose user_metadata.tenant_id matches the tenant resolved
+// from the subdomain. Without this check the subdomain alone would be enough
+// to read and mutate another business's data, since the whole data layer runs
+// on the service-role client and RLS never sees these queries.
+//
+// Customer-facing endpoints (portal, access-code lookup) deliberately have no
+// session — they use withCustomerContext() instead.
+
+type AuthResult =
+  | { ok: true; userId: string }
+  | { ok: false; status: 401 | 403; message: string };
+
+async function authorizeTenantSession(tenantId: string): Promise<AuthResult> {
+  const supabase = await createServerClient();
+  const { data: { user } } = await supabase.auth.getUser();
+
+  if (!user) {
+    return { ok: false, status: 401, message: 'Autenticación requerida.' };
+  }
+
+  const sessionTenantId = user.user_metadata?.tenant_id as string | undefined;
+
+  // Compare against the tenant resolved from the host, so a valid session for
+  // tenant A cannot act on tenant B by switching subdomains.
+  if (!sessionTenantId || sessionTenantId !== tenantId) {
+    return { ok: false, status: 403, message: 'No tienes acceso a este negocio.' };
+  }
+
+  return { ok: true, userId: user.id };
+}
+
 // ── Handler types ─────────────────────────────────────────────────────
 export type RouteContext = { params: Promise<Record<string, string>> };
 
@@ -136,10 +171,13 @@ export const rateLimitKey = {
 
 // ── withTenantContext ─────────────────────────────────────────────────
 /**
- * Wraps a tenant-scoped API route handler.
+ * Wraps a tenant-scoped API route handler. Requires an authenticated
+ * business session belonging to the resolved tenant.
  *
- * - Resolves tenant from x-tenant-subdomain header
+ * - Resolves tenant from x-tenant-subdomain header (set by proxy.ts, which
+ *   strips any client-supplied value first)
  * - Applies rate limiting
+ * - Requires a Supabase session whose tenant_id matches the resolved tenant
  * - Logs the request with structured context
  * - Handles errors uniformly
  *
@@ -154,6 +192,36 @@ export function withTenantContext<T>(
     limiter?: keyof typeof rateLimiters;
     endpoint?: string;
   } = {}
+) {
+  return buildTenantRoute(handler, { ...options, requireSession: true });
+}
+
+/**
+ * Wraps a tenant-scoped route that is intentionally reachable without a
+ * business session — the customer portal and access-code lookup.
+ *
+ * Identical to withTenantContext() except that no Supabase session is
+ * required: the customer's access code is the credential, and the handler
+ * must treat every input as untrusted. Never use this for staff/business
+ * endpoints or for anything that mutates points, rewards or programs.
+ */
+export function withCustomerContext<T>(
+  handler: TenantHandler<T>,
+  options: {
+    limiter?: keyof typeof rateLimiters;
+    endpoint?: string;
+  } = {}
+) {
+  return buildTenantRoute(handler, { ...options, requireSession: false });
+}
+
+function buildTenantRoute<T>(
+  handler: TenantHandler<T>,
+  options: {
+    limiter?: keyof typeof rateLimiters;
+    endpoint?: string;
+    requireSession: boolean;
+  }
 ) {
   return async (request: Request, ctx: RouteContext): Promise<NextResponse> => {
     const requestId = generateRequestId();
@@ -211,8 +279,22 @@ export function withTenantContext<T>(
         );
       }
 
-      // ── 4. Call handler ────────────────────────────────────────────
-      const tenant: TenantContext = { tenantId, subdomain };
+      // ── 4. Session authorization ───────────────────────────────────
+      let userId: string | undefined;
+      if (options.requireSession) {
+        const auth = await authorizeTenantSession(tenantId);
+        if (!auth.ok) {
+          reqLogger.logRequest(auth.status, { requestId, tenantId });
+          return NextResponse.json<ApiResponse<null>>(
+            { data: null, error: auth.message },
+            { status: auth.status }
+          );
+        }
+        userId = auth.userId;
+      }
+
+      // ── 5. Call handler ────────────────────────────────────────────
+      const tenant: TenantContext = { tenantId, subdomain, userId };
       const response = await handler(request, ctx, tenant);
 
       // Attach tracing + CORS headers

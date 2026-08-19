@@ -1,0 +1,151 @@
+LICENCIA DE SOFTWARE PROPIETARIO
+PROPRIETARY SOFTWARE LICENSE
+
+Copyright (c) 2026 HAMCSoft. Todos los derechos reservados.
+Copyright (c) 2026 HAMCSoft. All rights reserved.
+
+================================================================================
+ESPAÑOL
+================================================================================
+
+1. TITULARIDAD
+
+   Fideliza, incluyendo su código fuente, diseño, arquitectura, documentación,
+   bases de datos, interfaces, marca y logotipos (en adelante, "el Software"),
+   es propiedad exclusiva de HAMCSoft.
+
+2. AUSENCIA DE LICENCIA
+
+   NO se concede licencia, permiso ni derecho alguno sobre el Software.
+
+   El hecho de que este repositorio sea accesible públicamente NO constituye
+   una licencia de uso, ni una renuncia a derecho alguno, ni coloca al
+   Software en el dominio público. La visibilidad del código responde
+   únicamente a fines de portafolio profesional, auditoría y transparencia.
+
+3. USOS PROHIBIDOS
+
+   Sin autorización previa, expresa y por escrito de HAMCSoft, queda
+   prohibido, de forma total o parcial:
+
+   a) Usar el Software con cualquier fin, comercial o no comercial.
+   b) Copiar, reproducir o descargar el Software salvo la copia técnica
+      temporal que realiza el navegador al visualizar el repositorio.
+   c) Modificar, adaptar, traducir o crear obras derivadas.
+   d) Distribuir, publicar, sublicenciar, vender, arrendar o transferir.
+   e) Desplegar, alojar u operar el Software, o cualquier obra derivada,
+      como servicio propio o de terceros.
+   f) Realizar ingeniería inversa sobre los componentes compilados.
+   g) Retirar o alterar los avisos de copyright, titularidad o esta licencia.
+   h) Utilizar el Software, en todo o en parte, como material de
+      entrenamiento para modelos de aprendizaje automático o sistemas de
+      inteligencia artificial.
+
+4. PERMITIDO
+
+   Se permite únicamente leer y visualizar el código fuente con fines de
+   evaluación profesional, revisión de seguridad o referencia académica,
+   siempre que no se realice ninguno de los actos de la cláusula 3.
+
+5. MARCAS
+
+   "Fideliza", "HAMCSoft", sus logotipos e identidad visual son marcas de
+   HAMCSoft. Esta licencia no concede derecho alguno sobre ellas.
+
+6. COMPONENTES DE TERCEROS
+
+   El Software incorpora bibliotecas de terceros, cada una sujeta a su propia
+   licencia. Esta licencia aplica exclusivamente al código original de
+   HAMCSoft y no modifica, restringe ni sustituye los términos de dichas
+   bibliotecas, cuyos titulares conservan sus respectivos derechos.
+
+7. AUSENCIA DE GARANTÍA
+
+   EL SOFTWARE SE PROPORCIONA "TAL CUAL", SIN GARANTÍA DE NINGÚN TIPO,
+   EXPRESA O IMPLÍCITA, INCLUYENDO SIN LIMITACIÓN LAS GARANTÍAS DE
+   COMERCIABILIDAD, IDONEIDAD PARA UN FIN PARTICULAR Y NO INFRACCIÓN. EN
+   NINGÚN CASO HAMCSoft SERÁ RESPONSABLE POR RECLAMACIÓN, DAÑO U OTRA
+   RESPONSABILIDAD DERIVADA DEL SOFTWARE O DE SU USO.
+
+8. INCUMPLIMIENTO
+
+   Cualquier uso no autorizado constituye una infracción a los derechos de
+   autor y será perseguido conforme a la Ley Federal del Derecho de Autor de
+   los Estados Unidos Mexicanos y los tratados internacionales aplicables.
+
+9. LICENCIAMIENTO COMERCIAL
+
+   Para solicitar una licencia de uso, contactar a HAMCSoft.
+
+================================================================================
+ENGLISH
+================================================================================
+
+1. OWNERSHIP
+
+   Fideliza, including its source code, design, architecture, documentation,
+   databases, interfaces, brand and logos (the "Software"), is the exclusive
+   property of HAMCSoft.
+
+2. NO LICENSE GRANTED
+
+   NO license, permission or right of any kind is granted in the Software.
+
+   Public accessibility of this repository does NOT constitute a license, a
+   waiver of any right, or a dedication of the Software to the public domain.
+   The source is visible solely for professional portfolio, audit and
+   transparency purposes.
+
+3. PROHIBITED USES
+
+   Without HAMCSoft's prior express written authorization, the following are
+   prohibited in whole or in part:
+
+   a) Using the Software for any purpose, commercial or non-commercial.
+   b) Copying, reproducing or downloading the Software, except for the
+      temporary technical copy made by a browser when viewing the repository.
+   c) Modifying, adapting, translating or creating derivative works.
+   d) Distributing, publishing, sublicensing, selling, leasing or
+      transferring it.
+   e) Deploying, hosting or operating the Software, or any derivative work,
+      as a service for oneself or for third parties.
+   f) Reverse engineering any compiled components.
+   g) Removing or altering copyright, ownership or license notices.
+   h) Using the Software, in whole or in part, as training material for
+      machine learning models or artificial intelligence systems.
+
+4. PERMITTED
+
+   Reading and viewing the source code is permitted solely for professional
+   evaluation, security review or academic reference, provided that none of
+   the acts in Section 3 are performed.
+
+5. TRADEMARKS
+
+   "Fideliza", "HAMCSoft", their logos and visual identity are trademarks of
+   HAMCSoft. This license grants no rights in them.
+
+6. THIRD-PARTY COMPONENTS
+
+   The Software incorporates third-party libraries, each subject to its own
+   license. This license applies exclusively to HAMCSoft's original code and
+   does not modify, restrict or supersede the terms of those libraries, whose
+   owners retain their respective rights.
+
+7. NO WARRANTY
+
+   THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+   IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+   FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
+   HAMCSoft BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY ARISING FROM
+   THE SOFTWARE OR ITS USE.
+
+8. ENFORCEMENT
+
+   Any unauthorized use constitutes copyright infringement and will be
+   prosecuted under the Federal Copyright Law of the United Mexican States
+   and applicable international treaties.
+
+9. COMMERCIAL LICENSING
+
+   To request a license, contact HAMCSoft.

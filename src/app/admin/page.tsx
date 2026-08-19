@@ -9,6 +9,7 @@
 import { redirect } from 'next/navigation';
 import { cookies } from 'next/headers';
 import { createServerClient, createServiceRoleClient } from '@/lib/supabase/server';
+import { ADMIN_COOKIE_NAME, verifyAdminSessionToken } from '@/lib/auth/admin-session';
 import { getEffectivePlan } from '@/lib/config/plans';
 import TicketReplyForm from './TicketReplyForm';
 
@@ -39,9 +40,8 @@ export default async function AdminPage() {
 
   // ── Second factor: clave secreta ─────────────────────────────────────
   const jar = await cookies();
-  const verified = jar.get('admin_verified')?.value;
-  const adminSecret = process.env.ADMIN_SECRET;
-  if (!adminSecret || verified !== adminSecret) {
+  const token = jar.get(ADMIN_COOKIE_NAME)?.value;
+  if (!verifyAdminSessionToken(token, process.env.ADMIN_SECRET)) {
     redirect('/admin/verify');
   }
 

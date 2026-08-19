@@ -12,11 +12,11 @@
  */
 
 import { NextResponse } from 'next/server';
-import { withTenantContext, type RouteContext } from '@/lib/middleware/api-context';
+import { withCustomerContext, type RouteContext } from '@/lib/middleware/api-context';
 import { lookupCustomerByCode } from '@/modules/customers';
 import type { ApiResponse, Customer, CustomerProgramEnrollment } from '@/lib/types';
 
-export const GET = withTenantContext<{
+export const GET = withCustomerContext<{
   customer: Customer;
   enrollments: CustomerProgramEnrollment[];
 }>(

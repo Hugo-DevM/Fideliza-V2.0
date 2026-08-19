@@ -1,13 +1,17 @@
 /**
  * GET /api/portal?code=XXXX-XXXX[&sig=HEX&exp=UNIX]
  *
- * Customer-facing portal data endpoint. No authentication required.
- * The access code is the customer's credential.
+ * Customer-facing portal data endpoint. No business session required —
+ * the access code is the customer's credential (withCustomerContext).
  *
- * Optional signed URL support:
- *   If ?sig and ?exp are present the signature is verified with HMAC-SHA256.
- *   A failed signature or expired URL returns 401. If sig/exp are absent
- *   the plain code lookup is used (no expiry enforcement).
+ * Signed URL support:
+ *   When PORTAL_SIGNING_SECRET is configured, ?sig and ?exp are MANDATORY and
+ *   verified with HMAC-SHA256. Previously they were optional, which meant an
+ *   attacker could strip both params to skip verification entirely and use a
+ *   code with no expiry — the signature enforced nothing. Whether signing is
+ *   required is now a server-side decision the caller cannot influence.
+ *
+ *   With no secret configured the endpoint falls back to plain code lookup.
  *
  * Security guarantees:
  *   - Rate limited: 20 requests/min per tenant per IP (brute-force protection)
@@ -19,13 +23,13 @@
  */
 
 import { NextResponse } from 'next/server';
-import { withTenantContext, type RouteContext } from '@/lib/middleware/api-context';
+import { withCustomerContext, type RouteContext } from '@/lib/middleware/api-context';
 import { getPortalData } from '@/modules/portal';
 import { verifyPortalSignature } from '@/lib/utils/crypto';
 import type { ApiResponse } from '@/lib/types';
 import type { PortalData } from '@/modules/portal';
 
-export const GET = withTenantContext<PortalData>(
+export const GET = withCustomerContext<PortalData>(
   async (request, _ctx: RouteContext, tenant) => {
     const url = new URL(request.url);
     const code = url.searchParams.get('code')?.toUpperCase().trim();
@@ -39,14 +43,16 @@ export const GET = withTenantContext<PortalData>(
       );
     }
 
-    // ── Signature verification (optional) ────────────────────────────
-    // Only enforced when both sig and exp are present in the URL.
-    // Allows the business to issue time-limited QR codes for campaigns.
-    if (sig !== null || exp !== null) {
+    // ── Signature verification ───────────────────────────────────────
+    // Required whenever the server is configured for signed URLs. The client
+    // cannot opt out by omitting the params — that was the previous bypass.
+    const secret = process.env.PORTAL_SIGNING_SECRET;
+
+    if (secret) {
       if (!sig || !exp) {
         return NextResponse.json<ApiResponse<null>>(
-          { data: null, error: 'Los parámetros sig y exp son requeridos para URLs firmadas.' },
-          { status: 400 }
+          { data: null, error: 'Este enlace es inválido. Solicita uno nuevo al negocio.' },
+          { status: 401 }
         );
       }
 
@@ -58,15 +64,6 @@ export const GET = withTenantContext<PortalData>(
         );
       }
 
-      const secret = process.env.PORTAL_SIGNING_SECRET;
-      if (!secret) {
-        // Server is not configured for signed URLs — reject to avoid bypass
-        return NextResponse.json<ApiResponse<null>>(
-          { data: null, error: 'Las URLs firmadas no están habilitadas en este servidor.' },
-          { status: 501 }
-        );
-      }
-
       const valid = await verifyPortalSignature(code, sig, expNum, secret);
       if (!valid) {
         return NextResponse.json<ApiResponse<null>>(
@@ -74,6 +71,13 @@ export const GET = withTenantContext<PortalData>(
           { status: 401 }
         );
       }
+    } else if (sig !== null || exp !== null) {
+      // Signed link presented to a server that cannot verify it — reject
+      // rather than silently downgrading to plain code lookup.
+      return NextResponse.json<ApiResponse<null>>(
+        { data: null, error: 'Las URLs firmadas no están habilitadas en este servidor.' },
+        { status: 501 }
+      );
     }
 
     // ── Data fetch ────────────────────────────────────────────────────

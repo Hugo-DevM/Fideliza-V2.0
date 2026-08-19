@@ -10,7 +10,7 @@ function subscribeToConsent(onChange: () => void) {
   return () => window.removeEventListener('cookie_consent_accepted', onChange);
 }
 
-export function MetaPixel() {
+export function MetaPixel({ nonce }: { nonce?: string }) {
   // External store: localStorage consent flag, updated via the
   // 'cookie_consent_accepted' event dispatched by CookieBanner.
   // Server snapshot is false so nothing renders during SSR.
@@ -24,7 +24,7 @@ export function MetaPixel() {
 
   return (
     <>
-      <Script id="meta-pixel" strategy="afterInteractive">{`
+      <Script id="meta-pixel" strategy="afterInteractive" nonce={nonce}>{`
         !function(f,b,e,v,n,t,s)
         {if(f.fbq)return;n=f.fbq=function(){n.callMethod?
         n.callMethod.apply(n,arguments):n.queue.push(arguments)};

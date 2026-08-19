@@ -48,6 +48,19 @@ export function generateAccessCode(): string {
 }
 
 /**
+ * Generates a customer referral code.
+ * Format: XXXXXX (6 chars, no ambiguous characters)
+ *
+ * Uses the CSPRNG rather than Math.random(): referral codes are shared
+ * publicly and grant a bonus on signup, so predictable codes let someone
+ * enumerate other customers' codes and farm referral rewards.
+ */
+export function generateReferralCode(): string {
+  // bytesToString emits one char per input byte
+  return bytesToString(randomBytes(6), CHARSET);
+}
+
+/**
  * Generates a staff-facing redemption code.
  * Format: XXXX-XXX (7 chars, prefixed with a 4-char tenant hint)
  * Example: "BREW-XK3-72F"
