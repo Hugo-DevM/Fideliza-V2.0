@@ -7,12 +7,20 @@
  * entre base y memoria daría totales que no cuadran con la lista.
  */
 
+import Link from 'next/link';
 import { createServiceRoleClient } from '@/lib/supabase/server';
 import { getEffectivePlan } from '@/lib/config/plans';
 import TenantHelpForm from './TenantHelpForm';
 
 /** Tope de seguridad: el panel es una vista de operación, no un export. */
 const TENANT_LIMIT = 500;
+
+/**
+ * Filas por página. Se traen las 500 y se pagina el render, no la consulta:
+ * las métricas de arriba y el "sin clientes" se calculan sobre el total, así
+ * que recortar en la base daría números distintos en cada página.
+ */
+const PAGE_SIZE = 25;
 
 const TENANT_COLUMNS =
   'id, name, subdomain, email, plan, subscription_status, is_active, deleted_at, created_at';
@@ -59,6 +67,8 @@ export interface TenantFilters {
   q:    string;
   plan: string;
   uso:  string;
+  /** 1-indexada. El formulario de filtros no la envía, así que filtrar reinicia a 1. */
+  page: number;
 }
 
 function formatDate(iso: string): string {
@@ -140,6 +150,25 @@ export default async function TenantsSection({ filters }: { filters: TenantFilte
     return true;
   });
 
+  // ── Paginación ────────────────────────────────────────────────────────
+  const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
+  // Se acota en vez de dar 404: cambiar de filtro estando en la página 7
+  // dejaría la URL apuntando a una página que ya no existe.
+  const page    = Math.min(Math.max(filters.page, 1), totalPages);
+  const start   = (page - 1) * PAGE_SIZE;
+  const visible = filtered.slice(start, start + PAGE_SIZE);
+
+  /** Conserva los filtros al cambiar de página; omite lo que está en su valor por defecto. */
+  const pageHref = (n: number) => {
+    const params = new URLSearchParams();
+    if (filters.q)              params.set('q', filters.q);
+    if (filters.plan !== 'todos') params.set('plan', filters.plan);
+    if (filters.uso  !== 'todos') params.set('uso',  filters.uso);
+    if (n > 1)                    params.set('p',    String(n));
+    const qs = params.toString();
+    return qs ? `/admin?${qs}` : '/admin';
+  };
+
   const inputClass =
     'rounded-lg border border-gray-200 dark:border-[#2a3147] bg-white dark:bg-[#161b2e] px-3 py-1.5 text-sm text-gray-900 dark:text-white placeholder:text-gray-400';
 
@@ -162,8 +191,11 @@ export default async function TenantsSection({ filters }: { filters: TenantFilte
           <div className="flex items-baseline justify-between gap-3">
             <h2 className="text-base font-semibold text-gray-900 dark:text-white">Negocios</h2>
             <span className="text-xs text-gray-400">
-              {filtered.length} de {tenants.length}
-              {tenants.length >= TENANT_LIMIT && ` (tope ${TENANT_LIMIT})`}
+              {totalPages > 1
+                ? `${start + 1}–${start + visible.length} de ${filtered.length}`
+                : `${filtered.length} ${filtered.length === 1 ? 'negocio' : 'negocios'}`}
+              {filtered.length !== tenants.length && ` · ${tenants.length} en total`}
+              {tenants.length >= TENANT_LIMIT && ` · tope ${TENANT_LIMIT}`}
             </span>
           </div>
 
@@ -209,7 +241,7 @@ export default async function TenantsSection({ filters }: { filters: TenantFilte
           </p>
         ) : (
           <div className="divide-y divide-gray-100 dark:divide-[#1e2538]">
-            {filtered.map((t) => (
+            {visible.map((t) => (
               <div key={t.id} className="px-6 py-4 space-y-2">
                 <div className="flex flex-wrap items-start justify-between gap-3">
                   <div className="min-w-0">
@@ -263,8 +295,44 @@ export default async function TenantsSection({ filters }: { filters: TenantFilte
             ))}
           </div>
         )}
+
+        {totalPages > 1 && (
+          <div className="flex items-center justify-between gap-3 border-t border-gray-100 dark:border-[#1e2538] px-6 py-3">
+            <PageLink href={pageHref(page - 1)} disabled={page === 1}>← Anteriores</PageLink>
+            <span className="text-xs text-gray-400">Página {page} de {totalPages}</span>
+            <PageLink href={pageHref(page + 1)} disabled={page === totalPages}>Siguientes →</PageLink>
+          </div>
+        )}
       </section>
     </>
+  );
+}
+
+/** En el extremo se renderiza como <span>: un enlace muerto no debe ser enfocable. */
+function PageLink({
+  href, disabled, children,
+}: {
+  href:     string;
+  disabled: boolean;
+  children: React.ReactNode;
+}) {
+  const base = 'rounded-lg border px-3 py-1.5 text-xs font-semibold transition';
+
+  if (disabled) {
+    return (
+      <span className={`${base} border-gray-100 dark:border-[#1e2538] text-gray-300 dark:text-gray-600`}>
+        {children}
+      </span>
+    );
+  }
+
+  return (
+    <Link
+      href={href}
+      className={`${base} border-gray-200 dark:border-[#2a3147] text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-[#161b2e] hover:text-gray-900 dark:hover:text-white`}
+    >
+      {children}
+    </Link>
   );
 }
 
