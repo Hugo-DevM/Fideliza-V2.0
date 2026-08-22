@@ -43,6 +43,7 @@ export const dashboardEn: DashboardDictionary = {
     closeMenu:  'Close menu',
     logout:     'Log out',
     planActive: 'active',
+    adminPanel: 'Admin panel',
   },
   settings: {
     breadcrumb: 'Account',

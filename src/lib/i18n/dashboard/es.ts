@@ -41,6 +41,7 @@ export const dashboardEs = {
     closeMenu:   'Cerrar menú',
     logout:      'Cerrar sesión',
     planActive:  'activo',
+    adminPanel:  'Panel de administración',
   },
   settings: {
     breadcrumb: 'Cuenta',

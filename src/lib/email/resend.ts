@@ -19,6 +19,8 @@ import { redemptionAlertTemplate }   from './templates/redemption-alert';
 import { weeklyDigestTemplate, type WeeklyDigestStats } from './templates/weekly-digest';
 import { welcomeTenantTemplate }     from './templates/welcome-tenant';
 import { queueStuckAlertTemplate }   from './templates/queue-stuck-alert';
+import { adminHelpTemplate }         from './templates/admin-help';
+import { newTenantAlertTemplate }    from './templates/new-tenant-alert';
 
 function getResendClient(): Resend {
   const key = process.env.RESEND_API_KEY;
@@ -184,6 +186,62 @@ export async function sendWelcomeTenantEmail(
       to,
       subject: `¡Bienvenido a Fideliza, ${businessName}!`,
       html:    welcomeTenantTemplate(businessName, emailVerified),
+    });
+  } catch { /* best-effort — never blocks account creation */ }
+}
+
+/**
+ * Correo de ayuda que el administrador escribe desde /admin hacia un negocio.
+ *
+ * A diferencia de casi todo lo demás en este archivo, ESTE LANZA en caso de
+ * error: lo dispara una persona que está mirando la pantalla y necesita saber
+ * si salió o no. Fallar en silencio la dejaría creyendo que ya contactó a un
+ * negocio que nunca recibió nada.
+ *
+ * replyTo apunta a ADMIN_EMAIL — el remitente es un noreply, así que sin esto
+ * el "Responde este correo y te ayudamos" del pie sería mentira.
+ */
+export async function sendAdminHelpEmail(
+  to: string,
+  businessName: string,
+  subject: string,
+  message: string,
+): Promise<void> {
+  const resend = getResendClient();
+  const adminEmail = process.env.ADMIN_EMAIL;
+
+  const { error } = await resend.emails.send({
+    from:    getFromAddress(),
+    to,
+    subject,
+    html:    adminHelpTemplate(businessName, message),
+    ...(adminEmail ? { replyTo: adminEmail } : {}),
+  });
+  if (error) throw new Error(`Resend: ${error.message}`);
+}
+
+/**
+ * Avisa a ADMIN_EMAIL cuando se da de alta un negocio nuevo.
+ * Best-effort — el alta jamás debe depender de que este correo salga.
+ */
+export async function sendNewTenantAlert(params: {
+  businessName: string;
+  subdomain:    string;
+  email:        string;
+  plan:         string;
+  createdAt:    string;
+}): Promise<void> {
+  const adminEmail = process.env.ADMIN_EMAIL;
+  if (!adminEmail) return;
+
+  try {
+    const resend = getResendClient();
+    await resend.emails.send({
+      from:    getFromAddress(),
+      to:      adminEmail,
+      subject: `🎉 Nuevo negocio en Fideliza: ${params.businessName}`,
+      html:    newTenantAlertTemplate(params),
+      replyTo: params.email,
     });
   } catch { /* best-effort — never blocks account creation */ }
 }

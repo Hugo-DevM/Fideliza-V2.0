@@ -19,6 +19,11 @@ export interface AuthenticatedContext {
   tenantId: string;
   tenant: Tenant;
   settings: TenantSettings;
+  /**
+   * Correo de la cuenta de Supabase — no el de contacto del negocio
+   * (tenant.email), que puede ser otro. Se usa para reconocer a ADMIN_EMAIL.
+   */
+  userEmail: string | null;
   /** The plan limits after accounting for subscription status. */
   planLimits: PlanLimits;
   /** The effective plan string (may differ from tenant.plan if subscription is past_due/canceled). */
@@ -66,5 +71,12 @@ export const getAuthenticatedTenant = cache(async (): Promise<AuthenticatedConte
   const effectivePlan = getEffectivePlanFromTenant(tenant!);
   const planLimits    = getPlanLimits(effectivePlan);
 
-  return { tenantId, tenant: tenant!, settings: settings!, planLimits, effectivePlan };
+  return {
+    tenantId,
+    tenant: tenant!,
+    settings: settings!,
+    userEmail: user.email ?? null,
+    planLimits,
+    effectivePlan,
+  };
 });

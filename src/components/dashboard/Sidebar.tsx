@@ -10,6 +10,8 @@ import { useDashboardI18n } from '@/lib/i18n/dashboard-context';
 interface SidebarProps {
   tenantName: string;
   tenantPlan?: string;
+  /** Solo la cuenta de ADMIN_EMAIL — muestra el acceso a /admin. */
+  isAdmin?: boolean;
   isOpen?: boolean;
   onClose?: () => void;
 }
@@ -43,7 +45,7 @@ const NAV_STRUCTURE = [
   },
 ];
 
-export default function Sidebar({ tenantName, tenantPlan, isOpen = false, onClose }: SidebarProps) {
+export default function Sidebar({ tenantName, tenantPlan, isAdmin = false, isOpen = false, onClose }: SidebarProps) {
   const pathname = usePathname();
   const router   = useRouter();
   const { t }    = useDashboardI18n();
@@ -134,8 +136,23 @@ export default function Sidebar({ tenantName, tenantPlan, isOpen = false, onClos
         ))}
       </nav>
 
-      {/* Footer: tenant info + logout */}
+      {/* Footer: acceso admin (solo dueño del SaaS) + tenant info + logout */}
       <div className="border-t border-gray-100 dark:border-[#1e2438] p-3 space-y-1">
+        {isAdmin && (
+          // Fuera de NAV_STRUCTURE a propósito: no es una sección del negocio,
+          // es salir de él. Sin prefetch porque /admin es dinámica y además
+          // rebota a /admin/verify — precargarla en cada hover no sirve de nada.
+          <Link
+            href="/admin"
+            onClick={onClose}
+            prefetch={false}
+            className="flex items-center gap-3 rounded-xl border border-indigo-100 dark:border-indigo-500/25 bg-indigo-50/60 dark:bg-indigo-500/10 px-3 py-2 text-sm font-semibold text-indigo-700 dark:text-indigo-300 transition hover:bg-indigo-100 dark:hover:bg-indigo-500/20"
+          >
+            <ShieldIcon className="h-4 w-4 shrink-0" />
+            {t.sidebar.adminPanel}
+          </Link>
+        )}
+
         <div className="flex items-center gap-3 rounded-xl px-3 py-2">
           <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-indigo-100 dark:bg-indigo-500/20 text-indigo-700 dark:text-indigo-300 text-xs font-bold">
             {initials}
@@ -216,6 +233,15 @@ function LogoutIcon({ className }: { className?: string }) {
   return (
     <svg className={className} fill="none" stroke="currentColor" strokeWidth={1.8} viewBox="0 0 24 24">
       <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0 0 13.5 3h-6a2.25 2.25 0 0 0-2.25 2.25v13.5A2.25 2.25 0 0 0 7.5 21h6a2.25 2.25 0 0 0 2.25-2.25V15m3 0 3-3m0 0-3-3m3 3H9" />
+    </svg>
+  );
+}
+
+// Mismo escudo que encabeza /admin — el enlace y su destino se reconocen igual.
+function ShieldIcon({ className }: { className?: string }) {
+  return (
+    <svg className={className} fill="none" stroke="currentColor" strokeWidth={1.8} viewBox="0 0 24 24">
+      <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75 11.25 15 15 9.75m-3-7.036A11.959 11.959 0 0 1 3.598 6 11.99 11.99 0 0 0 3 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285Z" />
     </svg>
   );
 }

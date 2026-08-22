@@ -1,6 +1,11 @@
 'use client';
 
 import { createBrowserClient } from '@supabase/ssr';
+import {
+  POST_AUTH_NEXT_COOKIE,
+  POST_AUTH_NEXT_MAX_AGE,
+  sanitizeNext,
+} from '@/lib/auth/post-auth-redirect';
 
 export default function GoogleAuthButton({ label = 'Continuar con Google' }: { label?: string }) {
   const supabase = createBrowserClient(
@@ -9,6 +14,18 @@ export default function GoogleAuthButton({ label = 'Continuar con Google' }: { l
   );
 
   async function handleClick() {
+    // Sin esto, entrar por Google desde /auth/login?next=/admin acababa
+    // siempre en /dashboard: el `next` de la URL no sobrevivía el viaje a
+    // Google. Se lee de window y no con useSearchParams porque estamos
+    // dentro del handler — no hace falta suspender el render por esto.
+    const raw = new URLSearchParams(window.location.search).get('next');
+    if (raw && sanitizeNext(raw) === raw) {
+      const secure = window.location.protocol === 'https:' ? '; secure' : '';
+      document.cookie =
+        `${POST_AUTH_NEXT_COOKIE}=${encodeURIComponent(raw)}` +
+        `; path=/; max-age=${POST_AUTH_NEXT_MAX_AGE}; samesite=lax${secure}`;
+    }
+
     await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: {

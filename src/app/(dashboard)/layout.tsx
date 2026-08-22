@@ -10,7 +10,13 @@ export default async function DashboardLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const { tenant, settings } = await getAuthenticatedTenant();
+  const { tenant, settings, userEmail } = await getAuthenticatedTenant();
+
+  // Mismo criterio exacto que el guard de /admin: si aquí fuera más laxo, el
+  // enlace aparecería para alguien a quien /admin rebotaría al login.
+  const adminEmail = process.env.ADMIN_EMAIL;
+  const isAdmin = !!adminEmail && userEmail === adminEmail;
+
   const db = createServiceRoleClient();
   const alerts = await getAlerts(tenant.id).catch((err) => { console.error('[dashboard] getAlerts failed:', err); return []; });
 
@@ -37,6 +43,7 @@ export default async function DashboardLayout({
       tenantPlan={tenant.plan}
       timezone={settings.timezone ?? 'America/Mexico_City'}
       alerts={alerts}
+      isAdmin={isAdmin}
     >
       <SubscriptionBanner
         subscriptionStatus={tenant.subscription_status}

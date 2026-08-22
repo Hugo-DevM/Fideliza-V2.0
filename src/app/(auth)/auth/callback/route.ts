@@ -9,40 +9,37 @@
  * The app uses a custom password reset flow (tokens in DB + Resend emails).
  * See /api/auth/request-password-reset and /api/auth/reset-password.
  *
- * The `next` query param controls the post-auth redirect (default /dashboard).
+ * El destino post-login sale de la cookie POST_AUTH_NEXT_COOKIE (la pone
+ * GoogleAuthButton antes de salir a Google) o, si no está, del query param
+ * `next`. Por defecto /dashboard.
  */
 
 import { NextResponse } from 'next/server';
 import { createServerClient as createSupabaseServerClient } from '@supabase/ssr';
 import { cookies } from 'next/headers';
 import type { EmailOtpType } from '@supabase/supabase-js';
-
-/**
- * Sanitizes the `next` redirect param to prevent open-redirect attacks.
- * Accepts only relative paths that start with "/" but NOT "//" (protocol-relative).
- * Also rejects paths containing "\" or ":" (scheme injection).
- */
-function sanitizeNext(raw: string | null): string {
-  if (
-    raw &&
-    raw.startsWith('/') &&
-    !raw.startsWith('//') &&
-    !raw.includes('\\') &&
-    !raw.includes(':')
-  ) {
-    return raw;
-  }
-  return '/dashboard';
-}
+import { POST_AUTH_NEXT_COOKIE, sanitizeNext } from '@/lib/auth/post-auth-redirect';
 
 export async function GET(request: Request) {
   const { searchParams, origin } = new URL(request.url);
   const code      = searchParams.get('code');
   const tokenHash = searchParams.get('token_hash');
   const type      = searchParams.get('type') as EmailOtpType | null;
-  const next      = sanitizeNext(searchParams.get('next'));
 
   const cookieStore = await cookies();
+
+  // La cookie manda sobre el query param: es la única vía por la que el
+  // destino sobrevive la ida y vuelta a Google (ver post-auth-redirect.ts).
+  // Se quema aquí mismo — es de un solo uso, y si no se borra el siguiente
+  // login del mismo navegador heredaría el destino de este.
+  const cookieNext = cookieStore.get(POST_AUTH_NEXT_COOKIE)?.value;
+  if (cookieNext) cookieStore.delete(POST_AUTH_NEXT_COOKIE);
+
+  const next = sanitizeNext(
+    cookieNext ? decodeURIComponent(cookieNext) : searchParams.get('next')
+  );
+
+  const leave = (path: string) => NextResponse.redirect(`${origin}${path}`);
 
   const supabase = createSupabaseServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -66,16 +63,15 @@ export async function GET(request: Request) {
       const isOAuth = data.user.app_metadata?.provider !== 'email';
       const hasTenant = !!data.user.user_metadata?.tenant_id;
 
-      // OAuth user already onboarded → dashboard
-      if (isOAuth && hasTenant) {
-        return NextResponse.redirect(`${origin}/dashboard`);
-      }
-      // OAuth new user → onboarding
+      // OAuth new user → onboarding. /admin es la excepción: no depende de un
+      // tenant, y mandar al dueño del SaaS a inventarse un negocio para entrar
+      // a su propio panel no tiene sentido.
       if (isOAuth && !hasTenant) {
-        return NextResponse.redirect(`${origin}/auth/onboard`);
+        return leave(next === '/admin' ? '/admin' : '/auth/onboard');
       }
-      // Email/magic-link flows → use next param
-      return NextResponse.redirect(`${origin}${next}`);
+      // Resto de flujos (OAuth ya dado de alta, magic link, email) → `next`,
+      // que por defecto ya es /dashboard.
+      return leave(next);
     }
   }
 
@@ -83,9 +79,9 @@ export async function GET(request: Request) {
   if (tokenHash && type) {
     const { error } = await supabase.auth.verifyOtp({ token_hash: tokenHash, type });
     if (!error) {
-      return NextResponse.redirect(`${origin}${next}`);
+      return leave(next);
     }
   }
 
-  return NextResponse.redirect(`${origin}/auth/login?error=auth_failed`);
+  return leave('/auth/login?error=auth_failed');
 }

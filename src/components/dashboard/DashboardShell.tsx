@@ -30,6 +30,8 @@ interface DashboardShellProps {
   tenantPlan?: string;
   timezone: string;
   alerts?: AlertItem[];
+  /** Solo para la cuenta de ADMIN_EMAIL — muestra el acceso a /admin. */
+  isAdmin?: boolean;
   children: React.ReactNode;
 }
 
@@ -41,7 +43,7 @@ export default function DashboardShell(props: DashboardShellProps) {
   );
 }
 
-function DashboardShellContent({ tenantName, tenantPlan, alerts = [], children }: DashboardShellProps) {
+function DashboardShellContent({ tenantName, tenantPlan, alerts = [], isAdmin = false, children }: DashboardShellProps) {
   const { t } = useDashboardI18n();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const pathname = usePathname();
@@ -88,6 +90,7 @@ function DashboardShellContent({ tenantName, tenantPlan, alerts = [], children }
       <Sidebar
         tenantName={tenantName}
         tenantPlan={tenantPlan}
+        isAdmin={isAdmin}
         isOpen={sidebarOpen}
         onClose={() => setSidebarOpen(false)}
       />

@@ -2,16 +2,18 @@
  * Admin panel — /admin
  *
  * Only accessible to the email set in ADMIN_EMAIL env var.
- * Shows support tickets from all tenants (Pro first — priority support)
- * + pending bonus credits overview.
+ * Shows the tenant roster (plan + usage, with a per-tenant help email)
+ * and support tickets from all tenants (Pro first — priority support).
  */
 
+import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { cookies } from 'next/headers';
 import { createServerClient, createServiceRoleClient } from '@/lib/supabase/server';
 import { ADMIN_COOKIE_NAME, verifyAdminSessionToken } from '@/lib/auth/admin-session';
 import { getEffectivePlan } from '@/lib/config/plans';
 import TicketReplyForm from './TicketReplyForm';
+import TenantsSection from './TenantsSection';
 
 export const dynamic = 'force-dynamic';
 export const metadata = { title: 'Admin — Fideliza' };
@@ -28,7 +30,18 @@ const STATUS_COLORS: Record<string, string> = {
   resolved:    'bg-green-50 text-green-700 dark:bg-green-500/15 dark:text-green-400',
 };
 
-export default async function AdminPage() {
+export default async function AdminPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ q?: string; plan?: string; uso?: string }>;
+}) {
+  const sp = await searchParams;
+  const filters = {
+    q:    (sp.q ?? '').trim().slice(0, 60),
+    plan: sp.plan ?? 'todos',
+    uso:  sp.uso  ?? 'todos',
+  };
+
   // ── Auth guard ────────────────────────────────────────────────────────
   const supabase = await createServerClient();
   const { data: { user } } = await supabase.auth.getUser();
@@ -96,25 +109,37 @@ export default async function AdminPage() {
     <div className="min-h-screen bg-gray-50 dark:bg-[#07090f] p-6 space-y-6">
       <div className="max-w-5xl mx-auto space-y-6">
         {/* Header */}
-        <div className="flex items-center gap-3">
-          <div className="h-8 w-8 rounded-xl bg-indigo-600 flex items-center justify-center">
-            <svg className="h-4 w-4 text-white" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75 11.25 15 15 9.75m-3-7.036A11.959 11.959 0 0 1 3.598 6 11.99 11.99 0 0 0 3 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285Z" />
-            </svg>
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div className="flex items-center gap-3">
+            <div className="h-8 w-8 rounded-xl bg-indigo-600 flex items-center justify-center">
+              <svg className="h-4 w-4 text-white" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75 11.25 15 15 9.75m-3-7.036A11.959 11.959 0 0 1 3.598 6 11.99 11.99 0 0 0 3 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285Z" />
+              </svg>
+            </div>
+            <h1 className="text-xl font-bold text-gray-900 dark:text-white">Panel de administración</h1>
           </div>
-          <h1 className="text-xl font-bold text-gray-900 dark:text-white">Panel de administración</h1>
+
+          {/* Vuelta al negocio: /admin vive fuera del layout del dashboard, así
+              que sin esto la única salida es teclear la URL. */}
+          <Link
+            href="/dashboard"
+            className="inline-flex items-center gap-2 rounded-xl border border-gray-200 dark:border-[#1e2538] bg-white dark:bg-[#0f1222] px-3 py-1.5 text-sm font-medium text-gray-600 dark:text-gray-300 transition hover:bg-gray-50 dark:hover:bg-[#161b2e] hover:text-gray-900 dark:hover:text-white"
+          >
+            <svg className="h-4 w-4 shrink-0" fill="none" stroke="currentColor" strokeWidth={1.8} viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18" />
+            </svg>
+            Volver al panel
+          </Link>
         </div>
 
-        {/* Stats */}
-        <div className="rounded-2xl border border-gray-200 dark:border-[#1e2538] bg-white dark:bg-[#0f1222] p-4 w-fit">
-          <p className="text-2xl font-bold text-gray-900 dark:text-white">{openTickets}</p>
-          <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">Tickets abiertos</p>
-        </div>
+        {/* Negocios registrados: métricas, filtros y correo de ayuda */}
+        <TenantsSection filters={filters} />
 
         {/* Tickets */}
         <section className="rounded-2xl border border-gray-200 dark:border-[#1e2538] bg-white dark:bg-[#0f1222] overflow-hidden">
-          <div className="px-6 py-4 border-b border-gray-100 dark:border-[#1e2538]">
+          <div className="px-6 py-4 border-b border-gray-100 dark:border-[#1e2538] flex items-baseline justify-between gap-3">
             <h2 className="text-base font-semibold text-gray-900 dark:text-white">Tickets de soporte</h2>
+            <span className="text-xs text-gray-400">{openTickets} abiertos</span>
           </div>
 
           {(tickets?.length ?? 0) === 0 ? (

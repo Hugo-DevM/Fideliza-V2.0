@@ -2,11 +2,13 @@
  * Tenant service — business logic for tenant operations.
  */
 
+import { after } from 'next/server';
 import { createServiceRoleClient } from '@/lib/supabase/server';
 import {
   getTenantBySubdomain,
   getTenantSettings,
 } from './tenant.repository';
+import { sendNewTenantAlert } from '@/lib/email/resend';
 import { BadRequestError } from '@/lib/middleware/errors';
 import { checkReservedSubdomain, reservedSubdomainMessage } from '@/lib/constants/reserved-subdomains';
 import type { Tenant, TenantSettings } from '@/lib/types';
@@ -91,6 +93,26 @@ export async function onboardTenant(
 
   if (settingsError || !settings) {
     throw new Error(`Error al crear la configuración del negocio: ${settingsError?.message}`);
+  }
+
+  // Aviso de alta a ADMIN_EMAIL. Va aquí y no en las acciones de registro por
+  // la misma razón que la validación de subdominio de arriba: onboardTenant es
+  // el punto único por el que pasan los dos caminos de alta (correo/contraseña
+  // y OAuth), y colgarlo de cada acción significa olvidarlo en la tercera.
+  // `after` para que no retrase la respuesta pero sobreviva a que se devuelva.
+  try {
+    after(async () => {
+      await sendNewTenantAlert({
+        businessName: tenant.name,
+        subdomain:    tenant.subdomain,
+        email:        tenant.email,
+        plan:         tenant.plan,
+        createdAt:    tenant.created_at,
+      });
+    });
+  } catch {
+    // Fuera del ciclo de una petición (scripts, tests) `after` no existe:
+    // se pierde el aviso, no el alta.
   }
 
   return {
