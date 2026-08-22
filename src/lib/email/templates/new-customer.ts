@@ -1,3 +1,5 @@
+import { brandHeaderRow } from './brand';
+
 export function milestoneTemplate(tenantName: string, total: number, emoji: string, headline: string, body: string): string {
   return `<!DOCTYPE html>
 <html lang="es">
@@ -12,11 +14,7 @@ export function milestoneTemplate(tenantName: string, total: number, emoji: stri
       <td align="center">
         <table width="100%" cellpadding="0" cellspacing="0" style="max-width:520px;">
 
-          <tr>
-            <td align="center" style="padding-bottom:24px;">
-              <span style="font-size:22px;font-weight:700;color:#4F46E5;letter-spacing:-0.5px;">Fideliza</span>
-            </td>
-          </tr>
+          ${brandHeaderRow()}
 
           <tr>
             <td style="background:#ffffff;border-radius:16px;border:1px solid #e2e8f0;padding:40px 36px;box-shadow:0 1px 3px rgba(0,0,0,0.06);">
@@ -83,11 +81,7 @@ export function newCustomerTemplate(tenantName: string, customerName: string): s
       <td align="center">
         <table width="100%" cellpadding="0" cellspacing="0" style="max-width:520px;">
 
-          <tr>
-            <td align="center" style="padding-bottom:24px;">
-              <span style="font-size:22px;font-weight:700;color:#4F46E5;letter-spacing:-0.5px;">Fideliza</span>
-            </td>
-          </tr>
+          ${brandHeaderRow()}
 
           <tr>
             <td style="background:#ffffff;border-radius:16px;border:1px solid #e2e8f0;padding:40px 36px;box-shadow:0 1px 3px rgba(0,0,0,0.06);">

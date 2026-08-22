@@ -6,6 +6,8 @@
  * routes through Supabase's verification endpoint, then back to /auth/callback.
  */
 
+import { brandHeaderRow } from './brand';
+
 export function emailConfirmationTemplate(confirmUrl: string, fullName?: string): string {
   const greeting = fullName ? `Hola, ${fullName.split(' ')[0]}` : 'Hola';
 
@@ -23,13 +25,7 @@ export function emailConfirmationTemplate(confirmUrl: string, fullName?: string)
         <table width="100%" cellpadding="0" cellspacing="0" style="max-width:520px;">
 
           <!-- Logo -->
-          <tr>
-            <td align="center" style="padding-bottom:24px;">
-              <span style="font-size:22px;font-weight:700;color:#4F46E5;letter-spacing:-0.5px;">
-                Fideliza
-              </span>
-            </td>
-          </tr>
+          ${brandHeaderRow()}
 
           <!-- Card -->
           <tr>

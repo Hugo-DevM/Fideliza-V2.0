@@ -6,6 +6,8 @@
  * Link expires in 15 minutes; expiry message is prominently displayed.
  */
 
+import { brandHeaderRow } from './brand';
+
 export function passwordResetTemplate(resetUrl: string): string {
   return `<!DOCTYPE html>
 <html lang="es">
@@ -21,13 +23,7 @@ export function passwordResetTemplate(resetUrl: string): string {
         <table width="100%" cellpadding="0" cellspacing="0" style="max-width:520px;">
 
           <!-- Logo -->
-          <tr>
-            <td align="center" style="padding-bottom:24px;">
-              <span style="font-size:22px;font-weight:700;color:#4F46E5;letter-spacing:-0.5px;">
-                Fideliza
-              </span>
-            </td>
-          </tr>
+          ${brandHeaderRow()}
 
           <!-- Card -->
           <tr>

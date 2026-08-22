@@ -2,6 +2,8 @@
  * Internal operations alert — goes to ADMIN_EMAIL, never to a tenant.
  * Plain and dense on purpose: this is a page, not a marketing email.
  */
+import { brandHeaderRow } from './brand';
+
 export function queueStuckAlertTemplate(params: {
   stuck:         number;
   failed24h:     number;
@@ -28,11 +30,7 @@ export function queueStuckAlertTemplate(params: {
       <td align="center">
         <table width="100%" cellpadding="0" cellspacing="0" style="max-width:560px;">
 
-          <tr>
-            <td align="center" style="padding-bottom:24px;">
-              <span style="font-size:22px;font-weight:700;color:#4F46E5;letter-spacing:-0.5px;">Fideliza</span>
-            </td>
-          </tr>
+          ${brandHeaderRow()}
 
           <tr>
             <td style="background:#ffffff;border-radius:16px;border:1px solid #fecaca;padding:36px 32px;box-shadow:0 1px 3px rgba(0,0,0,0.06);">

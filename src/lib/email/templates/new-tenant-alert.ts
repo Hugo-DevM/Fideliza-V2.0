@@ -4,6 +4,8 @@
  * correo de producto.
  */
 
+import { brandHeaderRow } from './brand';
+
 const PLAN_LABELS: Record<string, string> = {
   free:       'Gratis',
   starter:    'Starter',
@@ -18,7 +20,7 @@ export function newTenantAlertTemplate(params: {
   plan:         string;
   createdAt:    string;
 }): string {
-  const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? 'https://app.fideliza.app';
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? 'https://fideliza.app';
   const { businessName, subdomain, email, plan, createdAt } = params;
 
   const fecha = new Date(createdAt).toLocaleString('es-MX', {
@@ -45,11 +47,7 @@ export function newTenantAlertTemplate(params: {
       <td align="center">
         <table width="100%" cellpadding="0" cellspacing="0" style="max-width:520px;">
 
-          <tr>
-            <td align="center" style="padding-bottom:24px;">
-              <span style="font-size:22px;font-weight:700;color:#4F46E5;letter-spacing:-0.5px;">Fideliza</span>
-            </td>
-          </tr>
+          ${brandHeaderRow()}
 
           <tr>
             <td style="background:#ffffff;border-radius:16px;border:1px solid #e2e8f0;padding:36px 32px;box-shadow:0 1px 3px rgba(0,0,0,0.06);">
